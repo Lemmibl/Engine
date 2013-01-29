@@ -69,14 +69,10 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		position /= position.w;
 
 		float4 lightCoordinates = mul(position, mul(LightView, LightProjection));
-		//lightCoordinates = mul(lightCoordinates, LightProjection);
-
-		//re-homogenize position after interpolation
-		lightCoordinates /= lightCoordinates.w;
+		//lightCoordinates.xyz /= lightCoordinates.w;
+		
 		float realDistanceToLight = lightCoordinates.z;
 		
-		realDistanceToLight -= 0.008f;
-
 		float2 sampleLightScreen;
 		sampleLightScreen.x = lightCoordinates.x / 2.0f + 0.5f;
 		sampleLightScreen.y = (-lightCoordinates.y / 2.0f + 0.5f);
@@ -87,11 +83,12 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		{	
 				float shadowMapDepth = shaderTextures[0].Sample(samplers[1], sampleLightScreen.xy).r;
 
-				if (shadowMapDepth < 1.0f && realDistanceToLight > shadowMapDepth)
+				if (realDistanceToLight < 1 && (realDistanceToLight-0.0003f) > shadowMapDepth)
 				{
 					shadowMultiplier = 0.2f;
 				}			
 		}
+
 		
 		//surface-to-light vector
 		float3 lightVector = normalize(LightPosition); //Sigh, idk
@@ -111,7 +108,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		float finalSpecularProduct = 0.0f;
 		finalSpecularProduct += Ks * pow( saturate(dot(reflectionVector, directionToCamera)), a);
 		
-		//Not going to apply specular here, it'll be applied in the final composition stage.
+		//Storing specular in alpha channel. Applying shadow multiplier to both diffuse product and specular, but not ambient, to make sure it's not just black.
 		return half4(finalAmbienceProduct.rgb + shadowMultiplier * (finalDiffuseProduct.rgb * DiffuseColor.rgb), shadowMultiplier * finalSpecularProduct);
 }
 
