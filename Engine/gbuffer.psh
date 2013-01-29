@@ -1,0 +1,58 @@
+struct VertexShaderOutput
+{
+	float4 Position : SV_POSITION;
+	float3 Normal : NORMAL;
+	float2 TexCoord : TEXCOORD0;
+	float3x3 TangentToWorld : TEXCOORD1;
+};
+
+struct PixelShaderOutput
+{
+	half4 Color : SV_TARGET0; //R8G8B8A8
+	half4 Normal : SV_TARGET1; //R8G8B8A8
+	float Depth : SV_TARGET2; //R32
+};
+
+Texture2D shaderTextures[3]; //0 == diffuse, 1 == specular, 2 == normal
+
+SamplerState linearSampler : register(s0); //This can be used for all 3 different textures, seeing as they're all sampled the same way!
+
+//Normal Encoding Function
+half3 encode(half3 n)
+{
+	n.xyz = 0.5f * (n.xyz + 1.0f);
+
+	return n;
+}
+
+PixelShaderOutput GBufferPixelShader(VertexShaderOutput input)
+{
+	PixelShaderOutput output;
+
+	output.Color =				shaderTextures[0].Sample(linearSampler, input.TexCoord);
+	float3 normalFromMap =				shaderTextures[1].Sample(linearSampler, input.TexCoord);
+	float4 specularAttributes =		shaderTextures[2].Sample(linearSampler, input.TexCoord);
+
+	if(output.Color.a < 0.45f) //Crude alpha testing
+	{
+		output.Color = float4(0.0f, 0.0f, 0.0f, 0.0f);
+	}
+
+	float specularIntensity = 1.0f;
+	float specularPower = 128.0f;
+
+
+	output.Color.w = specularAttributes.x; //store specular intensity value in color target's alpha value
+
+	normalFromMap = normalFromMap * 2.0f - 1.0f;				//tranform the normal data from [0,1] to [-1,1]
+	normalFromMap = mul(normalFromMap, input.TangentToWorld);	//transform it into world space
+	normalFromMap = normalize(normalFromMap);					//then normalize the result
+
+	output.Normal.xyz = encode(normalFromMap);			//revert the normal output to [0,1] space then assign it to the output normal map's RGB channel
+
+	output.Normal.w = specularAttributes.y; //specular power stored in normal map's alpha channel
+
+	output.Depth = (input.Position.z / input.Position.w);
+
+	return output;
+}

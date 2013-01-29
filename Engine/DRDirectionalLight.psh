@@ -1,0 +1,189 @@
+cbuffer PositionalBuffer //Whatever, idk what else to name it
+{
+	float4 LightDirection;
+	float4 LightPosition;
+	float4 CameraPosition;
+};
+
+cbuffer PixelMatrixBuffer
+{
+	float4x4 InverseViewProjection;
+	float4x4 LightView;
+	float4x4 LightProjection;
+};
+
+cbuffer LightBuffer
+{
+	float4 DiffuseColor;
+	float4 AmbientColor;
+
+	float Ka; //Ambient light coefficient
+	float Kd; //Diffuse light coefficient
+	float Ks; //Specular light coefficient
+	float a; //Alpha coefficient
+};
+
+SamplerState samplers[2]; //0 == linear, 1 == point
+Texture2D shaderTextures[3]; // 0 = shadow depth, 1 = normal, 2 = standard depth.
+
+struct VertexShaderOutput
+{
+		float4 Position : SV_POSITION;
+		float2 TexCoord : TEXCOORD0;
+		float4 ScreenPosition : TEXCOORD1;
+};
+
+//Decoding of GBuffer Normals
+float3 decode(float3 enc)
+{
+	return (2.0f * enc.xyz- 1.0f);
+}
+
+half4 LightPixelShader(VertexShaderOutput input) : SV_Target
+{
+		float depth = shaderTextures[2].Sample(samplers[1], input.TexCoord);
+
+		if(0 >= depth) //Skip as early as possible if this pixel isn't supposed to be lit.
+		{
+			return float4(0.0f, 0.0f, 0.0f, 0.0f);
+		}
+
+		input.ScreenPosition.xy /= input.ScreenPosition.w;
+
+
+		//compute ambient light
+		half4 finalAmbienceProduct = half4(0.0f, 0.0f, 0.0f, 0.0f);
+		finalAmbienceProduct += Ka * AmbientColor;
+
+		float4 encodedNormal = shaderTextures[1].Sample(samplers[0], input.TexCoord);
+
+		float3 normal = normalize(decode(encodedNormal.xyz));
+
+		float4 position;
+		position.x = input.ScreenPosition.x;
+		position.y = input.ScreenPosition.y;
+		position.z = depth;
+		position.w = 1.0f;
+
+		position = mul(position, InverseViewProjection);
+		position /= position.w;
+
+		float4 lightCoordinates = mul(position, mul(LightView, LightProjection));
+		//lightCoordinates = mul(lightCoordinates, LightProjection);
+
+		//re-homogenize position after interpolation
+		lightCoordinates /= lightCoordinates.w;
+		float realDistanceToLight = lightCoordinates.z;
+		
+		realDistanceToLight -= 0.008f;
+
+		float2 sampleLightScreen;
+		sampleLightScreen.x = lightCoordinates.x / 2.0f + 0.5f;
+		sampleLightScreen.y = (-lightCoordinates.y / 2.0f + 0.5f);
+
+		float shadowMultiplier = 1.0f;
+
+		if(!(sampleLightScreen.x > 1 || sampleLightScreen.x < 0 || sampleLightScreen.y > 1 || sampleLightScreen.y < 0))
+		{	
+				float shadowMapDepth = shaderTextures[0].Sample(samplers[1], sampleLightScreen.xy).r;
+
+				if (shadowMapDepth < 1.0f && realDistanceToLight > shadowMapDepth)
+				{
+					shadowMultiplier = 0.2f;
+				}			
+		}
+		
+		//surface-to-light vector
+		float3 lightVector = normalize(LightPosition); //Sigh, idk
+		float NdL = max(0, dot(normal, lightVector)); //NdotL CAN be negative, so clamp it at 0.
+
+		//reflection vector
+		float3 reflectionVector = normalize(-reflect(lightVector, normal));
+
+		//camera-to-surface vector
+		float3 directionToCamera = normalize(position - CameraPosition);
+
+		//compute diffuse light
+		half4 finalDiffuseProduct = half4(0.0f, 0.0f, 0.0f, 0.0f);
+		finalDiffuseProduct += Kd * NdL;
+
+		//compute specular light 
+		float finalSpecularProduct = 0.0f;
+		finalSpecularProduct += Ks * pow( saturate(dot(reflectionVector, directionToCamera)), a);
+		
+		//Not going to apply specular here, it'll be applied in the final composition stage.
+		return half4(finalAmbienceProduct.rgb + shadowMultiplier * (finalDiffuseProduct.rgb * DiffuseColor.rgb), shadowMultiplier * finalSpecularProduct);
+}
+
+
+/*
+
+
+float4 ps_lighting(VS_OUTPUT IN) : SV_Target
+{
+	if (renderingSkel || renderingRBody)
+	{
+		return float4(1, 1, 1, 1);
+	}
+	else
+	{
+		//shadow mapping stuff
+		IN.LightPosition.xyz /= IN.LightPosition.w;
+		
+		float4 ambient = ambientBright * materialAmbient;
+
+		if( IN.LightPosition.x < -1.0f || IN.LightPosition.x > 1.0f || IN.LightPosition.y < -1.0f || IN.LightPosition.y > 1.0f || IN.LightPosition.z < 0.0f  || IN.LightPosition.z > 1.0f ) 
+			return ambient;
+
+		IN.LightPosition.x = IN.LightPosition.x/2 + 0.5;
+		IN.LightPosition.y = IN.LightPosition.y/-2 + 0.5;
+
+		float shadowMapDepth = shadowMap.Sample(ShadowSampler, IN.LightPosition.xy).r;
+
+		if (shadowMapDepth < IN.LightPosition.z) return ambient;
+
+		float3 V = normalize(IN.eye - IN.position);
+		float3 R = reflect(lightDir, IN.normal);
+		
+		float4 diffuse = diffuseBright * (materialDiffuse * saturate(dot(lightDir, IN.normal)));
+		float4 specular = specularBright * pow(saturate(dot(R, V)), normalize(shine));
+		float4 finalColor = ambient + diffuse;
+		if (shine > 0)
+		{
+			finalColor = saturate(finalColor + specular);
+		}
+
+		
+
+		float4 color = texDiffuse.Sample(DiffuseSampler, IN.tex0);
+		float4 sphCol = sphTexture.Sample(SphereSampler, IN.spTex);
+		if (useTexture)
+		{
+			finalColor *= color;
+		}
+		if (useSphere)
+		{
+			if (isSphereAdd)
+			{
+				finalColor += sphCol;
+			}
+			else
+			{
+				finalColor *= sphCol;
+			}
+		}
+		float4 o = (finalColor * extraBright) * fadeCoef;
+		if (useTexture)
+		{
+			o.a = color.a * materialDiffuse.a;
+		}
+		else
+		{
+			o.a = materialDiffuse.a;
+		}
+		return o;
+	}
+}
+
+
+*/

@@ -1,0 +1,20 @@
+Texture2D shaderTextures[2]; // 0 = color, light = 1
+SamplerState linearSampler; //linear sampler
+
+struct VertexShaderOutput
+{
+		float4 Position : SV_POSITION;
+		float2 TexCoord : TEXCOORD0;
+};
+
+half4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
+{
+		//specular intensity is stored in the color map's alpha channel.
+		float3 baseColor = shaderTextures[0].Sample(linearSampler, input.TexCoord).rgb;
+		float4 light = shaderTextures[1].Sample(linearSampler, input.TexCoord);
+		float3 diffuseLight = light.rgb;
+		float specularLight = light.a;
+
+		//Not going to apply specular here, it'll be applied in the final composition stage.
+		return half4((baseColor * diffuseLight + specularLight), 1.0f);
+}

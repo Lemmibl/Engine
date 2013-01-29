@@ -1,0 +1,118 @@
+cbuffer LightBufferType
+{
+	float4 LightColor;
+	int LightRadius;
+	float LightPower;
+	float2 Padding;
+	float4 CameraPosition;
+}
+
+cbuffer PixelMatrixBufferType
+{
+	float4x4 InvViewProjection;
+	float4 LightPosition;
+}
+
+struct VertexShaderOutput
+{
+	float4 Position : SV_Position;
+	float4 ScreenPosition : TEXCOORD0;
+	float4 WorldPosition : TEXCOORD1;
+	float4 ViewPosition : TEXCOORD2;
+};
+
+Texture2D textures[3];//Color, Normal, depth. In that order
+SamplerState pointSampler;
+
+half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
+{
+	input.ScreenPosition.xy /= input.ScreenPosition.w; //Get screen position
+
+	float2 texCoord = 0.5f * (float2(input.ScreenPosition.x, -input.ScreenPosition.y) + 1);
+
+	//get normal data from the normalMap
+	float4 normalData = textures[1].Sample(pointSampler, texCoord);
+
+	//tranform normal back into [-1,1] range
+	float3 normal = 2.0f * normalData.xyz - 1.0f;
+
+	/*
+		TODO: Try only using InvertedProj instead of InvertedViewProj to project position into viewspace.
+
+		D3DXVec4Transform(&lightPosView, &D3DXVECTOR4(0, 0, 0, 1), &matWorldView);
+	*/
+
+	//surface-to-light vector
+	float3 lightVector =  LightPosition - input.WorldPosition;
+	float lightDistance = length(LightPosition - input.WorldPosition);
+	//float oneOverSqrLightRadius = 1 / (LightRadius * LightRadius);
+	//saturate(1 - (lightVector*lightVector) * oneOverSqrLightRadius);
+
+	/*
+	For readers unfamiliar with lighting equations, a point light's contribution is computed as follows:
+
+	Given: N, the normal of the point on the surface to be lit
+		 Ppoint, the position of the point to be lit
+		 Plight, the position of the light
+		 A0, A1 and A2, the attenuation factors for the light2
+
+	(1) dist = |Ppoint- Plight |, the distance from the light
+
+	(2) Lpoint = Ppoint- Plight /|Ppoint- Plight |, the normalized direction from the light to the surface point
+
+	(3) att = 1.0/( A0 + (A1*dist) + (A2*dist2) ), the attenuation of the light
+
+	and finally,
+
+	(4) Cpoint = att * (N · -Lpoint), the color contribution to the overall lighting
+
+	For this article, we will simply be using inverse linear drop off as our attenuation factor. Inverse linear attenuation is 1/dist; it is equivalent to setting A0 = 0.0, A1 = 1.0, and A2 = 0.0.
+	*/
+
+	float attenuation = (1 / lightDistance);
+
+	//normalize light vector
+	lightVector = normalize(lightVector);
+
+	//compute diffuse light
+	float NdL = max(0, dot(normal, lightVector));
+
+	float3 diffuseLight = ((LightPower*LightColor.rgb) * NdL);
+
+	//reflection vector
+	float3 reflectionVector = normalize(reflect(-lightVector, normal));
+
+	//camera-to-surface vector
+	float3 directionToCamera = normalize(CameraPosition - input.WorldPosition);
+
+	//compute specular light
+	float specularLight =  pow( saturate(dot(reflectionVector, directionToCamera)), 128.0f); //it's 128 because idk.
+
+	return attenuation * half4(diffuseLight, specularLight); //attenuation * half4(diffuseLight, specularLight);
+}
+
+/*
+vec3 DirectIllumination(vec3 P, vec3 N, vec3 lightCentre, float lightRadius, vec3 lightColour, float cutoff)
+{
+
+	float r = lightRadius;
+	vec3 L = lightCentre - P;
+	float distance = length(L);
+	float d = max(distance - r, 0);
+	L /= distance;
+	
+	// calculate basic attenuation
+	float denom = d/r + 1;
+	float attenuation = 1 / (denom*denom);
+	
+	// scale and bias attenuation such that:
+	//   attenuation == 0 at extent of max influence
+	//   attenuation == 1 when d == 0
+	attenuation = (attenuation - cutoff) / (1 - cutoff);
+	attenuation = max(attenuation, 0);
+	
+	float dot = max(dot(L, N), 0);
+	return lightColour * dot * attenuation;
+}
+
+*/
