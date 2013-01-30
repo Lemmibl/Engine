@@ -370,14 +370,14 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	// Initialize the directional light.
 	dirLight->Color = D3DXVECTOR4(0.7f, 0.7f, 0.7f, 1.0f);
 	dirLight->Intensity = 128.0f;
-	dirLight->Position = D3DXVECTOR3(-5.0f, 30.0f, 0.0f);
+	dirLight->Position = D3DXVECTOR3(-5.0f, 130.0f, 0.0f);
 
 	D3DXVECTOR3 direction = lookAt - dirLight->Position;
 	D3DXVec3Normalize(&direction, &direction);
 	dirLight->Direction = direction;
 
 	//dirLight->Projection = *D3DXMatrixPerspectiveFovLH(&dirLight->Projection, D3DX_PI/2.0f, 1.0f, 5.0f, 140.0f);
-	D3DXMatrixOrthoLH(&dirLight->Projection, (float)shadowMapWidth, (float)shadowMapHeight, 5.0f, 100.0f);
+	D3DXMatrixOrthoLH(&dirLight->Projection, (float)shadowMapWidth, (float)shadowMapHeight, 5.0f, 500.0f);
 	D3DXMatrixLookAtLH(&dirLight->View, &dirLight->Position, &lookAt, &up); //Generate light view matrix
 	#pragma endregion
 
