@@ -30,7 +30,7 @@ bool DRFinalComposition::Initialize(ID3D11Device* device, HWND hwnd)
 	bool result;
 
 	// Initialize the vertex and pixel shaders.
-	result = InitializeShader(device, hwnd, L"../Engine/compose.vsh", L"../Engine/compose.psh");
+	result = InitializeShader(device, hwnd, L"../Engine/DRCompose.vsh", L"../Engine/DRCompose.psh");
 	if(!result)
 	{
 		return false;

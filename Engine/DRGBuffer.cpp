@@ -28,7 +28,7 @@ bool DRGBuffer::Initialize(ID3D11Device* device, HWND hwnd)
 
 
 	// Initialize the vertex and pixel shaders.
-	result = InitializeShader(device, hwnd, L"../Engine/gbuffer.vsh", L"../Engine/gbuffer.psh");
+	result = InitializeShader(device, hwnd, L"../Engine/DRGbuffer.vsh", L"../Engine/DRGbuffer.psh");
 	if(!result)
 	{
 		return false;

@@ -32,7 +32,7 @@ bool DRPointLight::Initialize(ID3D11Device* device, HWND hwnd)
 	bool result;
 
 	// Initialize the vertex and pixel shaders.
-	result = InitializeShader(device, hwnd, L"../Engine/PointLight.vsh", L"../Engine/PointLight.psh");
+	result = InitializeShader(device, hwnd, L"../Engine/DRPointLight.vsh", L"../Engine/DRPointLight.psh");
 	if(!result)
 	{
 		return false;
