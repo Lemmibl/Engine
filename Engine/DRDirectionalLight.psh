@@ -57,7 +57,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 
 		float4 position;
 		position.x =  (input.TexCoord.x * 2.0f) - 1.0f;	
-		position.y = ((input.TexCoord.y * 2.0f) - 1.0f) * -1;
+		position.y = ((input.TexCoord.y * -2.0f) - 1.0f);
 		position.z = depth;
 		position.w = 1.0f;
 
@@ -77,9 +77,9 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 
 		if(!(sampleLightScreen.x > 1 || sampleLightScreen.x < 0 || sampleLightScreen.y > 1 || sampleLightScreen.y < 0)) //If inside light frustum
 		{	
-				float shadowMapDepth = shaderTextures[0].Sample(samplers[1], sampleLightScreen.xy);
+				float shadowMapDepth = shaderTextures[0].Sample(samplers[1], sampleLightScreen.xy).r;
 
-				if ((realDistanceToLight) >= shadowMapDepth + 0.0001f)
+				if (realDistanceToLight < 1 && shadowMapDepth + 0.008f < realDistanceToLight)
 				{
 					shadowMultiplier = 0.2f;
 				}			

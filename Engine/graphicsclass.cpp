@@ -539,7 +539,9 @@ bool GraphicsClass::Render()
 	lightProj = dirLight->Projection;
 
 	//D3DXMatrixMultiply(&lightViewProj, &dirLight->View, &dirLight->Projection);
-	D3DXMatrixMultiply(&viewProjection, &viewMatrix, &projectionMatrix);
+	//D3DXMatrixMultiply(&viewProjection, &viewMatrix, &projectionMatrix);
+
+	viewProjection = viewMatrix*projectionMatrix;
 	D3DXMatrixInverse(&invertedViewProjection, NULL, &viewProjection);
 
 	// Construct the frustum.
@@ -775,34 +777,34 @@ bool GraphicsClass::Render()
 	context->ClearDepthStencilView(ds,  D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 	d3D->GetWorldMatrix(worldMatrix);
 
-	for(int i = 0; i < 3; i++)
-	{
-		result = debugWindows[i].Render(d3D->GetDeviceContext(), 200+200*i, 0);
-		if(!result)
-		{
-			return false;
-		}
+	//for(int i = 0; i < 3; i++)
+	//{
+	//	result = debugWindows[i].Render(d3D->GetDeviceContext(), 200+200*i, 0);
+	//	if(!result)
+	//	{
+	//		return false;
+	//	}
 
-		result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[i].GetIndexCount(), 
-			worldMatrix, baseViewMatrix, orthoMatrix, gbufferTextures[i]);
-		if(!result)
-		{
-			return false;
-		}
-	}
+	//	result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[i].GetIndexCount(), 
+	//		worldMatrix, baseViewMatrix, orthoMatrix, gbufferTextures[i]);
+	//	if(!result)
+	//	{
+	//		return false;
+	//	}
+	//}
 
-	result = debugWindows[3].Render(d3D->GetDeviceContext(), 200, 200);
-	if(!result)
-	{
-		return false;
-	}
+	//result = debugWindows[3].Render(d3D->GetDeviceContext(), 200, 200);
+	//if(!result)
+	//{
+	//	return false;
+	//}
 
-	result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[3].GetIndexCount(), 
-		worldMatrix, baseViewMatrix, orthoMatrix, lightRT->SRView);
-	if(!result)
-	{
-		return false;
-	}
+	//result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[3].GetIndexCount(), 
+	//	worldMatrix, baseViewMatrix, orthoMatrix, lightRT->SRView);
+	//if(!result)
+	//{
+	//	return false;
+	//}
 
 	result = debugWindows[4].Render(d3D->GetDeviceContext(), 800, 0);
 	if(!result)
