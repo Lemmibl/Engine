@@ -30,7 +30,6 @@ struct VertexShaderOutput
 {
 		float4 Position : SV_POSITION;
 		float2 TexCoord : TEXCOORD0;
-		float4 ScreenPosition : TEXCOORD1;
 };
 
 //Decoding of GBuffer Normals
@@ -48,9 +47,6 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 			return float4(0.0f, 0.0f, 0.0f, 0.0f);
 		}
 
-		input.ScreenPosition.xy /= input.ScreenPosition.w;
-
-
 		//compute ambient light
 		half4 finalAmbienceProduct = half4(0.0f, 0.0f, 0.0f, 0.0f);
 		finalAmbienceProduct += Ka * AmbientColor;
@@ -60,7 +56,8 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		float3 normal = normalize(decode(encodedNormal.xyz));
 
 		float4 position;
-		position.xy = input.ScreenPosition.xy;
+		position.x =  (input.TexCoord.x * 2.0f) - 1.0f;	
+		position.y = ((input.TexCoord.y * 2.0f) - 1.0f) * -1;
 		position.z = depth;
 		position.w = 1.0f;
 
@@ -73,16 +70,16 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		float realDistanceToLight = lightCoordinates.z;
 		
 		float2 sampleLightScreen;
-		sampleLightScreen.x = lightCoordinates.x / 2.0f + 0.5f;
-		sampleLightScreen.y = (-lightCoordinates.y / 2.0f + 0.5f);
+		sampleLightScreen.x = lightCoordinates.x * 0.5f + 0.5f;
+		sampleLightScreen.y = (lightCoordinates.y * -0.5f + 0.5f);
 
 		float shadowMultiplier = 1.0f;
 
-		if(!(sampleLightScreen.x > 1 || sampleLightScreen.x < 0 || sampleLightScreen.y > 1 || sampleLightScreen.y < 0))
+		if(!(sampleLightScreen.x > 1 || sampleLightScreen.x < 0 || sampleLightScreen.y > 1 || sampleLightScreen.y < 0)) //If inside light frustum
 		{	
 				float shadowMapDepth = shaderTextures[0].Sample(samplers[1], sampleLightScreen.xy);
 
-				if ((realDistanceToLight - 0.0003f) > shadowMapDepth)
+				if ((realDistanceToLight) >= shadowMapDepth + 0.0001f)
 				{
 					shadowMultiplier = 0.2f;
 				}			

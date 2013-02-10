@@ -15,7 +15,6 @@ struct VertexShaderOutput
 {
 		float4 Position : SV_POSITION;
 		float2 TexCoord : TEXCOORD0;
-		float4 ScreenPosition : TEXCOORD1;
 };
 
 //TODO Make a LightDirection + CameraPosition cbuffer that gets sent to vertexbuffer.
@@ -27,8 +26,6 @@ VertexShaderOutput LightVertexShader(VertexShaderInput input)
 		output.Position = mul(input.Position, World);
 		output.Position = mul(output.Position, View);
 		output.Position = mul(output.Position, Projection);
-
-		output.ScreenPosition = output.Position;
 
 		output.TexCoord = input.tex;
 
