@@ -370,14 +370,14 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	// Initialize the directional light.
 	dirLight->Color = D3DXVECTOR4(0.7f, 0.7f, 0.7f, 1.0f);
 	dirLight->Intensity = 128.0f;
-	dirLight->Position = D3DXVECTOR3(-5.0f, 130.0f, 0.0f);
+	dirLight->Position = D3DXVECTOR3(-5.0f, 40.0f, -5.0f);
 
 	D3DXVECTOR3 direction = lookAt - dirLight->Position;
 	D3DXVec3Normalize(&direction, &direction);
 	dirLight->Direction = direction;
 
 	//dirLight->Projection = *D3DXMatrixPerspectiveFovLH(&dirLight->Projection, D3DX_PI/2.0f, 1.0f, 5.0f, 140.0f);
-	D3DXMatrixOrthoLH(&dirLight->Projection, (float)shadowMapWidth, (float)shadowMapHeight, 5.0f, 500.0f);
+	D3DXMatrixOrthoLH(&dirLight->Projection, (float)shadowMapWidth, (float)shadowMapHeight, 5.0f, 300.0f);
 	D3DXMatrixLookAtLH(&dirLight->View, &dirLight->Position, &lookAt, &up); //Generate light view matrix
 	#pragma endregion
 
@@ -746,7 +746,7 @@ bool GraphicsClass::Render()
 	ds = d3D->GetDepthStencilView();
 	context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL|D3D11_CLEAR_DEPTH, 1.0f, 0);
 	d3D->TurnOnLightBlending();
-	d3D->SetBackFaceCullingRasterizer();
+	d3D->SetNoCullRasterizer();
 	d3D->GetWorldMatrix(worldMatrix);
 
 	fullScreenQuad.Render(context, 0, 0);
