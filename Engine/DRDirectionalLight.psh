@@ -64,6 +64,8 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		position = mul(position, InverseViewProjection);
 		position /= position.w;
 
+		//http://www.gamedev.net/topic/636669-deferred-renderer-shadow-mapping/
+
 		float4 lightCoordinates = mul(position, mul(LightView, LightProjection));
 		lightCoordinates /= lightCoordinates.w;
 		
@@ -71,7 +73,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		
 		float2 sampleLightScreen;
 		sampleLightScreen.x = lightCoordinates.x * 0.5f + 0.5f;
-		sampleLightScreen.y = (lightCoordinates.y * -0.5f + 0.5f);
+		sampleLightScreen.y = (lightCoordinates.y * -0.5f) + 0.5f;
 
 		float shadowMultiplier = 1.0f;
 
