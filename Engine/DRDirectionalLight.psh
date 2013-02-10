@@ -70,18 +70,23 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		float4 lightCoordinates = mul(position, mul(LightView, LightProjection));
 		lightCoordinates /= lightCoordinates.w;
 		
-		float realDistanceToLight = lightCoordinates.z + 0.0005f;
-
-		// Used to lower moiré pattern and self-shadowing
-		realDistanceToLight += 0.0005f;
-		
+		float realDistanceToLight = lightCoordinates.z;
 		
 		float2 sampleLightScreen;
 		sampleLightScreen.x = lightCoordinates.x / 2.0f + 0.5f;
 		sampleLightScreen.y = (-lightCoordinates.y / 2.0f + 0.5f);
 
-		float shadowMapDepth = shaderTextures[0].Sample(samplers[1], sampleLightScreen.xy);
-		float shadowMultiplier = shadowMapDepth < realDistanceToLight ? 0.2f : 1.0f ;	
+		float shadowMultiplier = 1.0f;
+
+		if(!(sampleLightScreen.x > 1 || sampleLightScreen.x < 0 || sampleLightScreen.y > 1 || sampleLightScreen.y < 0))
+		{	
+				float shadowMapDepth = shaderTextures[0].Sample(samplers[1], sampleLightScreen.xy);
+
+				if ((realDistanceToLight - 0.0003f) > shadowMapDepth)
+				{
+					shadowMultiplier = 0.2f;
+				}			
+		}
 
 		
 		//surface-to-light vector

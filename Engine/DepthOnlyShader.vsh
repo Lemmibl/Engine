@@ -13,7 +13,7 @@ struct VertexShaderInput
 struct VertexShaderOutput
 {
 	float4 Position : SV_POSITION;
-	float4 ScreenPosition : TEXCOORD0;
+	float2 Depth : TEXCOORD0;
 };
 
 VertexShaderOutput DepthOnlyVertexShader(VertexShaderInput input)
@@ -24,7 +24,7 @@ VertexShaderOutput DepthOnlyVertexShader(VertexShaderInput input)
 	output.Position = mul(output.Position, View);
 	output.Position = mul(output.Position, Projection);
 
-	output.ScreenPosition = output.Position;
+	output.Depth = output.Position.zw;
 
 	return output;
 }
