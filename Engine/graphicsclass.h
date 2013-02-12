@@ -50,7 +50,7 @@ const float SCREEN_NEAR = 0.5f;
 #include "pointlight.h"
 #include "modellistclass.h"
 #include "modelclass.h"
-
+#include "marchingCubesClass.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: GraphicsClass
@@ -118,6 +118,10 @@ private:
 	D3DXVECTOR4 ambientLight;
 
 	UINT shadowMapWidth, shadowMapHeight;
+
+
+	marchingCubesClass* marchingCubes;
+	metaballsClass* metaBalls;
 };
 
 #endif

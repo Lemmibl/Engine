@@ -55,6 +55,11 @@ GraphicsClass::~GraphicsClass()
 
 bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 {
+	metaBalls = new metaballsClass();
+	marchingCubes = new marchingCubesClass(-10, 10, 10, 10, -10, -10, 0.7, -0.7, -0.7);
+	marchingCubes->setMetaBalls(metaBalls, 0.3f);
+	
+
 	srand((unsigned int)time(NULL));
 	toggleTextureShader = false;
 	bool result;
@@ -413,11 +418,17 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 
 	lightRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
 
+	marchingCubes->computeMetaBalls();
+	marchingCubes->calculateMesh(d3D->GetDevice());
+
 	return true;
 }
 
 bool GraphicsClass::Frame(int fps, int cpu, float frameTime, bool toggle, bool left, bool right)
 {
+	//marchingCubes->computeMetaBalls();
+	//marchingCubes->calculateMesh(d3D->GetDevice());
+
 	bool result;
 
 	if(toggle) //We toggle if key has been pressed (toggle == true).
@@ -763,9 +774,13 @@ bool GraphicsClass::Render()
 	d3D->SetBackBufferRenderTarget();
 	context->ClearDepthStencilView(ds,  D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	fullScreenQuad.Render(context, 0, 0);
+	marchingCubes->Render(context);
+	result = colorShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
+		worldMatrix, viewMatrix, projectionMatrix);
 
-	composeShader->Render(context, fullScreenQuad.GetIndexCount(), worldMatrix, baseViewMatrix, orthoMatrix, finalTextures);
+	//fullScreenQuad.Render(context, 0, 0);
+
+	//composeShader->Render(context, fullScreenQuad.GetIndexCount(), worldMatrix, baseViewMatrix, orthoMatrix, finalTextures);
 	#pragma endregion
 
 	#pragma region Debug and text stage
@@ -895,6 +910,8 @@ void GraphicsClass::Shutdown()
 	//}
 
 	// Release the frustum object.
+
+
 	if(frustum)
 	{
 		delete frustum;

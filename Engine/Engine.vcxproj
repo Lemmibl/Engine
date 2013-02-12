@@ -33,6 +33,7 @@
     <ClCompile Include="inputclass.cpp" />
     <ClCompile Include="lightmapshaderclass.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="marchingCubesClass.cpp" />
     <ClCompile Include="modelclass.cpp" />
     <ClCompile Include="modellistclass.cpp" />
     <ClCompile Include="multitextureshader.cpp" />
@@ -64,6 +65,7 @@
     <ClInclude Include="colorshaderclass.h" />
     <ClInclude Include="controllerclass.h" />
     <ClInclude Include="cpumeter.h" />
+    <ClInclude Include="customStructs.h" />
     <ClInclude Include="d3dclass.h" />
     <ClInclude Include="debugwindowclass.h" />
     <ClInclude Include="deferredrenderer.h" />
@@ -81,6 +83,8 @@
     <ClInclude Include="inputclass.h" />
     <ClInclude Include="interfacepointers.h" />
     <ClInclude Include="lightmapshaderclass.h" />
+    <ClInclude Include="marchingCubesClass.h" />
+    <ClInclude Include="metaballsClass.h" />
     <ClInclude Include="modelclass.h" />
     <ClInclude Include="modellistclass.h" />
     <ClInclude Include="multitextureshader.h" />
@@ -104,6 +108,7 @@
     <ClInclude Include="VertexShaderOnly.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="ClassDiagram11.cd" />
     <None Include="DepthOnlyShader.psh" />
     <None Include="BasicVertexShader.vsh" />
     <None Include="color.psh" />

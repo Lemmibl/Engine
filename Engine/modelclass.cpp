@@ -119,33 +119,14 @@ void ModelClass::Render(ID3D11DeviceContext* deviceContext)
 
 bool ModelClass::InitializeBuffers(ID3D11Device* device)
 {
-	VertexType* vertices;
-	unsigned long* indices;
-	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
-	D3D11_SUBRESOURCE_DATA vertexData, indexData;
-	HRESULT result;
-
+	
+	#pragma region old quad code
 	//// Set the number of vertices in the vertex array.
 	//vertexCount = 4;
 
 	//// Set the number of indices in the index array.
 	//indexCount = 6;
 
-	// Create the vertex array.
-	vertices = new VertexType[vertexCount];
-	if(!vertices)
-	{
-		return false;
-	}
-
-	// Create the index array.
-	indices = new unsigned long[indexCount];
-	if(!indices)
-	{
-		return false;
-	}
-
-	#pragma region old quad code
 	//// Load the vertex array with data.
 	//vertices[0].position = D3DXVECTOR3(-1.0f, -1.0f, 0.0f);  // Bottom left.
 	//vertices[0].textexture = D3DXVECTOR2(0.0f, 1.0f);
@@ -179,6 +160,26 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	// CCW: T1: 0,3,1  T2: 1,3,2
 	//*/
 	#pragma endregion
+
+	VertexType* vertices;
+	unsigned long* indices;
+	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
+	D3D11_SUBRESOURCE_DATA vertexData, indexData;
+	HRESULT result;
+
+	// Create the vertex array.
+	vertices = new VertexType[vertexCount];
+	if(!vertices)
+	{
+		return false;
+	}
+
+	// Create the index array.
+	indices = new unsigned long[indexCount];
+	if(!indices)
+	{
+		return false;
+	}
 
 	// Load the vertex array and index array with data.
 	for(int i=0; i < vertexCount; i++)
