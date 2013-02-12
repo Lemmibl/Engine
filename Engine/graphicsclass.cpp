@@ -774,6 +774,8 @@ bool GraphicsClass::Render()
 	d3D->SetBackBufferRenderTarget();
 	context->ClearDepthStencilView(ds,  D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
+	int lol;
+
 	marchingCubes->Render(context);
 	result = colorShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
 		worldMatrix, viewMatrix, projectionMatrix);
