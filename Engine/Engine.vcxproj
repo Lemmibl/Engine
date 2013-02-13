@@ -34,6 +34,7 @@
     <ClCompile Include="lightmapshaderclass.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="marchingCubesClass.cpp" />
+    <ClCompile Include="MarchingCubeShader.cpp" />
     <ClCompile Include="modelclass.cpp" />
     <ClCompile Include="modellistclass.cpp" />
     <ClCompile Include="multitextureshader.cpp" />
@@ -84,6 +85,7 @@
     <ClInclude Include="interfacepointers.h" />
     <ClInclude Include="lightmapshaderclass.h" />
     <ClInclude Include="marchingCubesClass.h" />
+    <ClInclude Include="MarchingCubeShader.h" />
     <ClInclude Include="metaballsClass.h" />
     <ClInclude Include="modelclass.h" />
     <ClInclude Include="modellistclass.h" />
@@ -108,7 +110,6 @@
     <ClInclude Include="VertexShaderOnly.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ClassDiagram11.cd" />
     <None Include="DepthOnlyShader.psh" />
     <None Include="BasicVertexShader.vsh" />
     <None Include="color.psh" />
@@ -127,6 +128,8 @@
     <None Include="DRGBuffer.vsh" />
     <None Include="lightmap.psh" />
     <None Include="lightmap.vsh" />
+    <None Include="mcubes.psh" />
+    <None Include="mcubes.vsh" />
     <None Include="multitexture.psh" />
     <None Include="multitexture.vsh" />
     <None Include="normalmap.psh" />

@@ -162,6 +162,9 @@
     <ClCompile Include="marchingCubesClass.cpp">
       <Filter>MarchingCubes</Filter>
     </ClCompile>
+    <ClCompile Include="MarchingCubeShader.cpp">
+      <Filter>MarchingCubes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inputclass.h">
@@ -308,6 +311,9 @@
     <ClInclude Include="metaballsClass.h">
       <Filter>MarchingCubes</Filter>
     </ClInclude>
+    <ClInclude Include="MarchingCubeShader.h">
+      <Filter>MarchingCubes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="specmap.vsh">
@@ -401,6 +407,11 @@
     <None Include="DRCompose.vsh">
       <Filter>Deferred stuff</Filter>
     </None>
-    <None Include="ClassDiagram11.cd" />
+    <None Include="mcubes.vsh">
+      <Filter>MarchingCubes</Filter>
+    </None>
+    <None Include="mcubes.psh">
+      <Filter>MarchingCubes</Filter>
+    </None>
   </ItemGroup>
 </Project>

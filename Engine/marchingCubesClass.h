@@ -2,83 +2,80 @@
 
 
 
-class marchingCubesClass
+class MarchingCubesClass
 {
 	ID3D11Buffer *vertexBuffer, *indexBuffer;
 	private:
 	int vertexCount, indexCount;
 
-	/* egenskaper for gridden, hvilke x,y,z-koordinater (i objekt-rommet) som gridden skal starte fra */
+	/* Properties for the grid, what x,y,z coordinates in object space the grid will start at. */
 	double startX;
 	double startY;
 	double startZ;
 
-	/* egenskaper for gridden, hvilke x,y,z-koordinater (i objekt-rommet) som gridden skal ende på */
+	/* Properties for the grid, what x,y,z coordinates in object space the grid will end at. */
 	double endX;
 	double endY;
 	double endZ;
 
-	/* hvor lange steg man skal ta når man beveger seg fra start_* til end_* */
+	/* How long each step will be between start(x,y,z) and end(x,y,z). */
 	double stepX;
 	double stepY;
 	double stepZ;
 
-	/* størrelsen på gridden, regnes ut i konstruktøren */
+	/* Size of the grid. Is calculated in the constructor. */
 	int sizeX;
 	int sizeY;
 	int sizeZ;
 
 	short lookup;
-
-	/* isoverdien for metaballer */
 	double metaballsIsoValue;
 
-	/* hvorvidt vi skal tegne ting som en wireframe-struktur */
+	/* Whether we want to draw with wireframe or not. */
 	bool wireframe;
 
-	/* en peker til et metaball-objekt */
-	metaballsClass *mb;
+	/* Pointer to a metaball object */
+	MetaballsClass *mb;
 
-	/* tabellene for oppslag av kanter og triangler */
+	/* Tables for edge cases and triangle lookup */
 	const static int edgeTable[256];
 	const static int triTable[256][16];
 	
 	MarchingCubeVectors *things;
 	
-	/* lagrer punktene som er generert */
-	marchingCubeVertex *marchingCubeVertices;
+	/* Stores the points that we generate */
+	MarchingCubeVertex *marchingCubeVertices;
 
-	/* lagrer punktene som genereres fra en enkelt kube */
-	marchingCubeVertex verts[12];
+	/* Stores the points from a simple cube */
+	MarchingCubeVertex verts[12];
 
 
 
 public:
-	/* konstruktør for objektet, tar initialiseringsverdier som beskrevet lenger ned */
-	marchingCubesClass(	double startX, double startY, double startZ, double endX, double endY, double endZ,
+	MarchingCubesClass(	double startX, double startY, double startZ, double endX, double endY, double endZ,
 			double stepX, double stepY, double stepZ);
-	virtual ~marchingCubesClass();
 
-	/* ikke i bruk, tiltenkt for å kunne resize gridden dynamisk */
-	void resize();
-	/* regner ut hvorvidt punktene er innenfor eller utenfor */
-	void computeMetaBalls();
-	/* tegner metaballene til opengl */
-	void calculateMesh(ID3D11Device* device);
+	virtual ~MarchingCubesClass();
+
+	/* Calculates whether the points are inside or outside. */
+	void ComputeMetaBalls();
+
+	/* Converts the metaballs into a mesh for directx to use */
+	void CalculateMesh(ID3D11Device* device);
 
 	bool Render(ID3D11DeviceContext* context);
 
 	int GetIndexCount() { return indexCount; }
 
-	/* setter peker til metaballs-objekt og isoverdien man ønsker å benytte */
-	void setMetaBalls(metaballsClass *mb, double isoValue)
+	/* Setter for metaball pointer and isovalue */
+	void SetMetaBalls(MetaballsClass *mb, double isoValue)
 	{
 		this->mb = mb;
-		this->mb->setIsoValue(isoValue);
+		this->mb->SetIsoValue(isoValue);
 		this->metaballsIsoValue = isoValue;
 	}
 
-	void setWireframe(bool s)
+	void SetWireframe(bool s)
 	{
 		this->wireframe = s;
 	}

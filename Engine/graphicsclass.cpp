@@ -40,6 +40,10 @@ GraphicsClass::GraphicsClass()
 	normalRT = 0;
 	depthRT = 0;
 	lightRT = 0;
+
+	marchingCubes = 0;
+	mcubeShader = 0;
+	metaBalls = 0;
 }
 
 
@@ -55,11 +59,6 @@ GraphicsClass::~GraphicsClass()
 
 bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 {
-	metaBalls = new metaballsClass();
-	marchingCubes = new marchingCubesClass(-10, 10, 10, 10, -10, -10, 0.7, -0.7, -0.7);
-	marchingCubes->setMetaBalls(metaBalls, 0.3f);
-	
-
 	srand((unsigned int)time(NULL));
 	toggleTextureShader = false;
 	bool result;
@@ -418,16 +417,33 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 
 	lightRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
 
-	marchingCubes->computeMetaBalls();
-	marchingCubes->calculateMesh(d3D->GetDevice());
+	metaBalls = new MetaballsClass();
+	marchingCubes = new MarchingCubesClass(-10, -10, -10, 10, 10, 10, 0.7, 0.7, 0.7);
+	marchingCubes->SetMetaBalls(metaBalls, 0.3f);
+
+	marchingCubes->ComputeMetaBalls();
+	marchingCubes->CalculateMesh(d3D->GetDevice());
+
+
+	mcubeShader = new MarchingCubeShader();
+	if(!mcubeShader)
+	{
+		return false;
+	}
+
+	result = mcubeShader->Initialize(d3D->GetDevice(), hwnd);
+	if(!result)
+	{
+		return false;
+	}
 
 	return true;
 }
 
 bool GraphicsClass::Frame(int fps, int cpu, float frameTime, bool toggle, bool left, bool right)
 {
-	//marchingCubes->computeMetaBalls();
-	//marchingCubes->calculateMesh(d3D->GetDevice());
+	//marchingCubes->ComputeMetaBalls();
+	//marchingCubes->CalculateMesh(d3D->GetDevice());
 
 	bool result;
 
@@ -563,136 +579,173 @@ bool GraphicsClass::Render()
 	renderCount = 0;
 	#pragma endregion
 
-	#pragma region Early depth pass for shadowmap
-	context->OMSetRenderTargets(0, 0, shadowDS);
-	d3D->SetShadowViewport();
-	d3D->SetBackFaceCullingRasterizer();
-	context->ClearDepthStencilView(shadowDS, D3D11_CLEAR_DEPTH, 1.0f, 0);
-
-	// Move the model to the location it should be rendered at.
-	D3DXMatrixTranslation(&worldMatrix, 0.0f, -10.0f, 0.0f);
-	D3DXMatrixScaling(&scalingMatrix, 0.2f, 0.2f, 0.2f);
-
-	worldMatrix = scalingMatrix * worldMatrix;
-
-	groundModel->Render(context);
-	result = depthOnlyShader->Render(context, groundModel->GetIndexCount(), worldMatrix, lightView, lightProj);
-	if(!result)
-	{
-		return false;
-	}
-
-	// Go through all the models and render them only if they can be seen by the camera view.
-	for(int i =0; i < modelCount; i++)
-	{
-		// Get the position and color of the sphere model at this index.
-		modelList->GetData(i, positionX, positionY, positionZ, color);
-
-		// Move the model to the location it should be rendered at.
-		D3DXMatrixTranslation(&worldMatrix, positionX, positionY, positionZ); 
-
-		// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
-		otherModel->Render(context);
-
-		// Render the model using the gbuffer shader.
-		result = depthOnlyShader->Render(context, otherModel->GetIndexCount(), worldMatrix, lightView, lightProj);
-		if(!result)
-		{
-			return false;
-		}
-	}
-	#pragma endregion
-
-	#pragma region GBuffer building stage
-	d3D->SetDefaultViewport();
-	ds = d3D->GetDepthStencilView();
-	context->OMSetRenderTargets(3, gbufferRenderTargets, ds);
-	context->ClearDepthStencilView(ds, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-	context->ClearRenderTargetView(gbufferRenderTargets[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
-	context->ClearRenderTargetView(gbufferRenderTargets[1], D3DXVECTOR4(0.5f, 0.5f, 0.5f, 0.0f)); //Will result in an average grey color, which is kind of the default state of normals.
-	context->ClearRenderTargetView(gbufferRenderTargets[2], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
-
-	// Move the model to the location it should be rendered at.
-	D3DXMatrixTranslation(&worldMatrix, 0.0f, -10.0f, 0.0f);
-	D3DXMatrixScaling(&scalingMatrix, 0.2f, 0.2f, 0.2f);
-
-	worldMatrix *= scalingMatrix;
-
-	groundModel->Render(context);
-	gbufferShader->Render(context, groundModel->GetIndexCount(), worldMatrix, camera->GetView(), projectionMatrix, groundModel->GetTextureArray());
-
-	renderCount++;
-
-	// Go through all the models and render them only if they can be seen by the camera view.
-	for(int i =0; i < modelCount; i++)
-	{
-		// Get the position and color of the sphere model at this index.
-		modelList->GetData(i, positionX, positionY, positionZ, color);
-
-		// Set the radius of the sphere to 1.0 since this is already known.
-		radius = 1.0f;
-
-		// Check if the sphere model is in the view frustum.
-		renderModel = frustum->CheckSphere(positionX, positionY, positionZ, radius);
-
-		// If it can be seen then render it, if not skip this model and check the next sphere.
-		if(renderModel)
-		{
-			// Move the model to the location it should be rendered at.
-			D3DXMatrixTranslation(&worldMatrix, positionX, positionY, positionZ); 
-
-			// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
-			otherModel->Render(context);
-
-			// Render the model using the gbuffer shader.
-			result = gbufferShader->Render(context, otherModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, otherModel->GetTextureArray());
-			if(!result)
-			{
-				return false;
-			}
-
-			// Since this model was rendered then increase the count for this frame.
-			renderCount++;
-		}
-	}
-
-	text->SetRenderCount(renderCount, context);
-	#pragma endregion
-
-	#pragma region Point light stage
-	context->OMSetRenderTargets(1, lightTarget, ds);
-	context->ClearRenderTargetView(lightTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
-	context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-	#pragma region Old pointlight code
-	////Phase one, draw sphere with vertex-only shader.
-	//d3D->SetLightStencilMethod2Phase1();
+	//#pragma region Early depth pass for shadowmap
+	//context->OMSetRenderTargets(0, 0, shadowDS);
+	//d3D->SetShadowViewport();
 	//d3D->SetBackFaceCullingRasterizer();
-	//d3D->TurnOffColorBlending();
+	//context->ClearDepthStencilView(shadowDS, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-	//for(unsigned int i = 0; i < pointLights.size(); i++)
-	//{	
-	//	sphereModel->Render(context);
+	//// Move the model to the location it should be rendered at.
+	//D3DXMatrixTranslation(&worldMatrix, 0.0f, -10.0f, 0.0f);
+	//D3DXMatrixScaling(&scalingMatrix, 0.2f, 0.2f, 0.2f);
 
-	//	result = vertexOnlyShader->Render(context, sphereModel->GetIndexCount(), pointLights[i]->World, viewMatrix, 
-	//		projectionMatrix);
+	//worldMatrix = scalingMatrix * worldMatrix;
+
+	//groundModel->Render(context);
+	//result = depthOnlyShader->Render(context, groundModel->GetIndexCount(), worldMatrix, lightView, lightProj);
+	//if(!result)
+	//{
+	//	return false;
+	//}
+
+	//// Go through all the models and render them only if they can be seen by the camera view.
+	//for(int i =0; i < modelCount; i++)
+	//{
+	//	// Get the position and color of the sphere model at this index.
+	//	modelList->GetData(i, positionX, positionY, positionZ, color);
+
+	//	// Move the model to the location it should be rendered at.
+	//	D3DXMatrixTranslation(&worldMatrix, positionX, positionY, positionZ); 
+
+	//	// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	//	otherModel->Render(context);
+
+	//	// Render the model using the gbuffer shader.
+	//	result = depthOnlyShader->Render(context, otherModel->GetIndexCount(), worldMatrix, lightView, lightProj);
 	//	if(!result)
 	//	{
 	//		return false;
 	//	}
 	//}
+	//#pragma endregion
 
+	//#pragma region GBuffer building stage
+	//d3D->SetDefaultViewport();
+	//ds = d3D->GetDepthStencilView();
+	//context->OMSetRenderTargets(3, gbufferRenderTargets, ds);
+	//context->ClearDepthStencilView(ds, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	//context->ClearRenderTargetView(gbufferRenderTargets[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
+	//context->ClearRenderTargetView(gbufferRenderTargets[1], D3DXVECTOR4(0.5f, 0.5f, 0.5f, 0.0f)); //Will result in an average grey color, which is kind of the default state of normals.
+	//context->ClearRenderTargetView(gbufferRenderTargets[2], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
+
+	//// Move the model to the location it should be rendered at.
+	//D3DXMatrixTranslation(&worldMatrix, 0.0f, -10.0f, 0.0f);
+	//D3DXMatrixScaling(&scalingMatrix, 0.2f, 0.2f, 0.2f);
+
+	//worldMatrix *= scalingMatrix;
+
+	//groundModel->Render(context);
+	//gbufferShader->Render(context, groundModel->GetIndexCount(), worldMatrix, camera->GetView(), projectionMatrix, groundModel->GetTextureArray());
+
+	//renderCount++;
+
+	//// Go through all the models and render them only if they can be seen by the camera view.
+	//for(int i =0; i < modelCount; i++)
+	//{
+	//	// Get the position and color of the sphere model at this index.
+	//	modelList->GetData(i, positionX, positionY, positionZ, color);
+
+	//	// Set the radius of the sphere to 1.0 since this is already known.
+	//	radius = 1.0f;
+
+	//	// Check if the sphere model is in the view frustum.
+	//	renderModel = frustum->CheckSphere(positionX, positionY, positionZ, radius);
+
+	//	// If it can be seen then render it, if not skip this model and check the next sphere.
+	//	if(renderModel)
+	//	{
+	//		// Move the model to the location it should be rendered at.
+	//		D3DXMatrixTranslation(&worldMatrix, positionX, positionY, positionZ); 
+
+	//		// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	//		otherModel->Render(context);
+
+	//		// Render the model using the gbuffer shader.
+	//		result = gbufferShader->Render(context, otherModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, otherModel->GetTextureArray());
+	//		if(!result)
+	//		{
+	//			return false;
+	//		}
+
+	//		// Since this model was rendered then increase the count for this frame.
+	//		renderCount++;
+	//	}
+	//}
+
+	//text->SetRenderCount(renderCount, context);
+	//#pragma endregion
+
+	//#pragma region Point light stage
 	//context->OMSetRenderTargets(1, lightTarget, ds);
 	//context->ClearRenderTargetView(lightTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
+	//context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	////Phase two, draw sphere with light algorithm
-	//d3D->SetLightStencilMethod2Phase2();
-	//d3D->SetFrontFaceCullingRasterizer();
+	//#pragma region Old pointlight code
+	//////Phase one, draw sphere with vertex-only shader.
+	////d3D->SetLightStencilMethod2Phase1();
+	////d3D->SetBackFaceCullingRasterizer();
+	////d3D->TurnOffColorBlending();
+
+	////for(unsigned int i = 0; i < pointLights.size(); i++)
+	////{	
+	////	sphereModel->Render(context);
+
+	////	result = vertexOnlyShader->Render(context, sphereModel->GetIndexCount(), pointLights[i]->World, viewMatrix, 
+	////		projectionMatrix);
+	////	if(!result)
+	////	{
+	////		return false;
+	////	}
+	////}
+
+	////context->OMSetRenderTargets(1, lightTarget, ds);
+	////context->ClearRenderTargetView(lightTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
+
+	//////Phase two, draw sphere with light algorithm
+	////d3D->SetLightStencilMethod2Phase2();
+	////d3D->SetFrontFaceCullingRasterizer();
+	////d3D->TurnOnLightBlending();
+
+	////for(unsigned int i = 0; i < pointLights.size(); i++)
+	////{	
+	////	sphereModel->Render(context);
+
+	////	if(!toggleDebugInfo)
+	////	{
+	////		result = textureShader->Render(context, sphereModel->GetIndexCount(), pointLights[i]->World, viewMatrix, 
+	////			projectionMatrix, sphereModel->GetTexture());
+	////	}
+	////	else
+	////	{
+	////		result = pointLightShader->Render(context, sphereModel->GetIndexCount(), pointLights[i]->World, viewMatrix, 
+	////			projectionMatrix, invertedViewProjection, pointLights[i], gbufferTextures, camera->GetPosition());
+	////	}
+
+	////	if(!result)
+	////	{
+	////		return false;
+	////	}
+	////}
+	//#pragma endregion
+
+	////Phase one, draw sphere with vertex-only shader.
 	//d3D->TurnOnLightBlending();
 
 	//for(unsigned int i = 0; i < pointLights.size(); i++)
 	//{	
+	//	d3D->SetLightStencilMethod1Phase1();
+	//	d3D->SetNoCullRasterizer();
+
+	//	sphereModel->Render(context);
+
+	//	result = vertexOnlyShader->Render(context, sphereModel->GetIndexCount(), pointLights[i]->World, viewMatrix, 
+	//		projectionMatrix);
+
+	//	//Phase two, draw sphere with light algorithm
+	//	d3D->SetLightStencilMethod1Phase2();
+	//	d3D->SetFrontFaceCullingRasterizer();
+
 	//	sphereModel->Render(context);
 
 	//	if(!toggleDebugInfo)
@@ -710,74 +763,36 @@ bool GraphicsClass::Render()
 	//	{
 	//		return false;
 	//	}
+
+	//	context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
 	//}
-	#pragma endregion
+	//#pragma endregion
 
-	//Phase one, draw sphere with vertex-only shader.
-	d3D->TurnOnLightBlending();
+	//#pragma region Directional light stage
+	/////*TODO: Create a directional light stencilstate that does a NOTEQUAL==0 stencil check.*/
+	//ds = d3D->GetDepthStencilView();
+	//context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL|D3D11_CLEAR_DEPTH, 1.0f, 0);
+	//d3D->TurnOnLightBlending();
+	//d3D->SetBackFaceCullingRasterizer();
+	//d3D->GetWorldMatrix(worldMatrix);
 
-	for(unsigned int i = 0; i < pointLights.size(); i++)
-	{	
-		d3D->SetLightStencilMethod1Phase1();
-		d3D->SetNoCullRasterizer();
+	//fullScreenQuad.Render(context, 0, 0);
 
-		sphereModel->Render(context);
-
-		result = vertexOnlyShader->Render(context, sphereModel->GetIndexCount(), pointLights[i]->World, viewMatrix, 
-			projectionMatrix);
-
-		//Phase two, draw sphere with light algorithm
-		d3D->SetLightStencilMethod1Phase2();
-		d3D->SetFrontFaceCullingRasterizer();
-
-		sphereModel->Render(context);
-
-		if(!toggleDebugInfo)
-		{
-			result = textureShader->Render(context, sphereModel->GetIndexCount(), pointLights[i]->World, viewMatrix, 
-				projectionMatrix, sphereModel->GetTexture());
-		}
-		else
-		{
-			result = pointLightShader->Render(context, sphereModel->GetIndexCount(), pointLights[i]->World, viewMatrix, 
-				projectionMatrix, invertedViewProjection, pointLights[i], gbufferTextures, camera->GetPosition());
-		}
-
-		if(!result)
-		{
-			return false;
-		}
-
-		context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
-	}
-	#pragma endregion
-
-	#pragma region Directional light stage
-	///*TODO: Create a directional light stencilstate that does a NOTEQUAL==0 stencil check.*/
-	ds = d3D->GetDepthStencilView();
-	context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL|D3D11_CLEAR_DEPTH, 1.0f, 0);
-	d3D->TurnOnLightBlending();
-	d3D->SetBackFaceCullingRasterizer();
-	d3D->GetWorldMatrix(worldMatrix);
-
-	fullScreenQuad.Render(context, 0, 0);
-
-	result = dirLightShader->Render(context, fullScreenQuad.GetIndexCount(), worldMatrix, baseViewMatrix, orthoMatrix, invertedViewProjection, 
-		dirLightTextures, camPos, dirLight->Position, dirLight->Direction, dirLight->Color, dirLight->Intensity, ambientLight, defaultModelMaterial, lightView, lightProj);
-	if(!result)
-	{
-		return false;
-	}
-	#pragma endregion
+	//result = dirLightShader->Render(context, fullScreenQuad.GetIndexCount(), worldMatrix, baseViewMatrix, orthoMatrix, invertedViewProjection, 
+	//	dirLightTextures, camPos, dirLight->Position, dirLight->Direction, dirLight->Color, dirLight->Intensity, ambientLight, defaultModelMaterial, lightView, lightProj);
+	//if(!result)
+	//{
+	//	return false;
+	//}
+	//#pragma endregion
 
 	#pragma region Final compose stage
 	d3D->SetBackBufferRenderTarget();
-	context->ClearDepthStencilView(ds,  D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-	int lol;
+	d3D->SetNoCullRasterizer();
+	//context->ClearDepthStencilView(ds,  D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	marchingCubes->Render(context);
-	result = colorShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
+	result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
 		worldMatrix, viewMatrix, projectionMatrix);
 
 	//fullScreenQuad.Render(context, 0, 0);
@@ -821,18 +836,18 @@ bool GraphicsClass::Render()
 	//	return false;
 	//}
 
-	result = debugWindows[4].Render(d3D->GetDeviceContext(), 800, 0);
-	if(!result)
-	{
-		return false;
-	}
+	//result = debugWindows[4].Render(d3D->GetDeviceContext(), 800, 0);
+	//if(!result)
+	//{
+	//	return false;
+	//}
 
-	result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[4].GetIndexCount(), 
-		worldMatrix, baseViewMatrix, orthoMatrix, dirLightTextures[0]);
-	if(!result)
-	{
-		return false;
-	}
+	//result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[4].GetIndexCount(), 
+	//	worldMatrix, baseViewMatrix, orthoMatrix, dirLightTextures[0]);
+	//if(!result)
+	//{
+	//	return false;
+	//}
 
 
 	d3D->TurnZBufferOff();
@@ -1043,6 +1058,24 @@ void GraphicsClass::Shutdown()
 	}
 
 	pointLights.clear();
+
+	if(mcubeShader)
+	{
+		mcubeShader->Shutdown();
+		mcubeShader = 0;
+	}
+
+	if(marchingCubes)
+	{
+		delete marchingCubes;
+		marchingCubes = 0;
+	}
+
+	//if(metaBalls)
+	//{
+	//	delete metaBalls;
+	//	metaBalls = 0;
+	//}
 
 	return;
 }

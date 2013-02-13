@@ -12,7 +12,7 @@ http://astronomy.swin.edu.au/~pbourke/modelling/polygonise/
 */
 
 //Contains all combinations of points inside or outside of a cube
-const int marchingCubesClass::edgeTable[256] = {
+const int MarchingCubesClass::edgeTable[256] = {
 	0x0  , 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
 	0x80c, 0x905, 0xa0f, 0xb06, 0xc0a, 0xd03, 0xe09, 0xf00,
 	0x190, 0x99 , 0x393, 0x29a, 0x596, 0x49f, 0x795, 0x69c,
@@ -47,7 +47,7 @@ const int marchingCubesClass::edgeTable[256] = {
 	0x70c, 0x605, 0x50f, 0x406, 0x30a, 0x203, 0x109, 0x0   };
 
 	// contains the combination of points that we get from the edge table
-	const int marchingCubesClass::triTable[256][16] = 
+	const int MarchingCubesClass::triTable[256][16] = 
 	{{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
 	{0, 8, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
 	{0, 1, 9, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
@@ -306,7 +306,7 @@ const int marchingCubesClass::edgeTable[256] = {
 	{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}
 	};
 
-	marchingCubesClass::~marchingCubesClass()
+	MarchingCubesClass::~MarchingCubesClass()
 	{	
 		delete marchingCubeVertices; 
 		marchingCubeVertices = 0;
@@ -324,7 +324,7 @@ const int marchingCubesClass::edgeTable[256] = {
 	int x,y,z, idx;
 	short lookup = 0;
 
-	marchingCubesClass::marchingCubesClass(	double startX, double startY, double startZ, double endX, double endY, double endZ,
+	MarchingCubesClass::MarchingCubesClass(	double startX, double startY, double startZ, double endX, double endY, double endZ,
 		double stepX, double stepY, double stepZ)
 	{
 		this->startX = startX;
@@ -347,7 +347,7 @@ const int marchingCubesClass::edgeTable[256] = {
 		vertexCount = (this->sizeX * this->sizeY * this->sizeZ);
 		indexCount = vertexCount;
 
-		this->marchingCubeVertices = new marchingCubeVertex[this->sizeX * this->sizeY * this->sizeZ];
+		this->marchingCubeVertices = new MarchingCubeVertex[this->sizeX * this->sizeY * this->sizeZ];
 		this->things = new MarchingCubeVectors[this->sizeX * this->sizeY * this->sizeZ];
 
 		this->wireframe = false;
@@ -382,7 +382,7 @@ const int marchingCubesClass::edgeTable[256] = {
 	Bruker deretter et skittent triks for å generere normaler raskt (ser på tilsideliggende styrke)
 	dette blir ikke helt nøyaktige normaler, men burde gi et greit nok estimat i forhold til tidsbruk.
 	*/
-	void marchingCubesClass::computeMetaBalls()
+	void MarchingCubesClass::ComputeMetaBalls()
 	{
 		for (z = 1; z < (this->sizeZ - 1); z++)
 		{
@@ -392,7 +392,7 @@ const int marchingCubesClass::edgeTable[256] = {
 				{
 					idx = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
 
-					this->marchingCubeVertices[idx].flux = this->mb->get_vertex_value(this->marchingCubeVertices[idx]);
+					this->marchingCubeVertices[idx].flux = this->mb->Get_vertex_value(this->marchingCubeVertices[idx]);
 
 					if (this->marchingCubeVertices[idx].flux > this->metaballsIsoValue)
 					{
@@ -411,7 +411,7 @@ const int marchingCubesClass::edgeTable[256] = {
 		}
 	}
 
-	void marchingCubesClass::calculateMesh(ID3D11Device* device)
+	void MarchingCubesClass::CalculateMesh(ID3D11Device* device)
 	{
 		MarchingCubeVectors* vertices;
 		unsigned long* indices;
@@ -425,6 +425,9 @@ const int marchingCubesClass::edgeTable[256] = {
 		// Create the index array.
 		indices = new unsigned long[indexCount];
 
+		int vertexCounter = 0;
+		int indexCounter = 0;
+
 		lookup = 0;
 
 		for (z = 0; z < (this->sizeZ - 1); z++)
@@ -433,8 +436,9 @@ const int marchingCubesClass::edgeTable[256] = {
 			{
 				for (x = 0; x < (this->sizeX - 1); x++)
 				{
-					// Off the 256 edge cases whitch should we use?
+					// Off the 256 edge cases which should we use?
 					idx = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
+
 					if (this->marchingCubeVertices[idx].inside)
 						lookup |= 128;
 
@@ -459,89 +463,125 @@ const int marchingCubesClass::edgeTable[256] = {
 					if (this->marchingCubeVertices[idx + this->sizeY + (this->sizeY * this->sizeZ)].inside)
 						lookup |= 1;
 
-					// If not all points are inside our outside 
+					// If not all points are inside our outside
 					if ((lookup != 0) && (lookup != 255))
 					{
 						// 0 - 1
 						if (this->edgeTable[lookup] & 1) 
-							this->verts[0] = this->mb->interpolate(	this->marchingCubeVertices[idx + this->sizeY + (this->sizeY * this->sizeZ)],
+							this->verts[0] = this->mb->Interpolate(	this->marchingCubeVertices[idx + this->sizeY + (this->sizeY * this->sizeZ)],
 							this->marchingCubeVertices[idx + 1 + this->sizeY + (this->sizeY * this->sizeZ)]);
 
 						// 1 - 2
 						if (this->edgeTable[lookup] & 2) 
-							this->verts[1] = this->mb->interpolate(	this->marchingCubeVertices[idx + 1 + this->sizeY + (this->sizeY * this->sizeZ)],
+							this->verts[1] = this->mb->Interpolate(	this->marchingCubeVertices[idx + 1 + this->sizeY + (this->sizeY * this->sizeZ)],
 							this->marchingCubeVertices[idx + 1 + this->sizeY]);
 
 						// 2 - 3
 						if (this->edgeTable[lookup] & 4) 
-							this->verts[2] = this->mb->interpolate(	this->marchingCubeVertices[idx + 1 + this->sizeY],
+							this->verts[2] = this->mb->Interpolate(	this->marchingCubeVertices[idx + 1 + this->sizeY],
 							this->marchingCubeVertices[idx + this->sizeY]);
 
 						// 3 - 0
 						if (this->edgeTable[lookup] & 8) 
-							this->verts[3] = this->mb->interpolate(	this->marchingCubeVertices[idx + this->sizeY],
+							this->verts[3] = this->mb->Interpolate(	this->marchingCubeVertices[idx + this->sizeY],
 							this->marchingCubeVertices[idx + this->sizeY + (this->sizeY * this->sizeZ)]);
 
 						// 4 - 5
 						if (this->edgeTable[lookup] & 16) 
-							this->verts[4] = this->mb->interpolate(	this->marchingCubeVertices[idx + (this->sizeY * this->sizeZ)],
+							this->verts[4] = this->mb->Interpolate(	this->marchingCubeVertices[idx + (this->sizeY * this->sizeZ)],
 							this->marchingCubeVertices[idx + 1 + (this->sizeY * this->sizeZ)]);
 
 						// 5 - 6
 						if (this->edgeTable[lookup] & 32) 
-							this->verts[5] = this->mb->interpolate(	this->marchingCubeVertices[idx + 1 + (this->sizeY * this->sizeZ)],
+							this->verts[5] = this->mb->Interpolate(	this->marchingCubeVertices[idx + 1 + (this->sizeY * this->sizeZ)],
 							this->marchingCubeVertices[idx + 1]);
 
 						// 6 - 7
 						if (this->edgeTable[lookup] & 64) 
-							this->verts[6] = this->mb->interpolate(	this->marchingCubeVertices[idx + 1],
+							this->verts[6] = this->mb->Interpolate(	this->marchingCubeVertices[idx + 1],
 							this->marchingCubeVertices[idx]);
 
 						// 7 - 4
 						if (this->edgeTable[lookup] & 128) 
-							this->verts[7] = this->mb->interpolate(	this->marchingCubeVertices[idx],
+							this->verts[7] = this->mb->Interpolate(	this->marchingCubeVertices[idx],
 							this->marchingCubeVertices[idx + (this->sizeY * this->sizeZ)]);
 
 						// 0 - 4
 						if (this->edgeTable[lookup] & 256)
-							this->verts[8] = this->mb->interpolate(	this->marchingCubeVertices[idx + this->sizeY + (this->sizeY * this->sizeZ)],
+							this->verts[8] = this->mb->Interpolate(	this->marchingCubeVertices[idx + this->sizeY + (this->sizeY * this->sizeZ)],
 							this->marchingCubeVertices[idx + (this->sizeY * this->sizeZ)]);
 
 						// 1 - 5
 						if (this->edgeTable[lookup] & 512) 
-							this->verts[9] = this->mb->interpolate(	this->marchingCubeVertices[idx + 1 + this->sizeY + (this->sizeY * this->sizeZ)],
+							this->verts[9] = this->mb->Interpolate(	this->marchingCubeVertices[idx + 1 + this->sizeY + (this->sizeY * this->sizeZ)],
 							this->marchingCubeVertices[idx + 1 + (this->sizeY * this->sizeZ)]);
 
 						// 2 - 6
 						if (this->edgeTable[lookup] & 1024) 
-							this->verts[10] = this->mb->interpolate(	this->marchingCubeVertices[idx + 1 + this->sizeY],
+							this->verts[10] = this->mb->Interpolate(	this->marchingCubeVertices[idx + 1 + this->sizeY],
 							this->marchingCubeVertices[idx + 1]);
 
 						// 3 - 7
 						if (this->edgeTable[lookup] & 2048) 
-							this->verts[11] = this->mb->interpolate(	this->marchingCubeVertices[idx + this->sizeY],
+							this->verts[11] = this->mb->Interpolate(	this->marchingCubeVertices[idx + this->sizeY],
 							this->marchingCubeVertices[idx]);
 
 
 						int i, j;
 
 
-						for (i = 0; this->triTable[lookup][i] != -1; i+=3)
+						for (i = 0; i < 12; i+=3)
 						{
-							for (j = i; j < (i+3); j++)
+							if(this->triTable[lookup][i] != -1)
 							{
-								vertices[i].position = D3DXVECTOR3	(	(float) this->verts[this->triTable[lookup][j]].posX,
-									(float) this->verts[this->triTable[lookup][j]].posY,
-									(float) this->verts[this->triTable[lookup][j]].posZ		);
+								for (j = i; j < (i+3); j++)
+								{
+									indices[indexCounter] = vertexCounter;
 
-								vertices[i].normal = D3DXVECTOR3		(	(float) this->verts[this->triTable[lookup][j]].normalX, 
-									(float) this->verts[this->triTable[lookup][j]].normalY, 
-									(float) this->verts[this->triTable[lookup][j]].normalZ	);
+									indexCounter++;
 
+
+									vertices[vertexCounter].position = D3DXVECTOR3	
+										(	
+										(float) this->verts[this->triTable[lookup][j]].posX,
+										(float) this->verts[this->triTable[lookup][j]].posY,
+										(float) this->verts[this->triTable[lookup][j]].posZ		
+										);
+
+									vertices[vertexCounter].normal = D3DXVECTOR3	
+										(	
+										(float) this->verts[this->triTable[lookup][j]].normalX, 
+										(float) this->verts[this->triTable[lookup][j]].normalY, 
+										(float) this->verts[this->triTable[lookup][j]].normalZ	
+										);
+
+									vertexCounter++;
+
+									/*
+									// Allocate new vertex & index
+									indices[indexCount++] = vertexCount;
+									vertices[vertexCount++] = vertexPos;
+									*/
+								}
 							}
-
-							indices[i] = i;
 						}
+
+						/*		
+						// Create the triangle
+
+						ntriang = 0;
+						for( i = 0; triTable[ cubeindex * 16 + i ] != -1; i += 3 )
+						{
+						TRIANGLE* triangle = &(*triangles)[ntriang];
+						triangle->p[0] = vertlist[ triTable[ cubeindex * 16 + i ] ];
+						triangle->p[1] = vertlist[ triTable[ cubeindex * 16 + i + 1 ] ];
+						triangle->p[2] = vertlist[ triTable[ cubeindex * 16 + i + 2 ] ];
+						ntriang++;
+						}
+
+						return(ntriang);
+						*/
+
 
 						lookup = 0;
 					}
@@ -549,6 +589,9 @@ const int marchingCubesClass::edgeTable[256] = {
 			}
 
 		}
+
+		indexCount = indexCounter;
+		vertexCount = vertexCounter;
 
 		// Set up the description of the static vertex buffer.
 		vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -591,7 +634,7 @@ const int marchingCubesClass::edgeTable[256] = {
 
 	}
 
-	bool marchingCubesClass::Render(ID3D11DeviceContext* deviceContext)
+	bool MarchingCubesClass::Render(ID3D11DeviceContext* deviceContext)
 	{
 		unsigned int stride;
 		unsigned int offset;

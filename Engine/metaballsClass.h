@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <math.h>
 
-class metaballsClass
+class MetaballsClass
 {
 	
 
@@ -17,11 +17,11 @@ private:
 	double lengthX, lengthY, lengthZ;
 
 	// the metapoints
-	metapoint metapoints[3];
+	Metapoint metapoints[3];
 
 
 public:
-	metaballsClass()
+	MetaballsClass()
 	{
 		numberOfMetapoints = 2;
 		metapoints[0].power = 1.5;
@@ -35,17 +35,17 @@ public:
 		metapoints[1].posZ = 4.0;
 	}
 
-	~metaballsClass();
+	~MetaballsClass();
 
 	double isoValue;
 
-	void setIsoValue(double isoValue)
+	void SetIsoValue(double isoValue)
 	{
 		this->isoValue = isoValue;
 	}
 
 	//move the metaball
-	inline void moveBall(int idx, double x, double y, double z)
+	inline void MoveBall(int idx, double x, double y, double z)
 	{
 		metapoints[idx].posX += x;
 		metapoints[idx].posY += y;
@@ -54,9 +54,9 @@ public:
 
 
 	// Returns a point that is interpolated with ten other points for both normals and possition
-	inline marchingCubeVertex interpolate(marchingCubeVertex v1, marchingCubeVertex v2)
+	inline MarchingCubeVertex Interpolate(MarchingCubeVertex v1, MarchingCubeVertex v2)
 	{
-		marchingCubeVertex v;
+		MarchingCubeVertex v;
 		double diff;
 
 		diff = (this->isoValue - v1.flux) / (v2.flux - v1.flux);
@@ -77,7 +77,7 @@ public:
 
 	/* henter ut flux-verdi for et gitt punkt i gridden */
 	// ???
-	inline double get_vertex_value(marchingCubeVertex v)
+	inline double Get_vertex_value(MarchingCubeVertex v)
 	{
 		double flux = 0.0;
 

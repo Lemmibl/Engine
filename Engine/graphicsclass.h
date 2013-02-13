@@ -51,6 +51,7 @@ const float SCREEN_NEAR = 0.5f;
 #include "modellistclass.h"
 #include "modelclass.h"
 #include "marchingCubesClass.h"
+#include "MarchingCubeShader.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: GraphicsClass
@@ -120,8 +121,9 @@ private:
 	UINT shadowMapWidth, shadowMapHeight;
 
 
-	marchingCubesClass* marchingCubes;
-	metaballsClass* metaBalls;
+	MarchingCubesClass* marchingCubes;
+	MetaballsClass* metaBalls;
+	MarchingCubeShader* mcubeShader;
 };
 
 #endif

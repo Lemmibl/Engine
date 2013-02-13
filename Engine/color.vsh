@@ -40,8 +40,7 @@ PixelInputType ColorVertexShader(VertexInputType input)
     output.position = mul(output.position, projectionMatrix);
     
     // Store the input color for the pixel shader to use.
-    output.color = float4(1.0f, 1.0f, 1.0f, 1.0f);
-	//input.color
+    output.color = input.color;
     
     return output;
 }
