@@ -30,7 +30,6 @@ struct VertexShaderOutput
 {
 		float4 Position : SV_POSITION;
 		float2 TexCoord : TEXCOORD0;
-		float4 ScreenPosition : TEXCOORD1;
 };
 
 //Decoding of GBuffer Normals
@@ -48,9 +47,6 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 			return float4(0.0f, 0.0f, 0.0f, 0.0f);
 		}
 
-		input.ScreenPosition.xy /= input.ScreenPosition.w;
-
-
 		//compute ambient light
 		half4 finalAmbienceProduct = half4(0.0f, 0.0f, 0.0f, 0.0f);
 		finalAmbienceProduct += Ka * AmbientColor;
@@ -60,30 +56,32 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		float3 normal = normalize(decode(encodedNormal.xyz));
 
 		float4 position;
-		position.x = input.ScreenPosition.x;
-		position.y = input.ScreenPosition.y;
+		position.x =  (input.TexCoord.x * 2.0f) - 1.0f;	
+		position.y = ((input.TexCoord.y * -2.0f) - 1.0f);
 		position.z = depth;
 		position.w = 1.0f;
 
 		position = mul(position, InverseViewProjection);
 		position /= position.w;
 
+		//http://www.gamedev.net/topic/636669-deferred-renderer-shadow-mapping/
+
 		float4 lightCoordinates = mul(position, mul(LightView, LightProjection));
-		//lightCoordinates.xyz /= lightCoordinates.w;
+		lightCoordinates /= lightCoordinates.w;
 		
 		float realDistanceToLight = lightCoordinates.z;
 		
 		float2 sampleLightScreen;
-		sampleLightScreen.x = lightCoordinates.x / 2.0f + 0.5f;
-		sampleLightScreen.y = (-lightCoordinates.y / 2.0f + 0.5f);
+		sampleLightScreen.x = lightCoordinates.x * 0.5f + 0.5f;
+		sampleLightScreen.y = (lightCoordinates.y * -0.5f) + 0.5f;
 
 		float shadowMultiplier = 1.0f;
 
-		if(!(sampleLightScreen.x > 1 || sampleLightScreen.x < 0 || sampleLightScreen.y > 1 || sampleLightScreen.y < 0))
+		if(!(sampleLightScreen.x > 1 || sampleLightScreen.x < 0 || sampleLightScreen.y > 1 || sampleLightScreen.y < 0)) //If inside light frustum
 		{	
 				float shadowMapDepth = shaderTextures[0].Sample(samplers[1], sampleLightScreen.xy).r;
 
-				if (realDistanceToLight < 1 && (realDistanceToLight-0.0003f) > shadowMapDepth)
+				if (realDistanceToLight < 1 && shadowMapDepth + 0.008f < realDistanceToLight)
 				{
 					shadowMultiplier = 0.2f;
 				}			

@@ -16,5 +16,5 @@ half4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		float specularLight = light.a;
 
 		//Not going to apply specular here, it'll be applied in the final composition stage.
-		return half4((baseColor * diffuseLight + specularLight), 1.0f);
+		return half4(baseColor * (diffuseLight + specularLight), 1.0f);
 }
