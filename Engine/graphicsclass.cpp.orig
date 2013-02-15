@@ -368,20 +368,20 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
-	D3DXVECTOR3 lookAt = D3DXVECTOR3(0.0f, 0.0f, 1.0f); //LookAt for dir light. We always want this to be (0,0,0), because it's the easiest to visualize.
+	D3DXVECTOR3 lookAt = D3DXVECTOR3(0.0f, 0.0f, 0.0f); //LookAt for dir light. We always want this to be (0,0,0), because it's the easiest to visualize.
 	D3DXVECTOR3 up = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
 
 	// Initialize the directional light.
 	dirLight->Color = D3DXVECTOR4(0.7f, 0.7f, 0.7f, 1.0f);
 	dirLight->Intensity = 128.0f;
-	dirLight->Position = D3DXVECTOR3(-5.0f, 40.0f, -5.0f);
+	dirLight->Position = D3DXVECTOR3(-5.0f, 130.0f, 0.0f);
 
 	D3DXVECTOR3 direction = lookAt - dirLight->Position;
 	D3DXVec3Normalize(&direction, &direction);
 	dirLight->Direction = direction;
 
-	D3DXMatrixPerspectiveFovLH(&dirLight->Projection, D3DX_PI/2.0f, 1.0f, 5.0f, 140.0f);
-	//D3DXMatrixOrthoLH(&dirLight->Projection, (float)shadowMapWidth, (float)shadowMapHeight, 5.0f, 300.0f);
+	//dirLight->Projection = *D3DXMatrixPerspectiveFovLH(&dirLight->Projection, D3DX_PI/2.0f, 1.0f, 5.0f, 140.0f);
+	D3DXMatrixOrthoLH(&dirLight->Projection, (float)shadowMapWidth, (float)shadowMapHeight, 5.0f, 500.0f);
 	D3DXMatrixLookAtLH(&dirLight->View, &dirLight->Position, &lookAt, &up); //Generate light view matrix
 	#pragma endregion
 
@@ -418,8 +418,8 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	lightRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
 
 	metaBalls = new MetaballsClass();
-	marchingCubes = new MarchingCubesClass(-10.0f, -10.0f, -10.0f, 20.0f, 20.0f, 20.0f, 1.5f, 1.5f, 1.5f);
-	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
+	marchingCubes = new MarchingCubesClass(-10, -10, -10, 10, 10, 10, 0.7, 0.7, 0.7);
+	marchingCubes->SetMetaBalls(metaBalls, 0.3f);
 
 	marchingCubes->ComputeMetaBalls();
 	marchingCubes->CalculateMesh(d3D->GetDevice());
@@ -437,40 +437,13 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
-	timer = 0.0f;
-	returning = false;
-
 	return true;
 }
 
 bool GraphicsClass::Frame(int fps, int cpu, float frameTime, bool toggle, bool left, bool right)
 {
-
-	if(returning)
-	{
-		metaBalls->MoveBall(0 , 0.006f, 0.006f, 0.006f);
-
-		timer -= 0.005f;
-	}
-	else
-	{
-		metaBalls->MoveBall(0 , -0.006f, -0.006f, -0.006f);
-
-		timer += 0.005f;
-	}
-
-	if(timer > 5.0f && !returning)
-	{
-		returning = true;
-	}
-	else if(timer < -5.0f && returning)
-	{
-		returning = false;
-	}
-
-
-	marchingCubes->ComputeMetaBalls();
-	marchingCubes->CalculateMesh(d3D->GetDevice());
+	//marchingCubes->ComputeMetaBalls();
+	//marchingCubes->CalculateMesh(d3D->GetDevice());
 
 	bool result;
 
@@ -543,7 +516,7 @@ bool GraphicsClass::Render()
 	#pragma region Preparation
 	ID3D11DeviceContext* context;
 	D3DXMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, scalingMatrix, viewProjection, invertedViewProjection, lightView, lightProj;
-	//float positionX, positionY, positionZ, radius;
+	float positionX, positionY, positionZ, radius;
 	D3DXVECTOR4 color;
 	D3DXVECTOR3 camPos;
 	bool result, renderModel;
@@ -593,9 +566,7 @@ bool GraphicsClass::Render()
 	lightProj = dirLight->Projection;
 
 	//D3DXMatrixMultiply(&lightViewProj, &dirLight->View, &dirLight->Projection);
-	//D3DXMatrixMultiply(&viewProjection, &viewMatrix, &projectionMatrix);
-
-	viewProjection = viewMatrix*projectionMatrix;
+	D3DXMatrixMultiply(&viewProjection, &viewMatrix, &projectionMatrix);
 	D3DXMatrixInverse(&invertedViewProjection, NULL, &viewProjection);
 
 	// Construct the frustum.
@@ -817,7 +788,7 @@ bool GraphicsClass::Render()
 
 	#pragma region Final compose stage
 	d3D->SetBackBufferRenderTarget();
-	d3D->SetBackFaceCullingRasterizer();
+	d3D->SetNoCullRasterizer();
 	//context->ClearDepthStencilView(ds,  D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	marchingCubes->Render(context);
@@ -825,6 +796,7 @@ bool GraphicsClass::Render()
 		worldMatrix, viewMatrix, projectionMatrix);
 
 	//fullScreenQuad.Render(context, 0, 0);
+
 	//composeShader->Render(context, fullScreenQuad.GetIndexCount(), worldMatrix, baseViewMatrix, orthoMatrix, finalTextures);
 	#pragma endregion
 

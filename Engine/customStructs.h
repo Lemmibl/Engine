@@ -4,7 +4,7 @@
 #include <d3d11.h>
 #include <d3dx10math.h>
 
-typedef struct MarchingCubeVertex
+struct MarchingCubeVertex
 {
 	float posX;
 	float posY;
@@ -19,7 +19,7 @@ typedef struct MarchingCubeVertex
 	bool inside;
 };
 
-typedef struct Metapoint
+struct Metapoint
 {
 	float posX;
 	float posY;
@@ -28,7 +28,7 @@ typedef struct Metapoint
 	float power;
 };
 
-typedef struct MarchingCubeVectors
+struct MarchingCubeVectors
 {
 	D3DXVECTOR3 position;
 	D3DXVECTOR3 normal;

@@ -7,21 +7,22 @@ class MarchingCubesClass
 	ID3D11Buffer *vertexBuffer, *indexBuffer;
 	private:
 	int vertexCount, indexCount;
+	int x,y,z, idx;
 
 	/* Properties for the grid, what x,y,z coordinates in object space the grid will start at. */
-	double startX;
-	double startY;
-	double startZ;
+	float startX;
+	float startY;
+	float startZ;
 
 	/* Properties for the grid, what x,y,z coordinates in object space the grid will end at. */
-	double endX;
-	double endY;
-	double endZ;
+	float endX;
+	float endY;
+	float endZ;
 
 	/* How long each step will be between start(x,y,z) and end(x,y,z). */
-	double stepX;
-	double stepY;
-	double stepZ;
+	float stepX;
+	float stepY;
+	float stepZ;
 
 	/* Size of the grid. Is calculated in the constructor. */
 	int sizeX;
@@ -29,7 +30,7 @@ class MarchingCubesClass
 	int sizeZ;
 
 	short lookup;
-	double metaballsIsoValue;
+	float metaballsIsoValue;
 
 	/* Whether we want to draw with wireframe or not. */
 	bool wireframe;
@@ -52,8 +53,8 @@ class MarchingCubesClass
 
 
 public:
-	MarchingCubesClass(	double startX, double startY, double startZ, double endX, double endY, double endZ,
-			double stepX, double stepY, double stepZ);
+	MarchingCubesClass(	float startX, float startY, float startZ, float endX, float endY, float endZ,
+			float stepX, float stepY, float stepZ);
 
 	virtual ~MarchingCubesClass();
 
@@ -68,7 +69,7 @@ public:
 	int GetIndexCount() { return indexCount; }
 
 	/* Setter for metaball pointer and isovalue */
-	void SetMetaBalls(MetaballsClass *mb, double isoValue)
+	void SetMetaBalls(MetaballsClass *mb, float isoValue)
 	{
 		this->mb = mb;
 		this->mb->SetIsoValue(isoValue);

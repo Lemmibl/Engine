@@ -120,6 +120,8 @@ private:
 
 	UINT shadowMapWidth, shadowMapHeight;
 
+	float timer;
+	bool returning;
 
 	MarchingCubesClass* marchingCubes;
 	MetaballsClass* metaBalls;

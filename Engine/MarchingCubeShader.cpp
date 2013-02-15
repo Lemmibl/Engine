@@ -310,7 +310,7 @@ void MarchingCubeShader::RenderShader(ID3D11DeviceContext* deviceContext, int in
 	deviceContext->VSSetShader(vertexShader, NULL, 0);
 	deviceContext->PSSetShader(pixelShader, NULL, 0);
 
-	// Render the triangle.
+	// Render the triangles.
 	deviceContext->DrawIndexed(indexCount, 0, 0);
 
 	return;

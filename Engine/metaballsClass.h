@@ -10,42 +10,42 @@ class MetaballsClass
 
 private:
 	int i;
+	
 	// number of metapoints
 	int numberOfMetapoints;
 
 	// the length between points
-	double lengthX, lengthY, lengthZ;
+	float lengthX, lengthY, lengthZ;
+	float isoValue;
 
 	// the metapoints
 	Metapoint metapoints[3];
-
 
 public:
 	MetaballsClass()
 	{
 		numberOfMetapoints = 2;
-		metapoints[0].power = 1.5;
-		metapoints[0].posX = 0.0;
-		metapoints[0].posY = -2.0;
-		metapoints[0].posZ = 0.0;
 
-		metapoints[1].power = 1.5;
-		metapoints[1].posX = -4.0;
-		metapoints[1].posY = 2.0;
-		metapoints[1].posZ = 4.0;
+		metapoints[0].power = 4.0f;
+		metapoints[0].posX = 0.0f;
+		metapoints[0].posY = -2.0f;
+		metapoints[0].posZ = 0.0f;
+
+		metapoints[1].power = 1.5f;
+		metapoints[1].posX = -4.0f;
+		metapoints[1].posY = 2.0f;
+		metapoints[1].posZ = 4.0f;
 	}
 
 	~MetaballsClass();
 
-	double isoValue;
-
-	void SetIsoValue(double isoValue)
+	void SetIsoValue(float isoValue)
 	{
 		this->isoValue = isoValue;
 	}
 
 	//move the metaball
-	inline void MoveBall(int idx, double x, double y, double z)
+	inline void MoveBall(int idx, float x, float y, float z)
 	{
 		metapoints[idx].posX += x;
 		metapoints[idx].posY += y;
@@ -57,7 +57,7 @@ public:
 	inline MarchingCubeVertex Interpolate(MarchingCubeVertex v1, MarchingCubeVertex v2)
 	{
 		MarchingCubeVertex v;
-		double diff;
+		float diff;
 
 		diff = (this->isoValue - v1.flux) / (v2.flux - v1.flux);
 
@@ -65,7 +65,7 @@ public:
 		v.posX = v1.posX + (v2.posX - v1.posX) * diff;
 		v.posY = v1.posY + (v2.posY - v1.posY) * diff;
 		v.posZ = v1.posZ + (v2.posZ - v1.posZ) * diff;
-		v.flux = (v1.flux + v2.flux) * 0.5;
+		v.flux = (v1.flux + v2.flux) * 0.5f;
 
 		// calculates the average normal for each point
 		v.normalX = v1.normalX + (v2.normalX - v1.normalX) * diff;
@@ -77,9 +77,9 @@ public:
 
 	/* henter ut flux-verdi for et gitt punkt i gridden */
 	// ???
-	inline double Get_vertex_value(MarchingCubeVertex v)
+	inline float Get_vertex_value(MarchingCubeVertex v)
 	{
-		double flux = 0.0;
+		float flux = 0.0;
 
 		for (i = 0; i < numberOfMetapoints; i++)
 		{

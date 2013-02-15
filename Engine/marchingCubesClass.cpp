@@ -8,7 +8,7 @@
 
 http://astronomy.swin.edu.au/~pbourke/modelling/polygonise/ 
 
-, but the tables are from Cory Gene Bloyd.
+ but the tables are from Cory Gene Bloyd.
 */
 
 //Contains all combinations of points inside or outside of a cube
@@ -321,12 +321,11 @@ const int MarchingCubesClass::edgeTable[256] = {
 		indexBuffer = 0;
 	}
 
-	int x,y,z, idx;
-	short lookup = 0;
-
-	MarchingCubesClass::MarchingCubesClass(	double startX, double startY, double startZ, double endX, double endY, double endZ,
-		double stepX, double stepY, double stepZ)
+	MarchingCubesClass::MarchingCubesClass(	float startX, float startY, float startZ, float endX, float endY, float endZ,
+		float stepX, float stepY, float stepZ)
 	{
+		lookup = 0;
+
 		this->startX = startX;
 		this->startY = startY;
 		this->startZ = startZ;
@@ -347,8 +346,8 @@ const int MarchingCubesClass::edgeTable[256] = {
 		vertexCount = (this->sizeX * this->sizeY * this->sizeZ);
 		indexCount = vertexCount;
 
-		this->marchingCubeVertices = new MarchingCubeVertex[this->sizeX * this->sizeY * this->sizeZ];
-		this->things = new MarchingCubeVectors[this->sizeX * this->sizeY * this->sizeZ];
+		this->marchingCubeVertices = new MarchingCubeVertex[vertexCount];
+		this->things = new MarchingCubeVectors[vertexCount];
 
 		this->wireframe = false;
 
@@ -371,6 +370,9 @@ const int MarchingCubesClass::edgeTable[256] = {
 					this->marchingCubeVertices[idx].normalX = 0.0;
 					this->marchingCubeVertices[idx].normalY = 0.0;
 					this->marchingCubeVertices[idx].normalZ = 0.0;
+
+					this->things[idx].position = D3DXVECTOR3(this->startX + this->stepX * x, this->startY + this->stepY * y, this->startZ + this->stepZ * z);
+					this->things[idx].normal = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 				}
 			}
 		}
@@ -445,17 +447,17 @@ const int MarchingCubesClass::edgeTable[256] = {
 					if (this->marchingCubeVertices[idx+1].inside)
 						lookup |= 64;
 
-					if (this->marchingCubeVertices[idx+1+this->sizeY].inside)
-						lookup |= 4;
-
-					if (this->marchingCubeVertices[idx + this->sizeY].inside)
-						lookup |= 8;
+					if (this->marchingCubeVertices[idx + 1 + (this->sizeY * this->sizeZ)].inside)
+						lookup |= 32;
 
 					if (this->marchingCubeVertices[idx + (this->sizeY * this->sizeZ)].inside)
 						lookup |= 16;
 
-					if (this->marchingCubeVertices[idx + 1 + (this->sizeY * this->sizeZ)].inside)
-						lookup |= 32;
+					if (this->marchingCubeVertices[idx + this->sizeY].inside)
+						lookup |= 8;
+
+					if (this->marchingCubeVertices[idx+1+this->sizeY].inside)
+						lookup |= 4;
 
 					if (this->marchingCubeVertices[idx + 1 + this->sizeY + (this->sizeY * this->sizeZ)].inside)
 						lookup |= 2;
@@ -464,7 +466,7 @@ const int MarchingCubesClass::edgeTable[256] = {
 						lookup |= 1;
 
 					// If not all points are inside our outside
-					if ((lookup != 0) && (lookup != 255))
+					if ((lookup != 0))
 					{
 						// 0 - 1
 						if (this->edgeTable[lookup] & 1) 
@@ -527,61 +529,75 @@ const int MarchingCubesClass::edgeTable[256] = {
 							this->marchingCubeVertices[idx]);
 
 
-						int i, j;
+						int i, j, numberOfTriangles;
+						numberOfTriangles = 0;
 
 
-						for (i = 0; i < 12; i+=3)
+						for (i = 0; this->triTable[lookup][i] != -1; i+=3)
 						{
-							if(this->triTable[lookup][i] != -1)
-							{
 								for (j = i; j < (i+3); j++)
 								{
 									indices[indexCounter] = vertexCounter;
 
-									indexCounter++;
-
-
 									vertices[vertexCounter].position = D3DXVECTOR3	
 										(	
-										(float) this->verts[this->triTable[lookup][j]].posX,
-										(float) this->verts[this->triTable[lookup][j]].posY,
-										(float) this->verts[this->triTable[lookup][j]].posZ		
+											this->verts[this->triTable[lookup][j]].posX,
+											this->verts[this->triTable[lookup][j]].posY,
+											this->verts[this->triTable[lookup][j]].posZ		
 										);
 
 									vertices[vertexCounter].normal = D3DXVECTOR3	
 										(	
-										(float) this->verts[this->triTable[lookup][j]].normalX, 
-										(float) this->verts[this->triTable[lookup][j]].normalY, 
-										(float) this->verts[this->triTable[lookup][j]].normalZ	
+											this->verts[this->triTable[lookup][j]].normalX, 
+											this->verts[this->triTable[lookup][j]].normalY, 
+											this->verts[this->triTable[lookup][j]].normalZ	
 										);
 
 									vertexCounter++;
+									indexCounter++;
 
 									/*
 									// Allocate new vertex & index
 									indices[indexCount++] = vertexCount;
 									vertices[vertexCount++] = vertexPos;
 									*/
+
+									numberOfTriangles++;
 								}
-							}
 						}
 
-						/*		
-						// Create the triangle
-
-						ntriang = 0;
-						for( i = 0; triTable[ cubeindex * 16 + i ] != -1; i += 3 )
-						{
-						TRIANGLE* triangle = &(*triangles)[ntriang];
-						triangle->p[0] = vertlist[ triTable[ cubeindex * 16 + i ] ];
-						triangle->p[1] = vertlist[ triTable[ cubeindex * 16 + i + 1 ] ];
-						triangle->p[2] = vertlist[ triTable[ cubeindex * 16 + i + 2 ] ];
-						ntriang++;
-						}
-
-						return(ntriang);
-						*/
-
+/*
+            Vector3[] vertlist = new Vector3[12]; 
+            if (IsBitSet(edgeTable[cubeIndex], 1)) 
+                vertlist[0] = VertexInterp(isolevel, grid.p[0], grid.p[1], grid.val[0], grid.val[1]); 
+            if (IsBitSet(edgeTable[cubeIndex], 2)) 
+                vertlist[1] = VertexInterp(isolevel, grid.p[1], grid.p[2], grid.val[1], grid.val[2]); 
+            if (IsBitSet(edgeTable[cubeIndex], 4)) 
+                vertlist[2] = VertexInterp(isolevel, grid.p[2], grid.p[3], grid.val[2], grid.val[3]); 
+            if (IsBitSet(edgeTable[cubeIndex], 8)) 
+                vertlist[3] = VertexInterp(isolevel, grid.p[3], grid.p[0], grid.val[3], grid.val[0]); 
+            if (IsBitSet(edgeTable[cubeIndex], 16)) 
+                vertlist[4] = VertexInterp(isolevel, grid.p[4], grid.p[5], grid.val[4], grid.val[5]); 
+            if (IsBitSet(edgeTable[cubeIndex], 32)) 
+                vertlist[5] = VertexInterp(isolevel, grid.p[5], grid.p[6], grid.val[5], grid.val[6]); 
+            if (IsBitSet(edgeTable[cubeIndex], 64)) 
+                vertlist[6] = VertexInterp(isolevel, grid.p[6], grid.p[7], grid.val[6], grid.val[7]); 
+            if (IsBitSet(edgeTable[cubeIndex], 128)) 
+                vertlist[7] = VertexInterp(isolevel, grid.p[7], grid.p[4], grid.val[7], grid.val[4]); 
+            if (IsBitSet(edgeTable[cubeIndex], 256)) 
+                vertlist[8] = VertexInterp(isolevel, grid.p[0], grid.p[4], grid.val[0], grid.val[4]); 
+            if (IsBitSet(edgeTable[cubeIndex], 512)) 
+                vertlist[9] = VertexInterp(isolevel, grid.p[1], grid.p[5], grid.val[1], grid.val[5]); 
+            if (IsBitSet(edgeTable[cubeIndex], 1024)) 
+                vertlist[10] = VertexInterp(isolevel, grid.p[2], grid.p[6], grid.val[2], grid.val[6]); 
+            if (IsBitSet(edgeTable[cubeIndex], 2048)) 
+                vertlist[11] = VertexInterp(isolevel, grid.p[3], grid.p[7], grid.val[3], grid.val[7]); 
+ 
+            for (int i = 0; triTable[cubeIndex][i] != -1; i += 3) 
+            { 
+                returnTriangles.Add(new Triangle(vertlist[triTable[cubeIndex][i]], vertlist[triTable[cubeIndex][i + 1]], vertlist[triTable[cubeIndex][i + 2]])); 
+            } 
+*/
 
 						lookup = 0;
 					}
@@ -590,8 +606,9 @@ const int MarchingCubesClass::edgeTable[256] = {
 
 		}
 
-		indexCount = indexCounter;
-		vertexCount = vertexCounter;
+
+	/*	indexCount = indexCounter;
+		vertexCount = vertexCounter;*/
 
 		// Set up the description of the static vertex buffer.
 		vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -643,7 +660,7 @@ const int MarchingCubesClass::edgeTable[256] = {
 		stride = sizeof(MarchingCubeVectors); 
 		offset = 0;
 
-		// Set the vertex buffer to active in the input assembler so it can be rendered.
+		// Set the vertex buffer to active in the input assembler so it can be rendered.r
 		deviceContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
 
 		// Set the index buffer to active in the input assembler so it can be rendered.
