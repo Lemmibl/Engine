@@ -370,7 +370,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	// Initialize the directional light.
 	dirLight->Color = D3DXVECTOR4(0.7f, 0.7f, 0.7f, 1.0f);
 	dirLight->Intensity = 128.0f;
-	dirLight->Position = D3DXVECTOR3(-5.0f, 40.0f, -5.0f);
+	dirLight->Position = D3DXVECTOR3(-1.0f, 50.0f, -1.0f);
 
 	D3DXVECTOR3 direction = lookAt - dirLight->Position;
 	D3DXVec3Normalize(&direction, &direction);

@@ -25,9 +25,9 @@ class DRDirLight
 private:
 	struct PixelMatrixBuffer
 	{
-		D3DXMATRIX InvertedViewProjection;
 		D3DXMATRIX LightView;
 		D3DXMATRIX LightProjection;
+		D3DXMATRIX InvertedViewProjection;
 	};
 
 	struct VertexMatrixBuffer

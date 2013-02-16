@@ -7,9 +7,9 @@ cbuffer PositionalBuffer //Whatever, idk what else to name it
 
 cbuffer PixelMatrixBuffer
 {
-	float4x4 InverseViewProjection;
 	float4x4 LightView;
 	float4x4 LightProjection;
+	float4x4 InverseViewProjection;
 };
 
 cbuffer LightBuffer
@@ -73,7 +73,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		
 		float2 sampleLightScreen;
 		sampleLightScreen.x = lightCoordinates.x * 0.5f + 0.5f;
-		sampleLightScreen.y = (lightCoordinates.y * -0.5f) + 0.5f;
+		sampleLightScreen.y = (lightCoordinates.y * -0.5f + 0.5f);
 
 		float shadowMultiplier = 1.0f;
 
