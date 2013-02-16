@@ -32,9 +32,9 @@ public:
 		metapoints[0].posZ = 0.0f;
 
 		metapoints[1].power = 1.5f;
-		metapoints[1].posX = -4.0f;
+		metapoints[1].posX = -8.0f;
 		metapoints[1].posY = 2.0f;
-		metapoints[1].posZ = 4.0f;
+		metapoints[1].posZ = 10.0f;
 	}
 
 	~MetaballsClass();

@@ -418,7 +418,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	lightRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
 
 	metaBalls = new MetaballsClass();
-	marchingCubes = new MarchingCubesClass(-10.0f, -10.0f, -10.0f, 20.0f, 20.0f, 20.0f, 1.5f, 1.5f, 1.5f);
+	marchingCubes = new MarchingCubesClass(-20.0f, -20.0f, -20.0f, 30.0f, 30.0f, 30.0f, 1.5f, 1.5f, 1.5f);
 	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
 
 	marchingCubes->ComputeMetaBalls();
@@ -448,15 +448,15 @@ bool GraphicsClass::Frame(int fps, int cpu, float frameTime, bool toggle, bool l
 
 	if(returning)
 	{
-		metaBalls->MoveBall(0 , 0.006f, 0.006f, 0.006f);
+		metaBalls->MoveBall(0, 0.01f, 0.01f, 0.01f);
 
-		timer -= 0.005f;
+		timer -= 0.0008f*frameTime;
 	}
 	else
 	{
-		metaBalls->MoveBall(0 , -0.006f, -0.006f, -0.006f);
+		metaBalls->MoveBall(0, -0.01f, -0.01f, -0.01f);
 
-		timer += 0.005f;
+		timer += 0.0008f*frameTime;
 	}
 
 	if(timer > 5.0f && !returning)
