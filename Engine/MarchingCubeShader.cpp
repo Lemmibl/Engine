@@ -1,35 +1,34 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Filename: alphamapshaderclass.cpp
+// Filename: marchingcubeshader.cpp
 ////////////////////////////////////////////////////////////////////////////////
-#include "alphamapshaderclass.h"
+#include "marchingcubeshader.h"
 
-
-AlphaMapShaderClass::AlphaMapShaderClass()
+MarchingCubeShader::MarchingCubeShader()
 {
 	vertexShader = 0;
 	pixelShader = 0;
 	layout = 0;
 	matrixBuffer = 0;
-	sampleState = 0;
 }
 
 
-AlphaMapShaderClass::AlphaMapShaderClass(const AlphaMapShaderClass& other)
+MarchingCubeShader::MarchingCubeShader(const MarchingCubeShader& other)
 {
 }
 
 
-AlphaMapShaderClass::~AlphaMapShaderClass()
+MarchingCubeShader::~MarchingCubeShader()
 {
 }
 
 
-bool AlphaMapShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
+bool MarchingCubeShader::Initialize(ID3D11Device* device, HWND hwnd)
 {
 	bool result;
 
+
 	// Initialize the vertex and pixel shaders.
-	result = InitializeShader(device, hwnd, L"../Engine/standard.vsh", L"../Engine/alphamap.psh");
+	result = InitializeShader(device, hwnd, L"../Engine/mcubes.vsh", L"../Engine/mcubes.psh");
 	if(!result)
 	{
 		return false;
@@ -39,7 +38,7 @@ bool AlphaMapShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
 }
 
 
-void AlphaMapShaderClass::Shutdown()
+void MarchingCubeShader::Shutdown()
 {
 	// Shutdown the vertex and pixel shaders as well as the related objects.
 	ShutdownShader();
@@ -48,14 +47,14 @@ void AlphaMapShaderClass::Shutdown()
 }
 
 
-bool AlphaMapShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix,
-	D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix, ID3D11ShaderResourceView** textureArray)
+bool MarchingCubeShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX world, 
+	D3DXMATRIX view, D3DXMATRIX proj)
 {
 	bool result;
 
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, textureArray);
+	result = SetShaderParameters(deviceContext, world, view, proj);
 	if(!result)
 	{
 		return false;
@@ -68,7 +67,7 @@ bool AlphaMapShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCo
 }
 
 
-bool AlphaMapShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename)
+bool MarchingCubeShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename)
 {
 	HRESULT result;
 	ID3D10Blob* errorMessage;
@@ -77,7 +76,6 @@ bool AlphaMapShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 	D3D11_INPUT_ELEMENT_DESC polygonLayout[2];
 	unsigned int numElements;
 	D3D11_BUFFER_DESC matrixBufferDesc;
-	D3D11_SAMPLER_DESC samplerDesc;
 
 
 	// Initialize the pointers this function will use to null.
@@ -86,8 +84,8 @@ bool AlphaMapShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 	pixelShaderBuffer = 0;
 
 	// Compile the vertex shader code.
-	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "StandardVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 
-		0, NULL, &vertexShaderBuffer, &errorMessage, NULL);
+	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "MCubeVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
+		&vertexShaderBuffer, &errorMessage, NULL);
 	if(FAILED(result))
 	{
 		// If the shader failed to compile it should have written something to the error message.
@@ -95,7 +93,7 @@ bool AlphaMapShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 		{
 			OutputShaderErrorMessage(errorMessage, hwnd, vsFilename);
 		}
-		// If there was  nothing in the error message then it simply could not find the shader file itself.
+		// If there was nothing in the error message then it simply could not find the shader file itself.
 		else
 		{
 			MessageBox(hwnd, vsFilename, L"Missing Shader File", MB_OK);
@@ -105,8 +103,8 @@ bool AlphaMapShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 	}
 
 	// Compile the pixel shader code.
-	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "AlphaMapPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 
-		0, NULL, &pixelShaderBuffer, &errorMessage, NULL);
+	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "MCubePixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
+		&pixelShaderBuffer, &errorMessage, NULL);
 	if(FAILED(result))
 	{
 		// If the shader failed to compile it should have writen something to the error message.
@@ -124,22 +122,20 @@ bool AlphaMapShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 	}
 
 	// Create the vertex shader from the buffer.
-	result = device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, 
-		&vertexShader);
+	result = device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &vertexShader);
 	if(FAILED(result))
 	{
 		return false;
 	}
 
-	// Create the vertex shader from the buffer.
-	result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, 
-		&pixelShader);
+	// Create the pixel shader from the buffer.
+	result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &pixelShader);
 	if(FAILED(result))
 	{
 		return false;
 	}
 
-	// Create the vertex input layout description.
+	// Now setup the layout of the data that goes into the shader.
 	// This setup needs to match the VertexType stucture in the ModelClass and in the shader.
 	polygonLayout[0].SemanticName = "POSITION";
 	polygonLayout[0].SemanticIndex = 0;
@@ -175,7 +171,7 @@ bool AlphaMapShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 	pixelShaderBuffer->Release();
 	pixelShaderBuffer = 0;
 
-	// Setup the description of the matrix dynamic constant buffer that is in the vertex shader.
+	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
 	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
 	matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -183,30 +179,8 @@ bool AlphaMapShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 	matrixBufferDesc.MiscFlags = 0;
 	matrixBufferDesc.StructureByteStride = 0;
 
-	// Create the matrix constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
 	result = device->CreateBuffer(&matrixBufferDesc, NULL, &matrixBuffer);
-	if(FAILED(result))
-	{
-		return false;
-	}
-
-	// Create a texture sampler state description.
-	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.MipLODBias = 0.0f;
-	samplerDesc.MaxAnisotropy = 1;
-	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	samplerDesc.BorderColor[0] = 0;
-	samplerDesc.BorderColor[1] = 0;
-	samplerDesc.BorderColor[2] = 0;
-	samplerDesc.BorderColor[3] = 0;
-	samplerDesc.MinLOD = 0;
-	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-	// Create the texture sampler state.
-	result = device->CreateSamplerState(&samplerDesc, &sampleState);
 	if(FAILED(result))
 	{
 		return false;
@@ -215,15 +189,9 @@ bool AlphaMapShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 	return true;
 }
 
-void AlphaMapShaderClass::ShutdownShader()
-{
-	// Release the sampler state.
-	if(sampleState)
-	{
-		sampleState->Release();
-		sampleState = 0;
-	}
 
+void MarchingCubeShader::ShutdownShader()
+{
 	// Release the matrix constant buffer.
 	if(matrixBuffer)
 	{
@@ -256,8 +224,7 @@ void AlphaMapShaderClass::ShutdownShader()
 }
 
 
-
-void AlphaMapShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename)
+void MarchingCubeShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename)
 {
 	char* compileErrors;
 	unsigned long bufferSize, i;
@@ -293,22 +260,20 @@ void AlphaMapShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWN
 }
 
 
-bool AlphaMapShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix,
-	D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix, 
-	ID3D11ShaderResourceView** textureArray)
+bool MarchingCubeShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX world, 
+	D3DXMATRIX view, D3DXMATRIX proj)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	MatrixBufferType* dataPtr;
 	unsigned int bufferNumber;
 
+	// Transpose matrices before sending them into the shader. This is a requirement for DirectX 11. 
+	D3DXMatrixTranspose(&world, &world);
+	D3DXMatrixTranspose(&view, &view);
+	D3DXMatrixTranspose(&proj, &proj);
 
-	// Transpose the matrices to prepare them for the shader.
-	D3DXMatrixTranspose(&worldMatrix, &worldMatrix);
-	D3DXMatrixTranspose(&viewMatrix, &viewMatrix);
-	D3DXMatrixTranspose(&projectionMatrix, &projectionMatrix);
-
-	// Lock the matrix constant buffer so it can be written to.
+	// Lock the constant buffer so it can be written to.
 	result = deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if(FAILED(result))
 	{
@@ -319,27 +284,24 @@ bool AlphaMapShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext
 	dataPtr = (MatrixBufferType*)mappedResource.pData;
 
 	// Copy the matrices into the constant buffer.
-	dataPtr->world = worldMatrix;
-	dataPtr->view = viewMatrix;
-	dataPtr->projection = projectionMatrix;
-	
-	// Unlock the matrix constant buffer.
+	dataPtr->world = world;
+	dataPtr->view = view;
+	dataPtr->projection = proj;
+
+	// Unlock the constant buffer.
 	deviceContext->Unmap(matrixBuffer, 0);
 
-	// Set the position of the matrix constant buffer in the vertex shader.
+	// Set the position of the constant buffer in the vertex shader.
 	bufferNumber = 0;
 
-	// Now set the matrix constant buffer in the vertex shader with the updated values.
+	// Finally set the constant buffer in the vertex shader with the updated values.
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &matrixBuffer);
-
-	// Set shader texture array resource in the pixel shader.
-	deviceContext->PSSetShaderResources(0, 3, textureArray);
 
 	return true;
 }
 
 
-void AlphaMapShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
+void MarchingCubeShader::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
 {
 	// Set the vertex input layout.
 	deviceContext->IASetInputLayout(layout);
@@ -347,9 +309,6 @@ void AlphaMapShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, int i
 	// Set the vertex and pixel shaders that will be used to render this triangle.
 	deviceContext->VSSetShader(vertexShader, NULL, 0);
 	deviceContext->PSSetShader(pixelShader, NULL, 0);
-
-	// Set the sampler state in the pixel shader.
-	deviceContext->PSSetSamplers(0, 1, &sampleState);
 
 	// Render the triangles.
 	deviceContext->DrawIndexed(indexCount, 0, 0);

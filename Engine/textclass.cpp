@@ -251,14 +251,14 @@ bool TextClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCont
 		return false;
 	}
 
-	// Now update the sentence vertex buffer with the new string information.
-	result = UpdateSentence(numberOfTrianglesRendered, "numberOfTrianglesRendered", 100, 20*index, 1.0f, 1.0f, 0.0f, deviceContext);
-	if(!result)
-	{
-		return false;
-	}
+	//// Now update the sentence vertex buffer with the new string information.
+	//result = UpdateSentence(numberOfTrianglesRendered, "numberOfTrianglesRendered", 100, 20*index, 1.0f, 1.0f, 0.0f, deviceContext);
+	//if(!result)
+	//{
+	//	return false;
+	//}
 
-	sentences.push_back(numberOfTrianglesRendered);
+	//sentences.push_back(numberOfTrianglesRendered);
 
 	return true;
 }

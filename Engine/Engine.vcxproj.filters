@@ -19,6 +19,9 @@
     <Filter Include="Deferred stuff">
       <UniqueIdentifier>{b603451a-643d-458e-b56e-5f2068c079b2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="MarchingCubes">
+      <UniqueIdentifier>{9c4f1c3c-95b4-4a57-8f47-dc3466f7afd0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -155,6 +158,12 @@
     </ClCompile>
     <ClCompile Include="DepthOnlyShader.cpp">
       <Filter>Deferred stuff</Filter>
+    </ClCompile>
+    <ClCompile Include="marchingCubesClass.cpp">
+      <Filter>MarchingCubes</Filter>
+    </ClCompile>
+    <ClCompile Include="MarchingCubeShader.cpp">
+      <Filter>MarchingCubes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -293,6 +302,18 @@
     <ClInclude Include="DepthOnlyShader.h">
       <Filter>Deferred stuff</Filter>
     </ClInclude>
+    <ClInclude Include="customStructs.h">
+      <Filter>MarchingCubes</Filter>
+    </ClInclude>
+    <ClInclude Include="marchingCubesClass.h">
+      <Filter>MarchingCubes</Filter>
+    </ClInclude>
+    <ClInclude Include="metaballsClass.h">
+      <Filter>MarchingCubes</Filter>
+    </ClInclude>
+    <ClInclude Include="MarchingCubeShader.h">
+      <Filter>MarchingCubes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="specmap.vsh">
@@ -385,6 +406,12 @@
     </None>
     <None Include="DRCompose.vsh">
       <Filter>Deferred stuff</Filter>
+    </None>
+    <None Include="mcubes.vsh">
+      <Filter>MarchingCubes</Filter>
+    </None>
+    <None Include="mcubes.psh">
+      <Filter>MarchingCubes</Filter>
     </None>
   </ItemGroup>
 </Project>
