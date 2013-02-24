@@ -440,6 +440,13 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	timer = 0.0f;
 	returning = false;
 
+	/*
+	Inför perlin/simplex noise:
+
+	http://stackoverflow.com/questions/4120108/how-to-save-backbuffer-to-file-in-directx-10
+
+	*/
+
 	return true;
 }
 
