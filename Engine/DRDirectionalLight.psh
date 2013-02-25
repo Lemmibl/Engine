@@ -66,6 +66,10 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 
 		//http://www.gamedev.net/topic/636669-deferred-renderer-shadow-mapping/
 
+		/*
+			To consider: write to stencil when making the light depth buffer, and only draw on the pixels that were actually hit. Add ambient light in DRCompose instead.
+		*/
+
 		float4 lightCoordinates = mul(position, mul(LightView, LightProjection));
 		lightCoordinates /= lightCoordinates.w;
 		
