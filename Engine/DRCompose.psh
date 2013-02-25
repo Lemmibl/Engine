@@ -1,20 +1,64 @@
-Texture2D shaderTextures[2]; // 0 = color, light = 1
+Texture2D shaderTextures[4]; // 0 = color, light = 1, 2 = shadow depth, 3 = normal depth
 SamplerState linearSampler; //linear sampler
+
+cbuffer PixelMatrixBuffer
+{
+	float4x4 LightViewProjection;
+	float4x4 InvViewProj;
+};
 
 struct VertexShaderOutput
 {
 		float4 Position : SV_POSITION;
 		float2 TexCoord : TEXCOORD0;
+		float4 ScreenPosition : TEXCOORD1;
 };
 
 half4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 {
+		input.ScreenPosition.xy /= input.ScreenPosition.w;
+
 		//specular intensity is stored in the color map's alpha channel.
 		float3 baseColor = shaderTextures[0].Sample(linearSampler, input.TexCoord).rgb;
+		float depth = shaderTextures[3].Sample(linearSampler, input.TexCoord);
 		float4 light = shaderTextures[1].Sample(linearSampler, input.TexCoord);
 		float3 diffuseLight = light.rgb;
 		float specularLight = light.a;
+		
+		//http://www.gamedev.net/topic/636669-deferred-renderer-shadow-mapping/
+
+		//To consider: write to stencil when making the light depth buffer, and only draw on the pixels that were actually hit. Add ambient light in DRCompose instead.
+		
+		float4 position;
+		position.xy = input.ScreenPosition.xy;
+		position.z = depth;
+		position.w = 1.0f;
+
+		position = mul(position, InvViewProj);
+		position /= position.w;
+
+
+		float4 lightCoordinates = mul(position, LightViewProjection);
+		lightCoordinates.xyz /= lightCoordinates.w;
+		
+		float lightDepth = lightCoordinates.z;
+		
+		float2 sampleLightScreen;
+		sampleLightScreen.x = lightCoordinates.x * 0.5f + 0.5f;
+		sampleLightScreen.y = (-lightCoordinates.y * 0.5f + 0.5f);
+
+		float shadowMultiplier = 1.0f;
+
+		if(!(sampleLightScreen.x > 1 || sampleLightScreen.x < 0 || sampleLightScreen.y > 1 || sampleLightScreen.y < 0)) //If inside light frustum
+		{	
+				float shadowMapDepth = shaderTextures[2].Sample(linearSampler, sampleLightScreen.xy).r;
+
+				if (lightDepth < 1 && lightDepth - 0.008f > shadowMapDepth)
+				{
+					shadowMultiplier = 0.2f;
+				}			
+		}
 
 		//Not going to apply specular here, it'll be applied in the final composition stage.
-		return half4(baseColor * (diffuseLight + specularLight), 1.0f);
+		return half4(baseColor * shadowMultiplier*(diffuseLight + specularLight), 1.0f);
 }
