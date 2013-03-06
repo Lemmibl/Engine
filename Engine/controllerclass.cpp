@@ -4,24 +4,24 @@
 #include "controllerclass.h"
 
 #pragma region Properties
-const D3DXVECTOR3& ControllerClass::GetPosition() const
+const XMFLOAT3& ControllerClass::GetPosition() const
 {
 	return *position;
 }
 
-const D3DXVECTOR3& ControllerClass::GetRotation() const
+const XMFLOAT3& ControllerClass::GetRotation() const
 {
 	return *rotation;
 }
 
-void ControllerClass::SetPosition(D3DXVECTOR3* positionptr)
+void ControllerClass::SetPosition(XMFLOAT3* positionptr)
 {
 	position = positionptr;
 	externalPosPointer = true;
 	return;
 }
 
-void ControllerClass::SetRotation(D3DXVECTOR3* rotationptr)
+void ControllerClass::SetRotation(XMFLOAT3* rotationptr)
 {
 	rotation = rotationptr;
 	externalRotPointer = true;
@@ -36,10 +36,10 @@ ControllerClass::ControllerClass()
 	rotationSpeed = 0.0f;
 	externalRotPointer = externalPosPointer = false;
 
-	movementThisUpdate = rotationThisUpdate = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+	movementThisUpdate = rotationThisUpdate = XMFLOAT3(0.0f, 0.0f, 0.0f);
 
-	rotation = new D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-	position = new D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+	rotation = new XMFLOAT3(0.0f, 0.0f, 0.0f);
+	position = new XMFLOAT3(0.0f, 0.0f, 0.0f);
 }
 
 ControllerClass::ControllerClass(const ControllerClass& other)
@@ -78,8 +78,8 @@ void ControllerClass::Update(float frameTime)
 	float movementValue = moveSpeed * frameTime;
 	float rotationValue = rotationSpeed * frameTime;
 
-	D3DXVECTOR2 mousePos;
-	rotationThisUpdate = movementThisUpdate = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+	XMFLOAT2 mousePos;
+	rotationThisUpdate = movementThisUpdate = XMFLOAT3(0.0f, 0.0f, 0.0f);
 
 	mousePos = inputManager->GetMousePos();
 	SetCursorPos(0, 0);

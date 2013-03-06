@@ -9,7 +9,7 @@
 // INCLUDES //
 //////////////
 #include <d3d11.h>
-#include <d3dx10math.h>
+#include <Xnamath.h>
 #include <fstream>
 using namespace std;
 
@@ -39,11 +39,11 @@ private:
 
 	struct VertexType
 	{
-		D3DXVECTOR3 position;
-		D3DXVECTOR2 texture;
-		D3DXVECTOR3 normal;
-		D3DXVECTOR3 tangent;
-		D3DXVECTOR3 binormal;
+		XMFLOAT3 position;
+		XMFLOAT2 texture;
+		XMFLOAT3 normal;
+		XMFLOAT3 tangent;
+		XMFLOAT3 binormal;
 	};
 
 	struct TempVertexType
@@ -62,8 +62,8 @@ private:
 
 	//struct VertexType
 	//{
-	//	D3DXVECTOR3 position;
-	//	D3DXVECTOR4 color;
+	//	XMFLOAT3 position;
+	//	XMFLOAT4 color;
 	//};
 
 

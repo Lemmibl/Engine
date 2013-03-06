@@ -249,9 +249,9 @@ void InputClass::GetMouseLocation(int& mouseX, int& mouseY)
 	return;
 }
 
-D3DXVECTOR2 InputClass::GetMousePos()
+XMFLOAT2 InputClass::GetMousePos()
 {
-	return D3DXVECTOR2((float)mouseX, (float)mouseY);
+	return XMFLOAT2((float)mouseX, (float)mouseY);
 }
 
 UINT InputClass::WndProc(UINT uMsg, WPARAM wParam, LPARAM lParam)

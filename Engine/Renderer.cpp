@@ -1,9 +1,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Filename: graphicsclass.cpp
 ////////////////////////////////////////////////////////////////////////////////
-#include "graphicsclass.h"
+#include "Renderer.h"
 
-GraphicsClass::GraphicsClass()
+Renderer::Renderer()
 {
 	toggleDebugInfo = true;
 
@@ -37,17 +37,17 @@ GraphicsClass::GraphicsClass()
 }
 
 
-GraphicsClass::GraphicsClass(const GraphicsClass& other)
+Renderer::Renderer(const Renderer& other)
 {
 }
 
 
-GraphicsClass::~GraphicsClass()
+Renderer::~Renderer()
 {
 }
 
 
-bool GraphicsClass::Initialize(HWND hwnd, CameraClass* camera, D3DClass* d3D, UINT screenWidth, UINT screenHeight,
+bool Renderer::Initialize(HWND hwnd, CameraClass* camera, D3DClass* d3D, UINT screenWidth, UINT screenHeight,
 	 UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear)
 {
 	srand((unsigned int)time(NULL));
@@ -354,7 +354,7 @@ bool GraphicsClass::Initialize(HWND hwnd, CameraClass* camera, D3DClass* d3D, UI
 	return true;
 }
 
-bool GraphicsClass::Update(int fps, int cpu, float frameTime, bool toggle, bool left, bool right)
+bool Renderer::Update(int fps, int cpu, float frameTime, bool toggle, bool left, bool right)
 {
 	bool result;
 
@@ -417,7 +417,7 @@ bool GraphicsClass::Update(int fps, int cpu, float frameTime, bool toggle, bool 
 	return true;
 }
 
-bool GraphicsClass::Render()
+bool Renderer::Render()
 {
 	// Clear the scene.
 	d3D->BeginScene(0.0f, 0.0f, 0.0f, 0.0f);
@@ -426,6 +426,8 @@ bool GraphicsClass::Render()
 		TODO: TRANSPOSA MATRISERNA HÄR, så görs det bara en gång och man kan skicka dem som float4x4 överallt istället.
 
 		http://msdn.microsoft.com/en-us/library/windows/desktop/ee418732(v=vs.85).aspx
+
+		Håll en uppsättning transposade matriser och en uppsättning icketransposade
 	*/
 
 	#pragma region Preparation
@@ -549,9 +551,9 @@ bool GraphicsClass::Render()
 	context->OMSetRenderTargets(3, gbufferRenderTargets, ds);
 	context->ClearDepthStencilView(ds, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	context->ClearRenderTargetView(gbufferRenderTargets[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
-	context->ClearRenderTargetView(gbufferRenderTargets[1], D3DXVECTOR4(0.5f, 0.5f, 0.5f, 0.0f)); //Will result in an average grey color, which is kind of the default state of normals.
-	context->ClearRenderTargetView(gbufferRenderTargets[2], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
+	context->ClearRenderTargetView(gbufferRenderTargets[0], XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f));
+	context->ClearRenderTargetView(gbufferRenderTargets[1], XMFLOAT4(0.5f, 0.5f, 0.5f, 0.0f)); //Will result in an average grey color, which is kind of the default state of normals.
+	context->ClearRenderTargetView(gbufferRenderTargets[2], XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f));
 
 	// Move the model to the location it should be rendered at.
 	XMMATRIXTranslation(&worldMatrix, 0.0f, -10.0f, 0.0f);
@@ -602,7 +604,7 @@ bool GraphicsClass::Render()
 
 	#pragma region Point light stage
 	context->OMSetRenderTargets(1, lightTarget, ds);
-	context->ClearRenderTargetView(lightTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
+	context->ClearRenderTargetView(lightTarget[0], XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f));
 	context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	#pragma region Old pointlight code
@@ -624,7 +626,7 @@ bool GraphicsClass::Render()
 	//}
 
 	//context->OMSetRenderTargets(1, lightTarget, ds);
-	//context->ClearRenderTargetView(lightTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
+	//context->ClearRenderTargetView(lightTarget[0], XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f));
 
 	////Phase two, draw sphere with light algorithm
 	//d3D->SetLightStencilMethod2Phase2();
@@ -797,7 +799,7 @@ bool GraphicsClass::Render()
 	return true;
 }
 
-void GraphicsClass::Shutdown()
+void Renderer::Shutdown()
 {
 	if (text)
 	{

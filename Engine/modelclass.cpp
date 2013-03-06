@@ -128,21 +128,21 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	//indexCount = 6;
 
 	//// Load the vertex array with data.
-	//vertices[0].position = D3DXVECTOR3(-1.0f, -1.0f, 0.0f);  // Bottom left.
-	//vertices[0].textexture = D3DXVECTOR2(0.0f, 1.0f);
-	//vertices[0].normal = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
+	//vertices[0].position = XMFLOAT3(-1.0f, -1.0f, 0.0f);  // Bottom left.
+	//vertices[0].textexture = XMFLOAT2(0.0f, 1.0f);
+	//vertices[0].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
 
-	//vertices[1].position = D3DXVECTOR3(-1.0f, 1.0f, 0.0f);  // Top left.
-	//vertices[1].textexture = D3DXVECTOR2(0.0f, 0.0f);
-	//vertices[1].normal = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
+	//vertices[1].position = XMFLOAT3(-1.0f, 1.0f, 0.0f);  // Top left.
+	//vertices[1].textexture = XMFLOAT2(0.0f, 0.0f);
+	//vertices[1].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
 
-	//vertices[2].position = D3DXVECTOR3(1.0f, 1.0f, 0.0f);  // Top right.
-	//vertices[2].textexture = D3DXVECTOR2(1.0f, 0.0f);
-	//vertices[2].normal = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
+	//vertices[2].position = XMFLOAT3(1.0f, 1.0f, 0.0f);  // Top right.
+	//vertices[2].textexture = XMFLOAT2(1.0f, 0.0f);
+	//vertices[2].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
 
-	//vertices[3].position = D3DXVECTOR3(1.0f, -1.0f, 0.0f);  // Bottom right.
-	//vertices[3].textexture = D3DXVECTOR2(1.0f, 1.0f);
-	//vertices[3].normal = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
+	//vertices[3].position = XMFLOAT3(1.0f, -1.0f, 0.0f);  // Bottom right.
+	//vertices[3].textexture = XMFLOAT2(1.0f, 1.0f);
+	//vertices[3].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
 
 	//// Load the index array with data.
 	//// First triangle
@@ -184,11 +184,11 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	// Load the vertex array and index array with data.
 	for(int i=0; i < vertexCount; i++)
 	{
-		vertices[i].position = D3DXVECTOR3(model[i].x, model[i].y, model[i].z);
-		vertices[i].texture = D3DXVECTOR2(model[i].textureU, model[i].textureV);
-		vertices[i].normal = D3DXVECTOR3(model[i].normalX, model[i].normalY, model[i].normalZ);
-		vertices[i].tangent = D3DXVECTOR3(model[i].tangentX, model[i].tangentY, model[i].tangentZ);
-		vertices[i].binormal = D3DXVECTOR3(model[i].binormalX, model[i].binormalY, model[i].binormalZ);
+		vertices[i].position = XMFLOAT3(model[i].x, model[i].y, model[i].z);
+		vertices[i].texture = XMFLOAT2(model[i].textureU, model[i].textureV);
+		vertices[i].normal = XMFLOAT3(model[i].normalX, model[i].normalY, model[i].normalZ);
+		vertices[i].tangent = XMFLOAT3(model[i].tangentX, model[i].tangentY, model[i].tangentZ);
+		vertices[i].binormal = XMFLOAT3(model[i].binormalX, model[i].binormalY, model[i].binormalZ);
 
 		indices[i] = i;
 	}

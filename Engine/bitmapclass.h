@@ -9,7 +9,8 @@
 // INCLUDES //
 //////////////
 #include <d3d11.h>
-#include <d3dx10math.h>
+#include <Xnamath.h>
+#include <Xnamath.h>
 
 
 ///////////////////////
@@ -26,8 +27,8 @@ class BitmapClass
 private:
 	struct VertexType
 	{
-		D3DXVECTOR3 position;
-		D3DXVECTOR2 texture;
+		XMFLOAT3 position;
+		XMFLOAT2 texture;
 	};
 
 public:

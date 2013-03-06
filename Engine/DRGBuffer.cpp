@@ -45,8 +45,8 @@ void DRGBuffer::Shutdown()
 	return;
 }
 
-bool DRGBuffer::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, 
-	XMMATRIX projectionMatrix, ID3D11ShaderResourceView** textureArray)
+bool DRGBuffer::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMFLOAT4X4 worldMatrix, XMFLOAT4X4 viewMatrix, 
+	XMFLOAT4X4 projectionMatrix, ID3D11ShaderResourceView** textureArray)
 {
 	bool result;
 
@@ -312,20 +312,13 @@ void DRGBuffer::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WC
 	return;
 }
 
-bool DRGBuffer::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, 
-	XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView** textureArray)
+bool DRGBuffer::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMFLOAT4X4 worldMatrix, 
+	XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix, ID3D11ShaderResourceView** textureArray)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	MatrixBufferType* dataPtr;
 	unsigned int bufferNumber;
-
-	XMMATRIX tWorld, tView, tProj;
-
-	// Transpose the matrices to prepare them for the shader.
-	XMMATRIXTranspose(&tWorld, &worldMatrix);
-	XMMATRIXTranspose(&tView, &viewMatrix);
-	XMMATRIXTranspose(&tProj, &projectionMatrix);
 
 	// Lock the matrix constant buffer so it can be written to.
 	result = deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -338,14 +331,14 @@ bool DRGBuffer::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX
 	dataPtr = (MatrixBufferType*)mappedResource.pData;
 
 	// Copy the matrices into the constant buffer.
-	dataPtr->World = tWorld;
-	dataPtr->View = tView;
-	dataPtr->Projection = tProj;
+	dataPtr->World = worldMatrix;
+	dataPtr->View = viewMatrix;
+	dataPtr->Projection = projectionMatrix;
 
 	// Unlock the matrix constant buffer.
 	deviceContext->Unmap(matrixBuffer, 0);
 
-	// Set the position of the matrix constant buffer in the vertex shader.
+	// Set the position of the matrix constant buffer in the vertex sh§ader.
 	bufferNumber = 0;
 
 	// Now set the matrix constant buffer in the vertex shader with the updated values.

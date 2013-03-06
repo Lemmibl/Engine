@@ -9,7 +9,7 @@
 // INCLUDES //
 //////////////
 #include <d3d11.h>
-#include <d3dx10math.h>
+#include <Xnamath.h>
 #include <d3dx11async.h>
 #include <fstream>
 
@@ -24,15 +24,15 @@ class DRFinalComposition
 private:
 	struct PixelMatrixBuffer
 	{
-		XMMATRIX LightViewProjection;
-		XMMATRIX InvertedViewProjection;
+		XMFLOAT4X4 LightViewProjection;
+		XMFLOAT4X4 InvertedViewProjection;
 	};
 
 	struct VertexMatrixBuffer
 	{
-		XMMATRIX World;
-		XMMATRIX View;
-		XMMATRIX Projection;
+		XMFLOAT4X4 World;
+		XMFLOAT4X4 View;
+		XMFLOAT4X4 Projection;
 	};
 
 public:
@@ -42,7 +42,7 @@ public:
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
-	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX world, XMMATRIX view, XMMATRIX projection, XMMATRIX invertedViewProjection, XMMATRIX lightViewProj,
+	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, XMFLOAT4X4 world, XMFLOAT4X4 view, XMFLOAT4X4 projection, XMFLOAT4X4 invertedViewProjection, XMFLOAT4X4 lightViewProj,
 		ID3D11ShaderResourceView** textureArray);
 
 private:
@@ -50,7 +50,7 @@ private:
 	void ShutdownShader();
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
 
-	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX world, XMMATRIX view, XMMATRIX projection, XMMATRIX invertedViewProjection, XMMATRIX lightViewProj,
+	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMFLOAT4X4 world, XMFLOAT4X4 view, XMFLOAT4X4 projection, XMFLOAT4X4 invertedViewProjection, XMFLOAT4X4 lightViewProj,
 		ID3D11ShaderResourceView** textureArray);
 	void RenderShader(ID3D11DeviceContext*, int);
 

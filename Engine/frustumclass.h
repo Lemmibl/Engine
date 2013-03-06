@@ -24,7 +24,7 @@
 //////////////
 // INCLUDES //
 //////////////
-#include <d3dx10math.h>
+#include <Xnamath.h>
 #include <Xnamath.h>
 
 

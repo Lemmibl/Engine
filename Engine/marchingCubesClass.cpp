@@ -371,8 +371,8 @@ const int MarchingCubesClass::edgeTable[256] = {
 					this->marchingCubeVertices[idx].normalY = 0.0;
 					this->marchingCubeVertices[idx].normalZ = 0.0;
 
-					this->things[idx].position = D3DXVECTOR3(this->startX + this->stepX * x, this->startY + this->stepY * y, this->startZ + this->stepZ * z);
-					this->things[idx].normal = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+					this->things[idx].position = XMFLOAT3(this->startX + this->stepX * x, this->startY + this->stepY * y, this->startZ + this->stepZ * z);
+					this->things[idx].normal = XMFLOAT3(0.0f, 0.0f, 0.0f);
 				}
 			}
 		}
@@ -539,14 +539,14 @@ const int MarchingCubesClass::edgeTable[256] = {
 								{
 									indices[indexCounter] = vertexCounter;
 
-									vertices[vertexCounter].position = D3DXVECTOR3	
+									vertices[vertexCounter].position = XMFLOAT3	
 										(	
 											this->verts[this->triTable[lookup][j]].posX,
 											this->verts[this->triTable[lookup][j]].posY,
 											this->verts[this->triTable[lookup][j]].posZ		
 										);
 
-									vertices[vertexCounter].normal = D3DXVECTOR3	
+									vertices[vertexCounter].normal = XMFLOAT3	
 										(	
 											this->verts[this->triTable[lookup][j]].normalX, 
 											this->verts[this->triTable[lookup][j]].normalY, 

@@ -41,12 +41,12 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: GraphicsClass
 ////////////////////////////////////////////////////////////////////////////////
-class GraphicsClass
+class Renderer
 {
 public:
-	GraphicsClass();
-	GraphicsClass(const GraphicsClass&);
-	~GraphicsClass();
+	Renderer();
+	Renderer(const Renderer&);
+	~Renderer();
 
 	bool Initialize(HWND hwnd, CameraClass* camera, D3DClass* d3D, UINT screenWidth, UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear);
 	void Shutdown();

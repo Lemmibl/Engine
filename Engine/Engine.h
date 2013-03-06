@@ -28,7 +28,7 @@ const float SCREEN_NEAR = 0.5f;
 // MY CLASS INCLUDES //
 ///////////////////////
 #include "inputclass.h"
-#include "graphicsclass.h"
+#include "Renderer.h"
 #include "fpsmeter.h"
 #include "cpumeter.h"
 #include "timerclass.h"
@@ -36,7 +36,7 @@ const float SCREEN_NEAR = 0.5f;
 #include "marchingCubesClass.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-// Class name: SystemClass
+// Class name: Engine
 ////////////////////////////////////////////////////////////////////////////////
 class Engine
 {
@@ -63,7 +63,7 @@ private:
 
 	D3DClass* d3D;
 	InputClass* input;
-	GraphicsClass* graphics;
+	Renderer* graphics;
 	FpsMeter* fpsMeter;
 	CpuMeter* cpuMeter;
 	TimerClass* timer;

@@ -2,7 +2,7 @@
 #define MCUBES_TYPES_H
 
 #include <d3d11.h>
-#include <d3dx10math.h>
+#include <Xnamath.h>
 
 struct MarchingCubeVertex
 {
@@ -30,8 +30,8 @@ struct Metapoint
 
 struct MarchingCubeVectors
 {
-	D3DXVECTOR3 position;
-	D3DXVECTOR3 normal;
+	XMFLOAT3 position;
+	XMFLOAT3 normal;
 };
 
 #endif

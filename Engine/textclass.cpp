@@ -533,7 +533,7 @@ void TextClass::ReleaseSentences(vector<SentenceType*> sentences)
 bool TextClass::RenderSentence(SentenceType* sentence, ID3D11DeviceContext* deviceContext,XMMATRIX worldMatrix, XMMATRIX orthoMatrix)
 {
 	unsigned int stride, offset;
-	D3DXVECTOR4 pixelColor;
+	XMFLOAT4 pixelColor;
 	bool result;
 
 
@@ -551,7 +551,7 @@ bool TextClass::RenderSentence(SentenceType* sentence, ID3D11DeviceContext* devi
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// Create a pixel color vector with the input sentence color.
-	pixelColor = D3DXVECTOR4(sentence->red, sentence->green, sentence->blue, 1.0f);
+	pixelColor = XMFLOAT4(sentence->red, sentence->green, sentence->blue, 1.0f);
 
 	// Render the text using the font shader.
 	result = fontShader->Render(deviceContext, sentence->indexCount, worldMatrix, baseViewMatrix, orthoMatrix, font->GetTexture(), pixelColor);

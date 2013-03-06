@@ -3,7 +3,6 @@ cbuffer LightBufferType
 	float4 LightColor;
 	int LightRadius;
 	float LightPower;
-	float2 Padding;
 	float4 CameraPosition;
 }
 
@@ -39,7 +38,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	/*
 		TODO: Try only using InvertedProj instead of InvertedViewProj to project position into viewspace.
 
-		D3DXVec4Transform(&lightPosView, &D3DXVECTOR4(0, 0, 0, 1), &matWorldView);
+		D3DXVec4Transform(&lightPosView, &XMFLOAT4(0, 0, 0, 1), &matWorldView);
 	*/
 
 	//surface-to-light vector
@@ -47,27 +46,6 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	float lightDistance = length(LightPosition - input.WorldPosition);
 	//float oneOverSqrLightRadius = 1 / (LightRadius * LightRadius);
 	//saturate(1 - (lightVector*lightVector) * oneOverSqrLightRadius);
-
-	/*
-	For readers unfamiliar with lighting equations, a point light's contribution is computed as follows:
-
-	Given: N, the normal of the point on the surface to be lit
-		 Ppoint, the position of the point to be lit
-		 Plight, the position of the light
-		 A0, A1 and A2, the attenuation factors for the light2
-
-	(1) dist = |Ppoint- Plight |, the distance from the light
-
-	(2) Lpoint = Ppoint- Plight /|Ppoint- Plight |, the normalized direction from the light to the surface point
-
-	(3) att = 1.0/( A0 + (A1*dist) + (A2*dist2) ), the attenuation of the light
-
-	and finally,
-
-	(4) Cpoint = att * (N · -Lpoint), the color contribution to the overall lighting
-
-	For this article, we will simply be using inverse linear drop off as our attenuation factor. Inverse linear attenuation is 1/dist; it is equivalent to setting A0 = 0.0, A1 = 1.0, and A2 = 0.0.
-	*/
 
 	float attenuation = (1 / lightDistance);
 

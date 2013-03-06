@@ -57,7 +57,7 @@ bool Engine::Initialize()
 	}
 
 	// Create the graphics object.  This object will handle rendering all the graphics for this application.
-	graphics = new GraphicsClass;
+	graphics = new Renderer;
 	if(!graphics)
 	{
 		return false;

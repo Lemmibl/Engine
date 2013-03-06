@@ -21,7 +21,7 @@
 #include <dinput.h>
 #include <D3D11.h>
 #include <D3DX11.h>
-#include <D3DX10math.h>
+#include <Xnamath.h>
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -47,7 +47,7 @@ public:
 	char GetLastChar();
 
 	void GetMouseLocation(int&, int&);
-	D3DXVECTOR2 GetMousePos();
+	XMFLOAT2 GetMousePos();
 
 private:
 	bool ReadKeyboard(HWND hwnd);

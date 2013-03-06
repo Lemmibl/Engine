@@ -45,7 +45,7 @@ bool ModelListClass::Initialize(int numModels)
 		green = (float)rand() / RAND_MAX;
 		blue = (float)rand() / RAND_MAX;
 
-		modelInfoList[i].color = D3DXVECTOR4(red, green, blue, 1.0f);
+		modelInfoList[i].color = XMFLOAT4(red, green, blue, 1.0f);
 
 		// Generate a random position in front of the viewer for the mode.
 		modelInfoList[i].positionX = (((float)rand()-(float)rand())/RAND_MAX) * 10.0f;
@@ -73,7 +73,7 @@ int ModelListClass::GetModelCount()
 	return modelCount;
 }
 
-void ModelListClass::GetData(int index, float& positionX, float& positionY, float& positionZ, D3DXVECTOR4& color)
+void ModelListClass::GetData(int index, float& positionX, float& positionY, float& positionZ, XMFLOAT4& color)
 {
 	positionX = modelInfoList[index].positionX;
 	positionY = modelInfoList[index].positionY;

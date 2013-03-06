@@ -246,17 +246,17 @@ bool DebugWindowClass::UpdateBuffers(ID3D11DeviceContext* deviceContext, int pos
 	}
 
 	// Load the vertex array with data.
-	vertices[0].position = D3DXVECTOR3(left, bottom, 0.0f);  // Bottom left.
-	vertices[0].texture = D3DXVECTOR2(0.0f, 1.0f);
+	vertices[0].position = XMFLOAT3(left, bottom, 0.0f);  // Bottom left.
+	vertices[0].texture = XMFLOAT2(0.0f, 1.0f);
 
-	vertices[1].position = D3DXVECTOR3(left, top, 0.0f);  // Top left.
-	vertices[1].texture = D3DXVECTOR2(0.0f, 0.0f);
+	vertices[1].position = XMFLOAT3(left, top, 0.0f);  // Top left.
+	vertices[1].texture = XMFLOAT2(0.0f, 0.0f);
 
-	vertices[2].position = D3DXVECTOR3(right, top, 0.0f);  // Top right.
-	vertices[2].texture = D3DXVECTOR2(1.0f, 0.0f);
+	vertices[2].position = XMFLOAT3(right, top, 0.0f);  // Top right.
+	vertices[2].texture = XMFLOAT2(1.0f, 0.0f);
 
-	vertices[3].position = D3DXVECTOR3(right, bottom, 0.0f);  // Bottom right.
-	vertices[3].texture = D3DXVECTOR2(1.0f, 1.0f);
+	vertices[3].position = XMFLOAT3(right, bottom, 0.0f);  // Bottom right.
+	vertices[3].texture = XMFLOAT2(1.0f, 1.0f);
 
 	// Lock the vertex buffer so it can be written to.
 	result = deviceContext->Map(vertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);

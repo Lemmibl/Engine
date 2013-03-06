@@ -10,7 +10,7 @@
 //////////////
 #include <xnamath.h>
 #include "inputclass.h"
-#include <d3dx10math.h>
+#include <Xnamath.h>
 #include "cameraclass.h"
 
 
@@ -28,16 +28,16 @@ public:
 	bool Initialize(InputClass* extInput, CameraClass *extCam, float movespeed, float turnspeed);
 	void Update(float frameTime);
 
-	const D3DXVECTOR3& GetPosition() const;
-	const D3DXVECTOR3& GetRotation() const;
-	void SetPosition(D3DXVECTOR3*);
-	void SetRotation(D3DXVECTOR3*);
+	const XMFLOAT3& GetPosition() const;
+	const XMFLOAT3& GetRotation() const;
+	void SetPosition(XMFLOAT3*);
+	void SetRotation(XMFLOAT3*);
 
 private:
 	float frameTime;
-	D3DXVECTOR2 prevMousePos;
-	D3DXVECTOR3 *rotation, *position;
-	D3DXVECTOR3 movementThisUpdate, rotationThisUpdate;
+	XMFLOAT2 prevMousePos;
+	XMFLOAT3 *rotation, *position;
+	XMFLOAT3 movementThisUpdate, rotationThisUpdate;
 	float moveSpeed, rotationSpeed;
 	bool externalPosPointer;
 	bool externalRotPointer;

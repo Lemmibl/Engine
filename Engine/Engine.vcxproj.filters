@@ -30,9 +30,6 @@
     <ClCompile Include="inputclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="graphicsclass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="d3dclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -90,9 +87,6 @@
     <ClCompile Include="debugwindowclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="deferredrenderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="structs.cpp">
       <Filter>Deferred stuff</Filter>
     </ClCompile>
@@ -123,12 +117,12 @@
     <ClCompile Include="Engine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Renderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inputclass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="graphicsclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="d3dclass.h">
@@ -191,9 +185,6 @@
     <ClInclude Include="debugwindowclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="deferredrenderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="interfacepointers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -231,6 +222,9 @@
       <Filter>MarchingCubes</Filter>
     </ClInclude>
     <ClInclude Include="Engine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

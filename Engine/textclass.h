@@ -29,8 +29,8 @@ private:
 
 	struct VertexType
 	{
-		D3DXVECTOR3 position;
-		D3DXVECTOR2 texture;
+		XMFLOAT3 position;
+		XMFLOAT2 texture;
 	};
 
 public:

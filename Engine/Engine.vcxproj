@@ -17,7 +17,6 @@
     <ClCompile Include="cpumeter.cpp" />
     <ClCompile Include="d3dclass.cpp" />
     <ClCompile Include="debugwindowclass.cpp" />
-    <ClCompile Include="deferredrenderer.cpp" />
     <ClCompile Include="DepthOnlyShader.cpp" />
     <ClCompile Include="DRDirLight.cpp" />
     <ClCompile Include="DRFinalComposition.cpp" />
@@ -25,7 +24,7 @@
     <ClCompile Include="fontshaderclass.cpp" />
     <ClCompile Include="fpsmeter.cpp" />
     <ClCompile Include="frustumclass.cpp" />
-    <ClCompile Include="graphicsclass.cpp" />
+    <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="inputclass.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="marchingCubesClass.cpp" />
@@ -52,7 +51,6 @@
     <ClInclude Include="customStructs.h" />
     <ClInclude Include="d3dclass.h" />
     <ClInclude Include="debugwindowclass.h" />
-    <ClInclude Include="deferredrenderer.h" />
     <ClInclude Include="DepthOnlyShader.h" />
     <ClInclude Include="DRDirLight.h" />
     <ClInclude Include="DRFinalComposition.h" />
@@ -61,7 +59,7 @@
     <ClInclude Include="fpsmeter.h" />
     <ClInclude Include="frustumclass.h" />
     <ClInclude Include="DRGBuffer.h" />
-    <ClInclude Include="graphicsclass.h" />
+    <ClInclude Include="Renderer.h" />
     <ClInclude Include="inputclass.h" />
     <ClInclude Include="interfacepointers.h" />
     <ClInclude Include="marchingCubesClass.h" />

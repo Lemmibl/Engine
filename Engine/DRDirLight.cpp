@@ -3,7 +3,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "drdirlight.h"
 
-
 DRDirLight::DRDirLight()
 {
 	vertexShader = 0;
@@ -52,9 +51,7 @@ void DRDirLight::Shutdown()
 	return;
 }
 
-bool DRDirLight::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX world, XMMATRIX view, XMMATRIX projection, 
-	XMMATRIX invertedViewProj, ID3D11ShaderResourceView** textureArray, D3DXVECTOR3 cameraPosition, D3DXVECTOR3 lightPosition, D3DXVECTOR3 lightDirection, 
-	D3DXVECTOR4 lightColor, float lightStrength, D3DXVECTOR4 ambienceColor, MaterialStruct material, XMMATRIX lightView, XMMATRIX lightProj)
+bool DRDirLight::Render( ID3D11DeviceContext* deviceContext, int indexCount, XMFLOAT4X4 world, XMFLOAT4X4 view, XMFLOAT4X4 projection, XMFLOAT4X4 invertedViewProj, ID3D11ShaderResourceView** textureArray, XMFLOAT3 cameraPosition, XMFLOAT3 lightPosition, XMFLOAT3 lightDirection, XMFLOAT4 lightColor, float lightStrength, XMFLOAT4 ambienceColor, MaterialStruct material, XMFLOAT4X4 lightView, XMFLOAT4X4 lightProj )
 {
 	bool result;
 
@@ -111,7 +108,7 @@ bool DRDirLight::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFile
 	}
 
 	// Compile the pixel shader code.
-	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "LightPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS | D3DXSHADER_DEBUG | D3DXSHADER_SKIPOPTIMIZATION, 0, NULL, 
+	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "LightPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG | D3D10_SHADER_SKIP_OPTIMIZATION, 0, NULL, 
 		&pixelShaderBuffer, &errorMessage, NULL);
 	if(FAILED(result))
 	{
@@ -387,9 +384,9 @@ void DRDirLight::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, W
 	return;
 }
 
-bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX world, XMMATRIX view, XMMATRIX projection, 
-	XMMATRIX invertedViewProj, ID3D11ShaderResourceView** textureArray, D3DXVECTOR3 cameraPosition, D3DXVECTOR3 lightPosition, D3DXVECTOR3 lightDirection, 
-	D3DXVECTOR4 lightColor, float lightStrength, D3DXVECTOR4 ambienceColor, MaterialStruct material, XMMATRIX lightView, XMMATRIX lightProj)
+bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMFLOAT4X4 world, XMFLOAT4X4 view, XMFLOAT4X4 projection, 
+	XMFLOAT4X4 invertedViewProj, ID3D11ShaderResourceView** textureArray, XMFLOAT3 cameraPosition, XMFLOAT3 lightPosition, XMFLOAT3 lightDirection, 
+	XMFLOAT4 lightColor, float lightStrength, XMFLOAT4 ambienceColor, MaterialStruct material, XMFLOAT4X4 lightView, XMFLOAT4X4 lightProj)
 {		
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -399,15 +396,6 @@ bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATR
 	PositionalBuffer* dataPtr2;
 	PixelMatrixBuffer* dataPtr3;
 	LightBuffer* dataPtr4;
-
-	// Transpose the matrices to prepare them for the shader.
-	XMMATRIXTranspose(&world, &world);
-	XMMATRIXTranspose(&view, &view);
-	XMMATRIXTranspose(&projection, &projection);
-	XMMATRIXTranspose(&invertedViewProj, &invertedViewProj);
-
-	XMMATRIXTranspose(&lightView, &lightView);
-	XMMATRIXTranspose(&lightProj, &lightProj);
 
 	/////////////#1
 
@@ -444,9 +432,9 @@ bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATR
 	// Get a pointer to the data in the constant buffer.
 	dataPtr2 = (PositionalBuffer*)mappedResource.pData;
 
-	dataPtr2->LightDirection = D3DXVECTOR4(lightDirection, 1.0f);
-	dataPtr2->LightPosition = D3DXVECTOR4(lightPosition, 1.0f);
-	dataPtr2->CameraPosition = D3DXVECTOR4(cameraPosition, 1.0f);
+	dataPtr2->LightDirection = XMFLOAT4(lightDirection, 1.0f);
+	dataPtr2->LightPosition = XMFLOAT4(lightPosition, 1.0f);
+	dataPtr2->CameraPosition = XMFLOAT4(cameraPosition, 1.0f);
 
 	deviceContext->Unmap(positionalBuffer, 0);
 

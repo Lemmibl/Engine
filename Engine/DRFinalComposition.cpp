@@ -308,7 +308,7 @@ void DRFinalComposition::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND
 	return;
 }
 
-bool DRFinalComposition::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX world, XMMATRIX view, XMMATRIX projection, XMMATRIX invertedViewProjection, XMMATRIX lightViewProj,
+bool DRFinalComposition::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMFLOAT4X4 world, XMFLOAT4X4 view, XMFLOAT4X4 projection, XMFLOAT4X4 invertedViewProjection, XMFLOAT4X4 lightViewProj,
 	ID3D11ShaderResourceView** textureArray)
 {		
 	HRESULT result;
@@ -317,13 +317,6 @@ bool DRFinalComposition::SetShaderParameters( ID3D11DeviceContext* deviceContext
 
 	VertexMatrixBuffer* dataPtr1;
 	PixelMatrixBuffer* dataPtr2;
-
-	// Transpose the matrices to prepare them for the shader.
-	XMMATRIXTranspose(&world, &world);
-	XMMATRIXTranspose(&view, &view);
-	XMMATRIXTranspose(&projection, &projection);
-	XMMATRIXTranspose(&lightViewProj, &lightViewProj);
-	XMMATRIXTranspose(&invertedViewProjection, &invertedViewProjection);
 
 	/////////////#1
 

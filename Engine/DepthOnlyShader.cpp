@@ -255,11 +255,6 @@ bool DepthOnlyShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XM
 	MatrixBufferType* dataPtr;
 	unsigned int bufferNumber;
 
-	//// Transpose matrices before sending them into the shader. This is a requirement for DirectX 11. 
-	//worldMatrix = XMMatrixTranspose(worldMatrix);
-	//viewMatrix = XMMatrixTranspose(viewMatrix);
-	//projectionMatrix = XMMatrixTranspose(projectionMatrix);
-
 	// Lock the constant buffer so it can be written to.
 	result = deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if(FAILED(result))

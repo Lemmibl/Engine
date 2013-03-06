@@ -9,7 +9,7 @@
 // INCLUDES //
 //////////////
 #include <d3d11.h>
-#include <d3dx10math.h>
+#include <Xnamath.h>
 #include <d3dx11async.h>
 #include <fstream>
 using namespace std;
@@ -23,9 +23,9 @@ class DRGBuffer
 private:
 	struct MatrixBufferType
 	{
-		XMMATRIX World;
-		XMMATRIX View;
-		XMMATRIX Projection;
+		XMFLOAT4X4 World;
+		XMFLOAT4X4 View;
+		XMFLOAT4X4 Projection;
 	};
 
 public:
@@ -35,15 +35,15 @@ public:
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
-	bool Render(ID3D11DeviceContext*, int, XMMATRIX, XMMATRIX, XMMATRIX, ID3D11ShaderResourceView**);
+	bool Render(ID3D11DeviceContext*, int, XMFLOAT4X4, XMFLOAT4X4, XMFLOAT4X4, ID3D11ShaderResourceView**);
 
 private:
 	bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
 	void ShutdownShader();
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
 
-	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, 
-		XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView** textureArray);
+	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMFLOAT4X4 worldMatrix, 
+		XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix, ID3D11ShaderResourceView** textureArray);
 	void RenderShader(ID3D11DeviceContext*, int);
 
 private:

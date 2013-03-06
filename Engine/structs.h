@@ -14,21 +14,21 @@ struct MaterialStruct
 
 struct PointLight
 {
-	XMVECTOR Position;
+	XMFLOAT3 Position;
 	float Radius;
-	XMVECTOR Color;
+	XMFLOAT4 Color;
 	float Intensity;
-	XMMATRIX World;
+	XMFLOAT4X4 World;
 };
 
 struct DirLight
 {
-	XMMATRIX View;
-	XMMATRIX Projection;
+	XMFLOAT4X4 View;
+	XMFLOAT4X4 Projection;
 
-	XMVECTOR Color;
-	XMVECTOR Position;
-	XMVECTOR Direction;
+	XMFLOAT4 Color;
+	XMFLOAT3 Position;
+	XMFLOAT3 Direction;
 	float Intensity;
 };
 

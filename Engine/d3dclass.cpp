@@ -313,7 +313,7 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenFa
 	deviceContext->RSSetViewports(1, &viewport);
 
 	// Setup the projection matrix.
-	fieldOfView = (float)D3DX_PI / 4.0f;
+	fieldOfView = XM_PIDIV4;
 	screenAspect = (float)screenWidth / (float)screenHeight;
 
 	// Create the projection matrix for 3D rendering.
