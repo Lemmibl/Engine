@@ -22,6 +22,8 @@ GraphicsClass::GraphicsClass()
 	dirLightShader = 0;
 	dirLight = 0;
 
+	int asdq = 56;
+
 	modelList = 0;
 	groundModel = 0;
 	sphereModel = 0;
