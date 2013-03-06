@@ -5,10 +5,11 @@
 
 GraphicsClass::GraphicsClass()
 {
+	toggleDebugInfo = true;
+
 	d3D = 0;
 	camera  = 0;
 	text = 0;
-	toggleDebugInfo = true;
 
 	frustum = 0;
 	gbufferShader = 0;
@@ -21,8 +22,6 @@ GraphicsClass::GraphicsClass()
 
 	dirLightShader = 0;
 	dirLight = 0;
-
-	int asdq = 56;
 
 	modelList = 0;
 	groundModel = 0;
