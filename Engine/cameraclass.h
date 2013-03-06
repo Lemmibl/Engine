@@ -11,6 +11,7 @@
 // INCLUDES //
 //////////////
 #include <d3dx10math.h>
+#include <Xnamath.h>
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -23,37 +24,49 @@ public:
 	CameraClass(const CameraClass&);
 	~CameraClass();
 
-	void SetPosition(float, float, float);
-	void SetPositionPtr(D3DXVECTOR3&);
+#pragma region get and setters
+	void SetPosition(XMFLOAT3);
+	void SetRotation(XMFLOAT3);
 
-	void SetRotation(float, float, float);
-	void SetRotationPtr(D3DXVECTOR3&);
+	void GetViewMatrix(XMMATRIX&);
+	void GetProjectionMatrix(XMMATRIX&);
+	XMMATRIX GetView();
+	XMMATRIX GetProj();
+	XMVECTOR* GetPositionPtr();
+	XMVECTOR* GetRotationPtr();
+	XMVECTOR GetPosition();
+	XMVECTOR GetRotation();
 
-	D3DXVECTOR3* GetPositionPtr();
-	D3DXVECTOR3* GetRotationPtr();
+	XMVECTOR Forward();
+	XMVECTOR Back();
+	XMVECTOR Up();
+	XMVECTOR Down();
+	XMVECTOR Right();
+	XMVECTOR Left();
 
-	D3DXVECTOR3 GetPosition();
-	D3DXVECTOR3 GetRotation();
+	XMVECTOR ForwardVec(XMMATRIX& matrix);
+	XMVECTOR BackVec(XMMATRIX& matrix);
+	XMVECTOR LeftVec(XMMATRIX& matrix);
+	XMVECTOR RightVec(XMMATRIX& matrix);
+	XMVECTOR UpVec(XMMATRIX& matrix);
+	XMVECTOR DownVec(XMMATRIX& matrix);
+#pragma endregion
 
-	D3DXVECTOR3 GetUp() const { return up; }
-	D3DXVECTOR3 GetForward() const { return forward; }
-	D3DXVECTOR3 GetRight() const { return right; }
 
-	void Render();
-	void GetViewMatrix(D3DXMATRIX&);
-	void GetProjectionMatrix(D3DXMATRIX&);
-	D3DXMATRIX GetView();
-	D3DXMATRIX GetProj();
+	void Update();
 	void SetPerspectiveProjection(int screenWidth, int screenHeight, float FOVinDegrees, float zNear, float zFar);
 
 private:
-	D3DXVECTOR3 position, rotation;
-	D3DXMATRIX viewMatrix, projectionMatrix, rotationMatrix;
+	XMVECTOR position, rotation;
+	XMMATRIX world, view, projection;
 	float yaw, pitch, roll;
 
-	D3DXVECTOR3 upVector, forwardVector, rightVector;
-	D3DXVECTOR3 up, forward, right; // camera axii.
+	XMVECTOR up, forward, right; // camera axii.
 
 	double PITCHROOF, PITCHFLOOR;
+
+	XMVECTOR RightVector;
+	XMVECTOR UpVector;
+	XMVECTOR ForwardVector;
 };
 #endif

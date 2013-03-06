@@ -34,18 +34,23 @@ public:
 	InputClass(const InputClass&);
 	~InputClass();
 
-	bool Initialize(HINSTANCE, HWND, int, int);
+	bool Initialize(HINSTANCE, HWND hwnd, int, int);
 	void Shutdown();
-	bool Frame();
+	bool Update(HWND hwnd);
 
 	bool IsEscapePressed();
 	bool IsKeyPressed(unsigned char);
-	//bool WasKeyPressed(unsigned char);
+	bool IsKeyUp(unsigned char);
+	bool WasKeyPressed(unsigned char);
+
+	UINT WndProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	char GetLastChar();
+
 	void GetMouseLocation(int&, int&);
 	D3DXVECTOR2 GetMousePos();
 
 private:
-	bool ReadKeyboard();
+	bool ReadKeyboard(HWND hwnd);
 	bool ReadMouse();
 	void ProcessInput();
 
@@ -54,8 +59,11 @@ private:
 	IDirectInputDevice8* keyboard;
 	IDirectInputDevice8* mouse;
 
-	bool keys[256];
-	unsigned char keyboardState[256];
+	unsigned char keyStates[2][256];
+	unsigned char *currentKeyStates;
+	unsigned char *previousKeyStates;
+	char lastChar;
+
 	DIMOUSESTATE mouseState;
 
 	int screenWidth, screenHeight;

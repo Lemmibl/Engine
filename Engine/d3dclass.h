@@ -19,6 +19,7 @@
 #include <d3dcommon.h>
 #include <d3d11.h>
 #include <d3dx10math.h>
+#include <Xnamath.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: D3DClass
@@ -30,8 +31,8 @@ public:
 	D3DClass(const D3DClass&);
 	~D3DClass();
 
-	bool Initialize(int screenWidth, int screenHeight, bool vsync, HWND hwnd, bool fullscreen, 
-		float screenFar, float screenNear, UINT shadowMapWidth, UINT shadowMapHeight);
+	bool Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenFar, float screenNear, 
+		int screenWidth, int screenHeight, UINT shadowMapWidth, UINT shadowMapHeight);
 	void Shutdown();
 	
 	void BeginScene(float, float, float, float);
@@ -40,9 +41,9 @@ public:
 	ID3D11Device*			GetDevice();
 	ID3D11DeviceContext*	GetDeviceContext();
 
-	void GetProjectionMatrix(D3DXMATRIX&);
-	void GetWorldMatrix(D3DXMATRIX&);
-	void GetOrthoMatrix(D3DXMATRIX&);
+	void GetProjectionMatrix(XMMATRIX&);
+	void GetWorldMatrix(XMMATRIX&);
+	void GetOrthoMatrix(XMMATRIX&);
 	void GetVideoCardInfo(char*, int&);
 	ID3D11DepthStencilView* GetDepthStencilView();
 	ID3D11RenderTargetView* GetBackBuffer();
@@ -109,9 +110,9 @@ private:
 	ID3D11RasterizerState*		frontfaceCullingCW;
 	ID3D11RasterizerState*		noCullingCW;
 
-	D3DXMATRIX projectionMatrix;
-	D3DXMATRIX worldMatrix;
-	D3DXMATRIX orthoMatrix;
+	XMMATRIX projectionMatrix;
+	XMMATRIX worldMatrix;
+	XMMATRIX orthoMatrix;
 
 	ID3D11BlendState* alphaEnableBlendingState;
 	ID3D11BlendState* alphaDisableBlendingState;

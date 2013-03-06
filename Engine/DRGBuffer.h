@@ -23,9 +23,9 @@ class DRGBuffer
 private:
 	struct MatrixBufferType
 	{
-		D3DXMATRIX World;
-		D3DXMATRIX View;
-		D3DXMATRIX Projection;
+		XMMATRIX World;
+		XMMATRIX View;
+		XMMATRIX Projection;
 	};
 
 public:
@@ -35,15 +35,15 @@ public:
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
-	bool Render(ID3D11DeviceContext*, int, D3DXMATRIX, D3DXMATRIX, D3DXMATRIX, ID3D11ShaderResourceView**);
+	bool Render(ID3D11DeviceContext*, int, XMMATRIX, XMMATRIX, XMMATRIX, ID3D11ShaderResourceView**);
 
 private:
 	bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
 	void ShutdownShader();
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
 
-	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, 
-		D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix, ID3D11ShaderResourceView** textureArray);
+	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, 
+		XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView** textureArray);
 	void RenderShader(ID3D11DeviceContext*, int);
 
 private:

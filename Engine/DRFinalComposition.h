@@ -24,15 +24,15 @@ class DRFinalComposition
 private:
 	struct PixelMatrixBuffer
 	{
-		D3DXMATRIX LightViewProjection;
-		D3DXMATRIX InvertedViewProjection;
+		XMMATRIX LightViewProjection;
+		XMMATRIX InvertedViewProjection;
 	};
 
 	struct VertexMatrixBuffer
 	{
-		D3DXMATRIX World;
-		D3DXMATRIX View;
-		D3DXMATRIX Projection;
+		XMMATRIX World;
+		XMMATRIX View;
+		XMMATRIX Projection;
 	};
 
 public:
@@ -42,7 +42,7 @@ public:
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
-	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX projection, D3DXMATRIX invertedViewProjection, D3DXMATRIX lightViewProj,
+	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX world, XMMATRIX view, XMMATRIX projection, XMMATRIX invertedViewProjection, XMMATRIX lightViewProj,
 		ID3D11ShaderResourceView** textureArray);
 
 private:
@@ -50,7 +50,7 @@ private:
 	void ShutdownShader();
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
 
-	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX projection, D3DXMATRIX invertedViewProjection, D3DXMATRIX lightViewProj,
+	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX world, XMMATRIX view, XMMATRIX projection, XMMATRIX invertedViewProjection, XMMATRIX lightViewProj,
 		ID3D11ShaderResourceView** textureArray);
 	void RenderShader(ID3D11DeviceContext*, int);
 

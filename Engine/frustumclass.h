@@ -21,11 +21,11 @@
 #ifndef _FRUSTUMCLASS_H_
 #define _FRUSTUMCLASS_H_
 
-
 //////////////
 // INCLUDES //
 //////////////
 #include <d3dx10math.h>
+#include <Xnamath.h>
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -38,7 +38,15 @@ public:
 	FrustumClass(const FrustumClass&);
 	~FrustumClass();
 
-	void ConstructFrustum(float, D3DXMATRIX, D3DXMATRIX);
+	void SetInternals(float aspectRatio, float angle, float nearZ, float farZ);
+
+	//Returns the four frustum corners in a float4. [0] = top left, [1] = top right, [2] = bottom left, [3] = bottom right
+	XMVECTOR* GetFarFrustumCorners(XMVECTOR position, XMVECTOR lookAt, XMVECTOR up);
+
+	//Returns the four frustum corners in a float4. [0] = top left, [1] = top right, [2] = bottom left, [3] = bottom right
+	XMVECTOR* GetNearFrustumCorners(XMVECTOR position, XMVECTOR lookAt, XMVECTOR up);
+
+	void ConstructFrustum(float, XMMATRIX, XMMATRIX);
 
 	bool CheckPoint(float, float, float);
 	bool CheckCube(float, float, float, float);
@@ -47,6 +55,10 @@ public:
 
 private:
 	D3DXPLANE planes[6];
+	float aspectRatio, angle, nearZ, farZ;
+	float nearHeight, nearWidth, farHeight, farWidth;
+	XMVECTOR nearTopLeft, nearTopRight, nearBottomLeft, nearBottomRight;
+	XMVECTOR farTopLeft, farTopRight, farBottomLeft, farBottomRight;
 };
 
 #endif

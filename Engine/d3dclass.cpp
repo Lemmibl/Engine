@@ -14,19 +14,19 @@ ID3D11DeviceContext* D3DClass::GetDeviceContext()
 	return deviceContext;
 }
 
-void D3DClass::GetProjectionMatrix(D3DXMATRIX& projectionMatrix)
+void D3DClass::GetProjectionMatrix(XMMATRIX& projectionMatrix)
 {
 	projectionMatrix = this->projectionMatrix;
 	return;
 }
 
-void D3DClass::GetWorldMatrix(D3DXMATRIX& worldMatrix)
+void D3DClass::GetWorldMatrix(XMMATRIX& worldMatrix)
 {
 	worldMatrix = this->worldMatrix;
 	return;
 }
 
-void D3DClass::GetOrthoMatrix(D3DXMATRIX& orthoMatrix)
+void D3DClass::GetOrthoMatrix(XMMATRIX& orthoMatrix)
 {
 	orthoMatrix = this->orthoMatrix;
 	return;
@@ -101,8 +101,8 @@ D3DClass::~D3DClass()
 {
 }
 
-bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hwnd, bool fullscreen, 
-	float screenFar, float screenNear, UINT shadowMapWidth, UINT shadowMapHeight)
+bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenFar, float screenNear, 
+	int screenWidth, int screenHeight, UINT shadowMapWidth, UINT shadowMapHeight)
 {
 	unsigned int numModes, i, numerator, denominator, stringLength;
 	int error;
@@ -275,7 +275,7 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	featureLevel = D3D_FEATURE_LEVEL_11_0;
 
 	// Create the swap chain, Direct3D device, and Direct3D device context.
-	result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, D3D11_CREATE_DEVICE_DEBUG, &featureLevel, 1, 
+	result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, NULL, &featureLevel, 1, 
 		D3D11_SDK_VERSION, &swapChainDesc, &swapChain, &device, NULL, &deviceContext);
 	if(FAILED(result))
 	{
@@ -317,13 +317,13 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	screenAspect = (float)screenWidth / (float)screenHeight;
 
 	// Create the projection matrix for 3D rendering.
-	D3DXMatrixPerspectiveFovLH(&projectionMatrix, fieldOfView, screenAspect, screenNear, screenFar);
+	projectionMatrix = XMMatrixPerspectiveFovLH(fieldOfView, screenAspect, screenNear, screenFar);
 
 	// Initialize the world matrix to the identity matrix.
-	D3DXMatrixIdentity(&worldMatrix);
+	worldMatrix = XMMatrixIdentity();
 
 	// Create an orthographic projection matrix for 2D rendering.
-	D3DXMatrixOrthoLH(&orthoMatrix, (float)screenWidth, (float)screenHeight, screenNear, screenFar);
+	orthoMatrix = XMMatrixOrthographicLH((float)screenWidth, (float)screenHeight, screenNear, screenFar);
 	#pragma endregion
 
 	// Initialize the description of the depth buffer.

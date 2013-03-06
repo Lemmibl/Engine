@@ -12,6 +12,7 @@ struct VertexShaderOutput
 		float4 Position : SV_POSITION;
 		float2 TexCoord : TEXCOORD0;
 		float4 ScreenPosition : TEXCOORD1;
+		float4 WorldPosition : TEXCOORD2;
 };
 
 half4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
@@ -37,9 +38,8 @@ half4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		position = mul(position, InvViewProj);
 		position /= position.w;
 
-
 		float4 lightCoordinates = mul(position, LightViewProjection);
-		lightCoordinates.xyz /= lightCoordinates.w;
+		lightCoordinates /= lightCoordinates.w;
 		
 		float lightDepth = lightCoordinates.z;
 		
@@ -49,11 +49,11 @@ half4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 
 		float shadowMultiplier = 1.0f;
 
-		if(!(sampleLightScreen.x > 1 || sampleLightScreen.x < 0 || sampleLightScreen.y > 1 || sampleLightScreen.y < 0)) //If inside light frustum
+		if((saturate(sampleLightScreen.x)==sampleLightScreen.x) && (saturate(sampleLightScreen.y)==sampleLightScreen.y)) //If inside light frustum
 		{	
-				float shadowMapDepth = shaderTextures[2].Sample(linearSampler, sampleLightScreen.xy).r;
+				float shadowMapDepth = shaderTextures[2].Sample(linearSampler, sampleLightScreen.xy);
 
-				if (lightDepth < 1 && lightDepth - 0.008f > shadowMapDepth)
+				if (lightDepth - 0.00008f > shadowMapDepth)
 				{
 					shadowMultiplier = 0.2f;
 				}			

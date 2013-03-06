@@ -5,97 +5,142 @@
 
 
 #pragma region Properties
-void CameraClass::SetPosition(float x, float y, float z)
+void CameraClass::SetPosition(XMFLOAT3 externalPos)
 {
-	position.x = x;
-	position.y = y;
-	position.z = z;
+	position = XMLoadFloat3(&externalPos);
 	
 	return;
 }
 
-void CameraClass::SetRotation(float x, float y, float z)
+void CameraClass::SetRotation(XMFLOAT3 externalRot) //lol
 {
-	rotation.x = x;
-	rotation.y = y;
-	rotation.z = z;
+	rotation = XMLoadFloat3(&externalRot);
 
 	return;
 }
 
-D3DXVECTOR3 CameraClass::GetPosition()
+XMVECTOR CameraClass::GetPosition()
 {
 	return position;
 }
 
-D3DXVECTOR3 CameraClass::GetRotation()
+XMVECTOR CameraClass::GetRotation()
 {
 	return rotation;
 }
 
-void CameraClass::SetPositionPtr( D3DXVECTOR3& extposition)
-{
-	position = extposition;
-	return;
-}
-
-void CameraClass::SetRotationPtr( D3DXVECTOR3& extrotation)
-{
-	rotation = extrotation;
-	return;
-}
-
-D3DXVECTOR3* CameraClass::GetPositionPtr()
+XMVECTOR* CameraClass::GetPositionPtr()
 {
 	return &position;
 }
 
-D3DXVECTOR3* CameraClass::GetRotationPtr()
+XMVECTOR* CameraClass::GetRotationPtr()
 {
 	return &rotation;
 }
 
-void CameraClass::GetViewMatrix(D3DXMATRIX& viewMatrix)
+void CameraClass::GetViewMatrix(XMMATRIX& viewMatrix)
 {
-	viewMatrix = this->viewMatrix;
+	viewMatrix = this->view;
 	return;
 }
 
-void CameraClass::GetProjectionMatrix(D3DXMATRIX& projMatrix)
+void CameraClass::GetProjectionMatrix(XMMATRIX& projMatrix)
 {
-	projMatrix = this->projectionMatrix;
+	projMatrix = this->projection;
 	return;
 }
 
-D3DXMATRIX CameraClass::GetView()
+XMMATRIX CameraClass::GetView()
 {
-	return viewMatrix;
+	return view;
 }
 
-D3DXMATRIX CameraClass::GetProj()
+XMMATRIX CameraClass::GetProj()
 {
-	return projectionMatrix;
+	return projection;
+}
+
+XMVECTOR CameraClass::Forward()
+{
+	return ForwardVec(world);
+}
+
+XMVECTOR CameraClass::Back()
+{
+	return BackVec(world);
+}
+
+XMVECTOR CameraClass::Up()
+{
+	return UpVec(world);
+}
+
+XMVECTOR CameraClass::Down()
+{
+	return DownVec(world);
+}
+
+XMVECTOR CameraClass::Right()
+{
+	return RightVec(world);
+}
+
+XMVECTOR CameraClass::Left()
+{
+	return LeftVec(world);
+}
+
+// Returns the forward vector from a transform matrix
+XMVECTOR ForwardVec(XMMATRIX& matrix)
+{
+	return XMLoadFloat3(&XMFLOAT3(matrix._31, matrix._32, matrix._33));
+}
+
+// Returns the forward vector from a transform matrix
+XMVECTOR BackVec(XMMATRIX& matrix)
+{
+	return XMLoadFloat3(&XMFLOAT3(-matrix._31, -matrix._32, -matrix._33));
+}
+
+// Returns the forward vector from a transform matrix
+XMVECTOR RightVec(XMMATRIX& matrix)
+{
+	return XMLoadFloat3(&XMFLOAT3(matrix._11, matrix._12, matrix._13));
+}
+
+// Returns the forward vector from a transform matrix
+XMVECTOR LeftVec(XMMATRIX& matrix)
+{
+	return XMLoadFloat3(&XMFLOAT3(-matrix._11, -matrix._12, -matrix._13));
+}
+
+// Returns the forward vector from a transform matrix
+XMVECTOR UpVec(XMMATRIX& matrix)
+{
+	return XMLoadFloat3(&XMFLOAT3(matrix._21, matrix._22, matrix._23));
+}
+
+// Returns the forward vector from a transform matrix
+XMVECTOR DownVec(XMMATRIX& matrix)
+{
+	return XMLoadFloat3(&XMFLOAT3(-matrix._21, -matrix._22, -matrix._23));
 }
 #pragma endregion
 
 
 CameraClass::CameraClass()
 {
-	rightVector =	D3DXVECTOR3(1.0f,0.0f,0.0f);
-	upVector =		D3DXVECTOR3(0.0f,1.0f,0.0f);
-	forwardVector = D3DXVECTOR3(0.0f,0.0f,1.0f);
+	RightVector = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+	UpVector = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	ForwardVector = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
 
-	position = rotation = D3DXVECTOR3(0.0f,0.0f,0.0f);
+	position = rotation = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
 	yaw = pitch = roll = 0.0f;
 
-	right =		D3DXVECTOR3(1.0f,0.0f,0.0f);
-	up =		D3DXVECTOR3(0.0f,1.0f,0.0f);
-	forward =	D3DXVECTOR3(0.0f,0.0f,1.0f);
 
 	PITCHROOF = 80.0f*0.01745329251994329576923690768489;
 	PITCHFLOOR = -80.0f*0.01745329251994329576923690768489;
-
-	D3DXMatrixRotationYawPitchRoll(&rotationMatrix, yaw, pitch, roll); //Create rotation matrix
 }
 
 
@@ -115,49 +160,50 @@ void CameraClass::SetPerspectiveProjection(int screenWidth, int screenHeight, fl
 	float FOV = FOVinDegrees;// * (float)DEG_TO_RAD;
 	float aspectRatio = (float)screenWidth / (float)screenHeight;
 
-	D3DXMatrixPerspectiveFovLH( &projectionMatrix, FOV, aspectRatio, zNear, zFar );
+	projection = XMMatrixPerspectiveFovLH(FOV, aspectRatio, zNear, zFar);
 }
 
 
-void CameraClass::Render()
+void CameraClass::Update()
 {
-	D3DXVECTOR3 target;
+	XMVECTOR target;
+	XMMATRIX rotationMatrix;
 
-	if(rotation.y*DEG_TO_RAD > TWO_PI) //Just clamping the values to make sure it doesn't go out of control.
+	float y = XMVectorGetY(rotation)*DEG_TO_RAD;
+
+	if(y > TWO_PI || y < -TWO_PI) //Just clamping the values to make sure it doesn't go out of control.
 	{
-		rotation.y = 0.0f;
+		XMVectorSetY(rotation, 0.0f);
 	}
 
-	if(rotation.y*DEG_TO_RAD < -TWO_PI)
-	{
-		rotation.y = 0.0f;
-	}
-
-	pitch = rotation.x * (float)DEG_TO_RAD;
-	yaw = rotation.y * (float)DEG_TO_RAD;
-	roll = rotation.z * (float)DEG_TO_RAD;
+	pitch = XMVectorGetX(rotation) * (float)DEG_TO_RAD;
+	yaw = XMVectorGetY(rotation) * (float)DEG_TO_RAD;
+	roll = XMVectorGetZ(rotation) * (float)DEG_TO_RAD;
 
 	if(pitch > PITCHROOF)
 	{
 		pitch = (float)PITCHROOF;
-		rotation.x = 80.0f;
+		XMVectorSetX(rotation, 80.0f);
 	}
 
 	if(pitch < PITCHFLOOR)
 	{
 		pitch = (float)PITCHFLOOR;
-		rotation.x = -80.0f;
+		XMVectorSetX(rotation, -80.0f);
 	}
 
-	D3DXMatrixRotationYawPitchRoll(&rotationMatrix, yaw, pitch, roll); //Create rotation matrix
+	rotationMatrix = XMMatrixRotationRollPitchYaw(roll, pitch, yaw); //Create rotation matrix
 
-	D3DXVec3TransformCoord(&forward, &forwardVector, &rotationMatrix); //Create forward vector
-	D3DXVec3TransformCoord(&up, &upVector, &rotationMatrix); //Create up vector
-	D3DXVec3Cross(&right, &forward, &up); //Create right vector in relation to up and forward vector
+	forward = XMVector4Transform(ForwardVector, rotationMatrix); //Create forward vector
+	up =  XMVector4Transform(UpVector, rotationMatrix); //Create up vector
+	right = (forward * up); //Create right vector in relation to up and forward vector
 
 	target = position + forward; //Calculate new 'target' for the camera
 
-	D3DXMatrixLookAtLH(&viewMatrix, &position, &target, &up); //Finally, calculate view matrix
+	view = XMMatrixLookAtLH(position, target, up); //Finally, calculate view matrix
+
+	XMVECTOR determinant;
+	world = XMMatrixInverse(&determinant, view);
 
 	return;
 }
@@ -166,7 +212,7 @@ void CameraClass::Render()
 void camera::updateView()
 {
 //create rotation matrix
-D3DXMatrixRotationYawPitchRoll( &rotationMatrix, heading, pitch, 0 );
+XMMATRIXRotationYawPitchRoll( &rotationMatrix, heading, pitch, 0 );
 
 //create new view and up vectors
 D3DXVec3TransformCoord( &view, &dV, &rotationMatrix );
@@ -181,7 +227,7 @@ D3DXVec3Normalize( &strafeRight, &strafeRight );
 view = position + view;
 
 //update view matrix
-D3DXMatrixLookAtLH( &viewMatrix, &eye, &view, &up );
+XMMATRIXLookAtLH( &viewMatrix, &eye, &view, &up );
 }
 */
 

@@ -9,11 +9,11 @@
 // INCLUDES //
 //////////////
 #include <d3d11.h>
-#include <d3dx10math.h>
 #include <d3dx11async.h>
 #include <fstream>
 
 #include "structs.h"
+#include <Xnamath.h>
 using namespace std;
 
 
@@ -26,24 +26,23 @@ private:
 
 	struct VertexMatrixBufferType
 	{
-		D3DXMATRIX World;
-		D3DXMATRIX View;
-		D3DXMATRIX Projection;
+		XMMATRIX World;
+		XMMATRIX View;
+		XMMATRIX Projection;
 	};
 
 	struct PixelMatrixBufferType
 	{
-		D3DXMATRIX InvertedViewProjection;
-		float4 LightPosition;
+		XMMATRIX InvertedViewProjection;
+		XMVECTOR LightPosition;
 	};
 
 	struct LightBufferType
 	{
-		D3DXVECTOR4 LightColor;
+		XMVECTOR LightColor;
 		int LightRadius;
 		float LightPower;
-		D3DXVECTOR2 Padding;
-		D3DXVECTOR4 CameraPosition;
+		XMVECTOR CameraPosition;
 	};
 
 
@@ -55,15 +54,15 @@ public:
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
 	//This class takes a normal map and a depthmap and should be rendering to the light map.
-	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D3DXMATRIX inverseViewProjection, 
-		PointLight* pointLight, ID3D11ShaderResourceView** textureArray, D3DXVECTOR3 cameraPosition);
+	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX world, XMMATRIX view, XMMATRIX proj, XMMATRIX inverseViewProjection, 
+		PointLight* pointLight, ID3D11ShaderResourceView** textureArray, XMVECTOR cameraPosition);
 
 private:
 	bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
 	void ShutdownShader();
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
-	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D3DXMATRIX inverseViewProjection, 
-		PointLight* pointLight, ID3D11ShaderResourceView** textureArray, D3DXVECTOR3 cameraPosition);
+	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX world, XMMATRIX view, XMMATRIX proj, XMMATRIX inverseViewProjection, 
+		PointLight* pointLight, ID3D11ShaderResourceView** textureArray, XMVECTOR cameraPosition);
 
 	void RenderShader(ID3D11DeviceContext*, int);
 

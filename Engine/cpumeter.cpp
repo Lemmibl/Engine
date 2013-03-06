@@ -57,7 +57,7 @@ void CpuMeter::Shutdown()
 	return;
 }
 
-void CpuMeter::Frame()
+void CpuMeter::Update()
 {
 	PDH_FMT_COUNTERVALUE value; 
 

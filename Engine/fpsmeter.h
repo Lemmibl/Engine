@@ -29,7 +29,7 @@ public:
 	~FpsMeter();
 
 	void Initialize();
-	void Frame();
+	void Update();
 	int GetFps();
 
 private:

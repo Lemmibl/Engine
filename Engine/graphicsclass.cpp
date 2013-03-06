@@ -3,23 +3,14 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "graphicsclass.h"
 
-CameraClass* GraphicsClass::GetCamera()
-{
-	return camera;
-}
-
 GraphicsClass::GraphicsClass()
 {
 	d3D = 0;
 	camera  = 0;
-	//terrain = 0;
-	colorShader = 0;
 	text = 0;
 	toggleDebugInfo = true;
-	//terrainShader = 0;
 
 	frustum = 0;
-	//quadTree = 0;
 	gbufferShader = 0;
 	textureShader = 0;
 	pointLightShader = 0;
@@ -41,9 +32,7 @@ GraphicsClass::GraphicsClass()
 	depthRT = 0;
 	lightRT = 0;
 
-	marchingCubes = 0;
 	mcubeShader = 0;
-	metaBalls = 0;
 }
 
 
@@ -57,50 +46,25 @@ GraphicsClass::~GraphicsClass()
 }
 
 
-bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
+bool GraphicsClass::Initialize(HWND hwnd, CameraClass* camera, D3DClass* d3D, UINT screenWidth, UINT screenHeight,
+	 UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear)
 {
 	srand((unsigned int)time(NULL));
 	toggleTextureShader = false;
 	bool result;
 
-	shadowMapWidth = screenWidth;
-	shadowMapHeight = screenHeight;
+	this->shadowMapWidth = shadowmapWidth;//screenWidth;
+	this->shadowMapHeight = shadowmapHeight;//screenHeight;
+	this->screenWidth = screenWidth;
+	this->screenHeight = screenHeight;
+	this->screenFar = screenFar;
+	this->screenNear = screenNear;
 
 	// Create the Direct3D object.
-	d3D = new D3DClass;
-	if(!d3D)
-	{
-		return false;
-	}
+	this->d3D = d3D;
 
-	// Initialize the Direct3D object.
-	result = d3D->Initialize(screenWidth, screenHeight, VSYNC_ENABLED, hwnd, FULL_SCREEN, SCREEN_FAR, SCREEN_NEAR, shadowMapWidth, shadowMapHeight);
-
-	if(!result)
-	{
-		MessageBox(hwnd, L"Could not initialize Direct3D. Look in graphicsclass.", L"Error", MB_OK);
-		return false;
-	}
-
-
-	// Create the camera object.
-	camera = new CameraClass;
-	if(!camera)
-	{
-		MessageBox(hwnd, L"Could not create the camera object. Look in graphicsclass.", L"Error", MB_OK);
-		return false;
-	}
-
-	// Initialize a base view matrix with the camera for 2D user interface rendering.
-	camera->SetPosition(0.0f, 0.0f, -1.0f);
-	camera->Render();
+	this->camera = camera;
 	camera->GetViewMatrix(baseViewMatrix);
-
-	camera->SetPosition(0.0f, 10.0f, -10.0f);
-	camera->SetRotation(45.0f, 0.0f, 0.0f);
-
-	camera->SetPerspectiveProjection(screenWidth, screenHeight, (float)D3DX_PI / 4.0f, SCREEN_NEAR, SCREEN_FAR); 
-
 
 	// Create the model object.
 	groundModel = new ModelClass;
@@ -157,19 +121,6 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
-	colorShader = new ColorShaderClass();
-	if(!colorShader)
-	{
-		return false;
-	}
-
-	result = colorShader->Initialize(d3D->GetDevice(), hwnd);
-	if(!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the color shader object. Look in graphicsclass.", L"Error", MB_OK);
-		return false;
-	}
-
 	// Create the text object.
 	text = new TextClass;
 	if(!text)
@@ -185,55 +136,12 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
-	//terrain = new TerrainClass();
-	//if(!terrain)
-	//{
-	//	return false;
-	//}
-
-	//result = terrain->Initialize(d3D->GetDevice(), 100, 100, 5.0f, "../Engine/data/heightmap.bmp", L"../Engine/data/dirt.dds");
-	//if(!result)
-	//{
-	//	MessageBox(hwnd, L"Could not initialize the terrain object. Look in graphicsclass.", L"Error", MB_OK);
-	//	return false;
-	//}
-
-	//// Create the terrain shader object.
-	//terrainShader = new TerrainShaderClass;
-	//if(!terrainShader)
-	//{
-	//	return false;
-	//}
-
-	//// Initialize the terrain shader object.
-	//result = terrainShader->Initialize(d3D->GetDevice(), hwnd);
-	//if(!result)
-	//{
-	//	MessageBox(hwnd, L"Could not initialize the terrain shader object.", L"Error", MB_OK);
-	//	return false;
-	//}
-
 	// Create the frustum object.
 	frustum = new FrustumClass;
 	if(!frustum)
 	{
 		return false;
 	}
-
-	//// Create the quad tree object.
-	//quadTree = new QuadTreeClass;
-	//if(!quadTree)
-	//{
-	//	return false;
-	//}
-
-	//// Initialize the quad tree object.
-	//result = quadTree->Initialize(terrain, d3D->GetDevice());
-	//if(!result)
-	//{
-	//	MessageBox(hwnd, L"Could not initialize the quad tree object.", L"Error", MB_OK);
-	//	return false;
-	//}
 
 	gbufferShader = new DRGBuffer();
 	if(!gbufferShader)
@@ -311,13 +219,13 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	y = -2.0f;
 
 	float pointLightRadius = 2.0f;
-	D3DXMatrixScaling(&scale, pointLightRadius, pointLightRadius, pointLightRadius);
+	XMMATRIXScaling(&scale, pointLightRadius, pointLightRadius, pointLightRadius);
 
 	for(int i = 0; i < 20; i++)
 	{
 		pointLights.push_back(new PointLight());
-		pointLights[i]->Position = D3DXVECTOR3(x, y, z);
-		pointLights[i]->Color = D3DXVECTOR3(0.3f + i%4, 0.7f + i % 2, 0.2f + i%3);
+		pointLights[i]->Position = XMFLOAT3(x, y, z);
+		pointLights[i]->Color = XMFLOAT3(0.3f + i%4, 0.7f + i % 2, 0.2f + i%3);
 		pointLights[i]->Radius = pointLightRadius;
 		pointLights[i]->Intensity = 2.0f;
 
@@ -336,12 +244,12 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 			y += 5.0f;
 		}
 
-		D3DXMatrixTranslation(&translation, pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z);
+		XMMATRIXTranslation(&translation, pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z);
 		pointLights[i]->World = scale * translation;
 	}
 	#pragma endregion
 
-	ambientLight = D3DXVECTOR4(1.0f, 0.3f, 0.3f, 1.0f);
+	ambientLight = XMFLOAT4(1.0f, 0.3f, 0.3f, 1.0f);
 
 	/************************************************************************/
 	/* TODO: Look up http://stackoverflow.com/questions/35950/i-dont-understand-stdtr1unordered-map  */
@@ -368,21 +276,23 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
-	D3DXVECTOR3 lookAt = D3DXVECTOR3(0.0f, 0.0f, 0.1f); //LookAt for dir light. We always want this to be (0,0,0), because it's the easiest to visualize.
-	D3DXVECTOR3 up = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+	lookAt = XMVectorSet(0.1f, -10.0f, 0.1f, 0.0f); //LookAt for dir light. We always want this to be (0,0,0), because it's the easiest to visualize.
+	up = XMFLOAT3(0.0f, 1.0f, 0.0f);
 
 	// Initialize the directional light.
-	dirLight->Color = D3DXVECTOR4(0.7f, 0.7f, 0.7f, 1.0f);
+	dirLight->Color = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
 	dirLight->Intensity = 128.0f;
-	dirLight->Position = D3DXVECTOR3(-1.0f, 50.0f, -1.0f);
+	dirLight->Position = XMFLOAT3(0.5f, 55.0f, 10.0f);
 
-	D3DXVECTOR3 direction = lookAt - dirLight->Position;
-	D3DXVec3Normalize(&direction, &direction);
+	XMVECTOR direction = (lookAt - dirLight->Position);
+	XMVector3Normalize(direction);
 	dirLight->Direction = direction;
 
-	D3DXMatrixPerspectiveFovLH(&dirLight->Projection, D3DX_PI/2.0f, 1.0f, 5.0f, 140.0f);
-	//D3DXMatrixOrthoLH(&dirLight->Projection, (float)shadowMapWidth, (float)shadowMapHeight, 5.0f, 300.0f);
-	D3DXMatrixLookAtLH(&dirLight->View, &dirLight->Position, &lookAt, &up); //Generate light view matrix
+	XMMATRIXPerspectiveFovLH(&dirLight->Projection, D3DX_PI/2.0f, 1.0f, 5.0f, 140.0f);
+	//XMMATRIXOrthoLH(&dirLight->Projection, (float)shadowMapWidth, (float)shadowMapHeight, 5.0f, 140.0f);
+
+	lookAt = XMFLOAT3(0.0f, 0.0f, 0.1f);
+	XMMATRIXLookAtLH(&dirLight->View, &dirLight->Position, &lookAt, &up); //Generate light view matrix
 	#pragma endregion
 
 	textureShader = new TextureShaderClass();
@@ -399,7 +309,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	}
 
 	defaultModelMaterial.a = 128.0f;
-	defaultModelMaterial.Ka = 0.1f;
+	defaultModelMaterial.Ka = 0.3f;
 	defaultModelMaterial.Kd = 1.0f;
 	defaultModelMaterial.Ks = 0.3f;
 
@@ -416,13 +326,6 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	depthRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
 
 	lightRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
-
-	metaBalls = new MetaballsClass();
-	marchingCubes = new MarchingCubesClass(-20.0f, -20.0f, -20.0f, 30.0f, 30.0f, 30.0f, 1.5f, 1.5f, 1.5f);
-	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
-
-	marchingCubes->ComputeMetaBalls();
-	marchingCubes->CalculateMesh(d3D->GetDevice());
 
 
 	mcubeShader = new MarchingCubeShader();
@@ -450,45 +353,11 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	return true;
 }
 
-bool GraphicsClass::Frame(int fps, int cpu, float frameTime, bool toggle, bool left, bool right)
+bool GraphicsClass::Update(int fps, int cpu, float frameTime, bool toggle, bool left, bool right)
 {
-
-	//if(returning)
-	//{
-	//	metaBalls->MoveBall(0, 0.01f, 0.01f, 0.01f);
-
-	//	timer -= 0.0008f*frameTime;
-	//}
-	//else
-	//{
-	//	metaBalls->MoveBall(0, -0.01f, -0.01f, -0.01f);
-
-	//	timer += 0.0008f*frameTime;
-	//}
-
-	//if(timer > 5.0f && !returning)
-	//{
-	//	returning = true;
-	//}
-	//else if(timer < -5.0f && returning)
-	//{
-	//	returning = false;
-	//}
-
-
-	//marchingCubes->ComputeMetaBalls();
-	//marchingCubes->CalculateMesh(d3D->GetDevice());
-
 	bool result;
 
-	if(toggle) //We toggle if key has been pressed (toggle == true).
-	{
-		toggleDebugInfo = false;
-	}
-	else
-	{
-		toggleDebugInfo = true;
-	}
+	toggleDebugInfo = toggle;
 
 	result = text->SetFps(fps, d3D->GetDeviceContext());
 	if(!result)
@@ -502,7 +371,7 @@ bool GraphicsClass::Frame(int fps, int cpu, float frameTime, bool toggle, bool l
 		return false;
 	}
 
-	D3DXVECTOR3 temp = camera->GetPosition();
+	XMFLOAT3 temp = camera->GetPosition();
 	result = text->SetCameraPosition((int)temp.x, (int)temp.y, (int)temp.z, d3D->GetDeviceContext());
 	if(!result)
 	{
@@ -516,28 +385,33 @@ bool GraphicsClass::Frame(int fps, int cpu, float frameTime, bool toggle, bool l
 		return false;
 	}
 
-
 	if(left)
 	{
-		for(unsigned int i = 0; i < pointLights.size(); i++)
-		{
-			pointLights[i]->Position.y += frameTime*0.01f;
+		dirLight->Position.x += frameTime*0.01f;
 
-			D3DXMatrixTranslation(&translation, pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z);
-			pointLights[i]->World = scale * translation;
-		}
+		//for(unsigned int i = 0; i < pointLights.size(); i++)
+		//{
+		//	pointLights[i]->Position.y += frameTime*0.01f;
+
+		//	XMMATRIXTranslation(&translation, pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z);
+		//	pointLights[i]->World = scale * translation;
+		//}
 	}
 
 	if(right)
 	{
-		for(unsigned int i = 0; i < pointLights.size(); i++)
-		{
-			pointLights[i]->Position.y -= frameTime*0.01f;
+		dirLight->Position.x -= frameTime*0.01f;
 
-			D3DXMatrixTranslation(&translation, pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z);
-			pointLights[i]->World = scale * translation;
-		}
+		//for(unsigned int i = 0; i < pointLights.size(); i++)
+		//{
+		//	pointLights[i]->Position.y -= frameTime*0.01f;
+
+		//	XMMATRIXTranslation(&translation, pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z);
+		//	pointLights[i]->World = scale * translation;
+		//}
 	}
+
+	XMMATRIXLookAtLH(&dirLight->View, &dirLight->Position, &lookAt, &up); //Generate light view matrix
 
 	return true;
 }
@@ -547,12 +421,18 @@ bool GraphicsClass::Render()
 	// Clear the scene.
 	d3D->BeginScene(0.0f, 0.0f, 0.0f, 0.0f);
 
+	/*
+		TODO: TRANSPOSA MATRISERNA HÄR, så görs det bara en gång och man kan skicka dem som float4x4 överallt istället.
+
+		http://msdn.microsoft.com/en-us/library/windows/desktop/ee418732(v=vs.85).aspx
+	*/
+
 	#pragma region Preparation
 	ID3D11DeviceContext* context;
-	D3DXMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, scalingMatrix, viewProjection, invertedViewProjection, lightView, lightProj, lightViewProj;
+	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, scalingMatrix, viewProjection, invertedViewProjection, lightView, lightProj, lightViewProj;
 	float positionX, positionY, positionZ, radius;
-	D3DXVECTOR4 color;
-	D3DXVECTOR3 camPos;
+	XMFLOAT4 color;
+	XMFLOAT3 camPos;
 	bool result, renderModel;
 	int modelCount, renderCount;
 	ID3D11RenderTargetView* gbufferRenderTargets[3] = { NULL }; //render targets for GBuffer pass
@@ -594,7 +474,7 @@ bool GraphicsClass::Render()
 	context = d3D->GetDeviceContext();
 
 	// Generate the view matrix based on the camera's position.
-	camera->Render();
+	camera->Update();
 
 	// Get the world, view, projection, and ortho matrices from the camera and Direct3D objects.
 	d3D->GetWorldMatrix(worldMatrix);
@@ -604,16 +484,16 @@ bool GraphicsClass::Render()
 	lightView = dirLight->View;
 	lightProj = dirLight->Projection;
 
-	lightViewProj = lightView*lightProj;
+	lightViewProj = (lightView*lightProj);
 
-	//D3DXMatrixMultiply(&lightViewProj, &dirLight->View, &dirLight->Projection);
-	//D3DXMatrixMultiply(&viewProjection, &viewMatrix, &projectionMatrix);
+	//XMMATRIXMultiply(&lightViewProj, &dirLight->View, &dirLight->Projection);
+	//XMMATRIXMultiply(&viewProjection, &viewMatrix, &projectionMatrix);
 
 	viewProjection = (viewMatrix*projectionMatrix);
-	D3DXMatrixInverse(&invertedViewProjection, NULL, &viewProjection);
+	XMMATRIXInverse(&invertedViewProjection, NULL, &viewProjection);
 
 	// Construct the frustum.
-	frustum->ConstructFrustum(SCREEN_FAR, projectionMatrix, viewMatrix);
+	frustum->ConstructFrustum(screenFar, projectionMatrix, viewMatrix);
 
 	// Get the number of models that will be rendered.
 	modelCount = modelList->GetModelCount();
@@ -629,8 +509,8 @@ bool GraphicsClass::Render()
 	context->ClearDepthStencilView(shadowDS, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	// Move the model to the location it should be rendered at.
-	D3DXMatrixTranslation(&worldMatrix, 0.0f, -10.0f, 0.0f);
-	D3DXMatrixScaling(&scalingMatrix, 0.2f, 0.2f, 0.2f);
+	XMMATRIXTranslation(&worldMatrix, 0.0f, -10.0f, 0.0f);
+	XMMATRIXScaling(&scalingMatrix, 0.2f, 0.2f, 0.2f);
 
 	worldMatrix = scalingMatrix * worldMatrix;
 
@@ -648,7 +528,7 @@ bool GraphicsClass::Render()
 		modelList->GetData(i, positionX, positionY, positionZ, color);
 
 		// Move the model to the location it should be rendered at.
-		D3DXMatrixTranslation(&worldMatrix, positionX, positionY, positionZ); 
+		XMMATRIXTranslation(&worldMatrix, positionX, positionY, positionZ); 
 
 		// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 		otherModel->Render(context);
@@ -673,8 +553,8 @@ bool GraphicsClass::Render()
 	context->ClearRenderTargetView(gbufferRenderTargets[2], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 
 	// Move the model to the location it should be rendered at.
-	D3DXMatrixTranslation(&worldMatrix, 0.0f, -10.0f, 0.0f);
-	D3DXMatrixScaling(&scalingMatrix, 0.2f, 0.2f, 0.2f);
+	XMMATRIXTranslation(&worldMatrix, 0.0f, -10.0f, 0.0f);
+	XMMATRIXScaling(&scalingMatrix, 0.2f, 0.2f, 0.2f);
 
 	worldMatrix *= scalingMatrix;
 
@@ -699,7 +579,7 @@ bool GraphicsClass::Render()
 		if(renderModel)
 		{
 			// Move the model to the location it should be rendered at.
-			D3DXMatrixTranslation(&worldMatrix, positionX, positionY, positionZ); 
+			XMMATRIXTranslation(&worldMatrix, positionX, positionY, positionZ); 
 
 			// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 			otherModel->Render(context);
@@ -918,58 +798,12 @@ bool GraphicsClass::Render()
 
 void GraphicsClass::Shutdown()
 {
-	if(d3D)
-	{
-		d3D->Shutdown();
-		delete d3D;
-		d3D = 0;
-	}
-
-	if(camera)
-	{
-		delete camera;
-		camera = 0;
-	}
-
-	if(colorShader)
-	{
-		colorShader->Shutdown();
-		delete colorShader;
-		colorShader = 0;
-	}
-
 	if (text)
 	{
 		text->Shutdown();
 		delete text;
 		text = 0;
 	}
-
-	//if(terrain)
-	//{
-	//	terrain->Shutdown();
-	//	delete terrain;
-	//	terrain = 0;
-	//}
-
-	//// Release the terrain shader object.
-	//if(terrainShader)
-	//{
-	//	terrainShader->Shutdown();
-	//	delete terrainShader;
-	//	terrainShader = 0;
-	//}
-
-	//// Release the quad tree object.
-	//if(quadTree)
-	//{
-	//	quadTree->Shutdown();
-	//	delete quadTree;
-	//	quadTree = 0;
-	//}
-
-	// Release the frustum object.
-
 
 	if(frustum)
 	{
@@ -998,8 +832,6 @@ void GraphicsClass::Shutdown()
 		pointLightShader = 0;
 	}
 
-
-	// Release the light object.
 	if(dirLight)
 	{
 		delete dirLight;
@@ -1106,18 +938,6 @@ void GraphicsClass::Shutdown()
 		mcubeShader->Shutdown();
 		mcubeShader = 0;
 	}
-
-	if(marchingCubes)
-	{
-		delete marchingCubes;
-		marchingCubes = 0;
-	}
-
-	//if(metaBalls)
-	//{
-	//	delete metaBalls;
-	//	metaBalls = 0;
-	//}
 
 	return;
 }

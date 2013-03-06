@@ -1,9 +1,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Filename: systemclass.cpp
 ////////////////////////////////////////////////////////////////////////////////
-#include "systemclass.h"
+#include "Engine.h"
 
-SystemClass::SystemClass()
+Engine::Engine()
 {
 	input = 0;
 	graphics = 0;
@@ -11,26 +11,32 @@ SystemClass::SystemClass()
 	cpuMeter = 0;
 	fpsMeter = 0;
 	cameraController = 0;
+	marchingCubes = 0;
+	metaBalls = 0;
+	camera = 0;
+	d3D = 0;
 }
 
-SystemClass::SystemClass(const SystemClass& other)
+Engine::Engine(const Engine& other)
 {
 }
 
-SystemClass::~SystemClass()
+Engine::~Engine()
 {
 }
 
 
-bool SystemClass::Initialize()
+bool Engine::Initialize()
 {
 	int screenWidth, screenHeight;
 	bool result;
 
-
-	// Initialize the width and height of the screen to zero before sending the variables into the function.
+	// Initialize values.
+	toggleDebug = true;
 	screenWidth = 0;
 	screenHeight = 0;
+	shadowMapWidth = 1024;
+	shadowMapHeight = 1024;
 
 	// Initialize the windows api.
 	InitializeWindows(screenWidth, screenHeight);
@@ -57,8 +63,38 @@ bool SystemClass::Initialize()
 		return false;
 	}
 
+	
+	d3D = new D3DClass();
+
+	// Initialize the Direct3D object.
+	result = d3D->Initialize(hwnd, VSYNC_ENABLED, FULL_SCREEN, SCREEN_FAR, SCREEN_NEAR, 
+	screenWidth, screenHeight, shadowMapWidth, shadowMapHeight);
+
+	if(!result)
+	{
+	MessageBox(hwnd, L"Could not initialize Direct3D. Look in graphicsclass.", L"Error", MB_OK);
+	return false;
+	}
+	
+	// Create the camera object.
+	camera = new CameraClass;
+	if(!camera)
+	{
+		MessageBox(hwnd, L"Could not create the camera object. Look in graphicsclass.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Initialize a base view matrix with the camera for 2D user interface rendering.
+	camera->SetPosition(0.0f, 0.0f, -1.0f);
+	camera->Update();
+
+	camera->SetPosition(0.0f, 10.0f, -10.0f);
+	camera->SetRotation(45.0f, 0.0f, 0.0f);
+
+	camera->SetPerspectiveProjection(screenWidth, screenHeight, (float)D3DX_PI / 4.0f, SCREEN_NEAR, SCREEN_FAR); 
+
 	// Initialize the graphics object.
-	result = graphics->Initialize(screenWidth, screenHeight, hwnd);
+	result = graphics->Initialize(hwnd, camera, d3D, screenWidth, screenHeight, shadowMapWidth, shadowMapHeight, SCREEN_FAR, SCREEN_NEAR);
 	if(!result)
 	{
 		return false;
@@ -101,22 +137,43 @@ bool SystemClass::Initialize()
 		return false;
 	}
 
-	result = cameraController->Initialize(input, graphics->GetCamera(), 0.01f, 0.05f);
+	result = cameraController->Initialize(input, camera, 0.01f, 0.05f);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the camera controller object.", L"Error", MB_OK);
 		return false;
 	}
 
-	cameraController->SetPosition(graphics->GetCamera()->GetPositionPtr());
-	cameraController->SetRotation(graphics->GetCamera()->GetRotationPtr());
+	cameraController->SetPosition(camera->GetPositionPtr());
+	cameraController->SetRotation(camera->GetRotationPtr());
+
+	metaBalls = new MetaballsClass();
+	marchingCubes = new MarchingCubesClass(-20.0f, -20.0f, -20.0f, 30.0f, 30.0f, 30.0f, 1.5f, 1.5f, 1.5f);
+	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
+
+	marchingCubes->ComputeMetaBalls();
+	marchingCubes->CalculateMesh(d3D->GetDevice());
+
 
 	return true;	
 }
 
 
-void SystemClass::Shutdown()
+void Engine::Shutdown()
 {
+	if(d3D)
+	{
+		d3D->Shutdown();
+		delete d3D;
+		d3D = 0;
+	}
+
+	if(camera)
+	{
+		delete camera;
+		camera = 0;
+	}
+
 	if(cameraController)
 	{
 		delete cameraController;
@@ -150,6 +207,18 @@ void SystemClass::Shutdown()
 		graphics = 0;
 	}
 
+	if(marchingCubes)
+	{
+		delete marchingCubes;
+		marchingCubes = 0;
+	}
+
+	//if(metaBalls)
+	//{
+	//	delete metaBalls;
+	//	metaBalls = 0;
+	//}
+
 	// Release the input object.
 	if(input)
 	{
@@ -164,7 +233,7 @@ void SystemClass::Shutdown()
 	return;
 }
 
-void SystemClass::Run()
+void Engine::Run()
 {
 	MSG msg;
 	bool done, result;
@@ -192,7 +261,7 @@ void SystemClass::Run()
 		else
 		{
 			// Otherwise do the frame processing.  If frame processing fails then exit.
-			result = Frame();
+			result = Update();
 			if(!result)
 			{
 				MessageBox(hwnd, L"Frame Processing Failed", L"Error", MB_OK);
@@ -209,17 +278,17 @@ void SystemClass::Run()
 	return;
 }
 
-bool SystemClass::Frame()
+bool Engine::Update()
 {
 	bool result;
 	int mouseX, mouseY;
 
 	timer->Frame();
-	fpsMeter->Frame();
-	cpuMeter->Frame();
+	fpsMeter->Update();
+	cpuMeter->Update();
 
 	// Do the input frame processing.
-	result = input->Frame();
+	result = input->Update(hwnd);
 	if(!result)
 	{
 		return false;
@@ -228,11 +297,41 @@ bool SystemClass::Frame()
 	// Get the location of the mouse from the input object,
 	input->GetMouseLocation(mouseX, mouseY);
 
-	cameraController->SetFrameTime(timer->GetTime());
-	cameraController->Update(); //Processes all of the movement for this controller.
+	cameraController->Update(timer->GetFrameTime()); //Processes all of the movement for this controller.
+
+	if(input->WasKeyPressed(DIK_Q))
+	{
+		toggleDebug = !toggleDebug;
+	}
+
+	//if(returning)
+	//{
+	//	metaBalls->MoveBall(0, 0.01f, 0.01f, 0.01f);
+
+	//	timer -= 0.0008f*frameTime;
+	//}
+	//else
+	//{
+	//	metaBalls->MoveBall(0, -0.01f, -0.01f, -0.01f);
+
+	//	timer += 0.0008f*frameTime;
+	//}
+
+	//if(timer > 5.0f && !returning)
+	//{
+	//	returning = true;
+	//}
+	//else if(timer < -5.0f && returning)
+	//{
+	//	returning = false;
+	//}
+
+
+	//marchingCubes->ComputeMetaBalls();
+	//marchingCubes->CalculateMesh(d3D->GetDevice());
 	
 	// Do the frame processing for the graphics object.
-	result = graphics->Frame(fpsMeter->GetFps(), cpuMeter->GetCpuPercentage(), timer->GetTime(), input->IsKeyPressed(DIK_Q), input->IsKeyPressed(DIK_R), input->IsKeyPressed(DIK_F));
+	result = graphics->Update(fpsMeter->GetFps(), cpuMeter->GetCpuPercentage(), timer->GetFrameTime(), toggleDebug, input->IsKeyPressed(DIK_R), input->IsKeyPressed(DIK_F));
 	if(!result)
 	{
 		return false;
@@ -248,15 +347,15 @@ bool SystemClass::Frame()
 	return true;
 }
 
-LRESULT CALLBACK SystemClass::MessageHandler(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam)
+LRESULT CALLBACK Engine::MessageHandler(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam)
 {
 	return DefWindowProc(hwnd, umsg, wparam, lparam);
 }
 
-void SystemClass::InitializeWindows(int& screenWidth, int& screenHeight)
+void Engine::InitializeWindows(int& screenWidth, int& screenHeight)
 {
-	WNDCLASSEX wc;
-	DEVMODE dmScreenSettings;
+	WNDCLASSEX windowClass;
+	DEVMODE devmodeScreenSettings;
 	int posX, posY;
 
 	// Get an external pointer to this object.
@@ -269,21 +368,21 @@ void SystemClass::InitializeWindows(int& screenWidth, int& screenHeight)
 	applicationName = L"Engine";
 
 	// Setup the windows class with default settings.
-	wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-	wc.lpfnWndProc = WndProc;
-	wc.cbClsExtra = 0;
-	wc.cbWndExtra = 0;
-	wc.hInstance = hinstance;
-	wc.hIcon = LoadIcon(NULL, IDI_WINLOGO);
-	wc.hIconSm = wc.hIcon;
-	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
-	wc.lpszMenuName = NULL;
-	wc.lpszClassName = applicationName;
-	wc.cbSize = sizeof(WNDCLASSEX);
+	windowClass.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+	windowClass.lpfnWndProc = WndProc;
+	windowClass.cbClsExtra = 0;
+	windowClass.cbWndExtra = 0;
+	windowClass.hInstance = hinstance;
+	windowClass.hIcon = LoadIcon(NULL, IDI_WINLOGO);
+	windowClass.hIconSm = windowClass.hIcon;
+	windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	windowClass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+	windowClass.lpszMenuName = NULL;
+	windowClass.lpszClassName = applicationName;
+	windowClass.cbSize = sizeof(WNDCLASSEX);
 
 	// Register the window class.
-	RegisterClassEx(&wc);
+	RegisterClassEx(&windowClass);
 
 	// Determine the resolution of the clients desktop screen.
 	screenWidth  = GetSystemMetrics(SM_CXSCREEN);
@@ -293,22 +392,22 @@ void SystemClass::InitializeWindows(int& screenWidth, int& screenHeight)
 	if(FULL_SCREEN)
 	{
 		// If full screen set the screen to maximum size of the users desktop and 32bit.
-		memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
-		dmScreenSettings.dmSize       = sizeof(dmScreenSettings);
-		dmScreenSettings.dmPelsWidth  = (unsigned long)screenWidth;
-		dmScreenSettings.dmPelsHeight = (unsigned long)screenHeight;
-		dmScreenSettings.dmBitsPerPel = 32;			
-		dmScreenSettings.dmFields     = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
+		memset(&devmodeScreenSettings, 0, sizeof(devmodeScreenSettings));
+		devmodeScreenSettings.dmSize       = sizeof(devmodeScreenSettings);
+		devmodeScreenSettings.dmPelsWidth  = (unsigned long)screenWidth;
+		devmodeScreenSettings.dmPelsHeight = (unsigned long)screenHeight;
+		devmodeScreenSettings.dmBitsPerPel = 32;			
+		devmodeScreenSettings.dmFields     = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
 
 		// Change the display settings to full screen.
-		ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN);
+		ChangeDisplaySettings(&devmodeScreenSettings, CDS_FULLSCREEN);
 
 		// Set the position of the window to the top left corner.
 		posX = posY = 0;
 	}
 	else
 	{
-		// If windowed then set it to 800x600 resolution.
+		// If windowed then set it to this resolution.
 		screenWidth  = 1024;
 		screenHeight = 768;
 
@@ -343,7 +442,7 @@ void SystemClass::InitializeWindows(int& screenWidth, int& screenHeight)
 	return;
 }
 
-void SystemClass::ShutdownWindows()
+void Engine::ShutdownWindows()
 {
 	// Show the mouse cursor.
 	ShowCursor(true);

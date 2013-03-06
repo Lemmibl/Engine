@@ -46,8 +46,8 @@ void VertexShaderOnly::Shutdown()
 }
 
 
-bool VertexShaderOnly::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, 
-	D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix)
+bool VertexShaderOnly::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, 
+	XMMATRIX viewMatrix, XMMATRIX projectionMatrix)
 {
 	bool result;
 
@@ -214,20 +214,20 @@ void VertexShaderOnly::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND h
 }
 
 
-bool VertexShaderOnly::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, 
-	D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix)
+bool VertexShaderOnly::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, 
+	XMMATRIX viewMatrix, XMMATRIX projectionMatrix)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	MatrixBufferType* dataPtr;
 	unsigned int bufferNumber;
 
-	D3DXMATRIX tWorld, tView, tProj;
+	XMMATRIX tWorld, tView, tProj;
 
 	// Transpose matrices before sending them into the shader. This is a requirement for DirectX 11. 
-	D3DXMatrixTranspose(&tWorld, &worldMatrix);
-	D3DXMatrixTranspose(&tView, &viewMatrix);
-	D3DXMatrixTranspose(&tProj, &projectionMatrix);
+	XMMATRIXTranspose(&tWorld, &worldMatrix);
+	XMMATRIXTranspose(&tView, &viewMatrix);
+	XMMATRIXTranspose(&tProj, &projectionMatrix);
 
 	// Lock the constant buffer so it can be written to.
 	result = deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);

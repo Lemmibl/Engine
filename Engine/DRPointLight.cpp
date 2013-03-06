@@ -50,7 +50,7 @@ void DRPointLight::Shutdown()
 	return;
 }
 
-bool DRPointLight::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D3DXMATRIX invViewProj, 
+bool DRPointLight::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX world, XMMATRIX view, XMMATRIX proj, XMMATRIX invViewProj, 
 	PointLight* pointLight, ID3D11ShaderResourceView** textureArray, D3DXVECTOR3 cameraPosition)
 {
 	bool result;
@@ -327,7 +327,7 @@ void DRPointLight::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd,
 	return;
 }
 
-bool DRPointLight::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D3DXMATRIX invViewProj, 
+bool DRPointLight::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX world, XMMATRIX view, XMMATRIX proj, XMMATRIX invViewProj, 
 	PointLight* pointLight, ID3D11ShaderResourceView** textureArray, D3DXVECTOR3 cameraPosition)
 {		
 	HRESULT result;
@@ -337,13 +337,13 @@ bool DRPointLight::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXM
 	VertexMatrixBufferType* dataPtr;
 	LightBufferType* dataPtr2;
 	PixelMatrixBufferType* dataPtr3;
-	D3DXMATRIX tWorld, tView, tProj, tInvViewProj;
+	XMMATRIX tWorld, tView, tProj, tInvViewProj;
 
 	// Transpose the matrices to prepare them for the shader.
-	D3DXMatrixTranspose(&tWorld, &world);
-	D3DXMatrixTranspose(&tView, &view);
-	D3DXMatrixTranspose(&tProj, &proj);
-	D3DXMatrixTranspose(&tInvViewProj, &invViewProj);
+	XMMATRIXTranspose(&tWorld, &world);
+	XMMATRIXTranspose(&tView, &view);
+	XMMATRIXTranspose(&tProj, &proj);
+	XMMATRIXTranspose(&tInvViewProj, &invViewProj);
 
 	// Lock the constant buffer so it can be written to.
 	result = deviceContext->Map(vertexMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -356,7 +356,7 @@ bool DRPointLight::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXM
 	dataPtr = (VertexMatrixBufferType*)mappedResource.pData;
 
 	// Copy the matrices into the constant buffer.
-	dataPtr->World = tWorld;
+	dataPtr->World = (float*)tWorld;
 	dataPtr->View = tView;
 	dataPtr->Projection = tProj;
 
@@ -380,11 +380,10 @@ bool DRPointLight::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXM
 	dataPtr2 = (LightBufferType*)mappedResource.pData;
 
 	// Copy the lighting variables into the constant buffer.
-	dataPtr2->LightColor =  D3DXVECTOR4(pointLight->Color, 1.0f);
+	dataPtr2->LightColor =  XMVECTOR(pointLight->Color);
 	dataPtr2->LightRadius = (int)pointLight->Radius;
 	dataPtr2->LightPower = pointLight->Intensity;
-	dataPtr2->Padding = D3DXVECTOR2(0, 0);
-	dataPtr2->CameraPosition = D3DXVECTOR4(cameraPosition, 1.0f);
+	dataPtr2->CameraPosition = XMVectorSet(cameraPosition.x, cameraPosition.y, cameraPosition.z, 1.0f);
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(lightBuffer, 0);

@@ -4,16 +4,6 @@
 #ifndef _GRAPHICSCLASS_H_
 #define _GRAPHICSCLASS_H_
 
-/////////////
-// GLOBALS //
-/////////////
-const bool SHOW_CURSOR = true;
-const bool FULL_SCREEN = false;
-const bool VSYNC_ENABLED = false;
-const float SCREEN_FAR = 100.0f;
-const float SCREEN_NEAR = 0.5f;
-
-
 ///////////////////////
 // MY CLASS INCLUDES //
 ///////////////////////
@@ -21,24 +11,20 @@ const float SCREEN_NEAR = 0.5f;
 
 #include <stdlib.h>
 #include <time.h>
-#include <math.h>
+#include <xnamath.h>
 
 #include "structs.h"
 
 #include "d3dclass.h"
 #include "cameraclass.h"
-#include "terrainclass.h"
-#include "colorshaderclass.h"
 #include "timerclass.h"
 #include "controllerclass.h"
 #include "fpsmeter.h"
 #include "fontshaderclass.h"
 #include "textclass.h"
 #include "renderToTextureClass.h"
-#include "terrainshaderclass.h"
 #include "DRGBuffer.h"
 #include "frustumclass.h"
-#include "quadtreeclass.h"
 #include "debugwindowclass.h"
 #include "textureshaderclass.h"
 #include "VertexShaderOnly.h"
@@ -50,7 +36,6 @@ const float SCREEN_NEAR = 0.5f;
 #include "pointlight.h"
 #include "modellistclass.h"
 #include "modelclass.h"
-#include "marchingCubesClass.h"
 #include "MarchingCubeShader.h"
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -63,26 +48,19 @@ public:
 	GraphicsClass(const GraphicsClass&);
 	~GraphicsClass();
 
-	bool Initialize(int, int, HWND);
+	bool Initialize(HWND hwnd, CameraClass* camera, D3DClass* d3D, UINT screenWidth, UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear);
 	void Shutdown();
 
-	bool Frame(int, int, float, bool, bool, bool);
+	bool Update(int, int, float, bool, bool, bool);
 	bool Render();
 	bool RenderToTexture(RenderToTextureClass* const);
 	bool RenderScene();
 
-	CameraClass* GetCamera();
-
 private:
 	D3DClass* d3D;
 	CameraClass* camera;
-	//TerrainClass* terrain;
-	ColorShaderClass* colorShader;
-	//TerrainShaderClass* terrainShader;
 	TextClass* text;
-
 	FrustumClass* frustum;
-	//QuadTreeClass* quadTree;
 
 	DRGBuffer* gbufferShader;
 	DRPointLight* pointLightShader;
@@ -115,16 +93,16 @@ private:
 
 	bool toggleDebugInfo;
 	bool toggleTextureShader;
-	D3DXMATRIX baseViewMatrix, scale, translation;
-	D3DXVECTOR4 ambientLight;
+	XMMATRIX baseViewMatrix, scale, translation;
+	XMFLOAT4 ambientLight;
+	XMFLOAT3 lookAt, up;
 
-	UINT shadowMapWidth, shadowMapHeight;
+	UINT shadowMapWidth, shadowMapHeight, screenWidth, screenHeight;
+	float screenFar, screenNear;
 
 	float timer;
 	bool returning;
 
-	MarchingCubesClass* marchingCubes;
-	MetaballsClass* metaBalls;
 	MarchingCubeShader* mcubeShader;
 };
 

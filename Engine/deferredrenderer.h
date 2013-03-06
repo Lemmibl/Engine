@@ -47,9 +47,9 @@
 //
 //	struct CSConstants
 //	{
-//		D3DXMATRIX View;
-//		D3DXMATRIX Projection;
-//		D3DXMATRIX InvViewProjection;
+//		XMMATRIX View;
+//		XMMATRIX Projection;
+//		XMMATRIX InvViewProjection;
 //		D3DXVECTOR3 CameraPosWorldSSpace;
 //	};
 //
@@ -79,8 +79,8 @@
 //	static const float FarClip = 100.0f;
 //
 //	static const float ModelScale = 0.01f;
-//	D3DXMATRIX scaleMatrix = *D3DXMatrixScaling(&scaleMatrix, ModelScale, ModelScale, ModelScale);
-//	D3DXMATRIX rotYMatrix = *D3DXMatrixRotationY(&rotYMatrix, PIBy2);
+//	XMMATRIX scaleMatrix = *XMMATRIXScaling(&scaleMatrix, ModelScale, ModelScale, ModelScale);
+//	XMMATRIX rotYMatrix = *XMMATRIXRotationY(&rotYMatrix, PIBy2);
 //	static D3DMATRIX ModelWorldMatrix = scaleMatrix * rotYMatrix;
 //};
 //

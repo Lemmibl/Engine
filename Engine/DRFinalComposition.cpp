@@ -49,7 +49,7 @@ void DRFinalComposition::Shutdown()
 	return;
 }
 
-bool DRFinalComposition::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX projection, D3DXMATRIX invertedViewProjection, D3DXMATRIX lightViewProj,
+bool DRFinalComposition::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX world, XMMATRIX view, XMMATRIX projection, XMMATRIX invertedViewProjection, XMMATRIX lightViewProj,
 	ID3D11ShaderResourceView** textureArray)
 {
 	bool result;
@@ -308,7 +308,7 @@ void DRFinalComposition::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND
 	return;
 }
 
-bool DRFinalComposition::SetShaderParameters( ID3D11DeviceContext* deviceContext, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX projection, D3DXMATRIX invertedViewProjection, D3DXMATRIX lightViewProj,
+bool DRFinalComposition::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX world, XMMATRIX view, XMMATRIX projection, XMMATRIX invertedViewProjection, XMMATRIX lightViewProj,
 	ID3D11ShaderResourceView** textureArray)
 {		
 	HRESULT result;
@@ -319,11 +319,11 @@ bool DRFinalComposition::SetShaderParameters( ID3D11DeviceContext* deviceContext
 	PixelMatrixBuffer* dataPtr2;
 
 	// Transpose the matrices to prepare them for the shader.
-	D3DXMatrixTranspose(&world, &world);
-	D3DXMatrixTranspose(&view, &view);
-	D3DXMatrixTranspose(&projection, &projection);
-	D3DXMatrixTranspose(&lightViewProj, &lightViewProj);
-	D3DXMatrixTranspose(&invertedViewProjection, &invertedViewProjection);
+	XMMATRIXTranspose(&world, &world);
+	XMMATRIXTranspose(&view, &view);
+	XMMATRIXTranspose(&projection, &projection);
+	XMMATRIXTranspose(&lightViewProj, &lightViewProj);
+	XMMATRIXTranspose(&invertedViewProjection, &invertedViewProjection);
 
 	/////////////#1
 

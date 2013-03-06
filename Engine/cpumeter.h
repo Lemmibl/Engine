@@ -28,7 +28,7 @@ public:
 
 	void Initialize();
 	void Shutdown();
-	void Frame();
+	void Update();
 	int GetCpuPercentage();
 
 private:

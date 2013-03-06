@@ -28,7 +28,7 @@ bool TimerClass::Initialize()
 	}
 
 	// Find out how many times the frequency counter ticks every millisecond.
-	ticksPerMs = (float)(frequency / 1000);
+	ticksPerMillisecond = (float)(frequency / 1000);
 
 	QueryPerformanceCounter((LARGE_INTEGER*)&startTime);
 
@@ -45,14 +45,14 @@ void TimerClass::Frame()
 
 	timeDifference = (float)(currentTime - startTime);
 
-	frameTime = timeDifference / ticksPerMs;
+	frameTime = timeDifference / ticksPerMillisecond;
 
 	startTime = currentTime;
 
 	return;
 }
 
-float TimerClass::GetTime()
+float TimerClass::GetFrameTime()
 {
 	return frameTime;
 }

@@ -52,9 +52,9 @@ void DRDirLight::Shutdown()
 	return;
 }
 
-bool DRDirLight::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX projection, 
-	D3DXMATRIX invertedViewProj, ID3D11ShaderResourceView** textureArray, D3DXVECTOR3 cameraPosition, D3DXVECTOR3 lightPosition, D3DXVECTOR3 lightDirection, 
-	D3DXVECTOR4 lightColor, float lightStrength, D3DXVECTOR4 ambienceColor, MaterialStruct material, D3DXMATRIX lightView, D3DXMATRIX lightProj)
+bool DRDirLight::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX world, XMMATRIX view, XMMATRIX projection, 
+	XMMATRIX invertedViewProj, ID3D11ShaderResourceView** textureArray, D3DXVECTOR3 cameraPosition, D3DXVECTOR3 lightPosition, D3DXVECTOR3 lightDirection, 
+	D3DXVECTOR4 lightColor, float lightStrength, D3DXVECTOR4 ambienceColor, MaterialStruct material, XMMATRIX lightView, XMMATRIX lightProj)
 {
 	bool result;
 
@@ -387,9 +387,9 @@ void DRDirLight::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, W
 	return;
 }
 
-bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX projection, 
-	D3DXMATRIX invertedViewProj, ID3D11ShaderResourceView** textureArray, D3DXVECTOR3 cameraPosition, D3DXVECTOR3 lightPosition, D3DXVECTOR3 lightDirection, 
-	D3DXVECTOR4 lightColor, float lightStrength, D3DXVECTOR4 ambienceColor, MaterialStruct material, D3DXMATRIX lightView, D3DXMATRIX lightProj)
+bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX world, XMMATRIX view, XMMATRIX projection, 
+	XMMATRIX invertedViewProj, ID3D11ShaderResourceView** textureArray, D3DXVECTOR3 cameraPosition, D3DXVECTOR3 lightPosition, D3DXVECTOR3 lightDirection, 
+	D3DXVECTOR4 lightColor, float lightStrength, D3DXVECTOR4 ambienceColor, MaterialStruct material, XMMATRIX lightView, XMMATRIX lightProj)
 {		
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -401,13 +401,13 @@ bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, D3DXMA
 	LightBuffer* dataPtr4;
 
 	// Transpose the matrices to prepare them for the shader.
-	D3DXMatrixTranspose(&world, &world);
-	D3DXMatrixTranspose(&view, &view);
-	D3DXMatrixTranspose(&projection, &projection);
-	D3DXMatrixTranspose(&invertedViewProj, &invertedViewProj);
+	XMMATRIXTranspose(&world, &world);
+	XMMATRIXTranspose(&view, &view);
+	XMMATRIXTranspose(&projection, &projection);
+	XMMATRIXTranspose(&invertedViewProj, &invertedViewProj);
 
-	D3DXMatrixTranspose(&lightView, &lightView);
-	D3DXMatrixTranspose(&lightProj, &lightProj);
+	XMMATRIXTranspose(&lightView, &lightView);
+	XMMATRIXTranspose(&lightProj, &lightProj);
 
 	/////////////#1
 

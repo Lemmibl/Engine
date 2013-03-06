@@ -45,8 +45,8 @@ void DRGBuffer::Shutdown()
 	return;
 }
 
-bool DRGBuffer::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, 
-	D3DXMATRIX projectionMatrix, ID3D11ShaderResourceView** textureArray)
+bool DRGBuffer::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, 
+	XMMATRIX projectionMatrix, ID3D11ShaderResourceView** textureArray)
 {
 	bool result;
 
@@ -312,20 +312,20 @@ void DRGBuffer::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WC
 	return;
 }
 
-bool DRGBuffer::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, 
-	D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix, ID3D11ShaderResourceView** textureArray)
+bool DRGBuffer::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, 
+	XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView** textureArray)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	MatrixBufferType* dataPtr;
 	unsigned int bufferNumber;
 
-	D3DXMATRIX tWorld, tView, tProj;
+	XMMATRIX tWorld, tView, tProj;
 
 	// Transpose the matrices to prepare them for the shader.
-	D3DXMatrixTranspose(&tWorld, &worldMatrix);
-	D3DXMatrixTranspose(&tView, &viewMatrix);
-	D3DXMatrixTranspose(&tProj, &projectionMatrix);
+	XMMATRIXTranspose(&tWorld, &worldMatrix);
+	XMMATRIXTranspose(&tView, &viewMatrix);
+	XMMATRIXTranspose(&tProj, &projectionMatrix);
 
 	// Lock the matrix constant buffer so it can be written to.
 	result = deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);

@@ -2,12 +2,7 @@
 
 #include <vector>
 #include "interfacepointers.h"
-#include <d3dx9math.h>
-#include <d3d11.h>
-
-typedef D3DXVECTOR2 float2;
-typedef D3DXVECTOR3 float3;
-typedef D3DXVECTOR4 float4;
+#include <xnamath.h>
 
 struct MaterialStruct
 {
@@ -19,21 +14,21 @@ struct MaterialStruct
 
 struct PointLight
 {
-	D3DXVECTOR3 Position;
+	XMVECTOR Position;
 	float Radius;
-	D3DXVECTOR3 Color;
+	XMVECTOR Color;
 	float Intensity;
-	D3DXMATRIX World;
+	XMMATRIX World;
 };
 
 struct DirLight
 {
-	D3DXMATRIX View;
-	D3DXMATRIX Projection;
+	XMMATRIX View;
+	XMMATRIX Projection;
 
-	D3DXVECTOR4 Color;
-	D3DXVECTOR3 Position;
-	D3DXVECTOR3 Direction;
+	XMVECTOR Color;
+	XMVECTOR Position;
+	XMVECTOR Direction;
 	float Intensity;
 };
 

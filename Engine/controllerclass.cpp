@@ -4,12 +4,6 @@
 #include "controllerclass.h"
 
 #pragma region Properties
-void ControllerClass::SetFrameTime(float time)
-{
-	frameTime = time;
-	return;
-}
-
 const D3DXVECTOR3& ControllerClass::GetPosition() const
 {
 	return *position;
@@ -56,6 +50,7 @@ ControllerClass::~ControllerClass()
 {
 	if(!externalRotPointer)
 		delete rotation;
+
 	if(!externalPosPointer)
 		delete position;
 
@@ -78,10 +73,11 @@ bool ControllerClass::Initialize(InputClass* input, CameraClass *extCam, float m
 	return true;
 }
 
-void ControllerClass::Update()
+void ControllerClass::Update(float frameTime)
 {
 	float movementValue = moveSpeed * frameTime;
 	float rotationValue = rotationSpeed * frameTime;
+
 	D3DXVECTOR2 mousePos;
 	rotationThisUpdate = movementThisUpdate = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 

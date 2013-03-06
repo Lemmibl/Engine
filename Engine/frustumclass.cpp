@@ -3,6 +3,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "frustumclass.h"
 
+#define ANG2RAD 3.14159265358979323846/180.0
 
 FrustumClass::FrustumClass()
 {
@@ -18,11 +19,91 @@ FrustumClass::~FrustumClass()
 {
 }
 
-void FrustumClass::ConstructFrustum(float screenDepth, D3DXMATRIX projectionMatrix, D3DXMATRIX viewMatrix)
+void FrustumClass::SetInternals( float aspectRatio, float angle, float nearZ, float farZ )
+{
+	// store the information
+	this->aspectRatio = aspectRatio;
+	this->angle = angle;
+	this->nearZ = nearZ;
+	this->farZ = farZ;
+
+	// compute width and height of the near and far plane sections
+	float tang = (float)tan(ANG2RAD * angle * 0.5) ;
+	nearHeight = nearZ * tang;
+	nearWidth = nearHeight * aspectRatio;
+	farHeight = farZ  * tang;
+	farWidth = farHeight * aspectRatio;
+}
+
+XMVECTOR* FrustumClass::GetFarFrustumCorners(XMVECTOR position, XMVECTOR lookAt, XMVECTOR up)
+{
+	XMVECTOR direction, nearCenter, farCenter, X,Y,Z;
+
+	// compute the Z axis of camera
+	// this axis points in the opposite direction from
+	// the looking direction (OpenGL)
+	Z = position + lookAt;
+	XMVector3Normalize(Z);
+
+	// X axis of camera with given "up" vector and Z axis
+	X = up * Z;
+	XMVector3Normalize(X);
+
+	// the real "up" vector is the cross product of Z and X
+	Y = Z * X;
+
+	// compute the centers of the far plane
+	farCenter = position + Z * farZ;
+
+	// compute the 4 corners of the frustum on the far plane
+	farTopLeft = farCenter + Y * farHeight - X * farWidth;
+	farTopRight = farCenter + Y * farHeight + X * farWidth;
+	farBottomLeft = farCenter - Y * farHeight - X * farWidth;
+	farBottomRight = farCenter - Y * farHeight + X * farWidth;
+
+	XMVECTOR fourPoints[4] = {farTopLeft, farTopRight, farBottomLeft, farBottomRight};
+	
+	return fourPoints;
+}
+
+XMVECTOR* FrustumClass::GetNearFrustumCorners(XMVECTOR position, XMVECTOR lookAt, XMVECTOR up)
+{
+	XMVECTOR direction, nearCenter, farCenter, X,Y,Z;
+
+	// compute the Z axis of camera
+	// this axis points in the opposite direction from
+	// the looking direction (OpenGL)
+	Z = position + lookAt;
+	XMVector3Normalize(Z);
+
+	// X axis of camera with given "up" vector and Z axis
+	X = up * Z;
+	XMVector3Normalize(X);
+
+	// the real "up" vector is the cross product of Z and X
+	Y = Z * X;
+
+	// compute the centers of the near plane
+	nearCenter = position + Z * nearZ;
+
+	// compute the 4 corners of the frustum on the near plane
+	nearTopLeft = nearCenter + (Y * nearHeight) - (X * nearWidth);
+	nearTopRight = nearCenter + Y * nearHeight + X * nearWidth;
+	nearBottomLeft = nearCenter - Y * nearHeight - X * nearWidth;
+	nearBottomRight = nearCenter - Y * nearHeight + X * nearWidth;
+
+	XMVECTOR fourPoints[4] = {nearTopLeft, nearTopRight, nearBottomLeft, nearBottomRight};
+
+	return fourPoints;
+
+
+}
+
+
+void FrustumClass::ConstructFrustum(float screenDepth, XMMATRIX projectionMatrix, XMMATRIX viewMatrix)
 {
 	float zMinimum, r;
-	D3DXMATRIX matrix;
-
+	XMMATRIX matrix;
 
 	// Calculate the minimum Z distance in the frustum.
 	zMinimum = -projectionMatrix._43 / projectionMatrix._33;
@@ -31,7 +112,7 @@ void FrustumClass::ConstructFrustum(float screenDepth, D3DXMATRIX projectionMatr
 	projectionMatrix._43 = -r * zMinimum;
 
 	// Create the frustum matrix from the view matrix and updated projection matrix.
-	D3DXMatrixMultiply(&matrix, &viewMatrix, &projectionMatrix);
+	XMMATRIXMultiply(&matrix, &viewMatrix, &projectionMatrix);
 
 	// Calculate near plane of frustum.
 	planes[0].a = matrix._14 + matrix._13;

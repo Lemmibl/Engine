@@ -1,17 +1,17 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Filename: main.cpp
 ////////////////////////////////////////////////////////////////////////////////
-#include "systemclass.h"
+#include "Engine.h"
 
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pScmdline, int iCmdshow)
 {
-	SystemClass* System;
+	Engine* System;
 	bool result;
 
 
 	// Create the system object.
-	System = new SystemClass;
+	System = new Engine;
 	if(!System)
 	{
 		return 0;

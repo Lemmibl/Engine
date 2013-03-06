@@ -26,7 +26,7 @@ void FpsMeter::Initialize()
 	return;
 }
 
-void FpsMeter::Frame()
+void FpsMeter::Update()
 {
 	count++;
 

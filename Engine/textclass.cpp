@@ -36,7 +36,7 @@ TextClass::~TextClass()
 
 
 bool TextClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, HWND hwnd, int screenWidth, int screenHeight, 
-	D3DXMATRIX baseViewMatrix)
+	XMMATRIX baseViewMatrix)
 {
 	bool result;
 	int index = 0;
@@ -286,7 +286,7 @@ void TextClass::Shutdown()
 	return;
 }
 
-bool TextClass::Render(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX orthoMatrix)
+bool TextClass::Render(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX orthoMatrix)
 {
 	bool result;
 
@@ -530,7 +530,7 @@ void TextClass::ReleaseSentences(vector<SentenceType*> sentences)
 }
 
 
-bool TextClass::RenderSentence(SentenceType* sentence, ID3D11DeviceContext* deviceContext,D3DXMATRIX worldMatrix, D3DXMATRIX orthoMatrix)
+bool TextClass::RenderSentence(SentenceType* sentence, ID3D11DeviceContext* deviceContext,XMMATRIX worldMatrix, XMMATRIX orthoMatrix)
 {
 	unsigned int stride, offset;
 	D3DXVECTOR4 pixelColor;

@@ -11,18 +11,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="alphamapshaderclass.cpp" />
     <ClCompile Include="bitmapclass.cpp" />
     <ClCompile Include="cameraclass.cpp" />
-    <ClCompile Include="colorshaderclass.cpp" />
     <ClCompile Include="controllerclass.cpp" />
     <ClCompile Include="cpumeter.cpp" />
     <ClCompile Include="d3dclass.cpp" />
     <ClCompile Include="debugwindowclass.cpp" />
     <ClCompile Include="deferredrenderer.cpp" />
     <ClCompile Include="DepthOnlyShader.cpp" />
-    <ClCompile Include="dirlightclass.cpp" />
-    <ClCompile Include="dirlightshaderclass.cpp" />
     <ClCompile Include="DRDirLight.cpp" />
     <ClCompile Include="DRFinalComposition.cpp" />
     <ClCompile Include="DRGBuffer.cpp" />
@@ -31,39 +27,26 @@
     <ClCompile Include="frustumclass.cpp" />
     <ClCompile Include="graphicsclass.cpp" />
     <ClCompile Include="inputclass.cpp" />
-    <ClCompile Include="lightmapshaderclass.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="marchingCubesClass.cpp" />
     <ClCompile Include="MarchingCubeShader.cpp" />
     <ClCompile Include="modelclass.cpp" />
     <ClCompile Include="modellistclass.cpp" />
-    <ClCompile Include="multitextureshader.cpp" />
-    <ClCompile Include="normalmapshaderclass.cpp" />
     <ClCompile Include="DRPointLight.cpp" />
-    <ClCompile Include="quadtreeclass.cpp" />
     <ClCompile Include="renderToTextureClass.cpp" />
     <ClCompile Include="soundclass.cpp" />
-    <ClCompile Include="specmapshaderclass.cpp" />
     <ClCompile Include="structs.cpp" />
-    <ClCompile Include="systemclass.cpp" />
-    <ClCompile Include="terrainclass.cpp" />
-    <ClCompile Include="terrainshaderclass.cpp" />
+    <ClCompile Include="Engine.cpp" />
     <ClCompile Include="textclass.cpp" />
     <ClCompile Include="texturearray.cpp" />
     <ClCompile Include="textureclass.cpp" />
     <ClCompile Include="textureshaderclass.cpp" />
-    <ClCompile Include="texturetriarray.cpp" />
     <ClCompile Include="timerclass.cpp" />
-    <ClCompile Include="tinyxml2.cpp" />
     <ClCompile Include="VertexShaderOnly.cpp" />
-    <ClCompile Include="xmltest.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="alphamap.psh" />
-    <ClInclude Include="alphamapshaderclass.h" />
     <ClInclude Include="bitmapclass.h" />
     <ClInclude Include="cameraclass.h" />
-    <ClInclude Include="colorshaderclass.h" />
     <ClInclude Include="controllerclass.h" />
     <ClInclude Include="cpumeter.h" />
     <ClInclude Include="customStructs.h" />
@@ -71,8 +54,6 @@
     <ClInclude Include="debugwindowclass.h" />
     <ClInclude Include="deferredrenderer.h" />
     <ClInclude Include="DepthOnlyShader.h" />
-    <ClInclude Include="dirlightclass.h" />
-    <ClInclude Include="dirlightshaderclass.h" />
     <ClInclude Include="DRDirLight.h" />
     <ClInclude Include="DRFinalComposition.h" />
     <ClInclude Include="fontclass.h" />
@@ -83,42 +64,30 @@
     <ClInclude Include="graphicsclass.h" />
     <ClInclude Include="inputclass.h" />
     <ClInclude Include="interfacepointers.h" />
-    <ClInclude Include="lightmapshaderclass.h" />
     <ClInclude Include="marchingCubesClass.h" />
     <ClInclude Include="MarchingCubeShader.h" />
     <ClInclude Include="metaballsClass.h" />
     <ClInclude Include="modelclass.h" />
     <ClInclude Include="modellistclass.h" />
-    <ClInclude Include="multitextureshader.h" />
-    <ClInclude Include="normalmapshaderclass.h" />
     <ClInclude Include="DRPointLight.h" />
-    <ClInclude Include="quadtreeclass.h" />
     <ClInclude Include="renderToTextureClass.h" />
     <ClInclude Include="soundclass.h" />
-    <ClInclude Include="specmapshaderclass.h" />
     <ClInclude Include="structs.h" />
-    <ClInclude Include="systemclass.h" />
-    <ClInclude Include="terrainclass.h" />
-    <ClInclude Include="terrainshaderclass.h" />
+    <ClInclude Include="Engine.h" />
     <ClInclude Include="textclass.h" />
     <ClInclude Include="texturearray.h" />
     <ClInclude Include="textureclass.h" />
     <ClInclude Include="textureshaderclass.h" />
     <ClInclude Include="texturetriarray.h" />
     <ClInclude Include="timerclass.h" />
-    <ClInclude Include="tinyxml2.h" />
     <ClInclude Include="VertexShaderOnly.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="DepthOnlyShader.psh" />
     <None Include="BasicVertexShader.vsh" />
-    <None Include="color.psh" />
-    <None Include="color.vsh" />
     <None Include="DRCompose.psh" />
     <None Include="DRCompose.vsh" />
     <None Include="DepthOnlyShader.vsh" />
-    <None Include="DirLight.psh" />
-    <None Include="DirLight.vsh" />
     <ClCompile Include="fontclass.cpp" />
     <None Include="DRDirectionalLight.psh" />
     <None Include="DRDirectionalLight.vsh" />
@@ -126,24 +95,12 @@
     <None Include="font.vsh" />
     <None Include="DRGBuffer.psh" />
     <None Include="DRGBuffer.vsh" />
-    <None Include="lightmap.psh" />
-    <None Include="lightmap.vsh" />
     <None Include="mcubes.psh" />
     <None Include="mcubes.vsh" />
-    <None Include="multitexture.psh" />
-    <None Include="multitexture.vsh" />
-    <None Include="normalmap.psh" />
-    <None Include="normalmap.vsh" />
     <None Include="DRPointLight.psh" />
     <None Include="DRPointLight.vsh" />
     <None Include="shader-error.txt" />
-    <None Include="specmap.psh" />
-    <None Include="specmap.vsh" />
     <None Include="standard.vsh" />
-    <None Include="terrain.psh" />
-    <None Include="terrain.vsh" />
-    <None Include="texture.psh" />
-    <None Include="texture.vsh" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{06865CFB-43FF-4F0C-B8D0-4D834721545B}</ProjectGuid>

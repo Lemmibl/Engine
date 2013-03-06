@@ -24,12 +24,12 @@ public:
 	bool Initialize();
 	void Frame();
 
-	float GetTime();
+	float GetFrameTime();
 
 private:
 	INT64 frequency;
-	float ticksPerMs;
 	INT64 startTime;
+	float ticksPerMillisecond;
 	float frameTime;
 };
 

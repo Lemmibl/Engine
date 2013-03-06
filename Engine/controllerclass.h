@@ -8,7 +8,7 @@
 //////////////
 // INCLUDES //
 //////////////
-#include <math.h>
+#include <xnamath.h>
 #include "inputclass.h"
 #include <d3dx10math.h>
 #include "cameraclass.h"
@@ -25,10 +25,8 @@ public:
 	ControllerClass(const ControllerClass&);
 	~ControllerClass();
 
-	bool Initialize(InputClass* input, CameraClass *extCam, float movespeed, float turnspeed);
-	void Update();
-
-	void SetFrameTime(float);
+	bool Initialize(InputClass* extInput, CameraClass *extCam, float movespeed, float turnspeed);
+	void Update(float frameTime);
 
 	const D3DXVECTOR3& GetPosition() const;
 	const D3DXVECTOR3& GetRotation() const;
@@ -39,7 +37,7 @@ private:
 	float frameTime;
 	D3DXVECTOR2 prevMousePos;
 	D3DXVECTOR3 *rotation, *position;
-	D3DXVECTOR3 movementThisUpdate, rotationThisUpdate; //Why do people have a problem with this kind of names? I never see it. That was a rhetorical question; this shit is great.
+	D3DXVECTOR3 movementThisUpdate, rotationThisUpdate;
 	float moveSpeed, rotationSpeed;
 	bool externalPosPointer;
 	bool externalRotPointer;

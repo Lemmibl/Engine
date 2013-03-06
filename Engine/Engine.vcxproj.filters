@@ -27,9 +27,6 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="systemclass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="inputclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -42,16 +39,7 @@
     <ClCompile Include="modelclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="colorshaderclass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="cameraclass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dirlightshaderclass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dirlightclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="bitmapclass.cpp">
@@ -93,46 +81,13 @@
     <ClCompile Include="controllerclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="multitextureshader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="texturearray.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="lightmapshaderclass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="alphamapshaderclass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="normalmapshaderclass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="texturetriarray.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="specmapshaderclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="renderToTextureClass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="debugwindowclass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="terrainclass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="terrainshaderclass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="tinyxml2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="xmltest.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="quadtreeclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="deferredrenderer.cpp">
@@ -165,6 +120,9 @@
     <ClCompile Include="MarchingCubeShader.cpp">
       <Filter>MarchingCubes</Filter>
     </ClCompile>
+    <ClCompile Include="Engine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inputclass.h">
@@ -173,25 +131,13 @@
     <ClInclude Include="graphicsclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="systemclass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="d3dclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="modelclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="colorshaderclass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="cameraclass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dirlightshaderclass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dirlightclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="bitmapclass.h">
@@ -233,46 +179,16 @@
     <ClInclude Include="controllerclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="multitextureshader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="texturearray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="lightmapshaderclass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="alphamapshaderclass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="normalmapshaderclass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="texturetriarray.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="alphamap.psh">
-      <Filter>Effects</Filter>
-    </ClInclude>
-    <ClInclude Include="specmapshaderclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="renderToTextureClass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="debugwindowclass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="terrainclass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="terrainshaderclass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="tinyxml2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="quadtreeclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="deferredrenderer.h">
@@ -314,63 +230,18 @@
     <ClInclude Include="MarchingCubeShader.h">
       <Filter>MarchingCubes</Filter>
     </ClInclude>
+    <ClInclude Include="Engine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="specmap.vsh">
-      <Filter>Effects</Filter>
-    </None>
-    <None Include="color.psh">
-      <Filter>Effects</Filter>
-    </None>
-    <None Include="color.vsh">
-      <Filter>Effects</Filter>
-    </None>
-    <None Include="DirLight.psh">
-      <Filter>Effects</Filter>
-    </None>
-    <None Include="DirLight.vsh">
-      <Filter>Effects</Filter>
-    </None>
     <None Include="font.psh">
       <Filter>Effects</Filter>
     </None>
     <None Include="font.vsh">
       <Filter>Effects</Filter>
     </None>
-    <None Include="lightmap.psh">
-      <Filter>Effects</Filter>
-    </None>
-    <None Include="lightmap.vsh">
-      <Filter>Effects</Filter>
-    </None>
-    <None Include="multitexture.psh">
-      <Filter>Effects</Filter>
-    </None>
-    <None Include="multitexture.vsh">
-      <Filter>Effects</Filter>
-    </None>
-    <None Include="normalmap.psh">
-      <Filter>Effects</Filter>
-    </None>
-    <None Include="normalmap.vsh">
-      <Filter>Effects</Filter>
-    </None>
-    <None Include="specmap.psh">
-      <Filter>Effects</Filter>
-    </None>
     <None Include="standard.vsh">
-      <Filter>Effects</Filter>
-    </None>
-    <None Include="texture.psh">
-      <Filter>Effects</Filter>
-    </None>
-    <None Include="texture.vsh">
-      <Filter>Effects</Filter>
-    </None>
-    <None Include="terrain.vsh">
-      <Filter>Effects</Filter>
-    </None>
-    <None Include="terrain.psh">
       <Filter>Effects</Filter>
     </None>
     <None Include="DRDirectionalLight.psh">

@@ -2,7 +2,7 @@
 #define MCUBES_METABALLS_H
 #include "customStructs.h"
 #include <stdio.h>
-#include <math.h>
+#include <xnamath.h>
 
 class MetaballsClass
 {

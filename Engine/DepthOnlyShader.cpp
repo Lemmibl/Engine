@@ -47,8 +47,8 @@ void DepthOnlyShader::Shutdown()
 }
 
 
-bool DepthOnlyShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, 
-	D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix)
+bool DepthOnlyShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMFLOAT4X4 worldMatrix, 
+	XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix)
 {
 	bool result;
 
@@ -247,18 +247,18 @@ void DepthOnlyShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hw
 }
 
 
-bool DepthOnlyShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, 
-	D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix)
+bool DepthOnlyShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMFLOAT4X4 worldMatrix, 
+	XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	MatrixBufferType* dataPtr;
 	unsigned int bufferNumber;
 
-	// Transpose matrices before sending them into the shader. This is a requirement for DirectX 11. 
-	D3DXMatrixTranspose(&worldMatrix, &worldMatrix);
-	D3DXMatrixTranspose(&viewMatrix, &viewMatrix);
-	D3DXMatrixTranspose(&projectionMatrix, &projectionMatrix);
+	//// Transpose matrices before sending them into the shader. This is a requirement for DirectX 11. 
+	//worldMatrix = XMMatrixTranspose(worldMatrix);
+	//viewMatrix = XMMatrixTranspose(viewMatrix);
+	//projectionMatrix = XMMatrixTranspose(projectionMatrix);
 
 	// Lock the constant buffer so it can be written to.
 	result = deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -295,7 +295,7 @@ void DepthOnlyShader::RenderShader(ID3D11DeviceContext* deviceContext, int index
 
 	// Set the vertex and pixel shaders that will be used to render this triangle.
 	deviceContext->VSSetShader(vertexShader, NULL, 0);
-	deviceContext->PSSetShader(pixelShader, NULL, 0);
+	deviceContext->PSSetShader(NULL, NULL, 0);
 
 	// Render the triangle.
 	deviceContext->DrawIndexed(indexCount, 0, 0);
