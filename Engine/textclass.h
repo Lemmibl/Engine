@@ -10,8 +10,8 @@
 #include "fontclass.h"
 #include "fontshaderclass.h"
 #include <vector>
-#include <Xnamath.h>
-
+#include <windows.h>
+#include <xnamath.h> 
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -39,9 +39,9 @@ public:
 	~TextClass();
 
 	bool Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, HWND hwnd, int screenWidth, int screenHeight, 
-		XMMATRIX baseViewMatrix);
+		XMFLOAT4X4 baseViewMatrix);
 	void Shutdown();
-	bool Render(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX orthoMatrix);
+	bool Render(ID3D11DeviceContext* deviceContext, XMFLOAT4X4 worldMatrix, XMFLOAT4X4 orthoMatrix);
 
 	bool SetMousePosition(int, int, ID3D11DeviceContext*);
 	bool SetFps(int, ID3D11DeviceContext*);
@@ -57,7 +57,7 @@ private:
 	bool UpdateSentence(SentenceType* sentence, char*, int, int, float, float, float, ID3D11DeviceContext*);
 	void ReleaseSentence(SentenceType**);
 	void ReleaseSentences(vector<SentenceType*> sentences);
-	bool RenderSentence(SentenceType*, ID3D11DeviceContext*, XMMATRIX, XMMATRIX);
+	bool RenderSentence(SentenceType*, ID3D11DeviceContext*, XMFLOAT4X4, XMFLOAT4X4);
 
 private:
 	vector<SentenceType*> sentences;
@@ -65,7 +65,7 @@ private:
 	FontClass* font;
 	FontShaderClass* fontShader;
 	int screenWidth, screenHeight;
-	XMMATRIX baseViewMatrix;
+	XMFLOAT4X4 baseViewMatrix;
 
 	SentenceType* fpsCount;
 	SentenceType* cpuLoad;

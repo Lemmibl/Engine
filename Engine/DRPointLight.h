@@ -13,7 +13,8 @@
 #include <fstream>
 
 #include "structs.h"
-#include <Xnamath.h>
+#include <windows.h>
+#include <xnamath.h>
 using namespace std;
 
 

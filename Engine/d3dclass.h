@@ -18,8 +18,8 @@
 #include <DXGI.h>
 #include <d3dcommon.h>
 #include <d3d11.h>
-#include <Xnamath.h>
-#include <Xnamath.h>
+#include <windows.h>
+#include <xnamath.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: D3DClass

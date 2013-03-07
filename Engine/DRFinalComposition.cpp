@@ -49,7 +49,7 @@ void DRFinalComposition::Shutdown()
 	return;
 }
 
-bool DRFinalComposition::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX world, XMMATRIX view, XMMATRIX projection, XMMATRIX invertedViewProjection, XMMATRIX lightViewProj,
+bool DRFinalComposition::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMFLOAT4X4 world, XMFLOAT4X4 view, XMFLOAT4X4 projection, XMFLOAT4X4 invertedViewProjection, XMFLOAT4X4 lightViewProj,
 	ID3D11ShaderResourceView** textureArray)
 {
 	bool result;

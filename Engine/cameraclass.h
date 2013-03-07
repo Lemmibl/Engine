@@ -10,9 +10,8 @@
 //////////////
 // INCLUDES //
 //////////////
-#include <Xnamath.h>
-#include <Xnamath.h>
-
+#include <windows.h>
+#include <xnamath.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: CameraClass
@@ -32,24 +31,17 @@ public:
 	void GetProjectionMatrix(XMMATRIX&);
 	XMMATRIX GetView();
 	XMMATRIX GetProj();
-	XMVECTOR* GetPositionPtr();
-	XMVECTOR* GetRotationPtr();
-	XMVECTOR GetPosition();
-	XMVECTOR GetRotation();
+	XMFLOAT3* GetPositionPtr();
+	XMFLOAT3* GetRotationPtr();
+	XMFLOAT3 GetPosition();
+	XMFLOAT3 GetRotation();
 
-	XMVECTOR Forward();
-	XMVECTOR Back();
-	XMVECTOR Up();
-	XMVECTOR Down();
-	XMVECTOR Right();
-	XMVECTOR Left();
-
-	XMVECTOR ForwardVec(XMMATRIX& matrix);
-	XMVECTOR BackVec(XMMATRIX& matrix);
-	XMVECTOR LeftVec(XMMATRIX& matrix);
-	XMVECTOR RightVec(XMMATRIX& matrix);
-	XMVECTOR UpVec(XMMATRIX& matrix);
-	XMVECTOR DownVec(XMMATRIX& matrix);
+	XMFLOAT3 Forward();
+	XMFLOAT3 Back();
+	XMFLOAT3 Up();
+	XMFLOAT3 Down();
+	XMFLOAT3 Right();
+	XMFLOAT3 Left();
 #pragma endregion
 
 
@@ -57,7 +49,14 @@ public:
 	void SetPerspectiveProjection(int screenWidth, int screenHeight, float FOVinDegrees, float zNear, float zFar);
 
 private:
-	XMVECTOR position, rotation;
+	XMFLOAT3 ForwardVec(XMMATRIX& matrix);
+	XMFLOAT3 BackVec(XMMATRIX& matrix);
+	XMFLOAT3 LeftVec(XMMATRIX& matrix);
+	XMFLOAT3 RightVec(XMMATRIX& matrix);
+	XMFLOAT3 UpVec(XMMATRIX& matrix);
+	XMFLOAT3 DownVec(XMMATRIX& matrix);
+
+	XMFLOAT3 position, rotation;
 	XMMATRIX world, view, projection;
 	float yaw, pitch, roll;
 

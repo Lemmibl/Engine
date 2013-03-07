@@ -9,7 +9,8 @@
 // INCLUDES //
 //////////////
 #include <d3d11.h>
-#include <Xnamath.h>
+#include <windows.h>
+#include <xnamath.h>
 #include <fstream>
 using namespace std;
 

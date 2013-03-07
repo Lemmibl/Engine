@@ -21,7 +21,8 @@
 #include <dinput.h>
 #include <D3D11.h>
 #include <D3DX11.h>
-#include <Xnamath.h>
+#include <windows.h>
+#include <xnamath.h>
 
 
 ////////////////////////////////////////////////////////////////////////////////

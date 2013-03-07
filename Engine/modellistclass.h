@@ -8,7 +8,8 @@
 //////////////
 // INCLUDES //
 //////////////
-#include <Xnamath.h>
+#include <windows.h>
+#include <xnamath.h>
 #include <stdlib.h>
 #include <time.h>
 

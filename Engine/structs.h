@@ -2,6 +2,7 @@
 
 #include <vector>
 #include "interfacepointers.h"
+#include <windows.h>
 #include <xnamath.h>
 
 struct MaterialStruct
@@ -16,7 +17,7 @@ struct PointLight
 {
 	XMFLOAT3 Position;
 	float Radius;
-	XMFLOAT4 Color;
+	XMFLOAT3 Color;
 	float Intensity;
 	XMFLOAT4X4 World;
 };

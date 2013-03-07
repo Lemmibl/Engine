@@ -8,9 +8,9 @@
 //////////////
 // INCLUDES //
 //////////////
-#include <xnamath.h>
 #include "inputclass.h"
-#include <Xnamath.h>
+#include <windows.h>
+#include <xnamath.h>
 #include "cameraclass.h"
 
 

@@ -2,7 +2,8 @@
 #define MCUBES_TYPES_H
 
 #include <d3d11.h>
-#include <Xnamath.h>
+#include <windows.h>
+#include <xnamath.h>
 
 struct MarchingCubeVertex
 {

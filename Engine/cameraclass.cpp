@@ -7,34 +7,34 @@
 #pragma region Properties
 void CameraClass::SetPosition(XMFLOAT3 externalPos)
 {
-	position = XMLoadFloat3(&externalPos);
+	position = externalPos;
 	
 	return;
 }
 
 void CameraClass::SetRotation(XMFLOAT3 externalRot) //lol
 {
-	rotation = XMLoadFloat3(&externalRot);
+	rotation = externalRot;
 
 	return;
 }
 
-XMVECTOR CameraClass::GetPosition()
+XMFLOAT3 CameraClass::GetPosition()
 {
 	return position;
 }
 
-XMVECTOR CameraClass::GetRotation()
+XMFLOAT3 CameraClass::GetRotation()
 {
 	return rotation;
 }
 
-XMVECTOR* CameraClass::GetPositionPtr()
+XMFLOAT3* CameraClass::GetPositionPtr()
 {
 	return &position;
 }
 
-XMVECTOR* CameraClass::GetRotationPtr()
+XMFLOAT3* CameraClass::GetRotationPtr()
 {
 	return &rotation;
 }
@@ -61,70 +61,70 @@ XMMATRIX CameraClass::GetProj()
 	return projection;
 }
 
-XMVECTOR CameraClass::Forward()
+XMFLOAT3 CameraClass::Forward()
 {
 	return ForwardVec(world);
 }
 
-XMVECTOR CameraClass::Back()
+XMFLOAT3 CameraClass::Back()
 {
 	return BackVec(world);
 }
 
-XMVECTOR CameraClass::Up()
+XMFLOAT3 CameraClass::Up()
 {
 	return UpVec(world);
 }
 
-XMVECTOR CameraClass::Down()
+XMFLOAT3 CameraClass::Down()
 {
 	return DownVec(world);
 }
 
-XMVECTOR CameraClass::Right()
+XMFLOAT3 CameraClass::Right()
 {
 	return RightVec(world);
 }
 
-XMVECTOR CameraClass::Left()
+XMFLOAT3 CameraClass::Left()
 {
 	return LeftVec(world);
 }
 
 // Returns the forward vector from a transform matrix
-XMVECTOR ForwardVec(XMMATRIX& matrix)
+XMFLOAT3 ForwardVec(XMMATRIX& matrix)
 {
-	return XMLoadFloat3(&XMFLOAT3(matrix._31, matrix._32, matrix._33));
+	return XMFLOAT3(matrix._31, matrix._32, matrix._33);
 }
 
 // Returns the forward vector from a transform matrix
-XMVECTOR BackVec(XMMATRIX& matrix)
+XMFLOAT3 BackVec(XMMATRIX& matrix)
 {
-	return XMLoadFloat3(&XMFLOAT3(-matrix._31, -matrix._32, -matrix._33));
+	return XMFLOAT3(-matrix._31, -matrix._32, -matrix._33);
 }
 
 // Returns the forward vector from a transform matrix
-XMVECTOR RightVec(XMMATRIX& matrix)
+XMFLOAT3 RightVec(XMMATRIX& matrix)
 {
-	return XMLoadFloat3(&XMFLOAT3(matrix._11, matrix._12, matrix._13));
+	return XMFLOAT3(matrix._11, matrix._12, matrix._13);
 }
 
 // Returns the forward vector from a transform matrix
-XMVECTOR LeftVec(XMMATRIX& matrix)
+XMFLOAT3 LeftVec(XMMATRIX& matrix)
 {
-	return XMLoadFloat3(&XMFLOAT3(-matrix._11, -matrix._12, -matrix._13));
+	return XMFLOAT3(-matrix._11, -matrix._12, -matrix._13);
 }
 
 // Returns the forward vector from a transform matrix
-XMVECTOR UpVec(XMMATRIX& matrix)
+XMFLOAT3 UpVec(XMMATRIX& matrix)
 {
-	return XMLoadFloat3(&XMFLOAT3(matrix._21, matrix._22, matrix._23));
+	return XMFLOAT3(matrix._21, matrix._22, matrix._23);
 }
 
 // Returns the forward vector from a transform matrix
-XMVECTOR DownVec(XMMATRIX& matrix)
+XMFLOAT3 DownVec(XMMATRIX& matrix)
 {
-	return XMLoadFloat3(&XMFLOAT3(-matrix._21, -matrix._22, -matrix._23));
+	return XMFLOAT3(-matrix._21, -matrix._22, -matrix._23);
 }
 #pragma endregion
 
@@ -135,7 +135,7 @@ CameraClass::CameraClass()
 	UpVector = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 	ForwardVector = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
 
-	position = rotation = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+	position = rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	yaw = pitch = roll = 0.0f;
 
 
@@ -166,30 +166,33 @@ void CameraClass::SetPerspectiveProjection(int screenWidth, int screenHeight, fl
 
 void CameraClass::Update()
 {
-	XMVECTOR target;
+	XMVECTOR target, tempRot, tempPos;
 	XMMATRIX rotationMatrix;
 
-	float y = XMVectorGetY(rotation)*DEG_TO_RAD;
+	tempPos = XMLoadFloat3(&position);
+	tempRot = XMLoadFloat3(&rotation);
+
+	float y = XMVectorGetY(tempRot)*DEG_TO_RAD;
 
 	if(y > TWO_PI || y < -TWO_PI) //Just clamping the values to make sure it doesn't go out of control.
 	{
-		XMVectorSetY(rotation, 0.0f);
+		XMVectorSetY(tempRot, 0.0f);
 	}
 
-	pitch = XMVectorGetX(rotation) * (float)DEG_TO_RAD;
-	yaw = XMVectorGetY(rotation) * (float)DEG_TO_RAD;
-	roll = XMVectorGetZ(rotation) * (float)DEG_TO_RAD;
+	pitch = XMVectorGetX(tempRot) * (float)DEG_TO_RAD;
+	yaw = XMVectorGetY(tempRot) * (float)DEG_TO_RAD;
+	roll = XMVectorGetZ(tempRot) * (float)DEG_TO_RAD;
 
 	if(pitch > PITCHROOF)
 	{
 		pitch = (float)PITCHROOF;
-		XMVectorSetX(rotation, 80.0f);
+		XMVectorSetX(tempRot, 80.0f);
 	}
 
 	if(pitch < PITCHFLOOR)
 	{
 		pitch = (float)PITCHFLOOR;
-		XMVectorSetX(rotation, -80.0f);
+		XMVectorSetX(tempRot, -80.0f);
 	}
 
 	rotationMatrix = XMMatrixRotationRollPitchYaw(roll, pitch, yaw); //Create rotation matrix
@@ -198,12 +201,15 @@ void CameraClass::Update()
 	up =  XMVector4Transform(UpVector, rotationMatrix); //Create up vector
 	right = (forward * up); //Create right vector in relation to up and forward vector
 
-	target = position + forward; //Calculate new 'target' for the camera
+	target = tempPos + forward; //Calculate new 'target' for the camera
 
-	view = XMMatrixLookAtLH(position, target, up); //Finally, calculate view matrix
+	view = XMMatrixLookAtLH(tempPos, target, up); //Finally, calculate view matrix
 
 	XMVECTOR determinant;
 	world = XMMatrixInverse(&determinant, view);
+
+	 XMStoreFloat3(&position, tempPos);
+	 XMStoreFloat3(&rotation, tempRot);
 
 	return;
 }

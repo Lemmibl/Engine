@@ -106,7 +106,7 @@ bool DRPointLight::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFi
 	}
 
 	// Compile the pixel shader code.
-	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "LightPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS | D3DXSHADER_DEBUG | D3DXSHADER_SKIPOPTIMIZATION, 0, NULL, 
+	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "LightPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG | D3D10_SHADER_SKIP_OPTIMIZATION, 0, NULL, 
 		&pixelShaderBuffer, &errorMessage, NULL);
 	if(FAILED(result))
 	{
@@ -373,10 +373,10 @@ bool DRPointLight::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMFLO
 	dataPtr2 = (LightBufferType*)mappedResource.pData;
 
 	// Copy the lighting variables into the constant buffer.
-	dataPtr2->LightColor =  XMVECTOR(pointLight->Color);
+	dataPtr2->LightColor =  pointLight->Color;
 	dataPtr2->LightRadius = (int)pointLight->Radius;
 	dataPtr2->LightPower = pointLight->Intensity;
-	dataPtr2->CameraPosition = XMVectorSet(cameraPosition.x, cameraPosition.y, cameraPosition.z, 1.0f);
+	dataPtr2->CameraPosition = cameraPosition;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(lightBuffer, 0);
@@ -400,8 +400,8 @@ bool DRPointLight::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMFLO
 	//D3DXVec4Transform(&worldPos,  &worldPos, &world);
 
 	// Copy matrix to buffer
-	dataPtr3->InvertedViewProjection = tInvViewProj;
-	dataPtr3->LightPosition = XMFLOAT4(pointLight->Position, 1.0f);
+	dataPtr3->InvertedViewProjection = invViewProj;
+	dataPtr3->LightPosition = pointLight->Position;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(pixelMatrixBuffer, 0);

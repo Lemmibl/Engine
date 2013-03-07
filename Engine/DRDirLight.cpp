@@ -432,9 +432,9 @@ bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMFLOA
 	// Get a pointer to the data in the constant buffer.
 	dataPtr2 = (PositionalBuffer*)mappedResource.pData;
 
-	dataPtr2->LightDirection = XMFLOAT4(lightDirection, 1.0f);
-	dataPtr2->LightPosition = XMFLOAT4(lightPosition, 1.0f);
-	dataPtr2->CameraPosition = XMFLOAT4(cameraPosition, 1.0f);
+	dataPtr2->LightDirection = lightDirection;
+	dataPtr2->LightPosition = lightPosition;
+	dataPtr2->CameraPosition = cameraPosition;
 
 	deviceContext->Unmap(positionalBuffer, 0);
 

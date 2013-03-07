@@ -85,13 +85,13 @@ bool Engine::Initialize()
 	}
 
 	// Initialize a base view matrix with the camera for 2D user interface rendering.
-	camera->SetPosition(0.0f, 0.0f, -1.0f);
+	camera->SetPosition(XMFLOAT3(0.0f, 0.0f, -1.0f));
 	camera->Update();
 
-	camera->SetPosition(0.0f, 10.0f, -10.0f);
-	camera->SetRotation(45.0f, 0.0f, 0.0f);
+	camera->SetPosition(XMFLOAT3(0.0f, 10.0f, -10.0f));
+	camera->SetRotation(XMFLOAT3(45.0f, 0.0f, 0.0f));
 
-	camera->SetPerspectiveProjection(screenWidth, screenHeight, (float)D3DX_PI / 4.0f, SCREEN_NEAR, SCREEN_FAR); 
+	camera->SetPerspectiveProjection(screenWidth, screenHeight, XM_PIDIV4, SCREEN_NEAR, SCREEN_FAR); 
 
 	// Initialize the graphics object.
 	result = graphics->Initialize(hwnd, camera, d3D, screenWidth, screenHeight, shadowMapWidth, shadowMapHeight, SCREEN_FAR, SCREEN_NEAR);

@@ -100,19 +100,19 @@ void ControllerClass::Update(float frameTime)
 
 	//Move the controller with WASD, LCtrl and Space.
 	if(inputManager->IsKeyPressed(DIK_W))
-		movementThisUpdate += (camera->GetForward()*movementValue);
+		movementThisUpdate += (camera->Forward()*movementValue);
 	if(inputManager->IsKeyPressed(DIK_S))
-		movementThisUpdate -= (camera->GetForward()*movementValue);
+		movementThisUpdate -= (camera->Forward()*movementValue);
 
 	if(inputManager->IsKeyPressed(DIK_A))
-		movementThisUpdate += (camera->GetRight()*movementValue);
+		movementThisUpdate += (camera->Right()*movementValue);
 	if(inputManager->IsKeyPressed(DIK_D))
-		movementThisUpdate -= (camera->GetRight()*movementValue);
+		movementThisUpdate -= (camera->Right()*movementValue);
 
 	if(inputManager->IsKeyPressed(DIK_SPACE))
-		movementThisUpdate += (camera->GetUp()*movementValue);
+		movementThisUpdate += (camera->Up()*movementValue);
 	if(inputManager->IsKeyPressed(DIK_LCONTROL))
-		movementThisUpdate -= (camera->GetUp()*movementValue);
+		movementThisUpdate -= (camera->Up()*movementValue);
 
 	*position += movementThisUpdate;
 	*rotation += rotationThisUpdate;

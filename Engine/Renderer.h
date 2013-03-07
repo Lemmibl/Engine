@@ -11,6 +11,7 @@
 
 #include <stdlib.h>
 #include <time.h>
+#include <windows.h>
 #include <xnamath.h>
 
 #include "structs.h"

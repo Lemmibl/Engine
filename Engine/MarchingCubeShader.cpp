@@ -47,8 +47,8 @@ void MarchingCubeShader::Shutdown()
 }
 
 
-bool MarchingCubeShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX world, 
-	XMMATRIX view, XMMATRIX proj)
+bool MarchingCubeShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMFLOAT4X4 world, 
+	XMFLOAT4X4 view, XMFLOAT4X4 proj)
 {
 	bool result;
 
@@ -260,18 +260,13 @@ void MarchingCubeShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND
 }
 
 
-bool MarchingCubeShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX world, 
-	XMMATRIX view, XMMATRIX proj)
+bool MarchingCubeShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMFLOAT4X4 world, 
+	XMFLOAT4X4 view, XMFLOAT4X4 proj)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	MatrixBufferType* dataPtr;
 	unsigned int bufferNumber;
-
-	// Transpose matrices before sending them into the shader. This is a requirement for DirectX 11. 
-	XMMATRIXTranspose(&world, &world);
-	XMMATRIXTranspose(&view, &view);
-	XMMATRIXTranspose(&proj, &proj);
 
 	// Lock the constant buffer so it can be written to.
 	result = deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);

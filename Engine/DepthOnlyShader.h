@@ -9,10 +9,10 @@
 // INCLUDES //
 //////////////
 #include <d3d11.h>
-#include <Xnamath.h>
+#include <windows.h>
+#include <xnamath.h>
 #include <d3dx11async.h>
 #include <fstream>
-#include <Xnamath.h>
 
 using namespace std;
 

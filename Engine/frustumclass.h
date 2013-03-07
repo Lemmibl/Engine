@@ -24,9 +24,9 @@
 //////////////
 // INCLUDES //
 //////////////
-#include <Xnamath.h>
-#include <Xnamath.h>
-
+#include <windows.h>
+#include <xnamath.h> 
+#include <d3dx10math.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: FrustumClass
@@ -41,12 +41,12 @@ public:
 	void SetInternals(float aspectRatio, float angle, float nearZ, float farZ);
 
 	//Returns the four frustum corners in a float4. [0] = top left, [1] = top right, [2] = bottom left, [3] = bottom right
-	XMVECTOR* GetFarFrustumCorners(XMVECTOR position, XMVECTOR lookAt, XMVECTOR up);
+	XMFLOAT4X4* GetFarFrustumCorners(XMFLOAT4X4 position, XMFLOAT4X4 lookAt, XMFLOAT4X4 up);
 
 	//Returns the four frustum corners in a float4. [0] = top left, [1] = top right, [2] = bottom left, [3] = bottom right
-	XMVECTOR* GetNearFrustumCorners(XMVECTOR position, XMVECTOR lookAt, XMVECTOR up);
+	XMFLOAT4X4* GetNearFrustumCorners(XMFLOAT4X4 position, XMFLOAT4X4 lookAt, XMFLOAT4X4 up);
 
-	void ConstructFrustum(float, XMMATRIX, XMMATRIX);
+	void ConstructFrustum(float, XMFLOAT4X4, XMFLOAT4X4);
 
 	bool CheckPoint(float, float, float);
 	bool CheckCube(float, float, float, float);
@@ -57,8 +57,8 @@ private:
 	D3DXPLANE planes[6];
 	float aspectRatio, angle, nearZ, farZ;
 	float nearHeight, nearWidth, farHeight, farWidth;
-	XMVECTOR nearTopLeft, nearTopRight, nearBottomLeft, nearBottomRight;
-	XMVECTOR farTopLeft, farTopRight, farBottomLeft, farBottomRight;
+	XMFLOAT4X4 nearTopLeft, nearTopRight, nearBottomLeft, nearBottomRight;
+	XMFLOAT4X4 farTopLeft, farTopRight, farBottomLeft, farBottomRight;
 };
 
 #endif
