@@ -41,10 +41,10 @@ public:
 	void SetInternals(float aspectRatio, float angle, float nearZ, float farZ);
 
 	//Returns the four frustum corners in a float4. [0] = top left, [1] = top right, [2] = bottom left, [3] = bottom right
-	XMFLOAT4X4* GetFarFrustumCorners(XMFLOAT4X4 position, XMFLOAT4X4 lookAt, XMFLOAT4X4 up);
+	XMFLOAT3* GetFarFrustumCorners(XMVECTOR position, XMVECTOR lookAt, XMVECTOR up);
 
 	//Returns the four frustum corners in a float4. [0] = top left, [1] = top right, [2] = bottom left, [3] = bottom right
-	XMFLOAT4X4* GetNearFrustumCorners(XMFLOAT4X4 position, XMFLOAT4X4 lookAt, XMFLOAT4X4 up);
+	XMFLOAT3* GetNearFrustumCorners(XMVECTOR position, XMVECTOR lookAt, XMVECTOR up);
 
 	void ConstructFrustum(float, XMFLOAT4X4, XMFLOAT4X4);
 
@@ -57,8 +57,8 @@ private:
 	D3DXPLANE planes[6];
 	float aspectRatio, angle, nearZ, farZ;
 	float nearHeight, nearWidth, farHeight, farWidth;
-	XMFLOAT4X4 nearTopLeft, nearTopRight, nearBottomLeft, nearBottomRight;
-	XMFLOAT4X4 farTopLeft, farTopRight, farBottomLeft, farBottomRight;
+	XMFLOAT3 nearTopLeft, nearTopRight, nearBottomLeft, nearBottomRight;
+	XMFLOAT3 farTopLeft, farTopRight, farBottomLeft, farBottomRight;
 };
 
 #endif

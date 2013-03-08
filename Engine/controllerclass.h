@@ -37,7 +37,7 @@ private:
 	float frameTime;
 	XMFLOAT2 prevMousePos;
 	XMFLOAT3 *rotation, *position;
-	XMFLOAT3 movementThisUpdate, rotationThisUpdate;
+	//XMFLOAT3 movementThisUpdate, rotationThisUpdate;
 	float moveSpeed, rotationSpeed;
 	bool externalPosPointer;
 	bool externalRotPointer;

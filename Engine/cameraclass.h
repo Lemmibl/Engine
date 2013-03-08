@@ -42,6 +42,13 @@ public:
 	XMFLOAT3 Down();
 	XMFLOAT3 Right();
 	XMFLOAT3 Left();
+
+	XMVECTOR ForwardVector();
+	XMVECTOR BackVector();
+	XMVECTOR LeftVector();
+	XMVECTOR RightVector();
+	XMVECTOR UpVector();
+	XMVECTOR DownVector();
 #pragma endregion
 
 
@@ -49,12 +56,12 @@ public:
 	void SetPerspectiveProjection(int screenWidth, int screenHeight, float FOVinDegrees, float zNear, float zFar);
 
 private:
-	XMFLOAT3 ForwardVec(XMMATRIX& matrix);
-	XMFLOAT3 BackVec(XMMATRIX& matrix);
-	XMFLOAT3 LeftVec(XMMATRIX& matrix);
-	XMFLOAT3 RightVec(XMMATRIX& matrix);
-	XMFLOAT3 UpVec(XMMATRIX& matrix);
-	XMFLOAT3 DownVec(XMMATRIX& matrix);
+	XMFLOAT3 MatrixForward(XMMATRIX& matrix);
+	XMFLOAT3 MatrixBackward(XMMATRIX& matrix);
+	XMFLOAT3 MatrixLeft(XMMATRIX& matrix);
+	XMFLOAT3 MatrixRight(XMMATRIX& matrix);
+	XMFLOAT3 MatrixUp(XMMATRIX& matrix);
+	XMFLOAT3 MatrixDown(XMMATRIX& matrix);
 
 	XMFLOAT3 position, rotation;
 	XMMATRIX world, view, projection;
@@ -64,8 +71,7 @@ private:
 
 	double PITCHROOF, PITCHFLOOR;
 
-	XMVECTOR RightVector;
-	XMVECTOR UpVector;
-	XMVECTOR ForwardVector;
+	XMVECTOR upVector;
+	XMVECTOR forwardVector;
 };
 #endif

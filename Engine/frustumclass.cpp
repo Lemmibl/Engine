@@ -36,92 +36,77 @@ void FrustumClass::SetInternals( float aspectRatio, float angle, float nearZ, fl
 	farWidth = farHeight * aspectRatio;
 }
 
-XMFLOAT3* FrustumClass::GetFarFrustumCorners(XMFLOAT3 position, XMFLOAT3 lookAt, XMFLOAT3 up)
+XMFLOAT3* FrustumClass::GetFarFrustumCorners(XMVECTOR position, XMVECTOR lookAt, XMVECTOR up)
 {
-	XMFLOAT3 nearCenter, farCenter, X,Y,Z;
-	XMVECTOR tempZ, tempX;
+	XMVECTOR farCenter, X,Y,Z;
 
 	// compute the Z axis of camera
 	// this axis points in the opposite direction from
 	// the looking direction (OpenGL)
 	Z = position + lookAt;
-
-	tempZ = XMLoadFloat3(Z);
-	XMVector3Normalize(tempZ);
-	XMStoreFloat3(Z, tempZ);
+	XMVector3Normalize(Z);
 
 	// X axis of camera with given "up" vector and Z axis
 	X = up * Z;
-
-	tempX = XMLoadFloat3(X);
-	XMVector3Normalize(tempX);
-	XMStoreFloat3(X, tempX);
+	XMVector3Normalize(X);
 
 	// the real "up" vector is the cross product of Z and X
 	Y = Z * X;
 
 	// compute the centers of the far plane
 	farCenter = position + Z * farZ;
-
+	
 	// compute the 4 corners of the frustum on the far plane
-	farTopLeft = farCenter + Y * farHeight - X * farWidth;
-	farTopRight = farCenter + Y * farHeight + X * farWidth;
-	farBottomLeft = farCenter - Y * farHeight - X * farWidth;
-	farBottomRight = farCenter - Y * farHeight + X * farWidth;
+	XMStoreFloat3(&farTopLeft, farCenter + Y * farHeight - X * farWidth);
+	XMStoreFloat3(&farTopRight, farCenter + Y * farHeight + X * farWidth);
+	XMStoreFloat3(&farBottomLeft, farCenter - Y * farHeight - X * farWidth);
+	XMStoreFloat3(&farBottomRight, farCenter - Y * farHeight + X * farWidth);
 
 	XMFLOAT3 fourPoints[4] = {farTopLeft, farTopRight, farBottomLeft, farBottomRight};
 	
 	return fourPoints;
 }
 
-XMFLOAT3* FrustumClass::GetNearFrustumCorners(XMFLOAT3 position, XMFLOAT3 lookAt, XMFLOAT3 up)
+XMFLOAT3* FrustumClass::GetNearFrustumCorners(XMVECTOR position, XMVECTOR lookAt, XMVECTOR up)
 {
-	XMFLOAT3 nearCenter, farCenter, X,Y,Z;
-	XMVECTOR tempZ, tempX;
+	XMVECTOR nearCenter, X,Y,Z;
 
 	// compute the Z axis of camera
 	// this axis points in the opposite direction from
 	// the looking direction (OpenGL)
 	Z = position + lookAt;
-
-	tempZ = XMLoadFloat3(Z);
-	XMVector3Normalize(tempZ);
-	XMStoreFloat3(Z, tempZ);
+	XMVector3Normalize(Z);
 
 	// X axis of camera with given "up" vector and Z axis
 	X = up * Z;
-
-	tempX = XMLoadFloat3(X);
-	XMVector3Normalize(tempX);
-	XMStoreFloat3(X, tempX);
+	XMVector3Normalize(X);
 
 	// the real "up" vector is the cross product of Z and X
 	Y = Z * X;
 
-	// compute the centers of the near plane
+	// compute the centers of the far plane
 	nearCenter = position + Z * nearZ;
 
 	// compute the 4 corners of the frustum on the near plane
-	nearTopLeft = nearCenter + (Y * nearHeight) - (X * nearWidth);
-	nearTopRight = nearCenter + Y * nearHeight + X * nearWidth;
-	nearBottomLeft = nearCenter - Y * nearHeight - X * nearWidth;
-	nearBottomRight = nearCenter - Y * nearHeight + X * nearWidth;
+	XMStoreFloat3(&nearTopLeft, nearCenter + (Y * nearHeight) - (X * nearWidth));
+	XMStoreFloat3(&nearTopRight, nearCenter + Y * nearHeight + X * nearWidth);
+	XMStoreFloat3(&nearBottomLeft, nearCenter - Y * nearHeight - X * nearWidth);
+	XMStoreFloat3(&nearBottomRight, nearCenter - Y * nearHeight + X * nearWidth);
 
-	XMVECTOR fourPoints[4] = {nearTopLeft, nearTopRight, nearBottomLeft, nearBottomRight};
+	XMFLOAT3 fourPoints[4] = {nearTopLeft, nearTopRight, nearBottomLeft, nearBottomRight};
 
 	return fourPoints;
 
 
 }
 
-
 void FrustumClass::ConstructFrustum(float screenDepth, XMFLOAT4X4 projectionMatrix, XMFLOAT4X4 viewMatrix)
 {
 	float zMinimum, r;
 	XMMATRIX matrix, view, proj;
 
-	view = XMLoadFloat4x4(viewMatrix);
-	proj = XMLoadFloat4x4(projectionMatrix);
+	view = XMLoadFloat4x4(&viewMatrix);
+	proj = XMLoadFloat4x4(&projectionMatrix);
 
 	// Calculate the minimum Z distance in the frustum.
 	zMinimum = -proj._43 / proj._33;
@@ -130,7 +115,7 @@ void FrustumClass::ConstructFrustum(float screenDepth, XMFLOAT4X4 projectionMatr
 	proj._43 = -r * zMinimum;
 
 	// Create the frustum matrix from the view matrix and updated projection matrix.
-	XMMatrixMultiply(&matrix, &viewMatrix, &projectionMatrix);
+	matrix = XMMatrixMultiply(view, proj);
 
 	// Calculate near plane of frustum.
 	planes[0].a = matrix._14 + matrix._13;
@@ -184,7 +169,7 @@ bool FrustumClass::CheckPoint(float x, float y, float z)
 	// Check if the point is inside all six planes of the view frustum.
 	for(i=0; i<6; i++) 
 	{
-		if(D3DXPlaneDotCoord(&planes[i], &XMFLOAT3(x, y, z)) < 0.0f)
+		if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3(x, y, z)) < 0.0f)
 		{
 			return false;
 		}
@@ -200,42 +185,42 @@ bool FrustumClass::CheckCube(float xCenter, float yCenter, float zCenter, float 
 	// Check if any one point of the cube is in the view frustum.
 	for(i=0; i<6; i++) 
 	{
-		if(D3DXPlaneDotCoord(&planes[i], &XMFLOAT3((xCenter - radius), (yCenter - radius), (zCenter - radius))) >= 0.0f)
+		if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter - radius), (yCenter - radius), (zCenter - radius))) >= 0.0f)
 		{
 			continue;
 		}
 
-		if(D3DXPlaneDotCoord(&planes[i], &XMFLOAT3((xCenter + radius), (yCenter - radius), (zCenter - radius))) >= 0.0f)
+		if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter + radius), (yCenter - radius), (zCenter - radius))) >= 0.0f)
 		{
 			continue;
 		}
 
-		if(D3DXPlaneDotCoord(&planes[i], &XMFLOAT3((xCenter - radius), (yCenter + radius), (zCenter - radius))) >= 0.0f)
+		if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter - radius), (yCenter + radius), (zCenter - radius))) >= 0.0f)
 		{
 			continue;
 		}
 
-		if(D3DXPlaneDotCoord(&planes[i], &XMFLOAT3((xCenter + radius), (yCenter + radius), (zCenter - radius))) >= 0.0f)
+		if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter + radius), (yCenter + radius), (zCenter - radius))) >= 0.0f)
 		{
 			continue;
 		}
 
-		if(D3DXPlaneDotCoord(&planes[i], &XMFLOAT3((xCenter - radius), (yCenter - radius), (zCenter + radius))) >= 0.0f)
+		if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter - radius), (yCenter - radius), (zCenter + radius))) >= 0.0f)
 		{
 			continue;
 		}
 
-		if(D3DXPlaneDotCoord(&planes[i], &XMFLOAT3((xCenter + radius), (yCenter - radius), (zCenter + radius))) >= 0.0f)
+		if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter + radius), (yCenter - radius), (zCenter + radius))) >= 0.0f)
 		{
 			continue;
 		}
 
-		if(D3DXPlaneDotCoord(&planes[i], &XMFLOAT3((xCenter - radius), (yCenter + radius), (zCenter + radius))) >= 0.0f)
+		if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter - radius), (yCenter + radius), (zCenter + radius))) >= 0.0f)
 		{
 			continue;
 		}
 
-		if(D3DXPlaneDotCoord(&planes[i], &XMFLOAT3((xCenter + radius), (yCenter + radius), (zCenter + radius))) >= 0.0f)
+		if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter + radius), (yCenter + radius), (zCenter + radius))) >= 0.0f)
 		{
 			continue;
 		}
@@ -254,7 +239,7 @@ bool FrustumClass::CheckSphere(float xCenter, float yCenter, float zCenter, floa
 	// Check if the radius of the sphere is inside the view frustum.
 	for(i=0; i<6; i++) 
 	{
-		if(D3DXPlaneDotCoord(&planes[i], &XMFLOAT3(xCenter, yCenter, zCenter)) < -radius)
+		if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3(xCenter, yCenter, zCenter)) < -radius)
 		{
 			return false;
 		}
@@ -271,42 +256,42 @@ bool FrustumClass::CheckRectangle(float xCenter, float yCenter, float zCenter, f
 	// Check if any of the 6 planes of the rectangle are inside the view frustum.
 	for(i=0; i<6; i++)
 	{
-		if(D3DXPlaneDotCoord(&planes[i], &XMFLOAT3((xCenter - xSize), (yCenter - ySize), (zCenter - zSize))) >= 0.0f)
+		if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter - xSize), (yCenter - ySize), (zCenter - zSize))) >= 0.0f)
 		{
 			continue;
 		}
 
-		if(D3DXPlaneDotCoord(&planes[i], &XMFLOAT3((xCenter + xSize), (yCenter - ySize), (zCenter - zSize))) >= 0.0f)
+		if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter + xSize), (yCenter - ySize), (zCenter - zSize))) >= 0.0f)
 		{
 			continue;
 		}
 
-		if(D3DXPlaneDotCoord(&planes[i], &XMFLOAT3((xCenter - xSize), (yCenter + ySize), (zCenter - zSize))) >= 0.0f)
+		if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter - xSize), (yCenter + ySize), (zCenter - zSize))) >= 0.0f)
 		{
 			continue;
 		}
 
-		if(D3DXPlaneDotCoord(&planes[i], &XMFLOAT3((xCenter - xSize), (yCenter - ySize), (zCenter + zSize))) >= 0.0f)
+		if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter - xSize), (yCenter - ySize), (zCenter + zSize))) >= 0.0f)
 		{
 			continue;
 		}
 
-		if(D3DXPlaneDotCoord(&planes[i], &XMFLOAT3((xCenter + xSize), (yCenter + ySize), (zCenter - zSize))) >= 0.0f)
+		if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter + xSize), (yCenter + ySize), (zCenter - zSize))) >= 0.0f)
 		{
 			continue;
 		}
 
-		if(D3DXPlaneDotCoord(&planes[i], &XMFLOAT3((xCenter + xSize), (yCenter - ySize), (zCenter + zSize))) >= 0.0f)
+		if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter + xSize), (yCenter - ySize), (zCenter + zSize))) >= 0.0f)
 		{
 			continue;
 		}
 
-		if(D3DXPlaneDotCoord(&planes[i], &XMFLOAT3((xCenter - xSize), (yCenter + ySize), (zCenter + zSize))) >= 0.0f)
+		if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter - xSize), (yCenter + ySize), (zCenter + zSize))) >= 0.0f)
 		{
 			continue;
 		}
 
-		if(D3DXPlaneDotCoord(&planes[i], &XMFLOAT3((xCenter + xSize), (yCenter + ySize), (zCenter + zSize))) >= 0.0f)
+		if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter + xSize), (yCenter + ySize), (zCenter + zSize))) >= 0.0f)
 		{
 			continue;
 		}
