@@ -225,6 +225,7 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, D3DClass* d3D, UINT sc
 	/*
 	http://www.asawicki.info/news_1429_xna_math_and_access_violation.html
 	http://xboxforums.create.msdn.com/forums/p/60156/370310.aspx#370310
+	http://www.gamasutra.com/view/feature/4248/designing_fast_crossplatform_simd_.php
 	*/
 
 	for(int i = 0; i < 20; i++)
