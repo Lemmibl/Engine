@@ -25,7 +25,6 @@ bool InputClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidth, int
 {
 	HRESULT result;
 
-
 	// Store the screen size which will be used for positioning the mouse cursor.
 	this->screenWidth = screenWidth;
 	this->screenHeight = screenHeight;
@@ -106,7 +105,7 @@ bool InputClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidth, int
 		previousKeyStates[i] = NULL;
 	}
 
-	return true;
+	return result;
 }
 
 void InputClass::Shutdown()
@@ -163,8 +162,6 @@ bool InputClass::Update(HWND hwnd)
 
 bool InputClass::ReadKeyboard(HWND hwnd)
 {
-	HRESULT result;
-
 	if (!keyboard)
 	{
 		if (FAILED(directInput->CreateDevice(GUID_SysKeyboard, &keyboard, 0))) return false;

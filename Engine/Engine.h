@@ -3,7 +3,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 #ifndef _SYSTEMCLASS_H_
 #define _SYSTEMCLASS_H_
-#pragma once
 
 ///////////////////////////////
 // PRE-PROCESSING DIRECTIVES //
@@ -22,6 +21,7 @@ const float SCREEN_NEAR = 0.5f;
 //////////////
 // INCLUDES //
 //////////////
+#pragma once
 #include <windows.h>
 #include <xnamath.h>
 
@@ -64,7 +64,7 @@ private:
 
 	D3DClass* d3D;
 	InputClass* input;
-	Renderer* graphics;
+	Renderer* renderer;
 	FpsMeter* fpsMeter;
 	CpuMeter* cpuMeter;
 	TimerClass* timer;
@@ -74,6 +74,7 @@ private:
 	CameraClass* camera;
 
 	float rotationalValue;
+	int screenWidth, screenHeight;
 	UINT shadowMapWidth, shadowMapHeight;
 	bool toggleDebug;
 };

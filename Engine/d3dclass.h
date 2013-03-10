@@ -19,6 +19,7 @@
 #include <DXGI.h>
 #include <d3dcommon.h>
 #include <d3d11.h>
+#include <xnamath.h>
 #include <windows.h>
 #include <xnamath.h>
 
@@ -32,7 +33,7 @@ public:
 	D3DClass(const D3DClass&);
 	~D3DClass();
 
-	bool Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenFar, float screenNear, 
+	bool Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNear, float screenFar, 
 		int screenWidth, int screenHeight, UINT shadowMapWidth, UINT shadowMapHeight);
 	void Shutdown();
 	

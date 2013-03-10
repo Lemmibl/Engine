@@ -18,6 +18,7 @@
 //////////////
 // INCLUDES //
 //////////////
+#pragma once
 #include <dinput.h>
 #include <D3D11.h>
 #include <D3DX11.h>
@@ -59,13 +60,12 @@ private:
 	IDirectInput8* directInput;
 	IDirectInputDevice8* keyboard;
 	IDirectInputDevice8* mouse;
+	DIMOUSESTATE mouseState;
 
 	unsigned char keyStates[2][256];
 	unsigned char *currentKeyStates;
 	unsigned char *previousKeyStates;
 	char lastChar;
-
-	DIMOUSESTATE mouseState;
 
 	int screenWidth, screenHeight;
 	int mouseX, mouseY;

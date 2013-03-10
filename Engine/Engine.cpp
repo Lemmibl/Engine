@@ -6,7 +6,7 @@
 Engine::Engine()
 {
 	input = 0;
-	graphics = 0;
+	renderer = 0;
 	timer = 0;
 	cpuMeter = 0;
 	fpsMeter = 0;
@@ -28,7 +28,6 @@ Engine::~Engine()
 
 bool Engine::Initialize()
 {
-	int screenWidth, screenHeight;
 	bool result;
 
 	// Initialize values.
@@ -41,6 +40,35 @@ bool Engine::Initialize()
 	// Initialize the windows api.
 	InitializeWindows(screenWidth, screenHeight);
 
+	d3D = new D3DClass();
+
+	// Initialize the Direct3D object.
+	result = d3D->Initialize(hwnd, VSYNC_ENABLED, FULL_SCREEN, SCREEN_NEAR, SCREEN_FAR, 
+		screenWidth, screenHeight, shadowMapWidth, shadowMapHeight);
+
+	if(!result)
+	{
+		MessageBox(hwnd, L"Could not initialize Direct3D. Look in engine.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the camera object.
+	camera = new CameraClass;
+	if(!camera)
+	{
+		MessageBox(hwnd, L"Could not create the camera object. Look in engine.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Initialize a base view matrix with the camera for 2D user interface rendering.
+	camera->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
+	camera->Update();
+
+	camera->SetPosition(XMFLOAT3(0.0f, 10.0f, -10.0f));
+	camera->SetRotation(XMFLOAT3(45.0f, 0.0f, 0.0f));
+
+	camera->SetPerspectiveProjection(screenWidth, screenHeight, XM_PIDIV4, SCREEN_NEAR, SCREEN_FAR); 
+
 	// Create the input object.  This object will be used to handle reading the keyboard input from the user.
 	input = new InputClass;
 	if(!input)
@@ -52,49 +80,19 @@ bool Engine::Initialize()
 	result = input->Initialize(hinstance, hwnd, screenWidth, screenHeight);
 	if(!result)
 	{
-		MessageBox(hwnd, L"Could not initialize the input object.", L"Error", MB_OK);
+		MessageBox(hwnd, L"Could not initialize the inputmanager. Look in engine.", L"Error", MB_OK);
 		return false;
 	}
 
-	// Create the graphics object.  This object will handle rendering all the graphics for this application.
-	graphics = new Renderer;
-	if(!graphics)
+	// Create the renderer object. This object will handle rendering all the graphics for this application. Durp.
+	renderer = new Renderer;
+	if(!renderer)
 	{
 		return false;
 	}
 
-	
-	d3D = new D3DClass();
-
-	// Initialize the Direct3D object.
-	result = d3D->Initialize(hwnd, VSYNC_ENABLED, FULL_SCREEN, SCREEN_FAR, SCREEN_NEAR, 
-	screenWidth, screenHeight, shadowMapWidth, shadowMapHeight);
-
-	if(!result)
-	{
-	MessageBox(hwnd, L"Could not initialize Direct3D. Look in graphicsclass.", L"Error", MB_OK);
-	return false;
-	}
-	
-	// Create the camera object.
-	camera = new CameraClass;
-	if(!camera)
-	{
-		MessageBox(hwnd, L"Could not create the camera object. Look in graphicsclass.", L"Error", MB_OK);
-		return false;
-	}
-
-	// Initialize a base view matrix with the camera for 2D user interface rendering.
-	camera->SetPosition(XMFLOAT3(0.0f, 0.0f, -1.0f));
-	camera->Update();
-
-	camera->SetPosition(XMFLOAT3(0.0f, 10.0f, -10.0f));
-	camera->SetRotation(XMFLOAT3(45.0f, 0.0f, 0.0f));
-
-	camera->SetPerspectiveProjection(screenWidth, screenHeight, XM_PIDIV4, SCREEN_NEAR, SCREEN_FAR); 
-
-	// Initialize the graphics object.
-	result = graphics->Initialize(hwnd, camera, d3D, screenWidth, screenHeight, shadowMapWidth, shadowMapHeight, SCREEN_FAR, SCREEN_NEAR);
+	// Initialize the renderer.
+	result = renderer->Initialize(hwnd, camera, d3D, screenWidth, screenHeight, shadowMapWidth, shadowMapHeight, SCREEN_FAR, SCREEN_NEAR);
 	if(!result)
 	{
 		return false;
@@ -200,11 +198,11 @@ void Engine::Shutdown()
 	}
 
 	// Release the graphics object.
-	if(graphics)
+	if(renderer)
 	{
-		graphics->Shutdown();
-		delete graphics;
-		graphics = 0;
+		renderer->Shutdown();
+		delete renderer;
+		renderer = 0;
 	}
 
 	if(marchingCubes)
@@ -331,14 +329,14 @@ bool Engine::Update()
 	//marchingCubes->CalculateMesh(d3D->GetDevice());
 	
 	// Do the frame processing for the graphics object.
-	result = graphics->Update(fpsMeter->GetFps(), cpuMeter->GetCpuPercentage(), timer->GetFrameTime(), toggleDebug, input->IsKeyPressed(DIK_R), input->IsKeyPressed(DIK_F));
+	result = renderer->Update(fpsMeter->GetFps(), cpuMeter->GetCpuPercentage(), timer->GetFrameTime(), toggleDebug, input->IsKeyPressed(DIK_R), input->IsKeyPressed(DIK_F));
 	if(!result)
 	{
 		return false;
 	}
 
 	// Finally render the graphics to the screen.
-	result = graphics->Render();
+	result = renderer->Render();
 	if(!result)
 	{
 		return false;

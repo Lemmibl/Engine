@@ -289,7 +289,7 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, D3DClass* d3D, UINT sc
 	XMVector3Normalize(direction);
 	XMStoreFloat3(&dirLight->Direction, direction);
 
-	dirLight->Projection = XMMatrixPerspectiveFovLH(D3DX_PI/2.0f, 1.0f, 5.0f, 140.0f);
+	dirLight->Projection = XMMatrixPerspectiveFovLH(((float)D3DX_PI/2.0f), 1.0f, 5.0f, 140.0f);
 	//XMMATRIXOrthoLH(&dirLight->Projection, (float)shadowMapWidth, (float)shadowMapHeight, 5.0f, 140.0f);
 
 	lookAt = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);

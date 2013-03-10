@@ -1,5 +1,8 @@
+#pragma once
 #include "metaballsClass.h"
-
+#include "types.h"
+#include <windows.h>
+#include <stdio.h>
 
 
 class MarchingCubesClass

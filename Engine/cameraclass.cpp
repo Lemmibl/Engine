@@ -199,7 +199,9 @@ void CameraClass::Update()
 	tempPos = XMLoadFloat3(&position);
 	tempRot = XMLoadFloat3(&rotation);
 
-	float y = XMVectorGetY(tempRot)*DEG_TO_RAD;
+	float y = XMVectorGetY(tempRot);
+
+	y *= (float)DEG_TO_RAD;
 
 	if(y > TWO_PI || y < -TWO_PI) //Just clamping the values to make sure it doesn't go out of control.
 	{

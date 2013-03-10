@@ -1,8 +1,4 @@
-#include "types.h"
 #include "marchingCubesClass.h"
-#include <windows.h>/
-
-#include <stdio.h>
 
 /* Both tables are from Paul Borke "Polygonising a scalar field"
 
