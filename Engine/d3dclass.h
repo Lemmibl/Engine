@@ -3,7 +3,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 #ifndef _D3DCLASS_H_
 #define _D3DCLASS_H_
-#pragma once
 
 /////////////
 // LINKING //
@@ -16,12 +15,13 @@
 //////////////
 // INCLUDES //
 //////////////
+#pragma once
+
+#include <windows.h>
+#include <xnamath.h>
 #include <DXGI.h>
 #include <d3dcommon.h>
 #include <d3d11.h>
-#include <xnamath.h>
-#include <windows.h>
-#include <xnamath.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: D3DClass
@@ -112,7 +112,7 @@ private:
 	ID3D11RasterizerState*		frontfaceCullingCW;
 	ID3D11RasterizerState*		noCullingCW;
 
-	XMMATRIX projectionMatrix, worldMatrix, orthoMatrix;
+	XMFLOAT4X4 projectionMatrix, worldMatrix, orthoMatrix;
 
 	ID3D11BlendState* alphaEnableBlendingState;
 	ID3D11BlendState* alphaDisableBlendingState;

@@ -16,19 +16,19 @@ ID3D11DeviceContext* D3DClass::GetDeviceContext()
 
 void D3DClass::GetProjectionMatrix(XMMATRIX& projectionMatrix)
 {
-	projectionMatrix = this->projectionMatrix;
+	projectionMatrix = XMLoadFloat4x4(&this->projectionMatrix);
 	return;
 }
 
 void D3DClass::GetWorldMatrix(XMMATRIX& worldMatrix)
 {
-	worldMatrix = this->worldMatrix;
+	worldMatrix = XMLoadFloat4x4(&this->worldMatrix);
 	return;
 }
 
 void D3DClass::GetOrthoMatrix(XMMATRIX& orthoMatrix)
 {
-	orthoMatrix = this->orthoMatrix;
+	orthoMatrix = XMLoadFloat4x4(&this->orthoMatrix);
 	return;
 }
 
@@ -316,14 +316,16 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 	fieldOfView = XM_PIDIV4;
 	screenAspect = (float)screenWidth / (float)screenHeight;
 
+	/*http://www.asawicki.info/news_1429_xna_math_and_access_violation.html*/
+
 	// Create the projection matrix for 3D rendering.
-	projectionMatrix = XMMatrixPerspectiveFovLH((float)fieldOfView, screenAspect, screenNear, screenFar);
+	 XMStoreFloat4x4(&projectionMatrix, XMMatrixPerspectiveFovLH((FLOAT)fieldOfView, (FLOAT)screenAspect, (FLOAT)screenNear, (FLOAT)screenFar));
 
 	// Initialize the world matrix to the identity matrix.
-	worldMatrix = XMMatrixIdentity();
+	 XMStoreFloat4x4(&worldMatrix, XMMatrixIdentity());
 
 	// Create an orthographic projection matrix for 2D rendering.
-	orthoMatrix = XMMatrixOrthographicLH((float)screenWidth, (float)screenHeight, screenNear, screenFar);
+	 XMStoreFloat4x4(&orthoMatrix, XMMatrixOrthographicLH((float)screenWidth, (float)screenHeight, screenNear, screenFar));
 	#pragma endregion
 
 	// Initialize the description of the depth buffer.

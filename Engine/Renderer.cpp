@@ -83,7 +83,7 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, D3DClass* d3D, UINT sc
 	}
 
 	// Create the model object.
-	sphereModel = new ModelClass;
+	sphereModel = new ModelClass();
 	if(!sphereModel)
 	{
 		return false;
@@ -97,7 +97,7 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, D3DClass* d3D, UINT sc
 		return false;
 	}
 
-	otherModel = new ModelClass;
+	otherModel = new ModelClass();
 	if(!otherModel)
 	{
 		return false;
@@ -123,7 +123,7 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, D3DClass* d3D, UINT sc
 	}
 
 	// Create the text object.
-	text = new TextClass;
+	text = new TextClass();
 	if(!text)
 	{
 		return false;

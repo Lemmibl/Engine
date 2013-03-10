@@ -41,7 +41,7 @@ bool Engine::Initialize()
 	InitializeWindows(screenWidth, screenHeight);
 
 	// Create the input object.  This object will be used to handle reading the keyboard input from the user.
-	input = new InputClass;
+	input = new InputClass();
 	if(!input)
 	{
 		return false;
@@ -56,6 +56,10 @@ bool Engine::Initialize()
 	}
 
 	d3D = new D3DClass();
+	if(!d3D)
+	{
+		return false;
+	}
 
 	// Initialize the Direct3D object.
 	result = d3D->Initialize(hwnd, VSYNC_ENABLED, FULL_SCREEN, SCREEN_NEAR, SCREEN_FAR, 
@@ -67,7 +71,7 @@ bool Engine::Initialize()
 	}
 
 	// Create the camera object.
-	camera = new CameraClass;
+	camera = new CameraClass();
 	if(!camera)
 	{
 		MessageBox(hwnd, L"Could not create the camera object. Look in engine.", L"Error", MB_OK);
@@ -85,7 +89,7 @@ bool Engine::Initialize()
 
 
 	// Create the renderer object. This object will handle rendering all the graphics for this application. Durp.
-	renderer = new Renderer;
+	renderer = new Renderer();
 	if(!renderer)
 	{
 		return false;
@@ -98,7 +102,7 @@ bool Engine::Initialize()
 		return false;
 	}
 
-	fpsMeter = new FpsMeter;
+	fpsMeter = new FpsMeter();
 	if(!fpsMeter)
 	{
 		return false;
@@ -106,7 +110,7 @@ bool Engine::Initialize()
 
 	fpsMeter->Initialize();
 
-	cpuMeter = new CpuMeter;
+	cpuMeter = new CpuMeter();
 	if(!cpuMeter)
 	{
 		return false;
@@ -115,7 +119,7 @@ bool Engine::Initialize()
 	cpuMeter->Initialize();
 
 	// Create the timer object.
-	timer = new TimerClass;
+	timer = new TimerClass();
 	if(!timer)
 	{
 		return false;
