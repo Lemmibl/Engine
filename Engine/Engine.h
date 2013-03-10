@@ -3,6 +3,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #ifndef _SYSTEMCLASS_H_
 #define _SYSTEMCLASS_H_
+#pragma once
 
 ///////////////////////////////
 // PRE-PROCESSING DIRECTIVES //
@@ -73,7 +74,7 @@ private:
 	CameraClass* camera;
 
 	float rotationalValue;
-	float shadowMapWidth, shadowMapHeight;
+	UINT shadowMapWidth, shadowMapHeight;
 	bool toggleDebug;
 };
 

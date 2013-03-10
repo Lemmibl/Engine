@@ -25,16 +25,16 @@ class DRDirLight
 private:
 	struct PixelMatrixBuffer
 	{
-		XMFLOAT4X4 LightView;
-		XMFLOAT4X4 LightProjection;
-		XMFLOAT4X4 InvertedViewProjection;
+		XMMATRIX LightView;
+		XMMATRIX LightProjection;
+		XMMATRIX InvertedViewProjection;
 	};
 
 	struct VertexMatrixBuffer
 	{
-		XMFLOAT4X4 World;
-		XMFLOAT4X4 View;
-		XMFLOAT4X4 Projection;
+		XMMATRIX World;
+		XMMATRIX View;
+		XMMATRIX Projection;
 	};
 
 	struct PositionalBuffer
@@ -61,19 +61,19 @@ public:
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
-	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, XMFLOAT4X4 world, XMFLOAT4X4 view, XMFLOAT4X4 projection, 
-	XMFLOAT4X4 invertedViewProj, ID3D11ShaderResourceView** textureArray, XMFLOAT3 cameraPosition, XMFLOAT3 lightPosition, 
+	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, 
+	XMMATRIX* invertedViewProj, ID3D11ShaderResourceView** textureArray, XMFLOAT3 cameraPosition, XMFLOAT3 lightPosition, 
 	XMFLOAT3 lightDirection, XMFLOAT4 lightColor, float lightStrength, XMFLOAT4 ambienceColor, MaterialStruct material, 
-	XMFLOAT4X4 lightView, XMFLOAT4X4 lightProj);
+	XMMATRIX* lightView, XMMATRIX* lightProj);
 
 private:
 	bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
 	void ShutdownShader();
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
 
-	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMFLOAT4X4 world, XMFLOAT4X4 view, XMFLOAT4X4 projection, 
-		XMFLOAT4X4 invertedViewProj, ID3D11ShaderResourceView** textureArray, XMFLOAT3 cameraPosition, XMFLOAT3 lightPosition, XMFLOAT3 lightDirection, 
-		XMFLOAT4 lightColor, float lightStrength, XMFLOAT4 ambienceColor, MaterialStruct material, XMFLOAT4X4 lightView, XMFLOAT4X4 lightProj);
+	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, 
+		XMMATRIX* invertedViewProj, ID3D11ShaderResourceView** textureArray, XMFLOAT3 cameraPosition, XMFLOAT3 lightPosition, XMFLOAT3 lightDirection, 
+		XMFLOAT4 lightColor, float lightStrength, XMFLOAT4 ambienceColor, MaterialStruct material, XMMATRIX* lightView, XMMATRIX* lightProj);
 	void RenderShader(ID3D11DeviceContext*, int);
 
 private:

@@ -45,8 +45,8 @@ void DRGBuffer::Shutdown()
 	return;
 }
 
-bool DRGBuffer::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMFLOAT4X4 worldMatrix, XMFLOAT4X4 viewMatrix, 
-	XMFLOAT4X4 projectionMatrix, ID3D11ShaderResourceView** textureArray)
+bool DRGBuffer::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, XMMATRIX* viewMatrix, 
+	XMMATRIX* projectionMatrix, ID3D11ShaderResourceView** textureArray)
 {
 	bool result;
 
@@ -312,8 +312,8 @@ void DRGBuffer::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WC
 	return;
 }
 
-bool DRGBuffer::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMFLOAT4X4 worldMatrix, 
-	XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix, ID3D11ShaderResourceView** textureArray)
+bool DRGBuffer::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, 
+	XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, ID3D11ShaderResourceView** textureArray)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -331,9 +331,9 @@ bool DRGBuffer::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMFLOAT4
 	dataPtr = (MatrixBufferType*)mappedResource.pData;
 
 	// Copy the matrices into the constant buffer.
-	dataPtr->World = worldMatrix;
-	dataPtr->View = viewMatrix;
-	dataPtr->Projection = projectionMatrix;
+	dataPtr->World = *worldMatrix;
+	dataPtr->View = *viewMatrix;
+	dataPtr->Projection = *projectionMatrix;
 
 	// Unlock the matrix constant buffer.
 	deviceContext->Unmap(matrixBuffer, 0);

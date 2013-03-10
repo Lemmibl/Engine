@@ -91,8 +91,8 @@ XMFLOAT3 CameraClass::Left()
 {
 	return MatrixLeft(world);
 }
-#pragma endregion XMFloat3 methods
 
+#pragma endregion XMFloat3 methods
 XMVECTOR CameraClass::ForwardVector()
 {
 	return XMLoadFloat3(&MatrixForward(world));
@@ -122,45 +122,38 @@ XMVECTOR CameraClass::LeftVector()
 {
 	return XMLoadFloat3(&MatrixLeft(world));
 }
+#pragma endregion
 
 #pragma region Matrix methods
-// Returns the forward vector from a transform matrix
-XMFLOAT3 MatrixForward(XMMATRIX& matrix)
+XMFLOAT3 CameraClass::MatrixForward(XMMATRIX& matrix)
 {
 	return XMFLOAT3(matrix._31, matrix._32, matrix._33);
 }
 
-// Returns the forward vector from a transform matrix
-XMFLOAT3 MatrixBackward(XMMATRIX& matrix)
+XMFLOAT3 CameraClass::MatrixBackward(XMMATRIX& matrix)
 {
 	return XMFLOAT3(-matrix._31, -matrix._32, -matrix._33);
 }
 
-// Returns the forward vector from a transform matrix
-XMFLOAT3 MatrixRight(XMMATRIX& matrix)
+XMFLOAT3 CameraClass::MatrixRight(XMMATRIX& matrix)
 {
 	return XMFLOAT3(matrix._11, matrix._12, matrix._13);
 }
 
-// Returns the forward vector from a transform matrix
-XMFLOAT3 MatrixLeft(XMMATRIX& matrix)
+XMFLOAT3 CameraClass::MatrixLeft(XMMATRIX& matrix)
 {
 	return XMFLOAT3(-matrix._11, -matrix._12, -matrix._13);
 }
 
-// Returns the forward vector from a transform matrix
-XMFLOAT3 MatrixUp(XMMATRIX& matrix)
+XMFLOAT3 CameraClass::MatrixUp(XMMATRIX& matrix)
 {
 	return XMFLOAT3(matrix._21, matrix._22, matrix._23);
 }
 
-// Returns the forward vector from a transform matrix
-XMFLOAT3 MatrixDown(XMMATRIX& matrix)
+XMFLOAT3 CameraClass::MatrixDown(XMMATRIX& matrix)
 {
 	return XMFLOAT3(-matrix._21, -matrix._22, -matrix._23);
 }
-#pragma endregion
-
 #pragma endregion
 
 

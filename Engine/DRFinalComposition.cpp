@@ -49,7 +49,7 @@ void DRFinalComposition::Shutdown()
 	return;
 }
 
-bool DRFinalComposition::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMFLOAT4X4 world, XMFLOAT4X4 view, XMFLOAT4X4 projection, XMFLOAT4X4 invertedViewProjection, XMFLOAT4X4 lightViewProj,
+bool DRFinalComposition::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, XMMATRIX* invertedViewProjection, XMMATRIX* lightViewProj,
 	ID3D11ShaderResourceView** textureArray)
 {
 	bool result;
@@ -308,7 +308,7 @@ void DRFinalComposition::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND
 	return;
 }
 
-bool DRFinalComposition::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMFLOAT4X4 world, XMFLOAT4X4 view, XMFLOAT4X4 projection, XMFLOAT4X4 invertedViewProjection, XMFLOAT4X4 lightViewProj,
+bool DRFinalComposition::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, XMMATRIX* invertedViewProjection, XMMATRIX* lightViewProj,
 	ID3D11ShaderResourceView** textureArray)
 {		
 	HRESULT result;
@@ -330,9 +330,9 @@ bool DRFinalComposition::SetShaderParameters( ID3D11DeviceContext* deviceContext
 	// Get a pointer to the data in the constant buffer.
 	dataPtr1 = (VertexMatrixBuffer*)mappedResource.pData;
 
-	dataPtr1->World = world;
-	dataPtr1->Projection = projection;
-	dataPtr1->View = view;
+	dataPtr1->World = *world;
+	dataPtr1->Projection = *projection;
+	dataPtr1->View = *view;
 
 	deviceContext->Unmap(vertexMatrixBuffer, 0);
 
@@ -351,8 +351,8 @@ bool DRFinalComposition::SetShaderParameters( ID3D11DeviceContext* deviceContext
 
 	dataPtr2 = (PixelMatrixBuffer*)mappedResource.pData;
 
-	dataPtr2->LightViewProjection = lightViewProj;
-	dataPtr2->InvertedViewProjection = invertedViewProjection;
+	dataPtr2->LightViewProjection = *lightViewProj;
+	dataPtr2->InvertedViewProjection = *invertedViewProjection;
 
 	deviceContext->Unmap(pixelMatrixBuffer, 0);
 

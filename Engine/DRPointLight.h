@@ -27,14 +27,14 @@ private:
 
 	struct VertexMatrixBufferType
 	{
-		XMFLOAT4X4 World;
-		XMFLOAT4X4 View;
-		XMFLOAT4X4 Projection;
+		XMMATRIX World;
+		XMMATRIX View;
+		XMMATRIX Projection;
 	};
 
 	struct PixelMatrixBufferType
 	{
-		XMFLOAT4X4 InvertedViewProjection;
+		XMMATRIX InvertedViewProjection;
 		XMFLOAT3 LightPosition;
 	};
 
@@ -55,14 +55,14 @@ public:
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
 	//This class takes a normal map and a depthmap and should be rendering to the light map.
-	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, XMFLOAT4X4 world, XMFLOAT4X4 view, XMFLOAT4X4 proj, XMFLOAT4X4 inverseViewProjection, 
+	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* view, XMMATRIX* proj, XMMATRIX* inverseViewProjection, 
 		PointLight* pointLight, ID3D11ShaderResourceView** textureArray, XMFLOAT3 cameraPosition);
 
 private:
 	bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
 	void ShutdownShader();
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
-	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMFLOAT4X4 world, XMFLOAT4X4 view, XMFLOAT4X4 proj, XMFLOAT4X4 inverseViewProjection, 
+	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* view, XMMATRIX* proj, XMMATRIX* inverseViewProjection, 
 		PointLight* pointLight, ID3D11ShaderResourceView** textureArray, XMFLOAT3 cameraPosition);
 
 	void RenderShader(ID3D11DeviceContext*, int);
@@ -80,5 +80,3 @@ private:
 };
 
 #endif
-
-//fixa buffern tillbaka, lägg till tredje textur att sampla från, ändra rasterizer mode till cull back face ? front face? idk

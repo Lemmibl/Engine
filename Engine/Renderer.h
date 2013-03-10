@@ -94,9 +94,9 @@ private:
 
 	bool toggleDebugInfo;
 	bool toggleTextureShader;
-	XMMATRIX baseViewMatrix, scale, translation;
+	XMMATRIX scale, translation, baseViewMatrix;
 	XMFLOAT4 ambientLight;
-	XMFLOAT3 lookAt, up;
+	XMVECTOR lookAt, up;
 
 	UINT shadowMapWidth, shadowMapHeight, screenWidth, screenHeight;
 	float screenFar, screenNear;

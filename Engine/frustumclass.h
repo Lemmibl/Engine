@@ -46,7 +46,7 @@ public:
 	//Returns the four frustum corners in a float4. [0] = top left, [1] = top right, [2] = bottom left, [3] = bottom right
 	XMFLOAT3* GetNearFrustumCorners(XMVECTOR position, XMVECTOR lookAt, XMVECTOR up);
 
-	void ConstructFrustum(float, XMFLOAT4X4, XMFLOAT4X4);
+	void ConstructFrustum(float, XMMATRIX* , XMMATRIX* );
 
 	bool CheckPoint(float, float, float);
 	bool CheckCube(float, float, float, float);

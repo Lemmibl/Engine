@@ -62,8 +62,13 @@ XMFLOAT3* FrustumClass::GetFarFrustumCorners(XMVECTOR position, XMVECTOR lookAt,
 	XMStoreFloat3(&farBottomLeft, farCenter - Y * farHeight - X * farWidth);
 	XMStoreFloat3(&farBottomRight, farCenter - Y * farHeight + X * farWidth);
 
-	XMFLOAT3 fourPoints[4] = {farTopLeft, farTopRight, farBottomLeft, farBottomRight};
-	
+	XMFLOAT3* fourPoints = new XMFLOAT3[4]();
+
+	fourPoints[0] = farTopLeft;
+	fourPoints[1] = farTopRight;
+	fourPoints[2] = farBottomLeft;
+	fourPoints[3] = farBottomRight;
+
 	return fourPoints;
 }
 
@@ -93,20 +98,23 @@ XMFLOAT3* FrustumClass::GetNearFrustumCorners(XMVECTOR position, XMVECTOR lookAt
 	XMStoreFloat3(&nearBottomLeft, nearCenter - Y * nearHeight - X * nearWidth);
 	XMStoreFloat3(&nearBottomRight, nearCenter - Y * nearHeight + X * nearWidth);
 
-	XMFLOAT3 fourPoints[4] = {nearTopLeft, nearTopRight, nearBottomLeft, nearBottomRight};
+	XMFLOAT3* fourPoints = new XMFLOAT3[4]();
+	
+	fourPoints[0] = nearTopLeft;
+	fourPoints[1] = nearTopRight;
+	fourPoints[2] = nearBottomLeft;
+	fourPoints[3] = nearBottomRight;
 
 	return fourPoints;
-
-
 }
 
-void FrustumClass::ConstructFrustum(float screenDepth, XMFLOAT4X4 projectionMatrix, XMFLOAT4X4 viewMatrix)
+void FrustumClass::ConstructFrustum(float screenDepth, XMMATRIX* projectionMatrix, XMMATRIX* viewMatrix)
 {
 	float zMinimum, r;
 	XMMATRIX matrix, view, proj;
 
-	view = XMLoadFloat4x4(&viewMatrix);
-	proj = XMLoadFloat4x4(&projectionMatrix);
+	view = *viewMatrix;
+	proj = *projectionMatrix;
 
 	// Calculate the minimum Z distance in the frustum.
 	zMinimum = -proj._43 / proj._33;

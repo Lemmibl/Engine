@@ -46,8 +46,8 @@ void VertexShaderOnly::Shutdown()
 }
 
 
-bool VertexShaderOnly::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMFLOAT4X4 worldMatrix, 
-	XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix)
+bool VertexShaderOnly::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, 
+	XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix)
 {
 	bool result;
 
@@ -214,8 +214,8 @@ void VertexShaderOnly::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND h
 }
 
 
-bool VertexShaderOnly::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMFLOAT4X4 worldMatrix, 
-	XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix)
+bool VertexShaderOnly::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, 
+	XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -233,9 +233,9 @@ bool VertexShaderOnly::SetShaderParameters(ID3D11DeviceContext* deviceContext, X
 	dataPtr = (MatrixBufferType*)mappedResource.pData;
 
 	// Copy the matrices into the constant buffer.
-	dataPtr->world = worldMatrix;
-	dataPtr->view = viewMatrix;
-	dataPtr->projection = projectionMatrix;
+	dataPtr->world = *worldMatrix;
+	dataPtr->view = *viewMatrix;
+	dataPtr->projection = *projectionMatrix;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(matrixBuffer, 0);
@@ -257,7 +257,7 @@ void VertexShaderOnly::RenderShader(ID3D11DeviceContext* deviceContext, int inde
 
 	// Set the vertex and pixel shaders that will be used to render this triangle.
 	deviceContext->VSSetShader(vertexShader, NULL, 0);
-	deviceContext->PSSetShader(NULL, NULL, 0);
+	deviceContext->PSSetShader(NULL, NULL, 0); // Class name kind of explains it.
 
 	// Render the triangle.
 	deviceContext->DrawIndexed(indexCount, 0, 0);

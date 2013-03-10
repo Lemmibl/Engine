@@ -50,13 +50,13 @@ void DRPointLight::Shutdown()
 	return;
 }
 
-bool DRPointLight::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMFLOAT4X4 world, XMFLOAT4X4 view, XMFLOAT4X4 proj, XMFLOAT4X4 invViewProj, 
+bool DRPointLight::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* view, XMMATRIX* proj, XMMATRIX* invViewProj, 
 	PointLight* pointLight, ID3D11ShaderResourceView** textureArray, XMFLOAT3 cameraPosition)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, world, view, proj, invViewProj, pointLight, textureArray, cameraPosition);
+	result = SetShaderParameters(deviceContext, view, proj, invViewProj, pointLight, textureArray, cameraPosition);
 	if(!result)
 	{
 		return false;
@@ -327,7 +327,7 @@ void DRPointLight::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd,
 	return;
 }
 
-bool DRPointLight::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMFLOAT4X4 world, XMFLOAT4X4 view, XMFLOAT4X4 proj, XMFLOAT4X4 invViewProj, 
+bool DRPointLight::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* view, XMMATRIX* proj, XMMATRIX* invViewProj, 
 	PointLight* pointLight, ID3D11ShaderResourceView** textureArray, XMFLOAT3 cameraPosition)
 {		
 	HRESULT result;
@@ -349,9 +349,9 @@ bool DRPointLight::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMFLO
 	dataPtr = (VertexMatrixBufferType*)mappedResource.pData;
 
 	// Copy the matrices into the constant buffer.
-	dataPtr->World = world;
-	dataPtr->View = view;
-	dataPtr->Projection = proj;
+	dataPtr->World = pointLight->World;
+	dataPtr->View = *view;
+	dataPtr->Projection = *proj;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(vertexMatrixBuffer, 0);
@@ -400,7 +400,7 @@ bool DRPointLight::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMFLO
 	//D3DXVec4Transform(&worldPos,  &worldPos, &world);
 
 	// Copy matrix to buffer
-	dataPtr3->InvertedViewProjection = invViewProj;
+	dataPtr3->InvertedViewProjection = *invViewProj;
 	dataPtr3->LightPosition = pointLight->Position;
 
 	// Unlock the constant buffer.

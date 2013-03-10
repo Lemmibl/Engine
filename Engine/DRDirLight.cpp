@@ -51,12 +51,15 @@ void DRDirLight::Shutdown()
 	return;
 }
 
-bool DRDirLight::Render( ID3D11DeviceContext* deviceContext, int indexCount, XMFLOAT4X4 world, XMFLOAT4X4 view, XMFLOAT4X4 projection, XMFLOAT4X4 invertedViewProj, ID3D11ShaderResourceView** textureArray, XMFLOAT3 cameraPosition, XMFLOAT3 lightPosition, XMFLOAT3 lightDirection, XMFLOAT4 lightColor, float lightStrength, XMFLOAT4 ambienceColor, MaterialStruct material, XMFLOAT4X4 lightView, XMFLOAT4X4 lightProj )
+bool DRDirLight::Render( ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, 
+XMMATRIX* invertedViewProj, ID3D11ShaderResourceView** textureArray, XMFLOAT3 cameraPosition, XMFLOAT3 lightPosition, XMFLOAT3 lightDirection, 
+XMFLOAT4 lightColor, float lightStrength, XMFLOAT4 ambienceColor, MaterialStruct material, XMMATRIX* lightView, XMMATRIX* lightProj )
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, world, view, projection, invertedViewProj, textureArray, cameraPosition, lightPosition, lightDirection, lightColor, lightStrength, ambienceColor, material, lightView, lightProj);
+	result = SetShaderParameters(deviceContext, world, view, projection, invertedViewProj, textureArray, cameraPosition, lightPosition, 
+									lightDirection, lightColor, lightStrength, ambienceColor, material, lightView, lightProj);
 	if(!result)
 	{
 		return false;
@@ -384,9 +387,9 @@ void DRDirLight::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, W
 	return;
 }
 
-bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMFLOAT4X4 world, XMFLOAT4X4 view, XMFLOAT4X4 projection, 
-	XMFLOAT4X4 invertedViewProj, ID3D11ShaderResourceView** textureArray, XMFLOAT3 cameraPosition, XMFLOAT3 lightPosition, XMFLOAT3 lightDirection, 
-	XMFLOAT4 lightColor, float lightStrength, XMFLOAT4 ambienceColor, MaterialStruct material, XMFLOAT4X4 lightView, XMFLOAT4X4 lightProj)
+bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, 
+	XMMATRIX* invertedViewProj, ID3D11ShaderResourceView** textureArray, XMFLOAT3 cameraPosition, XMFLOAT3 lightPosition, XMFLOAT3 lightDirection, 
+	XMFLOAT4 lightColor, float lightStrength, XMFLOAT4 ambienceColor, MaterialStruct material, XMMATRIX* lightView, XMMATRIX* lightProj)
 {		
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -409,9 +412,9 @@ bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMFLOA
 	// Get a pointer to the data in the constant buffer.
 	dataPtr1 = (VertexMatrixBuffer*)mappedResource.pData;
 
-	dataPtr1->World = world;
-	dataPtr1->Projection = projection;
-	dataPtr1->View = view;
+	dataPtr1->World = *world;
+	dataPtr1->Projection = *projection;
+	dataPtr1->View = *view;
 
 	deviceContext->Unmap(vertexMatrixBuffer, 0);
 
@@ -453,9 +456,9 @@ bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMFLOA
 
 	dataPtr3 = (PixelMatrixBuffer*)mappedResource.pData;
 
-	dataPtr3->InvertedViewProjection = invertedViewProj;
-	dataPtr3->LightView = lightView;
-	dataPtr3->LightProjection = lightProj;
+	dataPtr3->InvertedViewProjection = *invertedViewProj;
+	dataPtr3->LightView = *lightView;
+	dataPtr3->LightProjection = *lightProj;
 
 	deviceContext->Unmap(pixelMatrixBuffer, 0);
 
