@@ -222,6 +222,11 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, D3DClass* d3D, UINT sc
 	float pointLightRadius = 2.0f;
 	scale = XMMatrixScaling(pointLightRadius, pointLightRadius, pointLightRadius);
 
+	/*
+	http://www.asawicki.info/news_1429_xna_math_and_access_violation.html
+	http://xboxforums.create.msdn.com/forums/p/60156/370310.aspx#370310
+	*/
+
 	for(int i = 0; i < 20; i++)
 	{
 		pointLights.push_back(new PointLight());
