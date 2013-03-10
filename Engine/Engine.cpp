@@ -40,12 +40,26 @@ bool Engine::Initialize()
 	// Initialize the windows api.
 	InitializeWindows(screenWidth, screenHeight);
 
+	// Create the input object.  This object will be used to handle reading the keyboard input from the user.
+	input = new InputClass;
+	if(!input)
+	{
+		return false;
+	}
+
+	// Initialize the input object.
+	result = input->Initialize(hinstance, hwnd, screenWidth, screenHeight);
+	if(!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the inputmanager. Look in engine.", L"Error", MB_OK);
+		return false;
+	}
+
 	d3D = new D3DClass();
 
 	// Initialize the Direct3D object.
 	result = d3D->Initialize(hwnd, VSYNC_ENABLED, FULL_SCREEN, SCREEN_NEAR, SCREEN_FAR, 
 		screenWidth, screenHeight, shadowMapWidth, shadowMapHeight);
-
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize Direct3D. Look in engine.", L"Error", MB_OK);
@@ -69,20 +83,6 @@ bool Engine::Initialize()
 
 	camera->SetPerspectiveProjection(screenWidth, screenHeight, XM_PIDIV4, SCREEN_NEAR, SCREEN_FAR); 
 
-	// Create the input object.  This object will be used to handle reading the keyboard input from the user.
-	input = new InputClass;
-	if(!input)
-	{
-		return false;
-	}
-
-	// Initialize the input object.
-	result = input->Initialize(hinstance, hwnd, screenWidth, screenHeight);
-	if(!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the inputmanager. Look in engine.", L"Error", MB_OK);
-		return false;
-	}
 
 	// Create the renderer object. This object will handle rendering all the graphics for this application. Durp.
 	renderer = new Renderer;
@@ -145,12 +145,12 @@ bool Engine::Initialize()
 	cameraController->SetPosition(camera->GetPositionPtr());
 	cameraController->SetRotation(camera->GetRotationPtr());
 
-	metaBalls = new MetaballsClass();
-	marchingCubes = new MarchingCubesClass(-20.0f, -20.0f, -20.0f, 30.0f, 30.0f, 30.0f, 1.5f, 1.5f, 1.5f);
-	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
+	//metaBalls = new MetaballsClass();
+	//marchingCubes = new MarchingCubesClass(-20.0f, -20.0f, -20.0f, 30.0f, 30.0f, 30.0f, 1.5f, 1.5f, 1.5f);
+	//marchingCubes->SetMetaBalls(metaBalls, 0.2f);
 
-	marchingCubes->ComputeMetaBalls();
-	marchingCubes->CalculateMesh(d3D->GetDevice());
+	//marchingCubes->ComputeMetaBalls();
+	//marchingCubes->CalculateMesh(d3D->GetDevice());
 
 
 	return true;	

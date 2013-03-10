@@ -55,7 +55,7 @@ bool InputClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidth, int
 	}
 
 	// Set the cooperative level of the keyboard to not share with other programs.
-	result = keyboard->SetCooperativeLevel(hwnd, DISCL_FOREGROUND | DISCL_EXCLUSIVE);
+	result = keyboard->SetCooperativeLevel(hwnd, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE);
 	if(FAILED(result))
 	{
 		return false;
@@ -83,7 +83,7 @@ bool InputClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidth, int
 	}
 
 	// Set the cooperative level of the mouse to share with other programs.
-	result = mouse->SetCooperativeLevel(hwnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
+	result = mouse->SetCooperativeLevel(hwnd, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE);
 	if(FAILED(result))
 	{
 		return false;
@@ -99,13 +99,7 @@ bool InputClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidth, int
 	currentKeyStates = new unsigned char[256];
 	previousKeyStates = new unsigned char[256];
 
-	for(int i = 0; i < 256; i++)
-	{
-		currentKeyStates[i] = NULL;
-		previousKeyStates[i] = NULL;
-	}
-
-	return result;
+	return true;
 }
 
 void InputClass::Shutdown()

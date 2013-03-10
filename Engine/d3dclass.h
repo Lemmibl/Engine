@@ -112,9 +112,7 @@ private:
 	ID3D11RasterizerState*		frontfaceCullingCW;
 	ID3D11RasterizerState*		noCullingCW;
 
-	XMMATRIX projectionMatrix;
-	XMMATRIX worldMatrix;
-	XMMATRIX orthoMatrix;
+	XMMATRIX projectionMatrix, worldMatrix, orthoMatrix;
 
 	ID3D11BlendState* alphaEnableBlendingState;
 	ID3D11BlendState* alphaDisableBlendingState;

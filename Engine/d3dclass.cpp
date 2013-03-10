@@ -314,7 +314,7 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 
 	// Setup the projection matrix.
 	fieldOfView = XM_PIDIV4;
-	screenAspect = ((float)screenWidth / (float)screenHeight);
+	screenAspect = (float)screenWidth / (float)screenHeight;
 
 	// Create the projection matrix for 3D rendering.
 	projectionMatrix = XMMatrixPerspectiveFovLH((float)fieldOfView, screenAspect, screenNear, screenFar);
