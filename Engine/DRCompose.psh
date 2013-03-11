@@ -51,7 +51,7 @@ half4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 
 		if((saturate(sampleLightScreen.x)==sampleLightScreen.x) && (saturate(sampleLightScreen.y)==sampleLightScreen.y)) //If inside light frustum
 		{	
-				float shadowMapDepth = shaderTextures[2].Sample(linearSampler, sampleLightScreen.xy);
+				float shadowMapDepth = 1.0f+shaderTextures[2].Sample(linearSampler, sampleLightScreen.xy);
 
 				if (lightDepth - 0.00008f > shadowMapDepth)
 				{

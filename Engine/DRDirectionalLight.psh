@@ -1,7 +1,7 @@
 cbuffer PositionalBuffer //Whatever, idk what else to name it
 {
-	float4 LightPosition;
 	float4 LightDirection;
+	float4 LightPosition;
 	float4 CameraPosition;
 };
 
@@ -61,44 +61,16 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 
 		position = mul(position, InverseViewProjection);
 		position /= position.w;
-
-		////http://www.gamedev.net/topic/636669-deferred-renderer-shadow-mapping/
-
-		///*
-		//	To consider: write to stencil when making the light depth buffer, and only draw on the pixels that were actually hit. Add ambient light in DRCompose instead.
-		//*/
-
-		//float4 lightCoordinates = mul(position, mul(LightView, LightProjection));
-		//lightCoordinates.xyz /= lightCoordinates.w;
-		
-		//float lightDepth = lightCoordinates.z;
-		
-		//float2 sampleLightScreen;
-		//sampleLightScreen.x = lightCoordinates.x * 0.5f + 0.5f;
-		//sampleLightScreen.y = (-lightCoordinates.y * 0.5f + 0.5f);
-
-		//float shadowMultiplier = 1.0f;
-
-		//if(!(sampleLightScreen.x > 1 || sampleLightScreen.x < 0 || sampleLightScreen.y > 1 || sampleLightScreen.y < 0)) //If inside light frustum
-		//{	
-		//		float shadowMapDepth = shaderTextures[0].Sample(samplers[1], sampleLightScreen.xy).r;
-
-		//		if (lightDepth < 1 && shadowMapDepth + 0.008f < lightDepth)
-		//		{
-		//			shadowMultiplier = 0.2f;
-		//		}			
-		//}
-
-		
+	
 		//surface-to-light vector
-		float3 lightVector = normalize(LightDirection); //Sigh, idk
-		float NdL = max(0, dot(normal, lightVector)); //NdotL CAN be negative, so clamp it at 0.
+		float3 lightVector = -normalize(LightDirection); //Sigh, idk
+		float NdL = max(0, dot(lightVector, normal));
 
 		//reflection vector
 		float3 reflectionVector = normalize(-reflect(lightVector, normal));
 
 		//camera-to-surface vector
-		float3 directionToCamera = normalize(CameraPosition-position);
+		float3 directionToCamera = normalize(position-CameraPosition);
 
 		//compute diffuse light
 		half4 finalDiffuseProduct = half4(0.0f, 0.0f, 0.0f, 0.0f);
@@ -106,7 +78,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 
 		//compute specular light 
 		float finalSpecularProduct = 0.0f;
-		finalSpecularProduct += Ks * pow( saturate(dot(reflectionVector, directionToCamera)), a);
+		finalSpecularProduct += Ks * pow( saturate(dot(directionToCamera, reflectionVector)), a);
 		
 		//Storing specular in alpha channel. Applying shadow multiplier to both diffuse product and specular, but not ambient, to make sure it's not just black.
 		return half4(finalAmbienceProduct.rgb + (finalDiffuseProduct.rgb * DiffuseColor.rgb), finalSpecularProduct);

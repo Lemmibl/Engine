@@ -1,15 +1,15 @@
 cbuffer LightBufferType
 {
-	float4 LightColor;
+	float3 LightColor;
 	int LightRadius;
 	float LightPower;
-	float4 CameraPosition;
+	float3 CameraPosition;
 }
 
 cbuffer PixelMatrixBufferType
 {
 	float4x4 InvViewProjection;
-	float4 LightPosition;
+	float3 LightPosition;
 }
 
 struct VertexShaderOutput
@@ -66,7 +66,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	//compute specular light
 	float specularLight =  pow( saturate(dot(reflectionVector, directionToCamera)), 128.0f); //it's 128 because idk.
 
-	return attenuation * half4(diffuseLight, specularLight); //attenuation * half4(diffuseLight, specularLight);
+	return half4(diffuseLight, specularLight); //attenuation * half4(diffuseLight, specularLight);
 }
 
 /*

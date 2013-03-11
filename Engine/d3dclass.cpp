@@ -323,7 +323,7 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 	 XMStoreFloat4x4(&worldMatrix, XMMatrixIdentity());
 
 	// Create an orthographic projection matrix for 2D rendering.
-	 XMStoreFloat4x4(&orthoMatrix, XMMatrixOrthographicLH((float)screenWidth, (float)screenHeight, screenNear, screenFar));
+	 XMStoreFloat4x4(&orthoMatrix, XMMatrixOrthographicLH((FLOAT)screenWidth, (FLOAT)screenHeight, (FLOAT)screenNear, (FLOAT)screenFar));
 	#pragma endregion
 
 	// Initialize the description of the depth buffer.

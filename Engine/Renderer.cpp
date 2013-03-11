@@ -47,13 +47,14 @@ Renderer::~Renderer()
 }
 
 
-bool Renderer::Initialize(HWND hwnd, CameraClass* camera, D3DClass* d3D, UINT screenWidth, UINT screenHeight,
+bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3DClass* d3D, UINT screenWidth, UINT screenHeight,
 	UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear)
 {
 	srand((unsigned int)time(NULL));
 	toggleTextureShader = false;
 	bool result;
 
+	this->inputManager = input;
 	this->shadowMapWidth = shadowmapWidth;//screenWidth;
 	this->shadowMapHeight = shadowmapHeight;//screenHeight;
 	this->screenWidth = screenWidth;
@@ -234,7 +235,7 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, D3DClass* d3D, UINT sc
 		pointLights[i]->Position = XMFLOAT3(x, y, z);
 		pointLights[i]->Color = XMFLOAT3(0.3f + i%4, 0.7f + i % 2, 0.2f + i%3);
 		pointLights[i]->Radius = pointLightRadius;
-		pointLights[i]->Intensity = 2.0f;
+		pointLights[i]->Intensity = 128.0f;
 
 		x += 4.0f;
 
@@ -256,13 +257,14 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, D3DClass* d3D, UINT sc
 	}
 #pragma endregion
 
-	ambientLight = XMFLOAT4(1.0f, 0.3f, 0.3f, 1.0f);
-
 	/************************************************************************/
 	/* TODO: Look up http://stackoverflow.com/questions/35950/i-dont-understand-stdtr1unordered-map  */
 	/************************************************************************/
 
 #pragma region Directional light initialization
+	
+	ambientLight = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
+
 	// Create the directional light.
 	dirLight = new DirLight();
 	if(!dirLight)
@@ -288,7 +290,7 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, D3DClass* d3D, UINT sc
 
 	// Initialize the directional light.
 	dirLight->Color = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
-	dirLight->Intensity = 128.0f;
+	dirLight->Intensity = 256.0f;
 	dirLight->Position = XMFLOAT3(0.5f, 55.0f, 10.0f);
 
 	XMVECTOR direction = (lookAt - XMLoadFloat3(&dirLight->Position));
@@ -317,10 +319,10 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, D3DClass* d3D, UINT sc
 		return false;
 	}
 
-	defaultModelMaterial.a = 128.0f;
+	defaultModelMaterial.a = 2.0f;
 	defaultModelMaterial.Ka = 0.3f;
-	defaultModelMaterial.Kd = 1.0f;
-	defaultModelMaterial.Ks = 0.3f;
+	defaultModelMaterial.Kd = 0.8f;
+	defaultModelMaterial.Ks = 0.7f;
 
 	fullScreenQuad.Initialize(d3D->GetDevice(), screenWidth, screenHeight, screenWidth, screenHeight);
 
@@ -362,11 +364,14 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, D3DClass* d3D, UINT sc
 	return true;
 }
 
-bool Renderer::Update(int fps, int cpu, float frameTime, bool toggle, bool left, bool right)
+bool Renderer::Update(int fps, int cpu, float frameTime)
 {
 	bool result;
 
-	toggleDebugInfo = toggle;
+	if(inputManager->WasKeyPressed(DIK_Q))
+	{
+		toggleDebugInfo = !toggleDebugInfo;
+	}
 
 	result = text->SetFps(fps, d3D->GetDeviceContext());
 	if(!result)
@@ -394,7 +399,19 @@ bool Renderer::Update(int fps, int cpu, float frameTime, bool toggle, bool left,
 		return false;
 	}
 
-	if(left)
+	if(inputManager->WasKeyPressed(DIK_T))
+	{
+		if(defaultModelMaterial.a <= 4096.0f)
+			defaultModelMaterial.a *= 2.0f;
+	}
+
+	if(inputManager->WasKeyPressed(DIK_G))
+	{
+		if(defaultModelMaterial.a >= 1.0f)
+			defaultModelMaterial.a /= 2.0f;
+	}
+
+	if(inputManager->IsKeyPressed(DIK_R))
 	{
 		dirLight->Position.x += frameTime*0.01f;
 
@@ -407,7 +424,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, bool toggle, bool left,
 		//}
 	}
 
-	if(right)
+	if(inputManager->IsKeyPressed(DIK_F))
 	{
 		dirLight->Position.x -= frameTime*0.01f;
 
@@ -511,11 +528,7 @@ bool Renderer::Render()
 	baseViewMatrix =			XMMatrixTranspose(baseViewMatrix);
 
 	/*
-	TODO: TRANSPOSA MATRISERNA HÄR.
-
 	http://msdn.microsoft.com/en-us/library/windows/desktop/ee418732(v=vs.85).aspx
-
-	Håll en uppsättning transposade matriser och en uppsättning icketransposade
 	*/
 
 	// Get the number of models that will be rendered.
@@ -707,7 +720,7 @@ bool Renderer::Render()
 		else
 		{
 			result = pointLightShader->Render(context, sphereModel->GetIndexCount(), &viewMatrix, 
-				&projectionMatrix, &invertedViewProjection, pointLights[i], gbufferTextures, camera->GetPosition());
+				&projectionMatrix, &invertedViewProjection, pointLights[i], gbufferTextures, camPos);
 		}
 
 		if(!result)

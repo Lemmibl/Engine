@@ -96,7 +96,7 @@ bool Engine::Initialize()
 	}
 
 	// Initialize the renderer.
-	result = renderer->Initialize(hwnd, camera, d3D, screenWidth, screenHeight, shadowMapWidth, shadowMapHeight, SCREEN_FAR, SCREEN_NEAR);
+	result = renderer->Initialize(hwnd, camera, input, d3D, screenWidth, screenHeight, shadowMapWidth, shadowMapHeight, SCREEN_FAR, SCREEN_NEAR);
 	if(!result)
 	{
 		return false;
@@ -155,7 +155,6 @@ bool Engine::Initialize()
 
 	//marchingCubes->ComputeMetaBalls();
 	//marchingCubes->CalculateMesh(d3D->GetDevice());
-
 
 	return true;	
 }
@@ -301,11 +300,6 @@ bool Engine::Update()
 
 	cameraController->Update(timer->GetFrameTime()); //Processes all of the movement for this controller.
 
-	if(input->WasKeyPressed(DIK_Q))
-	{
-		toggleDebug = !toggleDebug;
-	}
-
 	//if(returning)
 	//{
 	//	metaBalls->MoveBall(0, 0.01f, 0.01f, 0.01f);
@@ -333,7 +327,7 @@ bool Engine::Update()
 	//marchingCubes->CalculateMesh(d3D->GetDevice());
 	
 	// Do the frame processing for the graphics object.
-	result = renderer->Update(fpsMeter->GetFps(), cpuMeter->GetCpuPercentage(), timer->GetFrameTime(), toggleDebug, input->IsKeyPressed(DIK_R), input->IsKeyPressed(DIK_F));
+	result = renderer->Update(fpsMeter->GetFps(), cpuMeter->GetCpuPercentage(), timer->GetFrameTime());
 	if(!result)
 	{
 		return false;

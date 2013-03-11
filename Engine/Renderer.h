@@ -33,7 +33,7 @@
 #include "DRFinalComposition.h"
 #include "DRPointLight.h"
 #include "DRDirLight.h"
-
+#include "inputclass.h"
 #include "pointlight.h"
 #include "modellistclass.h"
 #include "modelclass.h"
@@ -49,10 +49,10 @@ public:
 	Renderer(const Renderer&);
 	~Renderer();
 
-	bool Initialize(HWND hwnd, CameraClass* camera, D3DClass* d3D, UINT screenWidth, UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear);
+	bool Initialize(HWND hwnd, CameraClass* camera, InputClass* inputManager, D3DClass* d3D, UINT screenWidth, UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear);
 	void Shutdown();
 
-	bool Update(int, int, float, bool, bool, bool);
+	bool Update(int, int, float);
 	bool Render();
 	bool RenderToTexture(RenderToTextureClass* const);
 	bool RenderScene();
@@ -60,6 +60,7 @@ public:
 private:
 	D3DClass* d3D;
 	CameraClass* camera;
+	InputClass* inputManager;
 	TextClass* text;
 	FrustumClass* frustum;
 

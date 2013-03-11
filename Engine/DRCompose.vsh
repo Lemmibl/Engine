@@ -24,9 +24,9 @@ struct VertexShaderOutput
 VertexShaderOutput ComposeVertexShader(VertexShaderInput input)
 {
 		VertexShaderOutput output;
-		output.WorldPosition = mul(input.Position, World);
-		output.Position = mul(output.WorldPosition, View);
-		output.Position = mul(output.Position, Projection);
+		output.WorldPosition =	mul(input.Position, World);
+		output.Position =		mul(output.WorldPosition, View);
+		output.Position =		mul(output.Position, Projection);
 
 		output.ScreenPosition = output.Position;
 		
