@@ -35,8 +35,7 @@ TextClass::~TextClass()
 }
 
 
-bool TextClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, HWND hwnd, int screenWidth, int screenHeight, 
-	XMMATRIX* baseViewMatrix)
+bool TextClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, HWND hwnd, int screenWidth, int screenHeight)
 {
 	bool result;
 	int index = 0;
@@ -44,9 +43,6 @@ bool TextClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCont
 	// Store the screen width and height.
 	this->screenWidth = screenWidth;
 	this->screenHeight = screenHeight;
-
-	// Store the base view matrix.
-	this->baseViewMatrix = XMMatrixTranspose(*baseViewMatrix);
 
 	// Create the font object.
 	font = new FontClass;
@@ -286,13 +282,13 @@ void TextClass::Shutdown()
 	return;
 }
 
-bool TextClass::Render(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, XMMATRIX* orthoMatrix)
+bool TextClass::Render(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, XMMATRIX* viewMatrix, XMMATRIX* orthoMatrix)
 {
 	bool result;
 
 	for(std::vector<SentenceType*>::iterator sentence = sentences.begin(); sentence != sentences.end(); sentence++) 
 	{
-		result = RenderSentence(*sentence, deviceContext, worldMatrix, orthoMatrix);
+		result = RenderSentence(*sentence, deviceContext, worldMatrix, viewMatrix, orthoMatrix);
 		if(!result)
 		{
 			return false;
@@ -530,7 +526,7 @@ void TextClass::ReleaseSentences(vector<SentenceType*> sentences)
 }
 
 
-bool TextClass::RenderSentence(SentenceType* sentence, ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, XMMATRIX* orthoMatrix)
+bool TextClass::RenderSentence(SentenceType* sentence, ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, XMMATRIX* viewMatrix, XMMATRIX* orthoMatrix)
 {
 	unsigned int stride, offset;
 	XMFLOAT4 pixelColor;
@@ -554,7 +550,7 @@ bool TextClass::RenderSentence(SentenceType* sentence, ID3D11DeviceContext* devi
 	pixelColor = XMFLOAT4(sentence->red, sentence->green, sentence->blue, 1.0f);
 
 	// Render the text using the font shader.
-	result = fontShader->Render(deviceContext, sentence->indexCount, worldMatrix, &baseViewMatrix, orthoMatrix, font->GetTexture(), pixelColor);
+	result = fontShader->Render(deviceContext, sentence->indexCount, worldMatrix, viewMatrix, orthoMatrix, font->GetTexture(), pixelColor);
 	if(!result)
 	{
 		false;

@@ -48,10 +48,9 @@ void FontShaderClass::Shutdown()
 }
 
 bool FontShaderClass::Render( ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, XMMATRIX* viewMatrix, 
-XMMATRIX* projectionMatrix, ID3D11ShaderResourceView* texture, XMFLOAT4 pixelColor)
+	XMMATRIX* projectionMatrix, ID3D11ShaderResourceView* texture, XMFLOAT4 pixelColor)
 {
 	bool result;
-
 
 	// Set the shader parameters that it will use for rendering.
 	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture, pixelColor);
@@ -311,14 +310,14 @@ void FontShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hw
 	return;
 }
 
-bool FontShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, ID3D11ShaderResourceView* texture, XMFLOAT4 pixelColor)
+bool FontShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, 
+	XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, ID3D11ShaderResourceView* texture, XMFLOAT4 pixelColor)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	ConstantBufferType* dataPtr;
 	unsigned int bufferNumber;
 	PixelBufferType* dataPtr2;
-
 
 	// Lock the constant buffer so it can be written to.
 	result = deviceContext->Map(constantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);

@@ -38,10 +38,9 @@ public:
 	TextClass(const TextClass&);
 	~TextClass();
 
-	bool Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, HWND hwnd, int screenWidth, int screenHeight, 
-		XMMATRIX* baseViewMatrix);
+	bool Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, HWND hwnd, int screenWidth, int screenHeight);
 	void Shutdown();
-	bool Render(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, XMMATRIX* orthoMatrix);
+	bool Render(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, XMMATRIX* viewMatrix, XMMATRIX* orthoMatrix);
 
 	bool SetMousePosition(int, int, ID3D11DeviceContext*);
 	bool SetFps(int, ID3D11DeviceContext*);
@@ -57,7 +56,7 @@ private:
 	bool UpdateSentence(SentenceType* sentence, char*, int, int, float, float, float, ID3D11DeviceContext*);
 	void ReleaseSentence(SentenceType**);
 	void ReleaseSentences(vector<SentenceType*> sentences);
-	bool RenderSentence(SentenceType*, ID3D11DeviceContext*, XMMATRIX*, XMMATRIX*);
+	bool RenderSentence(SentenceType*, ID3D11DeviceContext*, XMMATRIX*, XMMATRIX*, XMMATRIX*);
 
 private:
 	vector<SentenceType*> sentences;
@@ -65,7 +64,6 @@ private:
 	FontClass* font;
 	FontShaderClass* fontShader;
 	int screenWidth, screenHeight;
-	XMMATRIX baseViewMatrix;
 
 	SentenceType* fpsCount;
 	SentenceType* cpuLoad;

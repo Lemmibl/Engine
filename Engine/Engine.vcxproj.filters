@@ -272,10 +272,10 @@
     <None Include="DRCompose.vsh">
       <Filter>Deferred stuff</Filter>
     </None>
-    <None Include="mcubes.vsh">
+    <None Include="mcubes.psh">
       <Filter>MarchingCubes</Filter>
     </None>
-    <None Include="mcubes.psh">
+    <None Include="mcubes.vsh">
       <Filter>MarchingCubes</Filter>
     </None>
   </ItemGroup>

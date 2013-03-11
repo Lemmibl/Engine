@@ -130,7 +130,7 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, D3DClass* d3D, UINT sc
 	}
 
 	// Initialize the text object.
-	result = text->Initialize(d3D->GetDevice(), d3D->GetDeviceContext(), hwnd, screenWidth, screenHeight, &baseViewMatrix);
+	result = text->Initialize(d3D->GetDevice(), d3D->GetDeviceContext(), hwnd, screenWidth, screenHeight);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the text object. Look in graphicsclass.", L"Error", MB_OK);
@@ -523,9 +523,9 @@ bool Renderer::Render()
 
 	// Initialize the count of models that have been rendered.
 	renderCount = 0;
-#pragma endregion
+	#pragma endregion
 
-#pragma region Early depth pass for shadowmap
+	#pragma region Early depth pass for shadowmap
 	context->OMSetRenderTargets(0, 0, shadowDS);
 	d3D->SetShadowViewport();
 	d3D->SetBackFaceCullingRasterizer();
@@ -565,9 +565,9 @@ bool Renderer::Render()
 			return false;
 		}
 	}
-#pragma endregion
+	#pragma endregion
 
-#pragma region GBuffer building stage
+	#pragma region GBuffer building stage
 	d3D->SetDefaultViewport();
 	ds = d3D->GetDepthStencilView();
 	context->OMSetRenderTargets(3, gbufferRenderTargets, ds);
@@ -585,7 +585,7 @@ bool Renderer::Render()
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
 	groundModel->Render(context);
-	gbufferShader->Render(context, groundModel->GetIndexCount(), &worldMatrix, &camera->GetView(), &projectionMatrix, groundModel->GetTextureArray());
+	gbufferShader->Render(context, groundModel->GetIndexCount(), &worldMatrix, &viewMatrix, &projectionMatrix, groundModel->GetTextureArray());
 
 	renderCount++;
 
@@ -625,14 +625,14 @@ bool Renderer::Render()
 	}
 
 	text->SetRenderCount(renderCount, context);
-#pragma endregion
+	#pragma endregion
 
-#pragma region Point light stage
+	#pragma region Point light stage
 	context->OMSetRenderTargets(1, lightTarget, ds);
 	context->ClearRenderTargetView(lightTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 	context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-#pragma region Old pointlight code
+	#pragma region Old pointlight code
 	////Phase one, draw sphere with vertex-only shader.
 	//d3D->SetLightStencilMethod2Phase1();
 	//d3D->SetBackFaceCullingRasterizer();
@@ -678,7 +678,7 @@ bool Renderer::Render()
 	//		return false;
 	//	}
 	//}
-#pragma endregion
+	#pragma endregion
 
 	//Phase one, draw sphere with vertex-only shader.
 	d3D->TurnOnLightBlending();
@@ -717,9 +717,9 @@ bool Renderer::Render()
 
 		context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
 	}
-#pragma endregion
+	#pragma endregion
 
-#pragma region Directional light stage
+	#pragma region Directional light stage
 	///*TODO: Create a directional light stencilstate that does a NOTEQUAL==0 stencil check.*/
 	ds = d3D->GetDepthStencilView();
 	context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL|D3D11_CLEAR_DEPTH, 1.0f, 0);
@@ -737,9 +737,9 @@ bool Renderer::Render()
 	{
 		return false;
 	}
-#pragma endregion
+	#pragma endregion
 
-#pragma region Final compose stage
+	#pragma region Final compose stage
 	d3D->SetBackBufferRenderTarget();
 	d3D->SetBackFaceCullingRasterizer();
 	context->ClearDepthStencilView(ds,  D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
@@ -751,9 +751,9 @@ bool Renderer::Render()
 	fullScreenQuad.Render(context, 0, 0);
 	composeShader->Render(context, fullScreenQuad.GetIndexCount(), &worldMatrix, &baseViewMatrix, 
 		&orthoMatrix, &invertedViewProjection, &lightViewProj, finalTextures);
-#pragma endregion
+	#pragma endregion
 
-#pragma region Debug and text stage
+	#pragma region Debug and text stage
 	d3D->ResetRasterizerState();
 	d3D->ResetBlendState();
 	ds = d3D->GetDepthStencilView(); //This also resets the depth stencil state to "default".
@@ -761,34 +761,34 @@ bool Renderer::Render()
 	d3D->GetWorldMatrix(worldMatrix);
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
-	//for(int i = 0; i < 3; i++)
-	//{
-	//	result = debugWindows[i].Render(d3D->GetDeviceContext(), 200+200*i, 0);
-	//	if(!result)
-	//	{
-	//		return false;
-	//	}
+	for(int i = 0; i < 3; i++)
+	{
+		result = debugWindows[i].Render(d3D->GetDeviceContext(), 200+200*i, 0);
+		if(!result)
+		{
+			return false;
+		}
 
-	//	result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[i].GetIndexCount(), 
-	//		worldMatrix, baseViewMatrix, orthoMatrix, gbufferTextures[i]);
-	//	if(!result)
-	//	{
-	//		return false;
-	//	}
-	//}
+		result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[i].GetIndexCount(), 
+			&worldMatrix, &baseViewMatrix, &orthoMatrix, gbufferTextures[i]);
+		if(!result)
+		{
+			return false;
+		}
+	}
 
-	//result = debugWindows[3].Render(d3D->GetDeviceContext(), 200, 200);
-	//if(!result)
-	//{
-	//	return false;
-	//}
+	result = debugWindows[3].Render(d3D->GetDeviceContext(), 200, 200);
+	if(!result)
+	{
+		return false;
+	}
 
-	//result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[3].GetIndexCount(), 
-	//	worldMatrix, baseViewMatrix, orthoMatrix, lightRT->SRView);
-	//if(!result)
-	//{
-	//	return false;
-	//}
+	result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[3].GetIndexCount(), 
+		&worldMatrix, &baseViewMatrix, &orthoMatrix, lightRT->SRView);
+	if(!result)
+	{
+		return false;
+	}
 
 	result = debugWindows[4].Render(d3D->GetDeviceContext(), 800, 0);
 	if(!result)
@@ -802,14 +802,14 @@ bool Renderer::Render()
 	{
 		return false;
 	}
-
+	
 
 	d3D->TurnZBufferOff();
 
 	d3D->TurnOnAlphaBlending();
 
 	// Render the text user interface elements.
-	result = text->Render(d3D->GetDeviceContext(), &worldMatrix, &orthoMatrix);
+	result = text->Render(d3D->GetDeviceContext(), &worldMatrix, &baseViewMatrix, &orthoMatrix);
 	if(!result)
 	{
 		return false;
@@ -820,7 +820,7 @@ bool Renderer::Render()
 
 	// Turn the Z buffer back on now that all 2D rendering has completed.
 	d3D->TurnZBufferOn();
-#pragma endregion
+	#pragma endregion
 
 	// Present the rendered scene to the screen.
 	d3D->EndScene();
