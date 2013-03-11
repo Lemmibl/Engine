@@ -48,7 +48,7 @@ Renderer::~Renderer()
 
 
 bool Renderer::Initialize(HWND hwnd, CameraClass* camera, D3DClass* d3D, UINT screenWidth, UINT screenHeight,
-	 UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear)
+	UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear)
 {
 	srand((unsigned int)time(NULL));
 	toggleTextureShader = false;
@@ -213,14 +213,14 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, D3DClass* d3D, UINT sc
 		debugWindows[i].Initialize(d3D->GetDevice(), screenWidth, screenHeight, 200, 200);
 	}
 
-	#pragma region Point light initialization
+#pragma region Point light initialization
 	float x, y, z;
 	x = -6.0f;
 	z = -4.0f;
 	y = -2.0f;
 
 	float pointLightRadius = 2.0f;
-	scale = XMMatrixScaling(pointLightRadius, pointLightRadius, pointLightRadius);
+	XMMATRIX tempScale = XMMatrixScaling(pointLightRadius, pointLightRadius, pointLightRadius);
 
 	/*
 	http://www.asawicki.info/news_1429_xna_math_and_access_violation.html
@@ -251,18 +251,18 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, D3DClass* d3D, UINT sc
 			y += 5.0f;
 		}
 
-		translation = XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z);
-		pointLights[i]->World = (scale * translation);
+		XMMATRIX tempTranslation = XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z);
+		XMStoreFloat4x4(&pointLights[i]->World, tempScale * tempTranslation);
 	}
-	#pragma endregion
+#pragma endregion
 
 	ambientLight = XMFLOAT4(1.0f, 0.3f, 0.3f, 1.0f);
 
 	/************************************************************************/
 	/* TODO: Look up http://stackoverflow.com/questions/35950/i-dont-understand-stdtr1unordered-map  */
 	/************************************************************************/
-	
-	#pragma region Directional light initialization
+
+#pragma region Directional light initialization
 	// Create the directional light.
 	dirLight = new DirLight();
 	if(!dirLight)
@@ -295,14 +295,14 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, D3DClass* d3D, UINT sc
 	XMVector3Normalize(direction);
 	XMStoreFloat3(&dirLight->Direction, direction);
 
-	dirLight->Projection = XMMatrixPerspectiveFovLH(((float)D3DX_PI/2.0f), 1.0f, 5.0f, 140.0f);
+	XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(((float)D3DX_PI/2.0f), 1.0f, 5.0f, 140.0f));
 	//XMMATRIXOrthoLH(&dirLight->Projection, (float)shadowMapWidth, (float)shadowMapHeight, 5.0f, 140.0f);
 
 	lookAt = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
 
 	//It really doesn't matter if the calculation is horribly efficient, it only happens once at initialization.
-	dirLight->View = XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up); //Generate light view matrix.
-	#pragma endregion
+	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix.
+#pragma endregion
 
 	textureShader = new TextureShaderClass();
 	if(!textureShader)
@@ -420,7 +420,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, bool toggle, bool left,
 		//}
 	}
 
-	dirLight->View = XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up); //Generate light view matrix
+	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix
 
 	return true;
 }
@@ -430,9 +430,10 @@ bool Renderer::Render()
 	// Clear the scene.
 	d3D->BeginScene(0.0f, 0.0f, 0.0f, 0.0f);
 
-	#pragma region Preparation
+#pragma region Preparation
 	ID3D11DeviceContext* context;
-	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, scalingMatrix, viewProjection, invertedViewProjection, lightView, lightProj, lightViewProj;
+	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, scalingMatrix, viewProjection, 
+		invertedViewProjection, lightView, lightProj, lightViewProj;
 	float positionX, positionY, positionZ, radius;
 	XMFLOAT4 color;
 	XMFLOAT3 camPos;
@@ -484,33 +485,47 @@ bool Renderer::Render()
 	d3D->GetOrthoMatrix(orthoMatrix);
 	camera->GetViewMatrix(viewMatrix);
 	camera->GetProjectionMatrix(projectionMatrix);
-	lightView = dirLight->View;
-	lightProj = dirLight->Projection;
-
-	lightViewProj = (lightView*lightProj);
-
-	viewProjection = (viewMatrix*projectionMatrix);
-	invertedViewProjection = XMMatrixInverse(NULL, viewProjection);
-
-	/*
-		TODO: TRANSPOSA MATRISERNA HÄR.
-
-		http://msdn.microsoft.com/en-us/library/windows/desktop/ee418732(v=vs.85).aspx
-
-		Håll en uppsättning transposade matriser och en uppsättning icketransposade
-	*/
+	lightView = XMLoadFloat4x4(&dirLight->View);
+	lightProj = XMLoadFloat4x4(&dirLight->Projection);
 
 	// Construct the frustum.
 	frustum->ConstructFrustum(screenFar, &projectionMatrix, &viewMatrix);
+
+	lightViewProj = (lightView*lightProj);
+	viewProjection = (viewMatrix*projectionMatrix);
+
+	XMVECTOR nullVec;
+	invertedViewProjection = XMMatrixInverse(&nullVec, viewProjection);
+
+	worldMatrix =				XMMatrixTranspose(worldMatrix);
+	//orthoMatrix =				XMMatrixTranspose(orthoMatrix);
+	viewMatrix =				XMMatrixTranspose(viewMatrix);
+	projectionMatrix =			XMMatrixTranspose(projectionMatrix);
+
+	lightView =					XMMatrixTranspose(lightView);
+	lightProj =					XMMatrixTranspose(lightProj);
+
+	lightViewProj =				XMMatrixTranspose(lightViewProj);
+	viewProjection =			XMMatrixTranspose(viewProjection);
+	invertedViewProjection =	XMMatrixTranspose(invertedViewProjection);
+	baseViewMatrix =			XMMatrixTranspose(baseViewMatrix);
+
+	/*
+	TODO: TRANSPOSA MATRISERNA HÄR.
+
+	http://msdn.microsoft.com/en-us/library/windows/desktop/ee418732(v=vs.85).aspx
+
+	Håll en uppsättning transposade matriser och en uppsättning icketransposade
+	*/
 
 	// Get the number of models that will be rendered.
 	modelCount = modelList->GetModelCount();
 
 	// Initialize the count of models that have been rendered.
 	renderCount = 0;
-	#pragma endregion
+#pragma endregion
 
-	#pragma region Early depth pass for shadowmap
+#pragma region Early depth pass for shadowmap
 	context->OMSetRenderTargets(0, 0, shadowDS);
 	d3D->SetShadowViewport();
 	d3D->SetBackFaceCullingRasterizer();
@@ -521,6 +536,7 @@ bool Renderer::Render()
 	scalingMatrix = XMMatrixScaling(0.2f, 0.2f, 0.2f);
 
 	worldMatrix = scalingMatrix * worldMatrix;
+	worldMatrix = XMMatrixTranspose(worldMatrix);
 
 	groundModel->Render(context);
 	result = depthOnlyShader->Render(context, groundModel->GetIndexCount(), &worldMatrix, &lightView, &lightProj);
@@ -536,7 +552,8 @@ bool Renderer::Render()
 		modelList->GetData(i, positionX, positionY, positionZ, color);
 
 		// Move the model to the location it should be rendered at.
-		worldMatrix = XMMatrixTranslation(positionX, positionY, positionZ); 
+		worldMatrix = XMMatrixTranslation(positionX, positionY, positionZ);	
+		worldMatrix = XMMatrixTranspose(worldMatrix);
 
 		// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 		otherModel->Render(context);
@@ -548,9 +565,9 @@ bool Renderer::Render()
 			return false;
 		}
 	}
-	#pragma endregion
+#pragma endregion
 
-	#pragma region GBuffer building stage
+#pragma region GBuffer building stage
 	d3D->SetDefaultViewport();
 	ds = d3D->GetDepthStencilView();
 	context->OMSetRenderTargets(3, gbufferRenderTargets, ds);
@@ -565,6 +582,7 @@ bool Renderer::Render()
 	scalingMatrix = XMMatrixScaling(0.2f, 0.2f, 0.2f);
 
 	worldMatrix = scalingMatrix * worldMatrix;
+	worldMatrix = XMMatrixTranspose(worldMatrix);
 
 	groundModel->Render(context);
 	gbufferShader->Render(context, groundModel->GetIndexCount(), &worldMatrix, &camera->GetView(), &projectionMatrix, groundModel->GetTextureArray());
@@ -588,12 +606,14 @@ bool Renderer::Render()
 		{
 			// Move the model to the location it should be rendered at.
 			worldMatrix = XMMatrixTranslation(positionX, positionY, positionZ); 
+			worldMatrix = XMMatrixTranspose(worldMatrix);
 
 			// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 			otherModel->Render(context);
 
 			// Render the model using the gbuffer shader.
-			result = gbufferShader->Render(context, otherModel->GetIndexCount(), &worldMatrix, &viewMatrix, &projectionMatrix, otherModel->GetTextureArray());
+			result = gbufferShader->Render(context, otherModel->GetIndexCount(), &worldMatrix, &viewMatrix, 
+				&projectionMatrix, otherModel->GetTextureArray());
 			if(!result)
 			{
 				return false;
@@ -605,14 +625,14 @@ bool Renderer::Render()
 	}
 
 	text->SetRenderCount(renderCount, context);
-	#pragma endregion
+#pragma endregion
 
-	#pragma region Point light stage
+#pragma region Point light stage
 	context->OMSetRenderTargets(1, lightTarget, ds);
 	context->ClearRenderTargetView(lightTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 	context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	#pragma region Old pointlight code
+#pragma region Old pointlight code
 	////Phase one, draw sphere with vertex-only shader.
 	//d3D->SetLightStencilMethod2Phase1();
 	//d3D->SetBackFaceCullingRasterizer();
@@ -658,7 +678,7 @@ bool Renderer::Render()
 	//		return false;
 	//	}
 	//}
-	#pragma endregion
+#pragma endregion
 
 	//Phase one, draw sphere with vertex-only shader.
 	d3D->TurnOnLightBlending();
@@ -670,7 +690,7 @@ bool Renderer::Render()
 
 		sphereModel->Render(context);
 
-		result = vertexOnlyShader->Render(context, sphereModel->GetIndexCount(), &pointLights[i]->World, &viewMatrix, 
+		result = vertexOnlyShader->Render(context, sphereModel->GetIndexCount(), &XMMatrixTranspose(XMLoadFloat4x4(&pointLights[i]->World)), &viewMatrix, 
 			&projectionMatrix);
 
 		//Phase two, draw sphere with light algorithm
@@ -681,7 +701,7 @@ bool Renderer::Render()
 
 		if(!toggleDebugInfo)
 		{
-			result = textureShader->Render(context, sphereModel->GetIndexCount(), &pointLights[i]->World, &viewMatrix, 
+			result = textureShader->Render(context, sphereModel->GetIndexCount(), &XMMatrixTranspose(XMLoadFloat4x4(&pointLights[i]->World)), &viewMatrix, 
 				&projectionMatrix, sphereModel->GetTexture());
 		}
 		else
@@ -697,27 +717,29 @@ bool Renderer::Render()
 
 		context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
 	}
-	#pragma endregion
+#pragma endregion
 
-	#pragma region Directional light stage
+#pragma region Directional light stage
 	///*TODO: Create a directional light stencilstate that does a NOTEQUAL==0 stencil check.*/
 	ds = d3D->GetDepthStencilView();
 	context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL|D3D11_CLEAR_DEPTH, 1.0f, 0);
 	d3D->TurnOnLightBlending();
 	d3D->SetBackFaceCullingRasterizer();
 	d3D->GetWorldMatrix(worldMatrix);
+	worldMatrix = XMMatrixTranspose(worldMatrix);
 
 	fullScreenQuad.Render(context, 0, 0);
 
 	result = dirLightShader->Render(context, fullScreenQuad.GetIndexCount(), &worldMatrix, &baseViewMatrix, &orthoMatrix, &invertedViewProjection, 
-		dirLightTextures, camPos, dirLight->Position, dirLight->Direction, dirLight->Color, dirLight->Intensity, ambientLight, defaultModelMaterial, &lightView, &lightProj);
+		dirLightTextures, camPos, dirLight->Position, dirLight->Direction, dirLight->Color, dirLight->Intensity, ambientLight, defaultModelMaterial, 
+		&lightView, &lightProj);
 	if(!result)
 	{
 		return false;
 	}
-	#pragma endregion
+#pragma endregion
 
-	#pragma region Final compose stage
+#pragma region Final compose stage
 	d3D->SetBackBufferRenderTarget();
 	d3D->SetBackFaceCullingRasterizer();
 	context->ClearDepthStencilView(ds,  D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
@@ -727,15 +749,17 @@ bool Renderer::Render()
 	//	worldMatrix, viewMatrix, projectionMatrix);
 
 	fullScreenQuad.Render(context, 0, 0);
-	composeShader->Render(context, fullScreenQuad.GetIndexCount(), &worldMatrix, &baseViewMatrix, &orthoMatrix, &invertedViewProjection, &lightViewProj, finalTextures);
-	#pragma endregion
+	composeShader->Render(context, fullScreenQuad.GetIndexCount(), &worldMatrix, &baseViewMatrix, 
+		&orthoMatrix, &invertedViewProjection, &lightViewProj, finalTextures);
+#pragma endregion
 
-	#pragma region Debug and text stage
+#pragma region Debug and text stage
 	d3D->ResetRasterizerState();
 	d3D->ResetBlendState();
 	ds = d3D->GetDepthStencilView(); //This also resets the depth stencil state to "default".
 	context->ClearDepthStencilView(ds,  D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 	d3D->GetWorldMatrix(worldMatrix);
+	worldMatrix = XMMatrixTranspose(worldMatrix);
 
 	//for(int i = 0; i < 3; i++)
 	//{
@@ -796,7 +820,7 @@ bool Renderer::Render()
 
 	// Turn the Z buffer back on now that all 2D rendering has completed.
 	d3D->TurnZBufferOn();
-	#pragma endregion
+#pragma endregion
 
 	// Present the rendered scene to the screen.
 	d3D->EndScene();

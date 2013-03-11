@@ -77,27 +77,30 @@ void ControllerClass::Update(float frameTime)
 {
 	float movementValue = moveSpeed * frameTime;
 	float rotationValue = rotationSpeed * frameTime;
-	XMVECTOR rotationThisUpdate, movementThisUpdate;
-
+	XMVECTOR rotationThisUpdate, movementThisUpdate, tempPos, tempRot;
 	XMFLOAT2 mousePos;
+	XMFLOAT4 rotationalForce;
 	rotationThisUpdate = movementThisUpdate = XMVectorZero();
+	rotationalForce = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
 
 	mousePos = inputManager->GetMousePos();
 	SetCursorPos(0, 0);
 
-	//Rotate with mouse
-	XMVectorSetY(rotationThisUpdate, (prevMousePos.x - mousePos.x)*0.06f);//*rotationValue
-	XMVectorSetY(rotationThisUpdate, (prevMousePos.y - mousePos.y)*0.06f);//*rotationValue
+	rotationalForce.y -= (prevMousePos.x - mousePos.x)*0.06f;
+	rotationalForce.x -= (prevMousePos.y - mousePos.y)*0.06f;
 
 	//Rotate the controller with the arrow keys
 	if(inputManager->IsKeyPressed(DIK_DOWN))
-		XMVectorSetX(rotationThisUpdate, rotationValue);
+		rotationalForce.x += rotationValue;
 	if(inputManager->IsKeyPressed(DIK_UP))
-		XMVectorSetX(rotationThisUpdate, -rotationValue);
+		rotationalForce.x -= rotationValue;
 	if(inputManager->IsKeyPressed(DIK_RIGHT))
-		XMVectorSetY(rotationThisUpdate, rotationValue);
+		rotationalForce.y += rotationValue;
 	if(inputManager->IsKeyPressed(DIK_LEFT))
-		XMVectorSetY(rotationThisUpdate, -rotationValue);
+		rotationalForce.y -= rotationValue;
+
+	//Rotate with mouse
+	rotationThisUpdate = XMLoadFloat4(&rotationalForce);
 
 	//Move the controller with WASD, LCtrl and Space.
 	if(inputManager->IsKeyPressed(DIK_W))
@@ -106,17 +109,23 @@ void ControllerClass::Update(float frameTime)
 		movementThisUpdate -= (camera->ForwardVector()*movementValue);
 
 	if(inputManager->IsKeyPressed(DIK_A))
-		movementThisUpdate += (camera->RightVector()*movementValue);
-	if(inputManager->IsKeyPressed(DIK_D))
 		movementThisUpdate -= (camera->RightVector()*movementValue);
+	if(inputManager->IsKeyPressed(DIK_D))
+		movementThisUpdate += (camera->RightVector()*movementValue);
 
 	if(inputManager->IsKeyPressed(DIK_SPACE))
 		movementThisUpdate += (camera->UpVector()*movementValue);
 	if(inputManager->IsKeyPressed(DIK_LCONTROL))
 		movementThisUpdate -= (camera->UpVector()*movementValue);
 
-	XMStoreFloat3(position, movementThisUpdate);
-	XMStoreFloat3(rotation, rotationThisUpdate);
+	tempPos = XMLoadFloat3(position);
+	tempRot = XMLoadFloat3(rotation);
+
+	tempPos += movementThisUpdate;
+	tempRot += rotationThisUpdate;
+
+	XMStoreFloat3(position, tempPos);
+	XMStoreFloat3(rotation, tempRot);
 
 	prevMousePos = inputManager->GetMousePos(); //Add this at the end of the update so that it's kept one step behind the fresh update.
 

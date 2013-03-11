@@ -8,7 +8,7 @@
 void CameraClass::SetPosition(XMFLOAT3 externalPos)
 {
 	position = externalPos;
-	
+
 	return;
 }
 
@@ -41,86 +41,87 @@ XMFLOAT3* CameraClass::GetRotationPtr()
 
 void CameraClass::GetViewMatrix(XMMATRIX& viewMatrix)
 {
-	viewMatrix = this->view;
+	viewMatrix = XMLoadFloat4x4(&this->view);
 	return;
 }
 
 void CameraClass::GetProjectionMatrix(XMMATRIX& projMatrix)
 {
-	projMatrix = this->projection;
+	projMatrix =  XMLoadFloat4x4(&this->projection);
 	return;
 }
 
 XMMATRIX CameraClass::GetView()
 {
-	return view;
+	return XMLoadFloat4x4(&this->view);
 }
 
 XMMATRIX CameraClass::GetProj()
 {
-	return projection;
+	return XMLoadFloat4x4(&this->projection);
 }
 
 #pragma region XMFloat3 methods
 XMFLOAT3 CameraClass::Forward()
 {
-	return MatrixForward(world);
+	return MatrixForward(XMLoadFloat4x4(&this->world));
 }
 
 XMFLOAT3 CameraClass::Back()
 {
-	return MatrixBackward(world);
+	return MatrixBackward(XMLoadFloat4x4(&this->world));
 }
 
 XMFLOAT3 CameraClass::Up()
 {
-	return MatrixUp(world);
+	return MatrixUp(XMLoadFloat4x4(&this->world));
 }
 
 XMFLOAT3 CameraClass::Down()
 {
-	return MatrixDown(world);
+	return MatrixDown(XMLoadFloat4x4(&this->world));
 }
 
 XMFLOAT3 CameraClass::Right()
 {
-	return MatrixRight(world);
+	return MatrixRight(XMLoadFloat4x4(&this->world));
 }
 
 XMFLOAT3 CameraClass::Left()
 {
-	return MatrixLeft(world);
+	return MatrixLeft(XMLoadFloat4x4(&this->world));
 }
+#pragma endregion
 
-#pragma endregion XMFloat3 methods
+#pragma region XMFloat3 methods
 XMVECTOR CameraClass::ForwardVector()
 {
-	return XMLoadFloat3(&MatrixForward(world));
+	return XMLoadFloat3(&MatrixForward(XMLoadFloat4x4(&this->world)));
 }
 
 XMVECTOR CameraClass::BackVector()
 {
-	return XMLoadFloat3(&MatrixBackward(world));
+	return XMLoadFloat3(&MatrixBackward(XMLoadFloat4x4(&this->world)));
 }
 
 XMVECTOR CameraClass::UpVector()
 {
-	return XMLoadFloat3(&MatrixUp(world));
+	return XMLoadFloat3(&MatrixUp(XMLoadFloat4x4(&this->world)));
 }
 
 XMVECTOR CameraClass::DownVector()
 {
-	return XMLoadFloat3(&MatrixDown(world));
+	return XMLoadFloat3(&MatrixDown(XMLoadFloat4x4(&this->world)));
 }
 
 XMVECTOR CameraClass::RightVector()
 {
-	return XMLoadFloat3(&MatrixRight(world));
+	return XMLoadFloat3(&MatrixRight(XMLoadFloat4x4(&this->world)));
 }
 
 XMVECTOR CameraClass::LeftVector()
 {
-	return XMLoadFloat3(&MatrixLeft(world));
+	return XMLoadFloat3(&MatrixLeft(XMLoadFloat4x4(&this->world)));
 }
 #pragma endregion
 
@@ -156,12 +157,8 @@ XMFLOAT3 CameraClass::MatrixDown(XMMATRIX& matrix)
 }
 #pragma endregion
 
-
 CameraClass::CameraClass()
 {
-	upVector = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-	forwardVector = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
-
 	position = rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	yaw = pitch = roll = 0.0f;
 
@@ -187,14 +184,18 @@ void CameraClass::SetPerspectiveProjection(int screenWidth, int screenHeight, fl
 	float FOV = FOVinDegrees;// * (float)DEG_TO_RAD;
 	float aspectRatio = (float)screenWidth / (float)screenHeight;
 
-	projection = XMMatrixPerspectiveFovLH(FOV, aspectRatio, zNear, zFar);
+	XMStoreFloat4x4(&projection, XMMatrixPerspectiveFovLH(FOV, aspectRatio, zNear, zFar));
 }
 
 
 void CameraClass::Update()
 {
-	XMVECTOR target, tempRot, tempPos;
-	XMMATRIX rotationMatrix;
+	XMVECTOR target, tempRot, tempPos, upVector, forwardVector, up, forward, right;
+
+	XMMATRIX rotationMatrix, tempView;
+
+	upVector = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	forwardVector = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
 
 	tempPos = XMLoadFloat3(&position);
 	tempRot = XMLoadFloat3(&rotation);
@@ -224,7 +225,7 @@ void CameraClass::Update()
 		XMVectorSetX(tempRot, -80.0f);
 	}
 
-	rotationMatrix = XMMatrixRotationRollPitchYaw(roll, pitch, yaw); //Create rotation matrix
+	rotationMatrix = XMMatrixRotationRollPitchYaw(pitch, yaw, roll); //Create rotation matrix
 
 	forward = XMVector4Transform(forwardVector, rotationMatrix); //Create forward vector
 	up =  XMVector4Transform(upVector, rotationMatrix); //Create up vector
@@ -232,13 +233,14 @@ void CameraClass::Update()
 
 	target = tempPos + forward; //Calculate new 'target' for the camera
 
-	view = XMMatrixLookAtLH(tempPos, target, up); //Finally, calculate view matrix
+	tempView = XMMatrixLookAtLH(tempPos, target, up); //Finally, calculate view matrix
+	XMStoreFloat4x4(&view, tempView);
 
 	XMVECTOR determinant;
-	world = XMMatrixInverse(&determinant, view);
+	XMStoreFloat4x4(&world, XMMatrixInverse(&determinant, tempView));
 
-	 XMStoreFloat3(&position, tempPos);
-	 XMStoreFloat3(&rotation, tempRot);
+	XMStoreFloat3(&position, tempPos);
+	XMStoreFloat3(&rotation, tempRot);
 
 	return;
 }

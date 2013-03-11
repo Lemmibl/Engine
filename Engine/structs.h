@@ -19,13 +19,13 @@ struct PointLight
 	float Radius;
 	XMFLOAT3 Color;
 	float Intensity;
-	XMMATRIX World;
+	XMFLOAT4X4 World;
 };
 
 struct DirLight
 {
-	XMMATRIX View;
-	XMMATRIX Projection;
+	XMFLOAT4X4 View;
+	XMFLOAT4X4 Projection;
 
 	XMFLOAT4 Color;
 	XMFLOAT3 Position;

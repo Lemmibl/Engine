@@ -8,6 +8,7 @@
 //////////////
 // INCLUDES //
 //////////////
+#pragma once
 #include <d3d11.h>
 #include <windows.h>
 #include <xnamath.h>
@@ -42,6 +43,7 @@ private:
 		XMFLOAT3 LightDirection;
 		XMFLOAT3 LightPosition;
 		XMFLOAT3 CameraPosition;
+		XMFLOAT3 Padding;
 	};
 
 	struct LightBuffer

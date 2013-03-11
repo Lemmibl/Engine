@@ -46,7 +46,7 @@ bool TextClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCont
 	this->screenHeight = screenHeight;
 
 	// Store the base view matrix.
-	this->baseViewMatrix = *baseViewMatrix;
+	this->baseViewMatrix = XMMatrixTranspose(*baseViewMatrix);
 
 	// Create the font object.
 	font = new FontClass;

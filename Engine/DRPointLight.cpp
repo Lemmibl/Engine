@@ -349,7 +349,7 @@ bool DRPointLight::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMAT
 	dataPtr = (VertexMatrixBufferType*)mappedResource.pData;
 
 	// Copy the matrices into the constant buffer.
-	dataPtr->World = pointLight->World;
+	dataPtr->World = XMLoadFloat4x4(&pointLight->World);
 	dataPtr->View = *view;
 	dataPtr->Projection = *proj;
 

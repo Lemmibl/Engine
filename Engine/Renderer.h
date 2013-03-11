@@ -94,7 +94,7 @@ private:
 
 	bool toggleDebugInfo;
 	bool toggleTextureShader;
-	XMMATRIX scale, translation, baseViewMatrix;
+	XMMATRIX baseViewMatrix;
 	XMFLOAT4 ambientLight;
 	XMVECTOR lookAt, up;
 

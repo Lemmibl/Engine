@@ -64,14 +64,9 @@ private:
 	XMFLOAT3 MatrixDown(XMMATRIX& matrix);
 
 	XMFLOAT3 position, rotation;
-	XMMATRIX world, view, projection;
+	XMFLOAT4X4 world, view, projection;
 	float yaw, pitch, roll;
 
-	XMVECTOR up, forward, right; // camera axii.
-
 	double PITCHROOF, PITCHFLOOR;
-
-	XMVECTOR upVector;
-	XMVECTOR forwardVector;
 };
 #endif
