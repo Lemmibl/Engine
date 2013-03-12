@@ -28,6 +28,7 @@ half4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		float specularLight = light.a;
 		
 		//http://www.gamedev.net/topic/636669-deferred-renderer-shadow-mapping/
+		//http://gamedev.stackexchange.com/questions/29948/first-time-shadow-mapping-problems
 		
 		float4 position;
 		position = (input.Position * depth);
