@@ -67,7 +67,7 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	this->d3D = d3D;
 
 	this->camera = camera;
-	baseViewMatrix = camera->GetView();
+	XMStoreFloat4x4(&baseViewMatrix, camera->GetView());
 
 	// Create the model object.
 	groundModel = new ModelClass;
@@ -286,8 +286,8 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 		return false;
 	}
 
-	lookAt = XMVectorSet(0.1f, -10.0f, 0.1f, 0.0f); //LookAt for dir light. We always want this to be (0,0,0), because it's the easiest to visualize.
-	up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	XMVECTOR lookAt = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f); //LookAt for dir light. We always want this to be (0,0,0), because it's the easiest to visualize.
+	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
 	// Initialize the directional light.
 	dirLight->Color = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
@@ -440,6 +440,9 @@ bool Renderer::Update(int fps, int cpu, float frameTime)
 		dirLight->Position.z -= frameTime*0.02f;
 	}
 
+	XMVECTOR lookAt = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix
 
 	return true;
@@ -455,7 +458,7 @@ bool Renderer::Render()
 	context = d3D->GetDeviceContext();
 
 	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, scalingMatrix, viewProjection, 
-		invertedViewProjection, invertedView, lightView, lightProj, lightViewProj;
+		invertedViewProjection, invertedView, lightView, lightProj, lightViewProj, baseView;
 	float positionX, positionY, positionZ, radius;
 	XMFLOAT4 color;
 	XMFLOAT3 camPos;
@@ -544,7 +547,7 @@ bool Renderer::Render()
 	lightViewProj =				XMMatrixTranspose(lightViewProj);
 	viewProjection =			XMMatrixTranspose(viewProjection);
 	invertedViewProjection =	XMMatrixTranspose(invertedViewProjection);
-	baseViewMatrix =			XMMatrixTranspose(baseViewMatrix);
+	baseView =			XMMatrixTranspose(XMLoadFloat4x4(&baseViewMatrix));
 	invertedView =				XMMatrixTranspose(invertedView);
 	#pragma endregion
 
@@ -755,7 +758,7 @@ bool Renderer::Render()
 
 	fullScreenQuad.Render(context, 0, 0);
 
-	result = dirLightShader->Render(context, fullScreenQuad.GetIndexCount(), &worldMatrix, &baseViewMatrix, &orthoMatrix, &invertedViewProjection, 
+	result = dirLightShader->Render(context, fullScreenQuad.GetIndexCount(), &worldMatrix, &baseView, &orthoMatrix, &invertedViewProjection, 
 		dirLightTextures, camPos, dirLight->Position, dirLight->Direction, dirLight->Color, dirLight->Intensity, ambientLight, defaultModelMaterial, 
 		&lightView, &lightProj);
 	if(!result)
@@ -775,7 +778,7 @@ bool Renderer::Render()
 
 	fullScreenQuad.Render(context, 0, 0);
 
-	composeShader->Render(context, fullScreenQuad.GetIndexCount(), &worldMatrix, &baseViewMatrix, 
+	composeShader->Render(context, fullScreenQuad.GetIndexCount(), &worldMatrix, &baseView, 
 		&orthoMatrix, &invertedViewProjection, &lightViewProj, finalTextures);
 	#pragma endregion
 
@@ -796,7 +799,7 @@ bool Renderer::Render()
 		}
 
 		result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[i].GetIndexCount(), 
-			&worldMatrix, &baseViewMatrix, &orthoMatrix, gbufferTextures[i]);
+			&worldMatrix, &baseView, &orthoMatrix, gbufferTextures[i]);
 		if(!result)
 		{
 			return false;
@@ -810,7 +813,7 @@ bool Renderer::Render()
 	}
 
 	result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[3].GetIndexCount(), 
-		&worldMatrix, &baseViewMatrix, &orthoMatrix, lightRT->SRView);
+		&worldMatrix, &baseView, &orthoMatrix, lightRT->SRView);
 	if(!result)
 	{
 		return false;
@@ -823,7 +826,7 @@ bool Renderer::Render()
 	}
 
 	result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[4].GetIndexCount(), 
-		&worldMatrix, &baseViewMatrix, &orthoMatrix, shadowRT->SRView);
+		&worldMatrix, &baseView, &orthoMatrix, shadowRT->SRView);
 	if(!result)
 	{
 		return false;
@@ -835,7 +838,7 @@ bool Renderer::Render()
 	d3D->TurnOnAlphaBlending();
 
 	// Render the text user interface elements.
-	result = text->Render(d3D->GetDeviceContext(), &worldMatrix, &baseViewMatrix, &orthoMatrix);
+	result = text->Render(d3D->GetDeviceContext(), &worldMatrix, &baseView, &orthoMatrix);
 	if(!result)
 	{
 		return false;

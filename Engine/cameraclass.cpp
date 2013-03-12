@@ -41,24 +41,24 @@ XMFLOAT3* CameraClass::GetRotationPtr()
 
 void CameraClass::GetViewMatrix(XMMATRIX& viewMatrix)
 {
-	viewMatrix = XMLoadFloat4x4(&this->view);
+	viewMatrix = XMLoadFloat4x4(&view);
 	return;
 }
 
 void CameraClass::GetProjectionMatrix(XMMATRIX& projMatrix)
 {
-	projMatrix =  XMLoadFloat4x4(&this->projection);
+	projMatrix =  XMLoadFloat4x4(&projection);
 	return;
 }
 
 XMMATRIX CameraClass::GetView()
 {
-	return XMLoadFloat4x4(&this->view);
+	return XMLoadFloat4x4(&view);
 }
 
 XMMATRIX CameraClass::GetProj()
 {
-	return XMLoadFloat4x4(&this->projection);
+	return XMLoadFloat4x4(&projection);
 }
 
 #pragma region XMFloat3 methods
