@@ -19,7 +19,8 @@ struct VertexShaderOutput
 	float4 Position : SV_POSITION;
 	float3 Normal : NORMAL;
 	float2 TexCoord : TEXCOORD0;
-	float3x3 TangentToWorld : TEXCOORD1;
+	float4 ViewPosition : TEXCOORD1;
+	float3x3 TangentToWorld : TEXCOORD2;
 };
 
 VertexShaderOutput GBufferVertexShader(VertexShaderInput input)
@@ -27,11 +28,10 @@ VertexShaderOutput GBufferVertexShader(VertexShaderInput input)
 	VertexShaderOutput output;
 
 	float4 worldPosition = mul(float4(input.Position, 1.0f), World);
-	float4 viewPosition = mul(worldPosition, View);
-	output.Position = mul(viewPosition, Projection);
+	output.ViewPosition = mul(worldPosition, View);
+	output.Position = mul(output.ViewPosition, Projection);
 
 	output.TexCoord = input.TexCoord;
-
 	output.Normal = input.Normal;
 
 	// calculate tangent space to world space matrix using the world space tangent,

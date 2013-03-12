@@ -1,11 +1,10 @@
 struct VertexShaderOutput
 {
 	float4 Position : SV_POSITION;
+	float4 ViewPosition : TEXCOORD0;
 };
 
-void DepthOnlyPixelShader(VertexShaderOutput input)
+float DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 {
-	//float depth = (1.0f - input.Position.z / input.Position.w);
-
-	//return depth;
+	return (input.ViewPosition.z / 140.0f);
 }

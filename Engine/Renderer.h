@@ -88,6 +88,7 @@ private:
 	RenderTarget2D* depthRT; // render target for storing depth. it's a 32bit deep single float
 	RenderTarget2D* normalRT; //render target for storing normals. 10R 10G 10B 2A. stores specular power in alpha value.
 	RenderTarget2D* lightRT; // light map
+	RenderTarget2D* shadowRT;
 
 	TextureShaderClass* textureShader;
 	DebugWindowClass debugWindows[5];

@@ -1,9 +1,16 @@
+cbuffer PixelShaderBuffer
+{
+	float FarZ;
+	float3 Padding;
+};
+
 struct VertexShaderOutput
 {
 	float4 Position : SV_POSITION;
 	float3 Normal : NORMAL;
 	float2 TexCoord : TEXCOORD0;
-	float3x3 TangentToWorld : TEXCOORD1;
+	float4 ViewPosition : TEXCOORD1;
+	float3x3 TangentToWorld : TEXCOORD2;
 };
 
 struct PixelShaderOutput
@@ -52,7 +59,8 @@ PixelShaderOutput GBufferPixelShader(VertexShaderOutput input)
 
 	output.Normal.w = specularAttributes.y; //specular power stored in normal map's alpha channel
 
-	output.Depth = 1.0f - (input.Position.z / input.Position.w);
+	output.Depth.x = (input.ViewPosition.z / FarZ);
+	//output.Depth = 1.0f - (input.Position.z / input.Position.w);
 
 	return output;
 }

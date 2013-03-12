@@ -218,7 +218,6 @@ bool DRDirLight::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFile
 		return false;
 	}
 
-
 	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
 	pixelMatrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	pixelMatrixBufferDesc.ByteWidth = sizeof(PixelMatrixBuffer);

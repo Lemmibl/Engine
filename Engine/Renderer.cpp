@@ -31,6 +31,7 @@ Renderer::Renderer()
 	colorRT = 0;
 	normalRT = 0;
 	depthRT = 0;
+	shadowRT = 0;
 	lightRT = 0;
 
 	mcubeShader = 0;
@@ -297,7 +298,7 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	XMVector3Normalize(direction);
 	XMStoreFloat3(&dirLight->Direction, direction);
 
-	XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(((float)D3DX_PI/2.0f), 1.0f, 5.0f, 140.0f));
+	XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(((float)D3DX_PI/4.0f), 1.0f, 10.0f, 140.0f));
 	//XMMATRIXOrthoLH(&dirLight->Projection, (float)shadowMapWidth, (float)shadowMapHeight, 5.0f, 140.0f);
 
 	lookAt = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
@@ -329,13 +330,13 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	colorRT = new RenderTarget2D();
 	normalRT = new RenderTarget2D();
 	depthRT = new RenderTarget2D();
-
+	shadowRT = new RenderTarget2D();
 	lightRT = new RenderTarget2D();
 
 	colorRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
 	normalRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
 	depthRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
-
+	shadowRT->Initialize(d3D->GetDevice(), shadowmapWidth, shadowmapHeight, DXGI_FORMAT_R32_FLOAT);
 	lightRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
 
 
@@ -411,30 +412,32 @@ bool Renderer::Update(int fps, int cpu, float frameTime)
 			defaultModelMaterial.a /= 2.0f;
 	}
 
+	//for(unsigned int i = 0; i < pointLights.size(); i++)
+	//{
+	//	pointLights[i]->Position.y += frameTime*0.01f;
+
+	//	XMMATRIXTranslation(&translation, pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z);
+	//	pointLights[i]->World = scale * translation;
+	//}
+
+	//for(unsigned int i = 0; i < pointLights.size(); i++)
+	//{
+	//	pointLights[i]->Position.y -= frameTime*0.01f;
+
+	//	XMMATRIXTranslation(&translation, pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z);
+	//	pointLights[i]->World = scale * translation;
+	//}
+
 	if(inputManager->IsKeyPressed(DIK_R))
 	{
-		dirLight->Position.x += frameTime*0.01f;
-
-		//for(unsigned int i = 0; i < pointLights.size(); i++)
-		//{
-		//	pointLights[i]->Position.y += frameTime*0.01f;
-
-		//	XMMATRIXTranslation(&translation, pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z);
-		//	pointLights[i]->World = scale * translation;
-		//}
+		dirLight->Position.x += frameTime*0.02f;
+		dirLight->Position.z += frameTime*0.02f;
 	}
 
 	if(inputManager->IsKeyPressed(DIK_F))
 	{
-		dirLight->Position.x -= frameTime*0.01f;
-
-		//for(unsigned int i = 0; i < pointLights.size(); i++)
-		//{
-		//	pointLights[i]->Position.y -= frameTime*0.01f;
-
-		//	XMMATRIXTranslation(&translation, pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z);
-		//	pointLights[i]->World = scale * translation;
-		//}
+		dirLight->Position.x -= frameTime*0.02f;
+		dirLight->Position.z -= frameTime*0.02f;
 	}
 
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix
@@ -447,20 +450,23 @@ bool Renderer::Render()
 	// Clear the scene.
 	d3D->BeginScene(0.0f, 0.0f, 0.0f, 0.0f);
 
-#pragma region Preparation
+	#pragma region Preparation
 	ID3D11DeviceContext* context;
+	context = d3D->GetDeviceContext();
+
 	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, scalingMatrix, viewProjection, 
-		invertedViewProjection, lightView, lightProj, lightViewProj;
+		invertedViewProjection, invertedView, lightView, lightProj, lightViewProj;
 	float positionX, positionY, positionZ, radius;
 	XMFLOAT4 color;
 	XMFLOAT3 camPos;
 	bool result, renderModel;
 	int modelCount, renderCount;
-	ID3D11RenderTargetView* gbufferRenderTargets[3] = { NULL }; //render targets for GBuffer pass
+	ID3D11RenderTargetView* gbufferRenderTargets[3] = { NULL, NULL, NULL }; //render targets for GBuffer pass
 	ID3D11RenderTargetView* lightTarget[1] = { NULL };
+	ID3D11RenderTargetView* shadowTarget[1] = { NULL };
 
 	ID3D11ShaderResourceView* gbufferTextures[3] = { NULL, NULL, NULL };
-	ID3D11ShaderResourceView* dirLightTextures[2] = { NULL, NULL};
+	ID3D11ShaderResourceView* dirLightTextures[2] = { NULL, NULL };
 	ID3D11ShaderResourceView* finalTextures[4] = { NULL, NULL, NULL, NULL };
 
 	ID3D11ShaderResourceView* lightMap = NULL;
@@ -477,6 +483,9 @@ bool Renderer::Render()
 	//For lighting pass
 	lightTarget[0] = lightRT->RTView; 
 
+	//For shadow pre-gbuffer pass
+	shadowTarget[0] = shadowRT->RTView;
+
 	//For GBuffer pass
 	gbufferTextures[0] = colorRT->SRView; 
 	gbufferTextures[1] = normalRT->SRView;
@@ -489,11 +498,17 @@ bool Renderer::Render()
 	//For the the final composition pass
 	finalTextures[0] = colorRT->SRView;
 	finalTextures[1] = lightRT->SRView;
-	finalTextures[2] = d3D->GetShadowmapSRV();
+	finalTextures[2] = shadowRT->SRView;
 	finalTextures[3] = depthRT->SRView;
 
-	context = d3D->GetDeviceContext();
+	// Get the number of models that will be rendered.
+	modelCount = modelList->GetModelCount();
 
+	// Initialize the count of models that have been rendered.
+	renderCount = 0;
+	#pragma endregion
+
+	#pragma region Matrix preparations
 	// Generate the view matrix based on the camera's position.
 	camera->Update();
 
@@ -505,14 +520,18 @@ bool Renderer::Render()
 	lightView = XMLoadFloat4x4(&dirLight->View);
 	lightProj = XMLoadFloat4x4(&dirLight->Projection);
 
+	lightViewProj = (lightProj*lightView);
+	viewProjection = (projectionMatrix*viewMatrix);
+
 	// Construct the frustum.
 	frustum->ConstructFrustum(screenFar, &projectionMatrix, &viewMatrix);
 
-	lightViewProj = (lightView*lightProj);
-	viewProjection = (viewMatrix*projectionMatrix);
-
 	XMVECTOR nullVec;
+	invertedView = XMMatrixInverse(&nullVec, viewMatrix);
+	
 	invertedViewProjection = XMMatrixInverse(&nullVec, viewProjection);
+	
+	lightViewProj = XMMatrixInverse(&nullVec, lightViewProj);
 
 	worldMatrix =				XMMatrixTranspose(worldMatrix);
 	//orthoMatrix =				XMMatrixTranspose(orthoMatrix);
@@ -526,23 +545,15 @@ bool Renderer::Render()
 	viewProjection =			XMMatrixTranspose(viewProjection);
 	invertedViewProjection =	XMMatrixTranspose(invertedViewProjection);
 	baseViewMatrix =			XMMatrixTranspose(baseViewMatrix);
-
-	/*
-	http://msdn.microsoft.com/en-us/library/windows/desktop/ee418732(v=vs.85).aspx
-	*/
-
-	// Get the number of models that will be rendered.
-	modelCount = modelList->GetModelCount();
-
-	// Initialize the count of models that have been rendered.
-	renderCount = 0;
+	invertedView =				XMMatrixTranspose(invertedView);
 	#pragma endregion
 
 	#pragma region Early depth pass for shadowmap
-	context->OMSetRenderTargets(0, 0, shadowDS);
+	context->OMSetRenderTargets(1, shadowTarget, shadowDS);
 	d3D->SetShadowViewport();
 	d3D->SetBackFaceCullingRasterizer();
 	context->ClearDepthStencilView(shadowDS, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	context->ClearRenderTargetView(shadowTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 
 	// Move the model to the location it should be rendered at.
 	worldMatrix = XMMatrixTranslation(0.0f, -10.0f, 0.0f);
@@ -587,7 +598,7 @@ bool Renderer::Render()
 	context->ClearDepthStencilView(ds, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	context->ClearRenderTargetView(gbufferRenderTargets[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
-	context->ClearRenderTargetView(gbufferRenderTargets[1], D3DXVECTOR4(0.5f, 0.5f, 0.5f, 0.0f)); //Will result in an average grey color, which is kind of the default state of normals.
+	context->ClearRenderTargetView(gbufferRenderTargets[1], D3DXVECTOR4(0.5f, 0.5f, 0.5f, 0.0f));
 	context->ClearRenderTargetView(gbufferRenderTargets[2], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 
 	// Move the model to the location it should be rendered at.
@@ -598,7 +609,8 @@ bool Renderer::Render()
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
 	groundModel->Render(context);
-	gbufferShader->Render(context, groundModel->GetIndexCount(), &worldMatrix, &viewMatrix, &projectionMatrix, groundModel->GetTextureArray());
+	gbufferShader->Render(context, groundModel->GetIndexCount(), &worldMatrix, &viewMatrix, &projectionMatrix, 
+		groundModel->GetTextureArray(), screenFar);
 
 	renderCount++;
 
@@ -626,7 +638,7 @@ bool Renderer::Render()
 
 			// Render the model using the gbuffer shader.
 			result = gbufferShader->Render(context, otherModel->GetIndexCount(), &worldMatrix, &viewMatrix, 
-				&projectionMatrix, otherModel->GetTextureArray());
+				&projectionMatrix, otherModel->GetTextureArray(), screenFar);
 			if(!result)
 			{
 				return false;
@@ -640,97 +652,97 @@ bool Renderer::Render()
 	text->SetRenderCount(renderCount, context);
 	#pragma endregion
 
-	#pragma region Point light stage
 	context->OMSetRenderTargets(1, lightTarget, ds);
 	context->ClearRenderTargetView(lightTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 	context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	#pragma region Old pointlight code
+	//#pragma region Point light stage
+	//#pragma region Old pointlight code
+	//////Phase one, draw sphere with vertex-only shader.
+	////d3D->SetLightStencilMethod2Phase1();
+	////d3D->SetBackFaceCullingRasterizer();
+	////d3D->TurnOffColorBlending();
+
+	////for(unsigned int i = 0; i < pointLights.size(); i++)
+	////{	
+	////	sphereModel->Render(context);
+
+	////	result = vertexOnlyShader->Render(context, sphereModel->GetIndexCount(), pointLights[i]->World, viewMatrix, 
+	////		projectionMatrix);
+	////	if(!result)
+	////	{
+	////		return false;
+	////	}
+	////}
+
+	////context->OMSetRenderTargets(1, lightTarget, ds);
+	////context->ClearRenderTargetView(lightTarget[0], XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f));
+
+	//////Phase two, draw sphere with light algorithm
+	////d3D->SetLightStencilMethod2Phase2();
+	////d3D->SetFrontFaceCullingRasterizer();
+	////d3D->TurnOnLightBlending();
+
+	////for(unsigned int i = 0; i < pointLights.size(); i++)
+	////{	
+	////	sphereModel->Render(context);
+
+	////	if(!toggleDebugInfo)
+	////	{
+	////		result = textureShader->Render(context, sphereModel->GetIndexCount(), pointLights[i]->World, viewMatrix, 
+	////			projectionMatrix, sphereModel->GetTexture());
+	////	}
+	////	else
+	////	{
+	////		result = pointLightShader->Render(context, sphereModel->GetIndexCount(), pointLights[i]->World, viewMatrix, 
+	////			projectionMatrix, invertedViewProjection, pointLights[i], gbufferTextures, camera->GetPosition());
+	////	}
+
+	////	if(!result)
+	////	{
+	////		return false;
+	////	}
+	////}
+	//#pragma endregion
+
 	////Phase one, draw sphere with vertex-only shader.
-	//d3D->SetLightStencilMethod2Phase1();
-	//d3D->SetBackFaceCullingRasterizer();
-	//d3D->TurnOffColorBlending();
-
-	//for(unsigned int i = 0; i < pointLights.size(); i++)
-	//{	
-	//	sphereModel->Render(context);
-
-	//	result = vertexOnlyShader->Render(context, sphereModel->GetIndexCount(), pointLights[i]->World, viewMatrix, 
-	//		projectionMatrix);
-	//	if(!result)
-	//	{
-	//		return false;
-	//	}
-	//}
-
-	//context->OMSetRenderTargets(1, lightTarget, ds);
-	//context->ClearRenderTargetView(lightTarget[0], XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f));
-
-	////Phase two, draw sphere with light algorithm
-	//d3D->SetLightStencilMethod2Phase2();
-	//d3D->SetFrontFaceCullingRasterizer();
 	//d3D->TurnOnLightBlending();
 
 	//for(unsigned int i = 0; i < pointLights.size(); i++)
 	//{	
+	//	d3D->SetLightStencilMethod1Phase1();
+	//	d3D->SetNoCullRasterizer();
+
+	//	sphereModel->Render(context);
+
+	//	result = vertexOnlyShader->Render(context, sphereModel->GetIndexCount(), &XMMatrixTranspose(XMLoadFloat4x4(&pointLights[i]->World)), &viewMatrix, 
+	//		&projectionMatrix);
+
+	//	//Phase two, draw sphere with light algorithm
+	//	d3D->SetLightStencilMethod1Phase2();
+	//	d3D->SetFrontFaceCullingRasterizer();
+
 	//	sphereModel->Render(context);
 
 	//	if(!toggleDebugInfo)
 	//	{
-	//		result = textureShader->Render(context, sphereModel->GetIndexCount(), pointLights[i]->World, viewMatrix, 
-	//			projectionMatrix, sphereModel->GetTexture());
+	//		result = textureShader->Render(context, sphereModel->GetIndexCount(), &XMMatrixTranspose(XMLoadFloat4x4(&pointLights[i]->World)), &viewMatrix, 
+	//			&projectionMatrix, sphereModel->GetTexture());
 	//	}
 	//	else
 	//	{
-	//		result = pointLightShader->Render(context, sphereModel->GetIndexCount(), pointLights[i]->World, viewMatrix, 
-	//			projectionMatrix, invertedViewProjection, pointLights[i], gbufferTextures, camera->GetPosition());
+	//		result = pointLightShader->Render(context, sphereModel->GetIndexCount(), &viewMatrix, 
+	//			&projectionMatrix, &invertedViewProjection, pointLights[i], gbufferTextures, camPos);
 	//	}
 
 	//	if(!result)
 	//	{
 	//		return false;
 	//	}
+
+	//	context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
 	//}
-	#pragma endregion
-
-	//Phase one, draw sphere with vertex-only shader.
-	d3D->TurnOnLightBlending();
-
-	for(unsigned int i = 0; i < pointLights.size(); i++)
-	{	
-		d3D->SetLightStencilMethod1Phase1();
-		d3D->SetNoCullRasterizer();
-
-		sphereModel->Render(context);
-
-		result = vertexOnlyShader->Render(context, sphereModel->GetIndexCount(), &XMMatrixTranspose(XMLoadFloat4x4(&pointLights[i]->World)), &viewMatrix, 
-			&projectionMatrix);
-
-		//Phase two, draw sphere with light algorithm
-		d3D->SetLightStencilMethod1Phase2();
-		d3D->SetFrontFaceCullingRasterizer();
-
-		sphereModel->Render(context);
-
-		if(!toggleDebugInfo)
-		{
-			result = textureShader->Render(context, sphereModel->GetIndexCount(), &XMMatrixTranspose(XMLoadFloat4x4(&pointLights[i]->World)), &viewMatrix, 
-				&projectionMatrix, sphereModel->GetTexture());
-		}
-		else
-		{
-			result = pointLightShader->Render(context, sphereModel->GetIndexCount(), &viewMatrix, 
-				&projectionMatrix, &invertedViewProjection, pointLights[i], gbufferTextures, camPos);
-		}
-
-		if(!result)
-		{
-			return false;
-		}
-
-		context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
-	}
-	#pragma endregion
+	//#pragma endregion
 
 	#pragma region Directional light stage
 	///*TODO: Create a directional light stencilstate that does a NOTEQUAL==0 stencil check.*/
@@ -762,6 +774,7 @@ bool Renderer::Render()
 	//	worldMatrix, viewMatrix, projectionMatrix);
 
 	fullScreenQuad.Render(context, 0, 0);
+
 	composeShader->Render(context, fullScreenQuad.GetIndexCount(), &worldMatrix, &baseViewMatrix, 
 		&orthoMatrix, &invertedViewProjection, &lightViewProj, finalTextures);
 	#pragma endregion
@@ -810,7 +823,7 @@ bool Renderer::Render()
 	}
 
 	result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[4].GetIndexCount(), 
-		&worldMatrix, &baseViewMatrix, &orthoMatrix, finalTextures[2]);
+		&worldMatrix, &baseViewMatrix, &orthoMatrix, shadowRT->SRView);
 	if(!result)
 	{
 		return false;
@@ -933,6 +946,12 @@ void Renderer::Shutdown()
 	{
 		delete lightRT;
 		lightRT = 0;
+	}
+
+	if(shadowRT)
+	{
+		delete shadowRT;
+		shadowRT = 0;
 	}
 
 	if(modelList)

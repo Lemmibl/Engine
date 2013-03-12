@@ -28,6 +28,7 @@ struct VertexShaderOutput
 {
 		float4 Position : SV_POSITION;
 		float2 TexCoord : TEXCOORD0;
+		float4 ViewPosition : TEXCOORD1;
 };
 
 //Decoding of GBuffer Normals
@@ -54,10 +55,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		float3 normal = normalize(decode(encodedNormal.xyz));
 
 		float4 position;
-		position.x =  (input.TexCoord.x * 2.0f) - 1.0f;	
-		position.y = ((-input.TexCoord.y * 2.0f) - 1.0f);
-		position.z = depth;
-		position.w = 1.0f;
+		position = float4(input.Position.xyz * depth, 1.0f);
 
 		position = mul(position, InverseViewProjection);
 		position /= position.w;
@@ -74,14 +72,14 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 
 		//compute diffuse light
 		half4 finalDiffuseProduct = half4(0.0f, 0.0f, 0.0f, 0.0f);
-		finalDiffuseProduct += Kd * NdL;
+		finalDiffuseProduct.xyzw += Kd * NdL;
 
 		//compute specular light 
 		float finalSpecularProduct = 0.0f;
 		finalSpecularProduct += Ks * pow( saturate(dot(directionToCamera, reflectionVector)), a);
 		
 		//Storing specular in alpha channel. Applying shadow multiplier to both diffuse product and specular, but not ambient, to make sure it's not just black.
-		return half4(finalAmbienceProduct.rgb + (finalDiffuseProduct.rgb * DiffuseColor.rgb), finalSpecularProduct);
+		return half4(finalAmbienceProduct.rgb + (DiffuseColor.rgb*finalDiffuseProduct.rgb), finalSpecularProduct);
 }
 
 

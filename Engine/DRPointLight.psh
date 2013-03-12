@@ -42,8 +42,8 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	*/
 
 	//surface-to-light vector
-	float3 lightVector =  LightPosition - input.WorldPosition;
-	float lightDistance = length(LightPosition - input.WorldPosition);
+	float3 lightVector =  LightPosition.xyz - input.WorldPosition.xyz;
+	float lightDistance = length(lightVector);
 	//float oneOverSqrLightRadius = 1 / (LightRadius * LightRadius);
 	//saturate(1 - (lightVector*lightVector) * oneOverSqrLightRadius);
 
@@ -58,10 +58,10 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	float3 diffuseLight = ((LightPower*LightColor.rgb) * NdL);
 
 	//reflection vector
-	float3 reflectionVector = normalize(reflect(-lightVector, normal));
+	float3 reflectionVector = normalize(-reflect(lightVector, normal));
 
 	//camera-to-surface vector
-	float3 directionToCamera = normalize(CameraPosition - input.WorldPosition);
+	float3 directionToCamera = normalize(CameraPosition.xyz - input.WorldPosition.xyz);
 
 	//compute specular light
 	float specularLight =  pow( saturate(dot(reflectionVector, directionToCamera)), 128.0f); //it's 128 because idk.

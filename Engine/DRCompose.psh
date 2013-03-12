@@ -1,18 +1,19 @@
-Texture2D shaderTextures[4]; // 0 = color, light = 1, 2 = shadow depth, 3 = normal depth
-SamplerState linearSampler; //linear sampler
-
 cbuffer PixelMatrixBuffer
 {
 	float4x4 LightViewProjection;
 	float4x4 InvViewProj;
 };
 
+
+SamplerState samplers[2]; //0 == linear sampler, 1 == point
+Texture2D shaderTextures[4]; // 0 = color, light = 1, 2 = shadow depth, 3 = normal depth
+
 struct VertexShaderOutput
 {
 		float4 Position : SV_POSITION;
 		float2 TexCoord : TEXCOORD0;
 		float4 ScreenPosition : TEXCOORD1;
-		float4 WorldPosition : TEXCOORD2;
+		float4 ViewPosition : TEXCOORD2;
 };
 
 half4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
@@ -20,45 +21,28 @@ half4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		input.ScreenPosition.xy /= input.ScreenPosition.w;
 
 		//specular intensity is stored in the color map's alpha channel.
-		float3 baseColor = shaderTextures[0].Sample(linearSampler, input.TexCoord).rgb;
-		float depth = shaderTextures[3].Sample(linearSampler, input.TexCoord);
-		float4 light = shaderTextures[1].Sample(linearSampler, input.TexCoord);
+		float3 baseColor = shaderTextures[0].Sample(samplers[0], input.TexCoord).rgb;
+		float depth = shaderTextures[3].Sample(samplers[1], input.TexCoord);
+		float4 light = shaderTextures[1].Sample(samplers[0], input.TexCoord);
 		float3 diffuseLight = light.rgb;
 		float specularLight = light.a;
 		
 		//http://www.gamedev.net/topic/636669-deferred-renderer-shadow-mapping/
-
-		//To consider: write to stencil when making the light depth buffer, and only draw on the pixels that were actually hit. Add ambient light in DRCompose instead.
 		
 		float4 position;
-		position.xy = input.ScreenPosition.xy;
-		position.z = depth;
-		position.w = 1.0f;
+		position = (input.Position * depth);
 
-		position = mul(position, InvViewProj);
-		position /= position.w;
+		float4 positionWorldSpace = mul(position, InvViewProj);
 
-		float4 lightCoordinates = mul(position, LightViewProjection);
-		lightCoordinates /= lightCoordinates.w;
-		
-		float lightDepth = lightCoordinates.z;
-		
-		float2 sampleLightScreen;
-		sampleLightScreen.x = lightCoordinates.x * 0.5f + 0.5f;
-		sampleLightScreen.y = (-lightCoordinates.y * 0.5f + 0.5f);
+		float4 texcoord = mul(positionWorldSpace, LightViewProjection);
+		texcoord.x = ((texcoord.x / texcoord.w) * 0.5f ) + 0.5f;
+		texcoord.y = ((texcoord.y / texcoord.w) * -0.5f ) + 0.5f;
+		float shadowdepth = shaderTextures[2].Sample(samplers[1], texcoord.xy);
 
-		float shadowMultiplier = 1.0f;
+		float offset = 0.00002f;
 
-		if((saturate(sampleLightScreen.x)==sampleLightScreen.x) && (saturate(sampleLightScreen.y)==sampleLightScreen.y)) //If inside light frustum
-		{	
-				float shadowMapDepth = 1.0f+shaderTextures[2].Sample(linearSampler, sampleLightScreen.xy);
-
-				if (lightDepth - 0.00008f > shadowMapDepth)
-				{
-					shadowMultiplier = 0.2f;
-				}			
-		}
+		float shadowFactor = 0.2f+(texcoord.z < length(shadowdepth) + offset);
 
 		//Not going to apply specular here, it'll be applied in the final composition stage.
-		return half4(baseColor * shadowMultiplier*(diffuseLight + specularLight), 1.0f);
+		return half4(baseColor * shadowFactor * (diffuseLight + specularLight), 1.0f);
 }

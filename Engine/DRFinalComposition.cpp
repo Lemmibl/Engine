@@ -9,7 +9,8 @@ DRFinalComposition::DRFinalComposition()
 	vertexShader = 0;
 	pixelShader = 0;
 	layout = 0;
-	sampler = 0;
+	samplers[1] = 0;
+	samplers[2] = 0;
 
 	vertexMatrixBuffer = 0;
 	pixelMatrixBuffer = 0;
@@ -184,13 +185,34 @@ bool DRFinalComposition::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR
 	samplerDesc.MinLOD = 0;
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-
 	// Create the texture sampler state.
-	result = device->CreateSamplerState(&samplerDesc, &sampler);
+	result = device->CreateSamplerState(&samplerDesc, &samplers[0]);
 	if(FAILED(result))
 	{
 		return false;
 	}
+
+	// Create a texture sampler state description.
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.MipLODBias = 0.0f;
+	samplerDesc.MaxAnisotropy = 1;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	samplerDesc.BorderColor[0] = samplerDesc.BorderColor[1] = samplerDesc.BorderColor[2] = samplerDesc.BorderColor[3] = 0;
+	samplerDesc.MinLOD = 0;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+
+	// Create the texture sampler state.
+	result = device->CreateSamplerState(&samplerDesc, &samplers[1]);
+	if(FAILED(result))
+	{
+		return false;
+	}
+
+
 
 	// Setup the description of the dynamic matrix constant buffer that is in the pixel shader.
 	vertexMatrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
@@ -242,10 +264,16 @@ void DRFinalComposition::ShutdownShader()
 	}
 
 	// Release the sampler state.
-	if(sampler)
+	if(samplers[0])
 	{
-		sampler->Release();
-		sampler = 0;
+		samplers[0]->Release();
+		samplers[0] = 0;
+	}
+
+	if(samplers[1])
+	{
+		samplers[1]->Release();
+		samplers[1] = 0;
 	}
 
 	// Release the layout.
@@ -378,7 +406,7 @@ void DRFinalComposition::RenderShader(ID3D11DeviceContext* deviceContext, int in
 	deviceContext->PSSetShader(pixelShader, NULL, 0);
 
 	// Set the sampler state in the pixel shader.
-	deviceContext->PSSetSamplers(0, 1, &sampler);
+	deviceContext->PSSetSamplers(0, 2, samplers);
 
 	// Render the triangle.
 	deviceContext->DrawIndexed(indexCount, 0, 0);
