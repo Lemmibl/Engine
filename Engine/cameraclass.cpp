@@ -215,14 +215,14 @@ void CameraClass::Update()
 
 	if(pitch > PITCHROOF)
 	{
-		pitch = (float)PITCHROOF;
 		XMVectorSetX(tempRot, 80.0f);
+		pitch = (float)PITCHROOF;
 	}
 
 	if(pitch < PITCHFLOOR)
 	{
-		pitch = (float)PITCHFLOOR;
 		XMVectorSetX(tempRot, -80.0f);
+		pitch = (float)PITCHFLOOR;
 	}
 
 	rotationMatrix = XMMatrixRotationRollPitchYaw(pitch, yaw, roll); //Create rotation matrix

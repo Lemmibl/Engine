@@ -50,13 +50,14 @@ void DRFinalComposition::Shutdown()
 	return;
 }
 
-bool DRFinalComposition::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, XMMATRIX* invertedViewProjection, XMMATRIX* lightViewProj,
+bool DRFinalComposition::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, 
+XMMATRIX* invertedViewProjection, XMMATRIX* invertedView, XMMATRIX* lightViewProj,
 	ID3D11ShaderResourceView** textureArray)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, world, view, projection, invertedViewProjection, lightViewProj, textureArray);
+	result = SetShaderParameters(deviceContext, world, view, projection, invertedViewProjection, invertedView, lightViewProj, textureArray);
 	if(!result)
 	{
 		return false;
@@ -336,8 +337,8 @@ void DRFinalComposition::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND
 	return;
 }
 
-bool DRFinalComposition::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, XMMATRIX* invertedViewProjection, XMMATRIX* lightViewProj,
-	ID3D11ShaderResourceView** textureArray)
+bool DRFinalComposition::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* world, XMMATRIX* view, 
+XMMATRIX* projection, XMMATRIX* invertedViewProjection, XMMATRIX* invertedView, XMMATRIX* lightViewProj, ID3D11ShaderResourceView** textureArray)
 {		
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -361,6 +362,7 @@ bool DRFinalComposition::SetShaderParameters( ID3D11DeviceContext* deviceContext
 	dataPtr1->World = *world;
 	dataPtr1->Projection = *projection;
 	dataPtr1->View = *view;
+	dataPtr1->LightViewProjection = *lightViewProj;
 
 	deviceContext->Unmap(vertexMatrixBuffer, 0);
 
@@ -381,6 +383,7 @@ bool DRFinalComposition::SetShaderParameters( ID3D11DeviceContext* deviceContext
 
 	dataPtr2->LightViewProjection = *lightViewProj;
 	dataPtr2->InvertedViewProjection = *invertedViewProjection;
+	dataPtr2->InvertedView = *lightViewProj;
 
 	deviceContext->Unmap(pixelMatrixBuffer, 0);
 

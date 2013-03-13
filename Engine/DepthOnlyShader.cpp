@@ -290,7 +290,7 @@ void DepthOnlyShader::RenderShader(ID3D11DeviceContext* deviceContext, int index
 
 	// Set the vertex and pixel shaders that will be used to render this triangle.
 	deviceContext->VSSetShader(vertexShader, NULL, 0);
-	deviceContext->PSSetShader(pixelShader, NULL, 0);
+	deviceContext->PSSetShader(NULL, NULL, 0);//pixelShader
 
 	// Render the triangle.
 	deviceContext->DrawIndexed(indexCount, 0, 0);

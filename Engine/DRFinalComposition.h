@@ -27,6 +27,7 @@ private:
 	{
 		XMMATRIX LightViewProjection;
 		XMMATRIX InvertedViewProjection;
+		XMMATRIX InvertedView;
 	};
 
 	struct VertexMatrixBuffer
@@ -34,6 +35,7 @@ private:
 		XMMATRIX World;
 		XMMATRIX View;
 		XMMATRIX Projection;
+		XMMATRIX LightViewProjection;
 	};
 
 public:
@@ -43,7 +45,8 @@ public:
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
-	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, XMMATRIX* invertedViewProjection, XMMATRIX* lightViewProj,
+	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, 
+	XMMATRIX* invertedViewProjection, XMMATRIX* invertedView, XMMATRIX* lightViewProj,
 		ID3D11ShaderResourceView** textureArray);
 
 private:
@@ -51,7 +54,8 @@ private:
 	void ShutdownShader();
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
 
-	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, XMMATRIX* invertedViewProjection, XMMATRIX* lightViewProj,
+	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* world, XMMATRIX* view, 
+	XMMATRIX* projection, XMMATRIX* invertedViewProjection, XMMATRIX* invertedView, XMMATRIX* lightViewProj,
 		ID3D11ShaderResourceView** textureArray);
 	void RenderShader(ID3D11DeviceContext*, int);
 

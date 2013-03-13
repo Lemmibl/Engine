@@ -298,12 +298,11 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	XMVector3Normalize(direction);
 	XMStoreFloat3(&dirLight->Direction, direction);
 
-	XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(((float)D3DX_PI/4.0f), 1.0f, 10.0f, 140.0f));
+	XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(((float)D3DX_PI/4.0f), 1.333333f, 5.0f, 200.0f));
 	//XMMATRIXOrthoLH(&dirLight->Projection, (float)shadowMapWidth, (float)shadowMapHeight, 5.0f, 140.0f);
 
-	lookAt = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+	lookAt = XMVectorSet(0.0f, 0.0f, -1.0f, 0.0f);
 
-	//It really doesn't matter if the calculation is horribly efficient, it only happens once at initialization.
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix.
 #pragma endregion
 
@@ -456,6 +455,15 @@ bool Renderer::Render()
 
 	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, scalingMatrix, viewProjection, 
 		invertedViewProjection, invertedView, lightView, lightProj, lightViewProj;
+
+	XMMATRIX scaleBiasMatrix = 
+		XMMATRIX(0.5f, 0.0f, 0.0f, 0.0f,
+				0.0f, 0.5f, 0.0f, 0.0f,
+				0.0f, 0.0f, 0.5f, 0.0f,
+				0.5f, 0.5f, 0.5f, 1.0f);
+
+
+
 	float positionX, positionY, positionZ, radius;
 	XMFLOAT4 color;
 	XMFLOAT3 camPos;
@@ -498,7 +506,7 @@ bool Renderer::Render()
 	//For the the final composition pass
 	finalTextures[0] = colorRT->SRView;
 	finalTextures[1] = lightRT->SRView;
-	finalTextures[2] = shadowRT->SRView;
+	finalTextures[2] = d3D->GetShadowmapSRV();
 	finalTextures[3] = depthRT->SRView;
 
 	// Get the number of models that will be rendered.
@@ -520,18 +528,20 @@ bool Renderer::Render()
 	lightView = XMLoadFloat4x4(&dirLight->View);
 	lightProj = XMLoadFloat4x4(&dirLight->Projection);
 
-	lightViewProj = (lightProj*lightView);
-	viewProjection = (projectionMatrix*viewMatrix);
-
 	// Construct the frustum.
 	frustum->ConstructFrustum(screenFar, &projectionMatrix, &viewMatrix);
 
 	XMVECTOR nullVec;
+	viewProjection = (projectionMatrix*viewMatrix);
+
 	invertedView = XMMatrixInverse(&nullVec, viewMatrix);
 	
 	invertedViewProjection = XMMatrixInverse(&nullVec, viewProjection);
 	
-	lightViewProj = XMMatrixInverse(&nullVec, lightViewProj);
+	//texMat = biasScaleMatrix * lightProj * lightModelView * cameraModelViewInverse;
+
+	lightViewProj = (lightView * lightProj);
+	//lightViewProj = XMMatrixInverse(&nullVec, lightViewProj);
 
 	worldMatrix =				XMMatrixTranspose(worldMatrix);
 	//orthoMatrix =				XMMatrixTranspose(orthoMatrix);
@@ -549,11 +559,11 @@ bool Renderer::Render()
 	#pragma endregion
 
 	#pragma region Early depth pass for shadowmap
-	context->OMSetRenderTargets(1, shadowTarget, shadowDS);
+	context->OMSetRenderTargets(NULL, NULL, shadowDS);
 	d3D->SetShadowViewport();
 	d3D->SetBackFaceCullingRasterizer();
 	context->ClearDepthStencilView(shadowDS, D3D11_CLEAR_DEPTH, 1.0f, 0);
-	context->ClearRenderTargetView(shadowTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
+	//context->ClearRenderTargetView(shadowTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 
 	// Move the model to the location it should be rendered at.
 	worldMatrix = XMMatrixTranslation(0.0f, -10.0f, 0.0f);
@@ -596,6 +606,7 @@ bool Renderer::Render()
 	ds = d3D->GetDepthStencilView();
 	context->OMSetRenderTargets(3, gbufferRenderTargets, ds);
 	context->ClearDepthStencilView(ds, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
+	d3D->SetBackFaceCullingRasterizer();
 
 	context->ClearRenderTargetView(gbufferRenderTargets[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 	context->ClearRenderTargetView(gbufferRenderTargets[1], D3DXVECTOR4(0.5f, 0.5f, 0.5f, 0.0f));
@@ -773,10 +784,10 @@ bool Renderer::Render()
 	//result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
 	//	worldMatrix, viewMatrix, projectionMatrix);
 
-	fullScreenQuad.Render(context, 0, 0);
+	//fullScreenQuad.Render(context, 0, 0);
 
 	composeShader->Render(context, fullScreenQuad.GetIndexCount(), &worldMatrix, &baseViewMatrix, 
-		&orthoMatrix, &invertedViewProjection, &lightViewProj, finalTextures);
+		&orthoMatrix, &invertedViewProjection, &invertedView, &lightViewProj, finalTextures);
 	#pragma endregion
 
 	#pragma region Debug and text stage
@@ -823,7 +834,7 @@ bool Renderer::Render()
 	}
 
 	result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[4].GetIndexCount(), 
-		&worldMatrix, &baseViewMatrix, &orthoMatrix, shadowRT->SRView);
+		&worldMatrix, &baseViewMatrix, &orthoMatrix, finalTextures[2]);
 	if(!result)
 	{
 		return false;
