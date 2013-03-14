@@ -1,7 +1,14 @@
+#pragma once
 #include "metaballsClass.h"
+<<<<<<< Updated upstream
+#include "types.h"
+#include <windows.h>
+#include <stdio.h>
+=======
 #include "TreeClass.h"
 #include "MCTerrainClass.h"
 
+>>>>>>> Stashed changes
 
 
 class MarchingCubesClass

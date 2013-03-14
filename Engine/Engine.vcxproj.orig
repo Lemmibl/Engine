@@ -33,6 +33,11 @@
     <ClCompile Include="modelclass.cpp" />
     <ClCompile Include="modellistclass.cpp" />
     <ClCompile Include="DRPointLight.cpp" />
+<<<<<<< Updated upstream
+=======
+    <ClCompile Include="PerlinNoise.cpp" />
+    <ClCompile Include="quadtreeclass.cpp" />
+>>>>>>> Stashed changes
     <ClCompile Include="renderToTextureClass.cpp" />
     <ClCompile Include="SimplexNoise.cpp" />
     <ClCompile Include="soundclass.cpp" />
@@ -43,7 +48,11 @@
     <ClCompile Include="textureclass.cpp" />
     <ClCompile Include="textureshaderclass.cpp" />
     <ClCompile Include="timerclass.cpp" />
+<<<<<<< Updated upstream
+=======
+    <ClCompile Include="tinyxml2.cpp" />
     <ClCompile Include="TreeClass.cpp" />
+>>>>>>> Stashed changes
     <ClCompile Include="VertexShaderOnly.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -72,6 +81,11 @@
     <ClInclude Include="modelclass.h" />
     <ClInclude Include="modellistclass.h" />
     <ClInclude Include="DRPointLight.h" />
+<<<<<<< Updated upstream
+=======
+    <ClInclude Include="PerlinNoise.h" />
+    <ClInclude Include="quadtreeclass.h" />
+>>>>>>> Stashed changes
     <ClInclude Include="renderToTextureClass.h" />
     <ClInclude Include="SimplexNoise.h" />
     <ClInclude Include="soundclass.h" />
@@ -83,7 +97,11 @@
     <ClInclude Include="textureshaderclass.h" />
     <ClInclude Include="texturetriarray.h" />
     <ClInclude Include="timerclass.h" />
+<<<<<<< Updated upstream
+=======
+    <ClInclude Include="tinyxml2.h" />
     <ClInclude Include="TreeClass.h" />
+>>>>>>> Stashed changes
     <ClInclude Include="VertexShaderOnly.h" />
   </ItemGroup>
   <ItemGroup>

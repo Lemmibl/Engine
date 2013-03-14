@@ -1,0 +1,45 @@
+#ifndef MCUBES_TYPES_H
+#define MCUBES_TYPES_H
+
+#include <d3d11.h>
+<<<<<<< Updated upstream
+#include <windows.h>
+#include <xnamath.h>
+=======
+#include <d3dx10math.h>
+#define _USE_MATH_DEFINES
+#include <math.h>
+>>>>>>> Stashed changes
+
+struct MarchingCubeVertex
+{
+	double posX;
+	double posY;
+	double posZ;
+
+	float normalX;
+	float normalY;
+	float normalZ;
+
+	float flux;
+
+	bool inside;
+};
+
+struct Metapoint
+{
+	float posX;
+	float posY;
+	float posZ;
+
+	float power;
+};
+
+struct MarchingCubeVectors
+{
+	XMFLOAT3 position;
+	XMFLOAT3 normal;
+};
+
+
+#endif

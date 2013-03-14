@@ -1,9 +1,11 @@
-#include "types.h"
 #include "marchingCubesClass.h"
+<<<<<<< Updated upstream
+=======
 #include <windows.h>
 
 
 #include <stdio.h>
+>>>>>>> Stashed changes
 
 /* Both tables are from Paul Borke "Polygonising a scalar field"
 
@@ -381,7 +383,7 @@ const int MarchingCubesClass::edgeTable[256] = {
 			}
 		}
 
-		this->Terrain = new MCTerrainClass(sizeX,sizeY,sizeZ,this->marchingCubeVertices);
+		this->Terrain =new MCTerrainClass(sizeX,sizeY,sizeZ,this->marchingCubeVertices);
 		this->Tree = new TreeClass(sizeX,sizeY,sizeZ,this->marchingCubeVertices);
 	}
 
@@ -604,18 +606,49 @@ const int MarchingCubesClass::edgeTable[256] = {
 
 						for (i = 0; this->triTable[lookup][i] != -1; i+=3)
 						{
+<<<<<<< Updated upstream
+								for (j = i; j < (i+3); j++)
+								{
+									indices[indexCounter] = vertexCounter;
+
+									vertices[vertexCounter].position = XMFLOAT3	
+										(	
+											this->verts[this->triTable[lookup][j]].posX,
+											this->verts[this->triTable[lookup][j]].posY,
+											this->verts[this->triTable[lookup][j]].posZ		
+										);
+
+									vertices[vertexCounter].normal = XMFLOAT3	
+										(	
+											this->verts[this->triTable[lookup][j]].normalX, 
+											this->verts[this->triTable[lookup][j]].normalY, 
+											this->verts[this->triTable[lookup][j]].normalZ	
+										);
+
+									vertexCounter++;
+									indexCounter++;
+
+									/*
+									// Allocate new vertex & index
+									indices[indexCount++] = vertexCount;
+									vertices[vertexCount++] = vertexPos;
+									*/
+
+									numberOfTriangles++;
+								}
+=======
 							for (j = i; j < (i+3); j++)
 							{
 								indices[indexCounter] = vertexCounter;
 
-								vertices[vertexCounter].position = XMFLOAT3	
+								vertices[vertexCounter].position = D3DXVECTOR3	
 									(	
 									this->verts[this->triTable[lookup][j]].posX,
 									this->verts[this->triTable[lookup][j]].posY,
 									this->verts[this->triTable[lookup][j]].posZ		
 									);
 
-								vertices[vertexCounter].normal = XMFLOAT3	
+								vertices[vertexCounter].normal = D3DXVECTOR3	
 									(	
 									this->verts[this->triTable[lookup][j]].normalX, 
 									this->verts[this->triTable[lookup][j]].normalY, 
@@ -633,6 +666,7 @@ const int MarchingCubesClass::edgeTable[256] = {
 
 								numberOfTriangles++;
 							}
+>>>>>>> Stashed changes
 						}
 
 						/*

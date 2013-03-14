@@ -27,12 +27,12 @@ public:
 	{
 		numberOfMetapoints = 2;
 
-		metapoints[0].power = 4.0f;
+		metapoints[0].power = 1.0f;
 		metapoints[0].posX = 0.0f;
 		metapoints[0].posY = -2.0f;
 		metapoints[0].posZ = 0.0f;
 
-		metapoints[1].power = 1.5f;
+		metapoints[1].power = 1.0f;
 		metapoints[1].posX = -8.0f;
 		metapoints[1].posY = 2.0f;
 		metapoints[1].posZ = 10.0f;

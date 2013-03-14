@@ -96,6 +96,24 @@
     <ClCompile Include="debugwindowclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+<<<<<<< Updated upstream
+=======
+    <ClCompile Include="terrainshaderclass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tinyxml2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="xmltest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="quadtreeclass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="deferredrenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+>>>>>>> Stashed changes
     <ClCompile Include="structs.cpp">
       <Filter>Deferred stuff</Filter>
     </ClCompile>
@@ -123,14 +141,22 @@
     <ClCompile Include="MarchingCubeShader.cpp">
       <Filter>MarchingCubes</Filter>
     </ClCompile>
+<<<<<<< Updated upstream
     <ClCompile Include="Engine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+=======
+    <ClCompile Include="PerlinNoise.cpp">
+      <Filter>MarchingCubes\Noise</Filter>
+    </ClCompile>
     <ClCompile Include="TreeClass.cpp">
       <Filter>MarchingCubes\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="terrainclass.cpp">
+      <Filter>MarchingCubes\Terrain</Filter>
     </ClCompile>
     <ClCompile Include="terrainclass.cpp">
       <Filter>Source Files</Filter>
@@ -141,6 +167,7 @@
     <ClCompile Include="SimplexNoise.cpp">
       <Filter>MarchingCubes\Noise</Filter>
     </ClCompile>
+>>>>>>> Stashed changes
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inputclass.h">
@@ -206,6 +233,21 @@
     <ClInclude Include="debugwindowclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+<<<<<<< Updated upstream
+=======
+    <ClInclude Include="terrainshaderclass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tinyxml2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="quadtreeclass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="deferredrenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+>>>>>>> Stashed changes
     <ClInclude Include="interfacepointers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -242,8 +284,22 @@
     <ClInclude Include="MarchingCubeShader.h">
       <Filter>MarchingCubes</Filter>
     </ClInclude>
+<<<<<<< Updated upstream
+    <ClInclude Include="Engine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+=======
+    <ClInclude Include="PerlinNoise.h">
+      <Filter>MarchingCubes\Noise</Filter>
+    </ClInclude>
     <ClInclude Include="TreeClass.h">
       <Filter>MarchingCubes\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="terrainclass.h">
+      <Filter>MarchingCubes\Terrain</Filter>
     </ClInclude>
     <ClInclude Include="terrainclass.h">
       <Filter>Header Files</Filter>
@@ -254,12 +310,7 @@
     <ClInclude Include="SimplexNoise.h">
       <Filter>MarchingCubes\Noise</Filter>
     </ClInclude>
-    <ClInclude Include="Engine.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+>>>>>>> Stashed changes
   </ItemGroup>
   <ItemGroup>
     <None Include="font.psh">
