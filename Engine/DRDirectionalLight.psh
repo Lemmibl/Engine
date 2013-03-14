@@ -58,7 +58,6 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		position = float4(input.Position.xyz * depth, 1.0f);
 
 		position = mul(position, InverseViewProjection);
-		//position /= position.w;
 	
 		//surface-to-light vector
 		float3 lightVector = -normalize(LightDirection); //Sigh, idk

@@ -31,30 +31,30 @@ half4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		//http://www.gamedev.net/topic/636669-deferred-renderer-shadow-mapping/
 		//http://gamedev.stackexchange.com/questions/29948/first-time-shadow-mapping-problems
 		
-		float4 position;
-		position = (input.ViewPosition * depth);
+		//float4 position;
+		//position = (input.ViewPosition * depth);
 
-		float4 positionWorldSpace = mul(position, InvView);
+		////float4 positionWorldSpace = mul(position, InvView);
 
-		float4 texcoord = mul(positionWorldSpace, LightViewProjection);
+		//float4 texcoord = mul(position, LightViewProjection);
 
-		texcoord /= texcoord.w;
+		//texcoord /= texcoord.w;
 
-		float realDistanceToLight = texcoord.z;
+		//float realDistanceToLight = texcoord.z;
 
-		float2 sampleLightScreen;
-		sampleLightScreen.x = texcoord.x * 0.5f + 0.5f;
-		sampleLightScreen.y = (-texcoord.y * 0.5f + 0.5f);
+		//float2 sampleLightScreen;
+		//sampleLightScreen.x = texcoord.x * 0.5f + 0.5f;
+		//sampleLightScreen.y = (-texcoord.y * 0.5f + 0.5f);
 
 		float shadowMultiplier = 1.0f;
 
-		if(!(sampleLightScreen.x > 1 || sampleLightScreen.x < 0 || sampleLightScreen.y > 1 || sampleLightScreen.y < 0))
-		{	
-				float distanceStoredInDepthMap = shaderTextures[2].Sample(samplers[1], sampleLightScreen);
+		//if(!(sampleLightScreen.x > 1 || sampleLightScreen.x < 0 || sampleLightScreen.y > 1 || sampleLightScreen.y < 0))
+		//{	
+		//		float distanceStoredInDepthMap = shaderTextures[2].Sample(samplers[1], sampleLightScreen);
 
-				if((realDistanceToLight - 0.0002f) > distanceStoredInDepthMap)
-					shadowMultiplier = 0.3f;
-		}
+		//		if((realDistanceToLight - 0.0002f) > distanceStoredInDepthMap)
+		//			shadowMultiplier = 0.3f;
+		//}
 
 		//Not going to apply specular here, it'll be applied in the final composition stage.
 		return half4(baseColor * shadowMultiplier * (diffuseLight + specularLight), 1.0f);
