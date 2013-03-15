@@ -354,6 +354,7 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 
 	timer = 0.0f;
 	returning = false;
+	rotationY = rotationX = 0.0f;
 
 	/*
 	Inför perlin/simplex noise:
@@ -439,8 +440,21 @@ bool Renderer::Update(int fps, int cpu, float frameTime)
 		dirLight->Position.x -= frameTime*0.02f;
 		dirLight->Position.z -= frameTime*0.02f;
 	}
+	
+	if(inputManager->IsKeyPressed(DIK_C))
+	{
+		rotationX -= frameTime*0.002f;
+		rotationY += frameTime*0.002f;
+	}
 
-	XMVECTOR lookAt = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+	if(inputManager->IsKeyPressed(DIK_V))
+	{
+		rotationX += frameTime*0.002f;
+		rotationY -= frameTime*0.002f;
+	}
+
+
+	XMVECTOR lookAt = XMVectorZero();
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix
@@ -606,8 +620,9 @@ bool Renderer::Render()
 	// Move the model to the location it should be rendered at.
 	worldMatrix = XMMatrixTranslation(0.0f, -10.0f, 0.0f);
 	scalingMatrix = XMMatrixScaling(0.2f, 0.2f, 0.2f);
+	XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(rotationX, rotationY, 0.0f);
 
-	worldMatrix = scalingMatrix * worldMatrix;
+	worldMatrix = scalingMatrix* rotationMatrix * worldMatrix;
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
 	groundModel->Render(context);

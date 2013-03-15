@@ -20,15 +20,16 @@ struct VertexShaderOutput
 	float3 Normal : NORMAL;
 	float2 TexCoord : TEXCOORD0;
 	float4 ViewPosition : TEXCOORD1;
-	float3x3 TangentToWorld : TEXCOORD2;
+	float4 WorldPosition : TEXCOORD2;
+	float3x3 TangentToWorld : TEXCOORD3;
 };
 
 VertexShaderOutput GBufferVertexShader(VertexShaderInput input)
 {
 	VertexShaderOutput output;
 
-	float4 worldPosition = mul(float4(input.Position, 1.0f), World);
-	output.ViewPosition = mul(worldPosition, View);
+	output.WorldPosition = mul(float4(input.Position, 1.0f), World);
+	output.ViewPosition = mul(output.WorldPosition, View);
 	output.Position = mul(output.ViewPosition, Projection);
 
 	output.TexCoord = input.TexCoord;

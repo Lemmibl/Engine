@@ -101,6 +101,7 @@ private:
 
 	UINT shadowMapWidth, shadowMapHeight, screenWidth, screenHeight;
 	float screenFar, screenNear;
+	float rotationX, rotationY;
 
 	float timer;
 	bool returning;

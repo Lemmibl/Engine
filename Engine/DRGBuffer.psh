@@ -10,7 +10,8 @@ struct VertexShaderOutput
 	float3 Normal : NORMAL;
 	float2 TexCoord : TEXCOORD0;
 	float4 ViewPosition : TEXCOORD1;
-	float3x3 TangentToWorld : TEXCOORD2;
+	float4 WorldPosition : TEXCOORD2;
+	float3x3 TangentToWorld : TEXCOORD3;
 };
 
 struct PixelShaderOutput
@@ -36,14 +37,34 @@ PixelShaderOutput GBufferPixelShader(VertexShaderOutput input)
 {
 	PixelShaderOutput output;
 
-	output.Color =				shaderTextures[0].Sample(linearSampler, input.TexCoord);
+	//Create weights for color interpolation based on world-space normal of surface
+	float tighten = 0.2f; 
+	float mXY = abs(input.Normal.z)-tighten;
+	float mXZ = abs(input.Normal.y)-tighten;
+	float mYZ = abs(input.Normal.x)-tighten;
+
+	//Then we make their sum equal to one (this is important because we don't want to add or 
+	//remove any color from the original texture):
+	float total = mXY + mXZ + mYZ;
+	mXY /= total;
+	mXZ /= total;
+	mYZ /= total;
+
+	float scale = 0.5f;
+	
+	float4 cXY = shaderTextures[0].Sample(linearSampler, input.WorldPosition.xy * scale);
+	float4 cXZ = shaderTextures[0].Sample(linearSampler, input.WorldPosition.xz * scale);
+	float4 cYZ = shaderTextures[0].Sample(linearSampler, input.WorldPosition.yz * scale);
+
+	output.Color =	cXY*mXY + cXZ*mXZ + cYZ*mYZ; 
+	//output.Color = shaderTextures[0].Sample(linearSampler, input.TexCoord);
 	float3 normalFromMap =				shaderTextures[1].Sample(linearSampler, input.TexCoord);
 	float4 specularAttributes =		shaderTextures[2].Sample(linearSampler, input.TexCoord);
 
-	if(output.Color.a < 0.45f) //Crude alpha testing
-	{
-		output.Color = float4(0.0f, 0.0f, 0.0f, 0.0f);
-	}
+	//if(output.Color.a < 0.45f) //Crude alpha testing
+	//{
+	//	output.Color = float4(0.0f, 0.0f, 0.0f, 0.0f);
+	//}
 
 	float specularIntensity = 1.0f;
 	float specularPower = 128.0f;
