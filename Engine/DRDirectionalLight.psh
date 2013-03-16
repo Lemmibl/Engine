@@ -66,17 +66,16 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	float3 normal = normalize(decode(encodedNormal.xyz));
 	
 	float4 position;
+	position = float4(input.Position.xyz * depth, 1.0f);
 
-	position = float4(input.ViewPosition.xyz * depth, 1.0f);
+	//position = mul(position, InverseViewProjection);
 
-	position = mul(position, InverseViewProjection);
+	float4x4 invertedLVP = mul(InverseViewProjection, LightViewProjection);
 
-	//float4x4 inverseLVP = mul(InverseView, LightViewProjection);
+	float4 lightScreenPos = mul(position, invertedLVP);
+	//lightScreenPos = mul(lightScreenPos, InverseView);
 
-	float4 lightScreenPos = mul(position, LightViewProjection);
-	//float4 lightScreenPos = mul(position, inverseLVP);
-
-	lightScreenPos /= lightScreenPos.w;
+	lightScreenPos.xyz /= lightScreenPos.w;
 
 	float realDistanceToLight = lightScreenPos.z;
 
@@ -88,9 +87,9 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	
 	if(!(sampleLightScreen.x > 1 || sampleLightScreen.x < 0 || sampleLightScreen.y > 1 || sampleLightScreen.y < 0))
 	{
-		float distanceStoredInDepthMap = shaderTextures[2].Sample(samplers[0], sampleLightScreen);
+		float distanceStoredInDepthMap = shaderTextures[2].Sample(samplers[1], sampleLightScreen);
 		
-		if (realDistanceToLight < 1 && realDistanceToLight - 0.002f > distanceStoredInDepthMap)
+		if (realDistanceToLight < 1 && realDistanceToLight - 0.0002f > distanceStoredInDepthMap)
 		{
 			shadowMultiplier = 0.2f;
 		}
