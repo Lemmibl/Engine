@@ -297,8 +297,8 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	XMVECTOR direction = XMVector3Normalize(lookAt - XMLoadFloat3(&dirLight->Position));
 	XMStoreFloat3(&dirLight->Direction, direction);
 
-	//XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(((float)D3DX_PI/4.0f), 1.0f, 10.0f, 140.0f)); //Generate perspective light projection matrix and store it as float4x4
-	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(60.0f, 60.0f, 10.0f, 140.0f)); //Generate orthogonal light projection matrix and store it as float4x4
+	XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(((float)D3DX_PI/4.0f), 1.0f, 10.0f, 140.0f)); //Generate perspective light projection matrix and store it as float4x4
+	//XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(60.0f, 60.0f, 10.0f, 140.0f)); //Generate orthogonal light projection matrix and store it as float4x4
 
 	lookAt = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
 
@@ -469,8 +469,8 @@ bool Renderer::Render()
 	ID3D11RenderTargetView* shadowTarget[1] = { NULL };
 
 	ID3D11ShaderResourceView* gbufferTextures[3] = { NULL, NULL, NULL };
-	ID3D11ShaderResourceView* dirLightTextures[2] = { NULL, NULL };
-	ID3D11ShaderResourceView* finalTextures[4] = { NULL, NULL, NULL, NULL };
+	ID3D11ShaderResourceView* dirLightTextures[3] = { NULL, NULL, NULL };
+	ID3D11ShaderResourceView* finalTextures[3] = { NULL, NULL, NULL };
 
 	ID3D11ShaderResourceView* lightMap = NULL;
 
@@ -497,12 +497,12 @@ bool Renderer::Render()
 	//For directional light pass
 	dirLightTextures[0] = normalRT->SRView;
 	dirLightTextures[1] = depthRT->SRView;
+	dirLightTextures[2] = shadowRT->SRView;
 
 	//For the the final composition pass
 	finalTextures[0] = colorRT->SRView;
 	finalTextures[1] = lightRT->SRView;
-	finalTextures[2] = shadowRT->SRView;
-	finalTextures[3] = depthRT->SRView;
+	finalTextures[2] = depthRT->SRView;
 
 	// Get the number of models that will be rendered.
 	modelCount = modelList->GetModelCount();
@@ -523,18 +523,17 @@ bool Renderer::Render()
 	lightView = XMLoadFloat4x4(&dirLight->View);
 	lightProj = XMLoadFloat4x4(&dirLight->Projection);
 
-	lightViewProj = XMMatrixMultiply(lightView, lightProj);
-	viewProjection = XMMatrixMultiply(viewMatrix, projectionMatrix);
-
 	// Construct the frustum.
 	frustum->ConstructFrustum(screenFar, &projectionMatrix, &viewMatrix);
 
 	XMVECTOR nullVec;
+	lightViewProj = XMMatrixMultiply(lightView, lightProj);
+	//lightViewProj = XMMatrixInverse(&nullVec, lightViewProj);
+
+	viewProjection = XMMatrixMultiply(viewMatrix, projectionMatrix);
+
 	invertedView = XMMatrixInverse(&nullVec, viewMatrix);
-
 	invertedViewProjection = XMMatrixInverse(&nullVec, viewProjection);
-
-	lightViewProj = XMMatrixInverse(&nullVec, lightViewProj);
 
 	worldMatrix =				XMMatrixTranspose(worldMatrix);
 	viewMatrix =				XMMatrixTranspose(viewMatrix);
@@ -544,6 +543,7 @@ bool Renderer::Render()
 	lightProj =					XMMatrixTranspose(lightProj);
 
 	lightViewProj =				XMMatrixTranspose(lightViewProj);
+
 	viewProjection =			XMMatrixTranspose(viewProjection);
 	invertedViewProjection =	XMMatrixTranspose(invertedViewProjection);
 	baseView =					XMMatrixTranspose(XMLoadFloat4x4(&baseViewMatrix));
@@ -553,9 +553,9 @@ bool Renderer::Render()
 #pragma region Early depth pass for shadowmap
 	context->OMSetRenderTargets(1, shadowTarget, shadowDS);
 	d3D->SetShadowViewport();
-	d3D->SetBackFaceCullingRasterizer();
+	d3D->SetFrontFaceCullingRasterizer();
 	context->ClearDepthStencilView(shadowDS, D3D11_CLEAR_DEPTH, 1.0f, 0);
-	context->ClearRenderTargetView(shadowTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
+	context->ClearRenderTargetView(shadowTarget[0], D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f));
 
 	// Move the model to the location it should be rendered at.
 	worldMatrix = XMMatrixTranslation(0.0f, -10.0f, 0.0f);
@@ -596,6 +596,7 @@ bool Renderer::Render()
 #pragma region GBuffer building stage
 	d3D->SetDefaultViewport();
 	ds = d3D->GetDepthStencilView();
+	d3D->SetBackFaceCullingRasterizer();
 	context->OMSetRenderTargets(3, gbufferRenderTargets, ds);
 	context->ClearDepthStencilView(ds, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 

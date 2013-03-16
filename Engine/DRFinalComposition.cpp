@@ -347,7 +347,7 @@ XMMATRIX* projection, ID3D11ShaderResourceView** textureArray)
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &vertexMatrixBuffer);
 
 	// Set shader texture resource in the pixel shader.
-	deviceContext->PSSetShaderResources(0, 4, textureArray);
+	deviceContext->PSSetShaderResources(0, 3, textureArray);
 
 	return true;
 }

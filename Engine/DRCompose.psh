@@ -1,5 +1,5 @@
 SamplerState samplers[2]; //0 == linear sampler, 1 == point
-Texture2D shaderTextures[4]; // 0 = color, light = 1, 2 = shadow depth, 3 = normal depth
+Texture2D shaderTextures[3]; // 0 = color, light = 1, 2 = normal depth
 
 struct VertexShaderOutput
 {
@@ -9,9 +9,15 @@ struct VertexShaderOutput
 
 half4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 {
+		float depth = shaderTextures[2].Sample(samplers[1], input.TexCoord);
+
+		if(depth <= 0) //Skip as early as possible if this pixel isn't supposed to be lit.
+		{
+			return float4(0.0f, 0.0f, 0.0f, 0.0f);
+		}
+
 		//specular intensity is stored in the color map's alpha channel.
 		float3 baseColor = shaderTextures[0].Sample(samplers[0], input.TexCoord).rgb;
-		float depth = shaderTextures[3].Sample(samplers[1], input.TexCoord);
 		float4 light = shaderTextures[1].Sample(samplers[0], input.TexCoord);
 		float3 diffuseLight = light.rgb;
 		float specularLight = light.a;

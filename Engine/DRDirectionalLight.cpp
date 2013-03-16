@@ -494,7 +494,7 @@ bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATR
 	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &lightBuffer);
 
 	// Set shader texture resource in the pixel shader.
-	deviceContext->PSSetShaderResources(0, 2, textureArray);
+	deviceContext->PSSetShaderResources(0, 3, textureArray);
 
 	return true;
 }
