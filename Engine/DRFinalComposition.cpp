@@ -13,7 +13,6 @@ DRFinalComposition::DRFinalComposition()
 	samplers[2] = 0;
 
 	vertexMatrixBuffer = 0;
-	pixelMatrixBuffer = 0;
 }
 
 
@@ -50,14 +49,13 @@ void DRFinalComposition::Shutdown()
 	return;
 }
 
-bool DRFinalComposition::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, 
-XMMATRIX* invertedViewProjection, XMMATRIX* invertedView, XMMATRIX* lightViewProj,
+bool DRFinalComposition::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection,
 	ID3D11ShaderResourceView** textureArray)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, world, view, projection, invertedViewProjection, invertedView, lightViewProj, textureArray);
+	result = SetShaderParameters(deviceContext, world, view, projection, textureArray);
 	if(!result)
 	{
 		return false;
@@ -230,21 +228,6 @@ bool DRFinalComposition::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR
 		return false;
 	}
 
-	// Setup the description of the dynamic matrix constant buffer that is in the pixel shader.
-	vertexMatrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	vertexMatrixBufferDesc.ByteWidth = sizeof(PixelMatrixBuffer);
-	vertexMatrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	vertexMatrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	vertexMatrixBufferDesc.MiscFlags = 0;
-	vertexMatrixBufferDesc.StructureByteStride = 0;
-
-	// Create the camera constant buffer pointer so we can access the vertex shader constant buffer from within this class.
-	result = device->CreateBuffer(&vertexMatrixBufferDesc, NULL, &pixelMatrixBuffer);
-	if(FAILED(result))
-	{
-		return false;
-	}
-
 	return true;
 }
 
@@ -256,12 +239,6 @@ void DRFinalComposition::ShutdownShader()
 	{
 		vertexMatrixBuffer->Release();
 		vertexMatrixBuffer = 0;
-	}
-
-	if(pixelMatrixBuffer)
-	{
-		pixelMatrixBuffer->Release();
-		pixelMatrixBuffer = 0;
 	}
 
 	// Release the sampler state.
@@ -338,14 +315,13 @@ void DRFinalComposition::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND
 }
 
 bool DRFinalComposition::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* world, XMMATRIX* view, 
-XMMATRIX* projection, XMMATRIX* invertedViewProjection, XMMATRIX* invertedView, XMMATRIX* lightViewProj, ID3D11ShaderResourceView** textureArray)
+XMMATRIX* projection, ID3D11ShaderResourceView** textureArray)
 {		
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	unsigned int bufferNumber;
 
 	VertexMatrixBuffer* dataPtr1;
-	PixelMatrixBuffer* dataPtr2;
 
 	/////////////#1
 
@@ -362,7 +338,6 @@ XMMATRIX* projection, XMMATRIX* invertedViewProjection, XMMATRIX* invertedView, 
 	dataPtr1->World = *world;
 	dataPtr1->Projection = *projection;
 	dataPtr1->View = *view;
-	dataPtr1->LightViewProjection = *lightViewProj;
 
 	deviceContext->Unmap(vertexMatrixBuffer, 0);
 
@@ -370,28 +345,6 @@ XMMATRIX* projection, XMMATRIX* invertedViewProjection, XMMATRIX* invertedView, 
 	bufferNumber = 0;
 
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &vertexMatrixBuffer);
-
-	/////////////#2
-
-	result = deviceContext->Map(pixelMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	if(FAILED(result))
-	{
-		return false;
-	}
-
-	dataPtr2 = (PixelMatrixBuffer*)mappedResource.pData;
-
-	dataPtr2->LightViewProjection = *lightViewProj;
-	dataPtr2->InvertedViewProjection = *invertedViewProjection;
-	dataPtr2->InvertedView = *lightViewProj;
-
-	deviceContext->Unmap(pixelMatrixBuffer, 0);
-
-	bufferNumber = 0;
-
-	// Now set the camera constant buffer in the vertex shader with the updated values.
-	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &pixelMatrixBuffer);
-
 
 	// Set shader texture resource in the pixel shader.
 	deviceContext->PSSetShaderResources(0, 4, textureArray);

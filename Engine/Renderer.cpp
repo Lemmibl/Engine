@@ -263,8 +263,8 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	/************************************************************************/
 
 #pragma region Directional light initialization
-	
-	ambientLight = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
+
+	ambientLight = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f);
 
 	// Create the directional light.
 	dirLight = new DirLight();
@@ -294,17 +294,15 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	dirLight->Intensity = 256.0f;
 	dirLight->Position = XMFLOAT3(0.5f, 55.0f, 10.0f);
 
-	XMVECTOR direction = (lookAt - XMLoadFloat3(&dirLight->Position));
-	XMVector3Normalize(direction);
+	XMVECTOR direction = XMVector3Normalize(lookAt - XMLoadFloat3(&dirLight->Position));
 	XMStoreFloat3(&dirLight->Direction, direction);
 
-	XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(((float)D3DX_PI/4.0f), 1.0f, 10.0f, 140.0f));
-	//XMMATRIXOrthoLH(&dirLight->Projection, (float)shadowMapWidth, (float)shadowMapHeight, 5.0f, 140.0f);
+	//XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(((float)D3DX_PI/4.0f), 1.0f, 10.0f, 140.0f)); //Generate perspective light projection matrix and store it as float4x4
+	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(60.0f, 60.0f, 10.0f, 140.0f)); //Generate orthogonal light projection matrix and store it as float4x4
 
 	lookAt = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
 
-	//It really doesn't matter if the calculation is horribly efficient, it only happens once at initialization.
-	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix.
+	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix and store it as float4x4.
 #pragma endregion
 
 	textureShader = new TextureShaderClass();
@@ -402,14 +400,14 @@ bool Renderer::Update(int fps, int cpu, float frameTime)
 
 	if(inputManager->WasKeyPressed(DIK_T))
 	{
-		if(defaultModelMaterial.a <= 4096.0f)
+		if(defaultModelMaterial.a <= 512.0f)
 			defaultModelMaterial.a *= 2.0f;
 	}
 
 	if(inputManager->WasKeyPressed(DIK_G))
 	{
 		if(defaultModelMaterial.a >= 1.0f)
-			defaultModelMaterial.a /= 2.0f;
+			defaultModelMaterial.a *= 0.5f;
 	}
 
 	//for(unsigned int i = 0; i < pointLights.size(); i++)
@@ -443,6 +441,8 @@ bool Renderer::Update(int fps, int cpu, float frameTime)
 	XMVECTOR lookAt = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
+	XMStoreFloat3(&dirLight->Direction, XMVector3Normalize(lookAt - XMLoadFloat3(&dirLight->Position)));
+
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix
 
 	return true;
@@ -453,7 +453,7 @@ bool Renderer::Render()
 	// Clear the scene.
 	d3D->BeginScene(0.0f, 0.0f, 0.0f, 0.0f);
 
-	#pragma region Preparation
+#pragma region Preparation
 	ID3D11DeviceContext* context;
 	context = d3D->GetDeviceContext();
 
@@ -509,9 +509,9 @@ bool Renderer::Render()
 
 	// Initialize the count of models that have been rendered.
 	renderCount = 0;
-	#pragma endregion
+#pragma endregion
 
-	#pragma region Matrix preparations
+#pragma region Matrix preparations
 	// Generate the view matrix based on the camera's position.
 	camera->Update();
 
@@ -523,17 +523,17 @@ bool Renderer::Render()
 	lightView = XMLoadFloat4x4(&dirLight->View);
 	lightProj = XMLoadFloat4x4(&dirLight->Projection);
 
-	lightViewProj = (lightProj*lightView);
-	viewProjection = (projectionMatrix*viewMatrix);
+	lightViewProj = XMMatrixMultiply(lightView, lightProj);
+	viewProjection = XMMatrixMultiply(viewMatrix, projectionMatrix);
 
 	// Construct the frustum.
 	frustum->ConstructFrustum(screenFar, &projectionMatrix, &viewMatrix);
 
 	XMVECTOR nullVec;
 	invertedView = XMMatrixInverse(&nullVec, viewMatrix);
-	
+
 	invertedViewProjection = XMMatrixInverse(&nullVec, viewProjection);
-	
+
 	lightViewProj = XMMatrixInverse(&nullVec, lightViewProj);
 
 	worldMatrix =				XMMatrixTranspose(worldMatrix);
@@ -548,9 +548,9 @@ bool Renderer::Render()
 	invertedViewProjection =	XMMatrixTranspose(invertedViewProjection);
 	baseView =					XMMatrixTranspose(XMLoadFloat4x4(&baseViewMatrix));
 	invertedView =				XMMatrixTranspose(invertedView);
-	#pragma endregion
+#pragma endregion
 
-	#pragma region Early depth pass for shadowmap
+#pragma region Early depth pass for shadowmap
 	context->OMSetRenderTargets(1, shadowTarget, shadowDS);
 	d3D->SetShadowViewport();
 	d3D->SetBackFaceCullingRasterizer();
@@ -591,9 +591,9 @@ bool Renderer::Render()
 			return false;
 		}
 	}
-	#pragma endregion
+#pragma endregion
 
-	#pragma region GBuffer building stage
+#pragma region GBuffer building stage
 	d3D->SetDefaultViewport();
 	ds = d3D->GetDepthStencilView();
 	context->OMSetRenderTargets(3, gbufferRenderTargets, ds);
@@ -652,7 +652,7 @@ bool Renderer::Render()
 	}
 
 	text->SetRenderCount(renderCount, context);
-	#pragma endregion
+#pragma endregion
 
 	context->OMSetRenderTargets(1, lightTarget, ds);
 	context->ClearRenderTargetView(lightTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
@@ -746,7 +746,7 @@ bool Renderer::Render()
 	//}
 	//#pragma endregion
 
-	#pragma region Directional light stage
+#pragma region Directional light stage
 	///*TODO: Create a directional light stencilstate that does a NOTEQUAL==0 stencil check.*/
 	ds = d3D->GetDepthStencilView();
 	context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL|D3D11_CLEAR_DEPTH, 1.0f, 0);
@@ -757,16 +757,15 @@ bool Renderer::Render()
 
 	fullScreenQuad.Render(context, 0, 0);
 
-	result = dirLightShader->Render(context, fullScreenQuad.GetIndexCount(), &worldMatrix, &baseView, &orthoMatrix, &invertedViewProjection, 
-		dirLightTextures, camPos, dirLight->Position, dirLight->Direction, dirLight->Color, dirLight->Intensity, ambientLight, defaultModelMaterial, 
-		&lightView, &lightProj);
+	result = dirLightShader->Render(context, fullScreenQuad.GetIndexCount(), &worldMatrix, &baseView, &orthoMatrix, &invertedViewProjection, &invertedView, 
+		dirLightTextures, camPos, dirLight, ambientLight, defaultModelMaterial, &lightViewProj);
 	if(!result)
 	{
 		return false;
 	}
-	#pragma endregion
+#pragma endregion
 
-	#pragma region Final compose stage
+#pragma region Final compose stage
 	d3D->SetBackBufferRenderTarget();
 	d3D->SetBackFaceCullingRasterizer();
 	context->ClearDepthStencilView(ds,  D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
@@ -778,10 +777,10 @@ bool Renderer::Render()
 	fullScreenQuad.Render(context, 0, 0);
 
 	composeShader->Render(context, fullScreenQuad.GetIndexCount(), &worldMatrix, &baseView, 
-		&orthoMatrix, &invertedViewProjection, &invertedView, &lightViewProj, finalTextures);
-	#pragma endregion
+		&orthoMatrix, finalTextures);
+#pragma endregion
 
-	#pragma region Debug and text stage
+#pragma region Debug and text stage
 	d3D->ResetRasterizerState();
 	d3D->ResetBlendState();
 	ds = d3D->GetDepthStencilView(); //This also resets the depth stencil state to "default".
@@ -830,7 +829,7 @@ bool Renderer::Render()
 	{
 		return false;
 	}
-	
+
 
 	d3D->TurnZBufferOff();
 
@@ -848,7 +847,7 @@ bool Renderer::Render()
 
 	// Turn the Z buffer back on now that all 2D rendering has completed.
 	d3D->TurnZBufferOn();
-	#pragma endregion
+#pragma endregion
 
 	// Present the rendered scene to the screen.
 	d3D->EndScene();

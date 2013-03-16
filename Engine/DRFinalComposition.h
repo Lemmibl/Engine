@@ -23,19 +23,11 @@ using namespace std;
 class DRFinalComposition
 {
 private:
-	struct PixelMatrixBuffer
-	{
-		XMMATRIX LightViewProjection;
-		XMMATRIX InvertedViewProjection;
-		XMMATRIX InvertedView;
-	};
-
 	struct VertexMatrixBuffer
 	{
 		XMMATRIX World;
 		XMMATRIX View;
 		XMMATRIX Projection;
-		XMMATRIX LightViewProjection;
 	};
 
 public:
@@ -45,8 +37,7 @@ public:
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
-	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, 
-	XMMATRIX* invertedViewProjection, XMMATRIX* invertedView, XMMATRIX* lightViewProj,
+	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection,
 		ID3D11ShaderResourceView** textureArray);
 
 private:
@@ -55,8 +46,7 @@ private:
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
 
 	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* world, XMMATRIX* view, 
-	XMMATRIX* projection, XMMATRIX* invertedViewProjection, XMMATRIX* invertedView, XMMATRIX* lightViewProj,
-		ID3D11ShaderResourceView** textureArray);
+	XMMATRIX* projection, ID3D11ShaderResourceView** textureArray);
 	void RenderShader(ID3D11DeviceContext*, int);
 
 private:
@@ -66,8 +56,6 @@ private:
 	ID3D11SamplerState* samplers[2];
 
 	ID3D11Buffer* vertexMatrixBuffer;
-	ID3D11Buffer* pixelMatrixBuffer;
-
 };
 
 #endif

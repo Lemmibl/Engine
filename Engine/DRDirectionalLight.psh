@@ -1,12 +1,15 @@
 cbuffer PositionalBuffer //Whatever, idk what else to name it
 {
-	float4 LightDirection;
-	float4 LightPosition;
-	float4 CameraPosition;
+	float3 LightDirection;
+	float3 LightPosition;
+	float3 CameraPosition;
+	float3 Padding;
 };
 
 cbuffer PixelMatrixBuffer
 {
+	float4x4 LightViewProjection;
+	float4x4 InverseView;
 	float4x4 InverseViewProjection;
 };
 
@@ -60,8 +63,8 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		position = mul(position, InverseViewProjection);
 	
 		//surface-to-light vector
-		float3 lightVector = -normalize(LightDirection); //Sigh, idk
-		float NdL = max(0, dot(lightVector, normal));
+		float3 lightVector = -LightDirection; //Sigh, idk
+		float NdL = max(0, dot(normal, lightVector));
 
 		//reflection vector
 		float3 reflectionVector = normalize(-reflect(lightVector, normal));

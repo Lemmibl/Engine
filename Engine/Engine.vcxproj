@@ -18,7 +18,7 @@
     <ClCompile Include="d3dclass.cpp" />
     <ClCompile Include="debugwindowclass.cpp" />
     <ClCompile Include="DepthOnlyShader.cpp" />
-    <ClCompile Include="DRDirLight.cpp" />
+    <ClCompile Include="DRDirectionalLight.cpp" />
     <ClCompile Include="DRFinalComposition.cpp" />
     <ClCompile Include="DRGBuffer.cpp" />
     <ClCompile Include="fontshaderclass.cpp" />
@@ -52,7 +52,7 @@
     <ClInclude Include="d3dclass.h" />
     <ClInclude Include="debugwindowclass.h" />
     <ClInclude Include="DepthOnlyShader.h" />
-    <ClInclude Include="DRDirLight.h" />
+    <ClInclude Include="DRDirectionalLight.h" />
     <ClInclude Include="DRFinalComposition.h" />
     <ClInclude Include="fontclass.h" />
     <ClInclude Include="fontshaderclass.h" />

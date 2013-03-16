@@ -90,9 +90,6 @@
     <ClCompile Include="structs.cpp">
       <Filter>Deferred stuff</Filter>
     </ClCompile>
-    <ClCompile Include="DRDirLight.cpp">
-      <Filter>Deferred stuff</Filter>
-    </ClCompile>
     <ClCompile Include="DRGBuffer.cpp">
       <Filter>Deferred stuff</Filter>
     </ClCompile>
@@ -119,6 +116,9 @@
     </ClCompile>
     <ClCompile Include="Renderer.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DRDirectionalLight.cpp">
+      <Filter>Deferred stuff</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -191,9 +191,6 @@
     <ClInclude Include="structs.h">
       <Filter>Deferred stuff</Filter>
     </ClInclude>
-    <ClInclude Include="DRDirLight.h">
-      <Filter>Deferred stuff</Filter>
-    </ClInclude>
     <ClInclude Include="DRGBuffer.h">
       <Filter>Deferred stuff</Filter>
     </ClInclude>
@@ -226,6 +223,9 @@
     </ClInclude>
     <ClInclude Include="Renderer.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DRDirectionalLight.h">
+      <Filter>Deferred stuff</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
