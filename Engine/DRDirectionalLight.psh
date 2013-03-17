@@ -71,6 +71,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//position = mul(position, InverseViewProjection);
 
 	//http://www.gamedev.net/topic/635060-csm-help-problem-with-cascadesshadowmap-solved/
+	//http://www.xbdev.net/misc_demos/demos/shadow_maps/paper.pdf
 
 	float4x4 invertedLVP = mul(InverseViewProjection, LightViewProjection);
 
