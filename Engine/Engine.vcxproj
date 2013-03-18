@@ -19,7 +19,7 @@
     <ClCompile Include="debugwindowclass.cpp" />
     <ClCompile Include="DepthOnlyShader.cpp" />
     <ClCompile Include="DRDirLight.cpp" />
-    <ClCompile Include="DRFinalComposition.cpp" />
+    <ClCompile Include="DRCompose.cpp" />
     <ClCompile Include="DRGBuffer.cpp" />
     <ClCompile Include="fontshaderclass.cpp" />
     <ClCompile Include="fpsmeter.cpp" />
@@ -35,6 +35,8 @@
     <ClCompile Include="DRPointLight.cpp" />
     <ClCompile Include="renderToTextureClass.cpp" />
     <ClCompile Include="SimplexNoise.cpp" />
+    <ClCompile Include="SkySphere.cpp" />
+    <ClCompile Include="SkysphereShader.cpp" />
     <ClCompile Include="soundclass.cpp" />
     <ClCompile Include="structs.cpp" />
     <ClCompile Include="Engine.cpp" />
@@ -56,7 +58,7 @@
     <ClInclude Include="debugwindowclass.h" />
     <ClInclude Include="DepthOnlyShader.h" />
     <ClInclude Include="DRDirLight.h" />
-    <ClInclude Include="DRFinalComposition.h" />
+    <ClInclude Include="DRCompose.h" />
     <ClInclude Include="fontclass.h" />
     <ClInclude Include="fontshaderclass.h" />
     <ClInclude Include="fpsmeter.h" />
@@ -74,6 +76,8 @@
     <ClInclude Include="DRPointLight.h" />
     <ClInclude Include="renderToTextureClass.h" />
     <ClInclude Include="SimplexNoise.h" />
+    <ClInclude Include="SkySphere.h" />
+    <ClInclude Include="SkysphereShader.h" />
     <ClInclude Include="soundclass.h" />
     <ClInclude Include="structs.h" />
     <ClInclude Include="Engine.h" />
@@ -104,6 +108,8 @@
     <None Include="DRPointLight.psh" />
     <None Include="DRPointLight.vsh" />
     <None Include="shader-error.txt" />
+    <None Include="skysphere.psh" />
+    <None Include="skysphere.vsh" />
     <None Include="standard.vsh" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

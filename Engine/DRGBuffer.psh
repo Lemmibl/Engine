@@ -23,7 +23,7 @@ struct PixelShaderOutput
 
 Texture2D shaderTextures[3]; //0 == diffuse, 1 == specular, 2 == normal
 
-SamplerState linearSampler : register(s0); //This can be used for all 3 different textures, seeing as they're all sampled the same way!
+SamplerState samplers[2]; //This can be used for all 3 different textures, seeing as they're all sampled the same way!
 
 //Normal Encoding Function
 half3 encode(half3 n)
@@ -39,27 +39,48 @@ PixelShaderOutput GBufferPixelShader(VertexShaderOutput input)
 
 	//Create weights for color interpolation based on world-space normal of surface
 	float tighten = 0.2f; 
-	float mXY = abs(input.Normal.z)-tighten;
-	float mXZ = abs(input.Normal.y)-tighten;
-	float mYZ = abs(input.Normal.x)-tighten;
+	float3 NormalizedWorldNormal = normalize(input.TangentToWorld[2].xyz);
 
-	//Then we make their sum equal to one (this is important because we don't want to add or 
-	//remove any color from the original texture):
-	float total = mXY + mXZ + mYZ;
-	mXY /= total;
-	mXZ /= total;
-	mYZ /= total;
+	float3 blend_weights = abs(NormalizedWorldNormal);     
+	blend_weights = (blend_weights - tighten) * 7;  // Tighten up the blending zone
+	blend_weights = max(blend_weights, 0);
+	blend_weights /= (blend_weights.x + blend_weights.y + blend_weights.z).xxx; // Force weights to sum to 1.0 (very important!)  
 
-	float scale = 0.5f;
+	float scale = 0.2f;
+
+	float2 YZCoord = input.WorldPosition.yz * scale;  
+	float2 ZXCoord = input.WorldPosition.zx * scale;  
+	float2 XYCoord = input.WorldPosition.xy * scale; 
+
+	float4 YZColor = shaderTextures[0].Sample(samplers[1], YZCoord);
+	float4 XZColor = shaderTextures[0].Sample(samplers[1], ZXCoord);
+	float4 XYColor = shaderTextures[0].Sample(samplers[1], XYCoord);
 	
-	float4 cXY = shaderTextures[0].Sample(linearSampler, input.WorldPosition.xy * scale);
-	float4 cXZ = shaderTextures[0].Sample(linearSampler, input.WorldPosition.xz * scale);
-	float4 cYZ = shaderTextures[0].Sample(linearSampler, input.WorldPosition.yz * scale);
+	output.Color = ((XZColor * blend_weights.y) + (YZColor * blend_weights.x) + (XYColor * blend_weights.z));
 
-	output.Color =	cXY*mXY + cXZ*mXZ + cYZ*mYZ; 
-	//output.Color = shaderTextures[0].Sample(linearSampler, input.TexCoord);
-	float3 normalFromMap =				shaderTextures[1].Sample(linearSampler, input.TexCoord);
-	float4 specularAttributes =		shaderTextures[2].Sample(linearSampler, input.TexCoord);
+	/* Use this instead if you want "pure" texturing -- no blending.
+    *
+	*	float x = abs(input.TangentToWorld[2].x);
+	*	float y = abs(input.TangentToWorld[2].y);
+	*	float z = abs(input.TangentToWorld[2].z);
+    *	
+	*	if(x > y && x > z)
+	*	{
+	*		output.Color = cYZ;
+	*	}
+	*	else if(y > x && y > z)
+	*	{
+	*		output.Color = cXZ;
+	*	}
+	*	else if(z > y && z > x)
+	*	{
+	*		output.Color = cXY;
+	*	} 
+    *
+	*/
+
+	float3 normalFromMap =				shaderTextures[1].Sample(samplers[0], input.TexCoord);
+	float4 specularAttributes =		shaderTextures[2].Sample(samplers[0], input.TexCoord);
 
 	//if(output.Color.a < 0.45f) //Crude alpha testing
 	//{
@@ -80,8 +101,60 @@ PixelShaderOutput GBufferPixelShader(VertexShaderOutput input)
 
 	output.Normal.w = specularAttributes.y; //specular power stored in normal map's alpha channel
 
-	output.Depth.x = (input.ViewPosition.z / FarZ);
-	//output.Depth = 1.0f - (input.Position.z / input.Position.w);
+	output.Depth.x = (input.ViewPosition.z / FarZ); //Store depth linearly
 
 	return output;
 }
+
+/*
+// Determine the blend weights for the 3 planar projections.  
+// N_orig is the vertex-interpolated normal vector.  
+float3 blend_weights = abs( N_orig.xyz );   // Tighten up the blending zone:  
+blend_weights = (blend_weights - 0.2) * 7;  
+blend_weights = max(blend_weights, 0);      // Force weights to sum to 1.0 (very important!)  
+blend_weights /= (blend_weights.x + blend_weights.y + blend_weights.z ).xxx;   
+
+// Now determine a color value and bump vector for each of the 3  
+// projections, blend them, and store blended results in these two  
+// vectors:  
+float4 blended_color; // .w hold spec value  
+
+float3 blended_bump_vec;  
+{ 
+// Compute the UV coords for each of the 3 planar projections.  
+// tex_scale (default ~ 1.0) determines how big the textures appear.  
+float2 coord1 = v2f.wsCoord.yz * tex_scale;  
+float2 coord2 = v2f.wsCoord.zx * tex_scale;  
+float2 coord3 = v2f.wsCoord.xy * tex_scale; 
+ 
+// This is where you would apply conditional displacement mapping.  
+//if (blend_weights.x > 0) coord1 = . . .  
+//if (blend_weights.y > 0) coord2 = . . .  
+//if (blend_weights.z > 0) coord3 = . . .  
+
+// Sample color maps for each projection, at those UV coords.  
+float4 col1 = colorTex1.Sample(coord1);  
+float4 col2 = colorTex2.Sample(coord2);  
+float4 col3 = colorTex3.Sample(coord3);  
+
+// Sample bump maps too, and generate bump vectors.  
+// (Note: this uses an oversimplified tangent basis.)  
+float2 bumpFetch1 = bumpTex1.Sample(coord1).xy - 0.5;  
+float2 bumpFetch2 = bumpTex2.Sample(coord2).xy - 0.5;  
+float2 bumpFetch3 = bumpTex3.Sample(coord3).xy - 0.5;  
+float3 bump1 = float3(0, bumpFetch1.x, bumpFetch1.y);  
+float3 bump2 = float3(bumpFetch2.y, 0, bumpFetch2.x);  
+float3 bump3 = float3(bumpFetch3.x, bumpFetch3.y, 0);
+  
+ // Finally, blend the results of the 3 planar projections.  
+blended_color = col1.xyzw * blend_weights.xxxx +  
+                col2.xyzw * blend_weights.yyyy +  
+                col3.xyzw * blend_weights.zzzz;
+
+blended_bump_vec = bump1.xyz * blend_weights.xxx +  
+                   bump2.xyz * blend_weights.yyy +  
+                   bump3.xyz * blend_weights.zzz;  
+}  
+// Apply bump vector to vertex-interpolated normal vector.  
+float3 N_for_lighting = normalize(N_orig + blended_bump);  
+*/

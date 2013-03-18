@@ -29,6 +29,8 @@ bool InputClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidth, int
 	this->screenWidth = screenWidth;
 	this->screenHeight = screenHeight;
 
+	lastChar = 'a';
+
 	// Initialize the location of the mouse on the screen.
 	mouseX = 0;
 	mouseY = 0;
@@ -138,6 +140,7 @@ bool InputClass::Update(HWND hwnd)
 	result = ReadKeyboard(hwnd);
 	if(!result)
 	{
+		MessageBox(hwnd, L"Could not read keyboard. Look in inputclass.", L"Error", MB_OK);
 		return false;
 	}
 
@@ -145,6 +148,7 @@ bool InputClass::Update(HWND hwnd)
 	result = ReadMouse();
 	if(!result)
 	{
+		MessageBox(hwnd, L"Could not read mouse. Look in inputclass.", L"Error", MB_OK);
 		return false;
 	}
 
@@ -220,17 +224,32 @@ bool InputClass::IsEscapePressed()
 
 bool InputClass::IsKeyPressed(unsigned char key)
 {
-	return (currentKeyStates[key] & 0x80) ? true : false;
+	if(currentKeyStates[key] & 0x80)
+	{
+		return true;
+	}
+
+	return false;
 };
 
 bool InputClass::IsKeyUp(unsigned char key)
 {
-	return (currentKeyStates[key] & 0x80) ? false : true;
+	if(currentKeyStates[key] & 0x80)
+	{
+		return false;
+	}
+
+	return true;
 };
 
 bool InputClass::WasKeyPressed(unsigned char key)
 {
-	return ((currentKeyStates[key] & 0x80) && !(previousKeyStates[key] & 0x80)) ? true : false;
+	if((currentKeyStates[key] & 0x80) && !(previousKeyStates[key] & 0x80))
+	{
+		return true;
+	}
+
+	return false;
 };
 
 void InputClass::GetMouseLocation(int& mouseX, int& mouseY)

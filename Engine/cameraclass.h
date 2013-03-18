@@ -67,6 +67,6 @@ private:
 	XMFLOAT4X4 world, view, projection;
 	float yaw, pitch, roll;
 
-	double PITCHROOF, PITCHFLOOR;
+	float PITCHROOF, PITCHFLOOR;
 };
 #endif

@@ -10,7 +10,8 @@ DRGBuffer::DRGBuffer()
 	layout = 0;
 	matrixBuffer = 0;
 	pixelFarZBuffer = 0;
-	sampleState = 0;
+	samplers[0] = 0;
+	samplers[1] = 0;
 }
 
 
@@ -244,7 +245,29 @@ bool DRGBuffer::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
 	// Create the texture sampler state.
-	result = device->CreateSamplerState(&samplerDesc, &sampleState);
+	result = device->CreateSamplerState(&samplerDesc, &samplers[0]);
+	if(FAILED(result))
+	{
+		return false;
+	}
+
+	// Create a texture sampler state description.
+	samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.MipLODBias = 0.0f;
+	samplerDesc.MaxAnisotropy = 1;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	samplerDesc.BorderColor[0] = 0;
+	samplerDesc.BorderColor[1] = 0;
+	samplerDesc.BorderColor[2] = 0;
+	samplerDesc.BorderColor[3] = 0;
+	samplerDesc.MinLOD = 1;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	// Create the texture sampler state.
+	result = device->CreateSamplerState(&samplerDesc, &samplers[1]);
 	if(FAILED(result))
 	{
 		return false;
@@ -258,10 +281,15 @@ void DRGBuffer::ShutdownShader()
 
 
 	// Release the sampler state.
-	if(sampleState)
+	if(samplers[0])
 	{
-		sampleState->Release();
-		sampleState = 0;
+		samplers[0]->Release();
+		samplers[0] = 0;
+	}
+	if(samplers[1])
+	{
+		samplers[1]->Release();
+		samplers[1] = 0;
 	}
 
 	// Release the matrix constant buffer.
@@ -406,7 +434,7 @@ void DRGBuffer::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
 	deviceContext->PSSetShader(pixelShader, NULL, 0);
 
 	// Set the sampler state in the pixel shader.
-	deviceContext->PSSetSamplers(0, 1, &sampleState);
+	deviceContext->PSSetSamplers(0, 2, samplers);
 
 	// Render the triangles.
 	deviceContext->DrawIndexed(indexCount, 0, 0);

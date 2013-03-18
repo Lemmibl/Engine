@@ -1,10 +1,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Filename: lightshaderclass.cpp
 ////////////////////////////////////////////////////////////////////////////////
-#include "DRFinalComposition.h"
+#include "DRCompose.h"
 
 
-DRFinalComposition::DRFinalComposition()
+DRCompose::DRCompose()
 {
 	vertexShader = 0;
 	pixelShader = 0;
@@ -17,17 +17,17 @@ DRFinalComposition::DRFinalComposition()
 }
 
 
-DRFinalComposition::DRFinalComposition(const DRFinalComposition& other)
+DRCompose::DRCompose(const DRCompose& other)
 {
 }
 
 
-DRFinalComposition::~DRFinalComposition()
+DRCompose::~DRCompose()
 {
 }
 
 
-bool DRFinalComposition::Initialize(ID3D11Device* device, HWND hwnd)
+bool DRCompose::Initialize(ID3D11Device* device, HWND hwnd)
 {
 	bool result;
 
@@ -42,7 +42,7 @@ bool DRFinalComposition::Initialize(ID3D11Device* device, HWND hwnd)
 }
 
 
-void DRFinalComposition::Shutdown()
+void DRCompose::Shutdown()
 {
 	// Shutdown the vertex and pixel shaders as well as the related objects.
 	ShutdownShader();
@@ -50,7 +50,7 @@ void DRFinalComposition::Shutdown()
 	return;
 }
 
-bool DRFinalComposition::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, 
+bool DRCompose::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, 
 XMMATRIX* invertedViewProjection, XMMATRIX* invertedView, XMMATRIX* lightViewProj,
 	ID3D11ShaderResourceView** textureArray)
 {
@@ -69,7 +69,7 @@ XMMATRIX* invertedViewProjection, XMMATRIX* invertedView, XMMATRIX* lightViewPro
 	return true;
 }
 
-bool DRFinalComposition::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename)
+bool DRCompose::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename)
 {
 	HRESULT result;
 	ID3D10Blob* errorMessage;
@@ -248,7 +248,7 @@ bool DRFinalComposition::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR
 	return true;
 }
 
-void DRFinalComposition::ShutdownShader()
+void DRCompose::ShutdownShader()
 {	
 
 	// Release the camera constant buffer.
@@ -302,7 +302,7 @@ void DRFinalComposition::ShutdownShader()
 }
 
 
-void DRFinalComposition::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename)
+void DRCompose::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename)
 {
 	char* compileErrors;
 	unsigned long bufferSize, i;
@@ -337,7 +337,7 @@ void DRFinalComposition::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND
 	return;
 }
 
-bool DRFinalComposition::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* world, XMMATRIX* view, 
+bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* world, XMMATRIX* view, 
 XMMATRIX* projection, XMMATRIX* invertedViewProjection, XMMATRIX* invertedView, XMMATRIX* lightViewProj, ID3D11ShaderResourceView** textureArray)
 {		
 	HRESULT result;
@@ -399,7 +399,7 @@ XMMATRIX* projection, XMMATRIX* invertedViewProjection, XMMATRIX* invertedView, 
 	return true;
 }
 
-void DRFinalComposition::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
+void DRCompose::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
 {
 	// Set the vertex input layout.
 	deviceContext->IASetInputLayout(layout);

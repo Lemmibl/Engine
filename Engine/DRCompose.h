@@ -20,7 +20,7 @@ using namespace std;
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: DRFinalComposition
 ////////////////////////////////////////////////////////////////////////////////
-class DRFinalComposition
+class DRCompose
 {
 private:
 	struct PixelMatrixBuffer
@@ -39,9 +39,9 @@ private:
 	};
 
 public:
-	DRFinalComposition();
-	DRFinalComposition(const DRFinalComposition&);
-	~DRFinalComposition();
+	DRCompose();
+	DRCompose(const DRCompose&);
+	~DRCompose();
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();

@@ -49,7 +49,7 @@ public:
 	bool SetCameraPosition(int, int, int, ID3D11DeviceContext*);
 	bool SetCameraRotation(int, int, int, ID3D11DeviceContext*);
 	bool SetRenderCount(int, ID3D11DeviceContext*);
-
+	bool SetLastChar(char, ID3D11DeviceContext*);
 
 private:
 	bool InitializeSentence(SentenceType**, int, ID3D11Device*);
@@ -78,6 +78,7 @@ private:
 	SentenceType* cameraRotZ;
 	SentenceType* numberOfModelsDrawn;
 	SentenceType* numberOfTrianglesRendered; //For the terrain/quadtree
+	SentenceType* lastCharPressed;
 };
 
 #endif

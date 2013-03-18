@@ -22,6 +22,7 @@ TextClass::TextClass()
 	cameraRotZ = 0;
 	numberOfModelsDrawn = 0;
 	numberOfTrianglesRendered = 0;
+	lastCharPressed = 0;
 }
 
 
@@ -240,6 +241,23 @@ bool TextClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCont
 	index++;
 	sentences.push_back(cameraRotZ);
 
+	//// Initialize the first sentence.
+	//result = InitializeSentence(&lastCharPressed, 32, device);
+	//if(!result)
+	//{
+	//	return false;
+	//}
+
+	//// Now update the sentence vertex buffer with the new string information.
+	//result = UpdateSentence(lastCharPressed, "Last char pressed", 100, 20*index, 1.0f, 1.0f, 0.0f, deviceContext);
+	//if(!result)
+	//{
+	//	return false;
+	//}
+
+	//index++;
+	//sentences.push_back(lastCharPressed);
+
 	// Initialize the eleventh sentence.
 	result = InitializeSentence(&numberOfTrianglesRendered, 32, device);
 	if(!result)
@@ -254,7 +272,7 @@ bool TextClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCont
 	//	return false;
 	//}
 
-	//sentences.push_back(numberOfTrianglesRendered);
+	sentences.push_back(numberOfTrianglesRendered);
 
 	return true;
 }
@@ -842,6 +860,25 @@ bool TextClass::SetRenderCount(int count, ID3D11DeviceContext* deviceContext)
 
 	// Update the sentence vertex buffer with the new string information.
 	result = UpdateSentence(numberOfTrianglesRendered, renderString, 10, 180, 0.0f, 1.0f, 0.0f, deviceContext);
+	if(!result)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool TextClass::SetLastChar(char text, ID3D11DeviceContext* deviceContext)
+{
+	char renderString[32];
+	bool result;
+
+	// Setup the cpu string.
+	strcpy_s(renderString, "Last key pressed: ");
+	strcat_s(renderString, &text);
+
+	// Update the sentence vertex buffer with the new string information.
+	result = UpdateSentence(lastCharPressed, renderString, 10, 200, 0.0f, 1.0f, 0.0f, deviceContext);
 	if(!result)
 	{
 		return false;

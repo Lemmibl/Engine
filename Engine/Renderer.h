@@ -30,7 +30,7 @@
 #include "textureshaderclass.h"
 #include "VertexShaderOnly.h"
 #include "DepthOnlyShader.h"
-#include "DRFinalComposition.h"
+#include "DRCompose.h"
 #include "DRPointLight.h"
 #include "DRDirLight.h"
 #include "inputclass.h"
@@ -70,7 +70,7 @@ private:
 
 	VertexShaderOnly* vertexOnlyShader;
 	DepthOnlyShader* depthOnlyShader;
-	DRFinalComposition* composeShader;
+	DRCompose* composeShader;
 
 	DRDirLight* dirLightShader;
 	DirLight* dirLight;
@@ -101,7 +101,7 @@ private:
 
 	UINT shadowMapWidth, shadowMapHeight, screenWidth, screenHeight;
 	float screenFar, screenNear;
-	float rotationX, rotationY;
+	XMFLOAT3 debutRotation;
 
 	float timer;
 	bool returning;

@@ -77,7 +77,7 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	}
 
 	// Initialize the model object.
-	result = groundModel->Initialize(d3D->GetDevice(), "../Engine/data/ground.txt", L"../Engine/data/ground_diffuse.dds", L"../Engine/data/ground_normal.dds", L"../Engine/data/ground_specular.dds");
+	result = groundModel->Initialize(d3D->GetDevice(), "../Engine/data/ground.txt", L"../Engine/data/seafloor.dds", L"../Engine/data/ground_normal.dds", L"../Engine/data/ground_specular.dds");
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
@@ -91,7 +91,7 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 		return false;
 	}
 
-	// Initialize the model object.
+	// Initialize the model object. It really doesn't matter what textures it has because it's only used for point light volume culling.
 	result = sphereModel->Initialize(d3D->GetDevice(), "../Engine/data/sphere2.txt", L"../Engine/data/stone02.dds", L"../Engine/data/bump02.dds", L"../Engine/data/stone_specmap.dds");
 	if(!result)
 	{
@@ -198,7 +198,7 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 		return false;
 	}
 
-	composeShader = new DRFinalComposition();
+	composeShader = new DRCompose();
 	if(!composeShader)
 	{
 		return false;
@@ -354,7 +354,7 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 
 	timer = 0.0f;
 	returning = false;
-	rotationY = rotationX = 0.0f;
+	debutRotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 
 	/*
 	Inför perlin/simplex noise:
@@ -443,16 +443,15 @@ bool Renderer::Update(int fps, int cpu, float frameTime)
 	
 	if(inputManager->IsKeyPressed(DIK_C))
 	{
-		rotationX -= frameTime*0.002f;
-		rotationY += frameTime*0.002f;
+		debutRotation.x += frameTime*0.002f;
+		debutRotation.y += frameTime*0.002f;
 	}
 
 	if(inputManager->IsKeyPressed(DIK_V))
 	{
-		rotationX += frameTime*0.002f;
-		rotationY -= frameTime*0.002f;
+		debutRotation.x -= frameTime*0.002f;
+		debutRotation.y -= frameTime*0.002f;		
 	}
-
 
 	XMVECTOR lookAt = XMVectorZero();
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
@@ -620,7 +619,7 @@ bool Renderer::Render()
 	// Move the model to the location it should be rendered at.
 	worldMatrix = XMMatrixTranslation(0.0f, -10.0f, 0.0f);
 	scalingMatrix = XMMatrixScaling(0.2f, 0.2f, 0.2f);
-	XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(rotationX, rotationY, 0.0f);
+	XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(debutRotation.x, debutRotation.y, debutRotation.z);
 
 	worldMatrix = scalingMatrix* rotationMatrix * worldMatrix;
 	worldMatrix = XMMatrixTranspose(worldMatrix);

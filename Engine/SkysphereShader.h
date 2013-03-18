@@ -1,29 +1,28 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Filename: DRGBuffer.h
+// Filename: skysphereshader.h
 ////////////////////////////////////////////////////////////////////////////////
-#ifndef _DRGBUFFER_H_
-#define _DRGBUFFER_H_
+#ifndef _SKYSPHERESHADER_H_
+#define _SKYSPHERESHADER_H_
 
 
 //////////////
 // INCLUDES //
 //////////////
+#pragma once
 #include <d3d11.h>
 #include <windows.h>
-#include <xnamath.h> 
+#include <xnamath.h>
 #include <d3dx11async.h>
 #include <fstream>
 using namespace std;
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Class name: DRGBuffer
+// Class name: SkysphereShader
 ////////////////////////////////////////////////////////////////////////////////
-class DRGBuffer
+class SkysphereShader
 {
-
 private:
-
 	struct MatrixBufferType
 	{
 		XMMATRIX World;
@@ -31,40 +30,39 @@ private:
 		XMMATRIX Projection;
 	};
 
-	struct PixelShaderBufferType
+	struct GradientBufferType
 	{
-		float FarZ;
-		XMFLOAT3 Padding;
+		XMFLOAT4 ApexColor;
+		XMFLOAT4 CenterColor;
+		XMFLOAT4 AntapexColor;
 	};
 
 public:
-	DRGBuffer();
-	DRGBuffer(const DRGBuffer&);
-	~DRGBuffer();
+	SkysphereShader();
+	SkysphereShader(const SkysphereShader&);
+	~SkysphereShader();
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
-	bool Render(ID3D11DeviceContext*, int, XMMATRIX*, XMMATRIX*, XMMATRIX*, ID3D11ShaderResourceView**, float FarZ);
+	bool Render(ID3D11DeviceContext* context, int indexCount, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, 
+	XMFLOAT4 ApexColor, XMFLOAT4 CenterColor, XMFLOAT4 AntapexColor);
 
 private:
 	bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
 	void ShutdownShader();
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
 
-	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, 
-		XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, ID3D11ShaderResourceView** textureArray, float FarZ);
-
+	bool SetShaderParameters(ID3D11DeviceContext* context, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, 
+		XMFLOAT4 ApexColor, XMFLOAT4 CenterColor, XMFLOAT4 AntapexColor);
 	void RenderShader(ID3D11DeviceContext*, int);
 
 private:
 	ID3D11VertexShader* vertexShader;
 	ID3D11PixelShader* pixelShader;
 	ID3D11InputLayout* layout;
-
 	ID3D11Buffer* matrixBuffer;
-	ID3D11Buffer* pixelFarZBuffer;
 
-	ID3D11SamplerState* samplers[2];
+	ID3D11Buffer* gradientBuffer;
 };
 
 #endif

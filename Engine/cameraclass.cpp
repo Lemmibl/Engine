@@ -163,8 +163,8 @@ CameraClass::CameraClass()
 	yaw = pitch = roll = 0.0f;
 
 
-	PITCHROOF = 80.0f*0.01745329251994329576923690768489;
-	PITCHFLOOR = -80.0f*0.01745329251994329576923690768489;
+	PITCHROOF = 80.0f*(float)DEG_TO_RAD;
+	PITCHFLOOR = -80.0f*(float)DEG_TO_RAD;
 }
 
 
@@ -216,13 +216,13 @@ void CameraClass::Update()
 	if(pitch > PITCHROOF)
 	{
 		XMVectorSetX(tempRot, 80.0f);
-		pitch = (float)PITCHROOF;
+		pitch = PITCHROOF;
 	}
 
 	if(pitch < PITCHFLOOR)
 	{
 		XMVectorSetX(tempRot, -80.0f);
-		pitch = (float)PITCHFLOOR;
+		pitch = PITCHFLOOR;
 	}
 
 	rotationMatrix = XMMatrixRotationRollPitchYaw(pitch, yaw, roll); //Create rotation matrix
