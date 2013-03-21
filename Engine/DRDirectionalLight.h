@@ -26,9 +26,9 @@ class DRDirLight
 private:
 	struct PixelMatrixBuffer
 	{
-		XMMATRIX LightViewProjection;
 		XMMATRIX InverseView;
 		XMMATRIX InvertedViewProjection;
+		XMMATRIX LightViewProjection;
 	};
 
 	struct VertexMatrixBuffer
@@ -36,6 +36,7 @@ private:
 		XMMATRIX World;
 		XMMATRIX View;
 		XMMATRIX Projection;
+		XMFLOAT3 CameraPosition;
 	};
 
 	struct PositionalBuffer

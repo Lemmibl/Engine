@@ -4,15 +4,14 @@ cbuffer PositionalBuffer //Whatever, idk what else to name it
 	float3 LightPosition;
 	float3 CameraPosition;
 	float3 Padding;
-}
-;
+};
 cbuffer PixelMatrixBuffer
 {
-	float4x4 LightViewProjection;
 	float4x4 InverseView;
 	float4x4 InverseViewProjection;
-}
-;
+	float4x4 LightViewProjection;
+};
+
 cbuffer LightBuffer
 {
 	float4 DiffuseColor;
@@ -40,6 +39,7 @@ struct VertexShaderOutput
 	float2 TexCoord : TEXCOORD0;
 	float4 ViewPosition : TEXCOORD1;
 	float4 ScreenPosition : TEXCOORD2;
+	float4 WorldPosition : TEXCOORD3;
 }
 ;
 //Decoding of GBuffer Normals
@@ -66,25 +66,33 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	float3 normal = normalize(decode(encodedNormal.xyz));
 	
 	float4 position;
+	input.ScreenPosition /= input.ScreenPosition.w;
+	position.xy = input.ScreenPosition.xy;
+	position.z = depth;
+	position.w = 1.0f;
 
-	input.ViewPosition.xyz /= input.ViewPosition.w;
-	position = float4(input.ViewPosition.xyz * depth, 1.0f);
+	//float3 viewRay = float3(input.ViewPosition.xy * (140.0f / input.ViewPosition.z), 140.0f);
 
-	//input.ScreenPosition.xyz /= input.ScreenPosition.w;
+	//input.ViewPosition.xyz /= input.ViewPosition.w;
+	//position = float4(input.ViewPosition.xyz * depth, 1.0f);
+
 	//position = float4(input.Position.xyz * depth, 1.0f);
 
 	position = mul(position, InverseViewProjection);
+	position /= position.w;
 
 	//http://www.gamedev.net/topic/635060-csm-help-problem-with-cascadesshadowmap-solved/
 	//http://www.xbdev.net/misc_demos/demos/shadow_maps/paper.pdf
 
-	float4x4 invertedLVP = mul(InverseView, LightViewProjection);
-	float4 lightScreenPos = mul(position, invertedLVP);
+	//http://www.gamedev.net/topic/553569-solvedworld-space-position-reconstruction-from-linear-depth-buffer/
+	//http://www.gamedev.net/topic/474166-reconstructing-pixel-3d-position-from-depth/
 
-	//float4 lightScreenPos = mul(lightScreenPos, InverseView);
-	//float4 lightScreenPos = mul(position, LightViewProjection);
+	//float4x4 invertedLVP = mul(InverseView, LightViewProjection);
+	//float4 lightScreenPos = mul(position, invertedLVP);
 
-	lightScreenPos.xyz /= lightScreenPos.w;
+	float4 lightScreenPos = mul(position, LightViewProjection);
+
+	lightScreenPos /= lightScreenPos.w;
 
 	float realDistanceToLight = lightScreenPos.z;
 
@@ -98,7 +106,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	{
 		float distanceStoredInDepthMap = shaderTextures[2].Sample(samplers[1], sampleLightScreen);
 		
-		if (realDistanceToLight < 1 && realDistanceToLight - 0.0002f > distanceStoredInDepthMap)
+		if (realDistanceToLight - 0.0002f > distanceStoredInDepthMap)
 		{
 			shadowMultiplier = 0.2f;
 		}

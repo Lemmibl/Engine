@@ -10,7 +10,8 @@ struct VertexShaderOutput
 	float3 Normal : NORMAL;
 	float2 TexCoord : TEXCOORD0;
 	float4 ViewPosition : TEXCOORD1;
-	float3x3 TangentToWorld : TEXCOORD2;
+	float2 Depth : TEXCOORD2;
+	float3x3 TangentToWorld : TEXCOORD3;
 };
 
 struct PixelShaderOutput
@@ -59,8 +60,8 @@ PixelShaderOutput GBufferPixelShader(VertexShaderOutput input)
 
 	output.Normal.w = specularAttributes.y; //specular power stored in normal map's alpha channel
 
-	output.Depth.x = (input.ViewPosition.z / FarZ);
-	//output.Depth = 1.0f - (input.Position.z / input.Position.w);
+	//output.Depth.x = (input.ViewPosition.z / FarZ); //Store depth linearly. Doesn't quite work with current shadowmapping technique.
+	output.Depth = (input.Depth.x / input.Depth.y); //1.0f - (input.Position.z / input.Position.w);
 
 	return output;
 }

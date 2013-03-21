@@ -412,6 +412,7 @@ bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATR
 	dataPtr1->World = *world;
 	dataPtr1->Projection = *projection;
 	dataPtr1->View = *view;
+	dataPtr1->CameraPosition = cameraPosition;
 
 	deviceContext->Unmap(vertexMatrixBuffer, 0);
 
@@ -453,9 +454,9 @@ bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATR
 
 	dataPtr3 = (PixelMatrixBuffer*)mappedResource.pData;
 
+	dataPtr3->InverseView = *invertedView;
 	dataPtr3->InvertedViewProjection = *invertedViewProj;
 	dataPtr3->LightViewProjection = *lightViewProj;
-	dataPtr3->InverseView = *invertedView;
 
 	deviceContext->Unmap(pixelMatrixBuffer, 0);
 
