@@ -21,6 +21,7 @@ struct VertexShaderOutput
 	float2 TexCoord : TEXCOORD0;
 	float4 ViewPosition : TEXCOORD1;
 	float4 WorldPosition : TEXCOORD2;
+	float2 Depth : TEXCOORD2;
 	float3x3 TangentToWorld : TEXCOORD3;
 };
 
@@ -34,6 +35,7 @@ VertexShaderOutput GBufferVertexShader(VertexShaderInput input)
 
 	output.TexCoord = input.TexCoord;
 	output.Normal = input.Normal;
+	output.Depth = output.Position.zw;
 
 	// calculate tangent space to world space matrix using the world space tangent,
 	// binormal, and normal as basis vectors

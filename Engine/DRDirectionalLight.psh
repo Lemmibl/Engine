@@ -1,85 +1,142 @@
 cbuffer PositionalBuffer //Whatever, idk what else to name it
 {
-	float4 LightDirection;
-	float4 LightPosition;
-	float4 CameraPosition;
+	float3 LightDirection;
+	float3 LightPosition;
+	float3 CameraPosition;
+	float3 Padding;
 };
-
 cbuffer PixelMatrixBuffer
 {
+	float4x4 InverseView;
 	float4x4 InverseViewProjection;
+	float4x4 LightViewProjection;
 };
 
 cbuffer LightBuffer
 {
 	float4 DiffuseColor;
 	float4 AmbientColor;
-
-	float Ka; //Ambient light coefficient
-	float Kd; //Diffuse light coefficient
-	float Ks; //Specular light coefficient
-	float a; //Alpha coefficient
+	float Ka;
+	//Ambient light coefficient
+	float Kd;
+	//Diffuse light coefficient
+	float Ks;
+	//Specular light coefficient
+	float a;
+	//Alpha coefficient
 };
 
-SamplerState samplers[2]; //0 == linear, 1 == point
-Texture2D shaderTextures[2]; // 0 = normal, 1 = standard depth.
+//0 == linear, 1 == point
+SamplerState samplers[2];
+
+// 0 = normal, 1 = standard depth, 2 = shadowmap depth.
+Texture2D shaderTextures[3];
+
 
 struct VertexShaderOutput
 {
-		float4 Position : SV_POSITION;
-		float2 TexCoord : TEXCOORD0;
-		float4 ViewPosition : TEXCOORD1;
-};
-
+	float4 Position : SV_POSITION;
+	float2 TexCoord : TEXCOORD0;
+	float4 ViewPosition : TEXCOORD1;
+	float4 ScreenPosition : TEXCOORD2;
+	float4 WorldPosition : TEXCOORD3;
+}
+;
 //Decoding of GBuffer Normals
 float3 decode(float3 enc)
 {
 	return (2.0f * enc.xyz- 1.0f);
 }
 
+
 half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 {
-		float depth = shaderTextures[1].Sample(samplers[1], input.TexCoord);
+	//compute ambient light
+	half4 finalAmbienceProduct = half4(0.0f, 0.0f, 0.0f, 0.0f);
 
-		if(0 >= depth) //Skip as early as possible if this pixel isn't supposed to be lit.
+	float depth = shaderTextures[1].Sample(samplers[1], input.TexCoord);
+	
+	if(0 >= depth) //Skip as early as possible if this pixel isn't supposed to be lit.
+	{
+		return finalAmbienceProduct; //0, 0, 0, 0
+	}
+
+	finalAmbienceProduct += Ka * AmbientColor;
+	float4 encodedNormal = shaderTextures[0].Sample(samplers[0], input.TexCoord);
+	float3 normal = normalize(decode(encodedNormal.xyz));
+	
+	float4 position;
+	input.ScreenPosition /= input.ScreenPosition.w;
+	position.xy = input.ScreenPosition.xy;
+	position.z = depth;
+	position.w = 1.0f;
+
+	//float3 viewRay = float3(input.ViewPosition.xy * (140.0f / input.ViewPosition.z), 140.0f);
+
+	//input.ViewPosition.xyz /= input.ViewPosition.w;
+	//position = float4(input.ViewPosition.xyz * depth, 1.0f);
+
+	//position = float4(input.Position.xyz * depth, 1.0f);
+
+	position = mul(position, InverseViewProjection);
+	position /= position.w;
+
+	//http://www.gamedev.net/topic/635060-csm-help-problem-with-cascadesshadowmap-solved/
+	//http://www.xbdev.net/misc_demos/demos/shadow_maps/paper.pdf
+
+	//http://www.gamedev.net/topic/553569-solvedworld-space-position-reconstruction-from-linear-depth-buffer/
+	//http://www.gamedev.net/topic/474166-reconstructing-pixel-3d-position-from-depth/
+
+	//float4x4 invertedLVP = mul(InverseView, LightViewProjection);
+	//float4 lightScreenPos = mul(position, invertedLVP);
+
+	float4 lightScreenPos = mul(position, LightViewProjection);
+
+	lightScreenPos /= lightScreenPos.w;
+
+	float realDistanceToLight = lightScreenPos.z;
+
+	float2 sampleLightScreen;
+	sampleLightScreen.x = (lightScreenPos.x * 0.5f + 0.5f);
+	sampleLightScreen.y = (-lightScreenPos.y * 0.5f + 0.5f);
+
+	float shadowMultiplier = 1.0f;
+	
+	if(!(sampleLightScreen.x > 1 || sampleLightScreen.x < 0 || sampleLightScreen.y > 1 || sampleLightScreen.y < 0))
+	{
+		float distanceStoredInDepthMap = shaderTextures[2].Sample(samplers[1], sampleLightScreen);
+		
+		if (realDistanceToLight - 0.0002f > distanceStoredInDepthMap)
 		{
-			return float4(0.0f, 0.0f, 0.0f, 0.0f);
+			shadowMultiplier = 0.2f;
 		}
 
-		//compute ambient light
-		half4 finalAmbienceProduct = half4(0.0f, 0.0f, 0.0f, 0.0f);
-		finalAmbienceProduct += Ka * AmbientColor;
-
-		float4 encodedNormal = shaderTextures[0].Sample(samplers[0], input.TexCoord);
-
-		float3 normal = normalize(decode(encodedNormal.xyz));
-
-		float4 position;
-		position = float4(input.Position.xyz * depth, 1.0f);
-
-		position = mul(position, InverseViewProjection);
+	}
 	
-		//surface-to-light vector
-		float3 lightVector = -normalize(LightDirection); //Sigh, idk
-		float NdL = max(0, dot(lightVector, normal));
+	//surface-to-light vector
+	float3 lightVector = -LightDirection;
 
-		//reflection vector
-		float3 reflectionVector = normalize(-reflect(lightVector, normal));
+	//Sigh, idk
+	float NdL = max(0, dot(normal, lightVector));
 
-		//camera-to-surface vector
-		float3 directionToCamera = normalize(position-CameraPosition);
+	//reflection vector
+	float3 reflectionVector = normalize(-reflect(lightVector, normal));
 
-		//compute diffuse light
-		half4 finalDiffuseProduct = half4(0.0f, 0.0f, 0.0f, 0.0f);
-		finalDiffuseProduct.xyzw += Kd * NdL;
+	//camera-to-surface vector
+	float3 directionToCamera = normalize(position-CameraPosition);
 
-		//compute specular light 
-		float finalSpecularProduct = 0.0f;
-		finalSpecularProduct += Ks * pow( saturate(dot(directionToCamera, reflectionVector)), a);
-		
-		//Storing specular in alpha channel. Applying shadow multiplier to both diffuse product and specular, but not ambient, to make sure it's not just black.
-		return half4(finalAmbienceProduct.rgb + (DiffuseColor.rgb*finalDiffuseProduct.rgb), finalSpecularProduct);
+	//compute diffuse light
+	half4 finalDiffuseProduct = half4(0.0f, 0.0f, 0.0f, 0.0f);
+	finalDiffuseProduct.xyzw += Kd * NdL;
+
+	//compute specular light 
+	float finalSpecularProduct = 0.0f;
+	finalSpecularProduct += Ks * pow( saturate(dot(directionToCamera, reflectionVector)), a);
+
+	//Storing specular in alpha channel. Applying shadow multiplier to both diffuse product and specular, but not ambient, to make sure it's not just black.
+		return half4(finalAmbienceProduct.rgb + shadowMultiplier * (DiffuseColor.rgb*finalDiffuseProduct.rgb), shadowMultiplier * finalSpecularProduct);
 }
+
 
 
 /*

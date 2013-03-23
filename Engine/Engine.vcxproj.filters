@@ -72,9 +72,6 @@
     <ClCompile Include="structs.cpp">
       <Filter>Deferred stuff</Filter>
     </ClCompile>
-    <ClCompile Include="DRDirLight.cpp">
-      <Filter>Deferred stuff</Filter>
-    </ClCompile>
     <ClCompile Include="DRGBuffer.cpp">
       <Filter>Deferred stuff</Filter>
     </ClCompile>
@@ -116,6 +113,9 @@
     </ClCompile>
     <ClCompile Include="bitmapclass.cpp">
       <Filter>Rendering\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="DRDirectionalLight.cpp">
+      <Filter>Deferred stuff</Filter>
     </ClCompile>
     <ClCompile Include="debugwindowclass.cpp">
       <Filter>Rendering\Utility</Filter>
@@ -191,9 +191,6 @@
     <ClInclude Include="structs.h">
       <Filter>Deferred stuff</Filter>
     </ClInclude>
-    <ClInclude Include="DRDirLight.h">
-      <Filter>Deferred stuff</Filter>
-    </ClInclude>
     <ClInclude Include="DRGBuffer.h">
       <Filter>Deferred stuff</Filter>
     </ClInclude>
@@ -262,6 +259,9 @@
     </ClInclude>
     <ClInclude Include="Engine.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DRDirectionalLight.h">
+      <Filter>Deferred stuff</Filter>
     </ClInclude>
     <ClInclude Include="SkySphere.h">
       <Filter>Rendering</Filter>

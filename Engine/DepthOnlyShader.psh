@@ -2,9 +2,12 @@ struct VertexShaderOutput
 {
 	float4 Position : SV_POSITION;
 	float4 ViewPosition : TEXCOORD0;
+	float2 Depth : TEXCOORD2;
 };
 
 float DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 {
-	return (input.ViewPosition.z / 140.0f); //To store depth linearly, divide viewposition depth by camera's FarZ.
+	//return (input.ViewPosition.z / 140.0f); //To store depth linearly, divide viewposition depth by camera's FarZ.
+	//return length(input.ViewPosition); //For worldspace position reconstruction.
+	return (input.Depth.x / input.Depth.y);
 }

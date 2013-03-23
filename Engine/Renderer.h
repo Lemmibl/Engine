@@ -32,7 +32,7 @@
 #include "DepthOnlyShader.h"
 #include "DRCompose.h"
 #include "DRPointLight.h"
-#include "DRDirLight.h"
+#include "DRDirectionalLight.h"
 #include "inputclass.h"
 #include "pointlight.h"
 #include "modellistclass.h"
