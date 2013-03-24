@@ -473,6 +473,8 @@ bool Renderer::Update(int fps, int cpu, float frameTime)
 		timeOfDay -= frameTime*0.003f;	
 	}
 
+	//Adding some little comment here so that I can commit. Ignore this.
+
 	XMVECTOR lookAt = XMVectorZero();
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 
