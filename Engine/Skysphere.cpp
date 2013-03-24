@@ -61,9 +61,17 @@ bool Skysphere::Initialize(ID3D11Device* device, HWND hwnd)
 
 	//http://www.picturetopeople.org/color_converter.html
 	//Or you could just use the normal [0,255] number and divide it by 255 to get the [0,1] counterpart.
-	apexColor = XMFLOAT4(0.900f, 0.8f, 0.8f, 1.0f);
+
+	//http://www.foszor.com/blog/xna-color-chart/
+
+	//LightSalmon = {R:255 G:160 B:122 A:255}
+	//Cornflower Blue = {R:100 G:149 B:237 A:255}
+	//Deep Sky Blue = {R:0 G:191 B:255 A:255}
+	//Dark Turquoise = {R:0 G:206 B:209 A:255}
+	//
+	apexColor = XMFLOAT4(0.9f, 160.0f/255, 0.9f, 1.0f);
 	centerColor =  XMFLOAT4(0.538f, 0.568f, 0.960f, 1.0f);
-	antapexColor = XMFLOAT4(0.1f, 0.1f, 0.6f, 1.0f);
+	antapexColor = XMFLOAT4(0.0f, 0.0f, 65.0f/255, 1.0f);
 
 	skysphereShader = new SkysphereShader();
 	if(!skysphereShader)

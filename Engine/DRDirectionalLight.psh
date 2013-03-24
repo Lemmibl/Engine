@@ -46,15 +46,16 @@ struct VertexShaderOutput
 };
 
 //Decoding of GBuffer Normals
-float3 decode(float3 enc)
+float3 Decode(float3 enc)
 {
 	return (2.0f * enc.xyz- 1.0f);
 }
 
-float2 texOffset( int u, int v )
+float2 GetShadowTexOffset( int u, int v )
 {
-	float2 shadowMapSize = float2(1024.0f, 1024.0f);
-    return float2( u * 1.0f/shadowMapSize.x, v * 1.0f/shadowMapSize.y );
+	float2 shadowMapSize = float2(1024.0f, 1024.0f); //This has to mirror shadowmap render target width and height; I'm just really, really lazy.
+
+    return float2( u * 1.0f/shadowMapSize.x, v * 1.0f/shadowMapSize.y ); //Scale and return texture coordinates
 }
 
 half4 LightPixelShader(VertexShaderOutput input) : SV_Target
@@ -73,7 +74,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 
 	finalAmbienceProduct += Ka * AmbientColor;
 	float4 encodedNormal = shaderTextures[0].Sample(linearSampler, input.TexCoord);
-	float3 normal = normalize(decode(encodedNormal.xyz));
+	float3 normal = normalize(Decode(encodedNormal.xyz));
 
 	input.ScreenPosition /= input.ScreenPosition.w; //Adjust value
 	
@@ -117,7 +118,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		{
 			for (x = -1.5f; x <= 1.5f; x += 1.0f)
 			{
-				sum += shaderTextures[2].SampleCmpLevelZero(cmpSampler, sampleLightScreen + texOffset(x,y), realDistanceToLight);
+				sum += shaderTextures[2].SampleCmpLevelZero(cmpSampler, sampleLightScreen + GetShadowTexOffset(x,y), realDistanceToLight);
 			}
 		}
 
@@ -135,7 +136,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		//surface-to-light vector
 		float3 lightVector = (-LightDirection);
 
-		//Sigh, idk
+		//Calculate diffuse intensity, the usual
 		float NdL = (max(0, dot(normal, lightVector)));
 
 		//reflection vector

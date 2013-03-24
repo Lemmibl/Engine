@@ -364,7 +364,7 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	timer = 0.0f;
 	returning = false;
 	debutRotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	timeOfDay = 0.1f;
+	timeOfDay = 0.0f;
 
 	/*
 	Inför perlin/simplex noise:
@@ -392,6 +392,20 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 bool Renderer::Update(int fps, int cpu, float frameTime)
 {
 	bool result;
+
+	//for(unsigned int i = 0; i < pointLights.size(); i++)
+	//{
+	//	pointLights[i]->Position.y += frameTime*0.01f;
+	//
+	//	XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z));
+	//}
+
+	//for(unsigned int i = 0; i < pointLights.size(); i++)
+	//{
+	//	pointLights[i]->Position.y -= frameTime*0.01f;
+	//	
+	//	XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z));
+	//}
 
 	if(inputManager->WasKeyPressed(DIK_Q))
 	{
@@ -436,22 +450,6 @@ bool Renderer::Update(int fps, int cpu, float frameTime)
 			defaultModelMaterial.a *= 0.5f;
 	}
 
-	//for(unsigned int i = 0; i < pointLights.size(); i++)
-	//{
-	//	pointLights[i]->Position.y += frameTime*0.01f;
-
-	//	XMMATRIXTranslation(&translation, pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z);
-	//	pointLights[i]->World = scale * translation;
-	//}
-
-	//for(unsigned int i = 0; i < pointLights.size(); i++)
-	//{
-	//	pointLights[i]->Position.y -= frameTime*0.01f;
-
-	//	XMMATRIXTranslation(&translation, pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z);
-	//	pointLights[i]->World = scale * translation;
-	//}
-
 	if(inputManager->IsKeyPressed(DIK_R))
 	{
 		dirLight->Position.x += frameTime*0.02f;
@@ -478,12 +476,15 @@ bool Renderer::Update(int fps, int cpu, float frameTime)
 
 	if(inputManager->IsKeyPressed(DIK_1))
 	{
-		timeOfDay += frameTime*0.003f;
+		timeOfDay += frameTime*0.0003f;
 	}
 
 	if(inputManager->IsKeyPressed(DIK_2))
 	{
-		timeOfDay -= frameTime*0.003f;	
+		if(timeOfDay > 0.0f)
+		{
+			timeOfDay -= frameTime*0.0003f;	
+		}
 	}
 
 	//Adding some little comment here so that I can commit. Ignore this.
@@ -849,65 +850,68 @@ bool Renderer::Render()
 	d3D->GetWorldMatrix(worldMatrix);
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
-	for(int i = 0; i < 3; i++)
+	if(toggleDebugInfo)
 	{
-		result = debugWindows[i].Render(d3D->GetDeviceContext(), 200+200*i, 0);
+		for(int i = 0; i < 3; i++)
+		{
+			result = debugWindows[i].Render(d3D->GetDeviceContext(), 200+200*i, 0);
+			if(!result)
+			{
+				return false;
+			}
+
+			result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[i].GetIndexCount(), 
+				&worldMatrix, &baseView, &orthoMatrix, gbufferTextures[i]);
+			if(!result)
+			{
+				return false;
+			}
+		}
+
+		result = debugWindows[3].Render(d3D->GetDeviceContext(), 200, 200);
 		if(!result)
 		{
 			return false;
 		}
 
-		result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[i].GetIndexCount(), 
-			&worldMatrix, &baseView, &orthoMatrix, gbufferTextures[i]);
+		result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[3].GetIndexCount(), 
+			&worldMatrix, &baseView, &orthoMatrix, lightRT->SRView);
 		if(!result)
 		{
 			return false;
 		}
+
+		result = debugWindows[4].Render(d3D->GetDeviceContext(), 800, 0);
+		if(!result)
+		{
+			return false;
+		}
+
+		result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[4].GetIndexCount(), 
+			&worldMatrix, &baseView, &orthoMatrix, shadowRT->SRView);
+		if(!result)
+		{
+			return false;
+		}
+
+
+		d3D->TurnZBufferOff();
+
+		d3D->TurnOnAlphaBlending();
+
+		// Render the text user interface elements.
+		result = text->Render(d3D->GetDeviceContext(), &worldMatrix, &baseView, &orthoMatrix);
+		if(!result)
+		{
+			return false;
+		}
+
+		// Turn off alpha blending after rendering the text.
+		d3D->TurnOffAlphaBlending();
+
+		// Turn the Z buffer back on now that all 2D rendering has completed.
+		d3D->TurnZBufferOn();
 	}
-
-	result = debugWindows[3].Render(d3D->GetDeviceContext(), 200, 200);
-	if(!result)
-	{
-		return false;
-	}
-
-	result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[3].GetIndexCount(), 
-		&worldMatrix, &baseView, &orthoMatrix, lightRT->SRView);
-	if(!result)
-	{
-		return false;
-	}
-
-	result = debugWindows[4].Render(d3D->GetDeviceContext(), 800, 0);
-	if(!result)
-	{
-		return false;
-	}
-
-	result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[4].GetIndexCount(), 
-		&worldMatrix, &baseView, &orthoMatrix, shadowRT->SRView);
-	if(!result)
-	{
-		return false;
-	}
-
-
-	d3D->TurnZBufferOff();
-
-	d3D->TurnOnAlphaBlending();
-
-	// Render the text user interface elements.
-	result = text->Render(d3D->GetDeviceContext(), &worldMatrix, &baseView, &orthoMatrix);
-	if(!result)
-	{
-		return false;
-	}
-
-	// Turn off alpha blending after rendering the text.
-	d3D->TurnOffAlphaBlending();
-
-	// Turn the Z buffer back on now that all 2D rendering has completed.
-	d3D->TurnZBufferOn();
 #pragma endregion
 
 	// Present the rendered scene to the screen.
