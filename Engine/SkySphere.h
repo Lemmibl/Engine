@@ -13,6 +13,7 @@
 #include <windows.h>
 #include <xnamath.h>
 #include <fstream>
+#include "SkysphereShader.h"
 using namespace std;
 
 
@@ -39,9 +40,9 @@ public:
 	Skysphere(const Skysphere&);
 	~Skysphere();
 
-	bool Initialize(ID3D11Device*);
+	bool Initialize(ID3D11Device* device, HWND hwnd);
 	void Shutdown();
-	void Render(ID3D11DeviceContext*);
+	void Render(ID3D11DeviceContext* context, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, float time);
 
 	int GetIndexCount();
 
@@ -66,6 +67,7 @@ private:
 	int vertexCount, indexCount;
 	ID3D11Buffer *vertexBuffer, *indexBuffer;
 	XMFLOAT4 apexColor, centerColor, antapexColor;
+	SkysphereShader* skysphereShader;
 };
 
 #endif

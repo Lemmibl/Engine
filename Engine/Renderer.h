@@ -9,35 +9,47 @@
 ///////////////////////
 #pragma once;
 
+//System includes
 #include <stdlib.h>
 #include <time.h>
 #include <windows.h>
 #include <xnamath.h>
 
-#include "structs.h"
 
+//Utility
+#include "structs.h"
+#include "modellistclass.h"
+#include "inputclass.h"
 #include "d3dclass.h"
-#include "cameraclass.h"
 #include "timerclass.h"
 #include "controllerclass.h"
 #include "fpsmeter.h"
-#include "fontshaderclass.h"
 #include "textclass.h"
 #include "renderToTextureClass.h"
-#include "DRGBuffer.h"
+
+
+//Objects
+#include "modelclass.h"
+#include "pointlight.h"
+#include "cameraclass.h"
 #include "frustumclass.h"
 #include "debugwindowclass.h"
+#include "SkySphere.h"
+
+
+//Shaders
+#include "MarchingCubeShader.h"
 #include "textureshaderclass.h"
 #include "VertexShaderOnly.h"
 #include "DepthOnlyShader.h"
 #include "DRCompose.h"
 #include "DRPointLight.h"
 #include "DRDirectionalLight.h"
-#include "inputclass.h"
-#include "pointlight.h"
-#include "modellistclass.h"
-#include "modelclass.h"
-#include "MarchingCubeShader.h"
+#include "fontshaderclass.h"
+#include "DRGBuffer.h"
+
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: GraphicsClass
@@ -79,6 +91,7 @@ private:
 	ModelClass* groundModel;
 	ModelClass* otherModel;
 	ModelClass* sphereModel;
+	Skysphere* skySphere;
 
 	MaterialStruct defaultModelMaterial;
 
@@ -103,7 +116,7 @@ private:
 	float screenFar, screenNear;
 	XMFLOAT3 debutRotation;
 
-	float timer;
+	float timer, timeOfDay;
 	bool returning;
 
 	MarchingCubeShader* mcubeShader;

@@ -10,6 +10,7 @@ SkysphereShader::SkysphereShader()
 	layout = 0;
 	matrixBuffer = 0;
 	gradientBuffer = 0;
+	timeBuffer= 0;
 }
 
 
@@ -48,13 +49,13 @@ void SkysphereShader::Shutdown()
 
 
 bool SkysphereShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, XMMATRIX* viewMatrix, 
-	XMMATRIX* projectionMatrix, XMFLOAT4 apexColor, XMFLOAT4 centerColor, XMFLOAT4 antapexColor)
+	XMMATRIX* projectionMatrix, XMFLOAT4 apexColor, XMFLOAT4 centerColor, XMFLOAT4 antapexColor, float time)
 {
 	bool result;
 
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, apexColor, centerColor, antapexColor);
+	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, apexColor, centerColor, antapexColor, time);
 	if(!result)
 	{
 		return false;
@@ -193,12 +194,33 @@ bool SkysphereShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* v
 		return false;
 	}
 
+	// Setup the description of the gradient constant buffer that is in the pixel shader.
+	gradientBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	gradientBufferDesc.ByteWidth = sizeof(TimeBufferType);
+	gradientBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	gradientBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	gradientBufferDesc.MiscFlags = 0;
+	gradientBufferDesc.StructureByteStride = 0;
+
+	// Create the constant buffer pointer so we can access the pixel shader constant buffer from within this class.
+	result = device->CreateBuffer(&gradientBufferDesc, NULL, &timeBuffer);
+	if(FAILED(result))
+	{
+		return false;
+	}
+
 	return true;
 }
 
 
 void SkysphereShader::ShutdownShader()
 {
+	if(timeBuffer)
+	{
+		timeBuffer->Release();
+		timeBuffer = 0;
+	}
+
 	// Release the gradient constant buffer.
 	if(gradientBuffer)
 	{
@@ -275,12 +297,13 @@ void SkysphereShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hw
 
 
 bool SkysphereShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, XMMATRIX* viewMatrix,
-	XMMATRIX* projectionMatrix, XMFLOAT4 apexColor, XMFLOAT4 centerColor, XMFLOAT4 antapexColor)
+	XMMATRIX* projectionMatrix, XMFLOAT4 apexColor, XMFLOAT4 centerColor, XMFLOAT4 antapexColor, float time)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	MatrixBufferType* dataPtr;
 	GradientBufferType* dataPtr2;
+	TimeBufferType* dataPtr3;
 	unsigned int bufferNumber;
 
 	// Lock the constant buffer so it can be written to.
@@ -330,6 +353,28 @@ bool SkysphereShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XM
 
 	// Finally set the gradient constant buffer in the pixel shader with the updated values.
 	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &gradientBuffer);
+
+	// Lock the gradient constant buffer so it can be written to.
+	result = deviceContext->Map(timeBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if(FAILED(result))
+	{
+		return false;
+	}
+
+	// Get a pointer to the data in the constant buffer.
+	dataPtr3 = (TimeBufferType*)mappedResource.pData;
+
+	// Copy the gradient color variables into the constant buffer.
+	dataPtr3->Time = time;
+
+	// Unlock the constant buffer.
+	deviceContext->Unmap(timeBuffer, 0);
+
+	// Set the position of the gradient constant buffer in the pixel shader.
+	bufferNumber = 1;
+
+	// Finally set the gradient constant buffer in the pixel shader with the updated values.
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &timeBuffer);
 
 	return true;
 }

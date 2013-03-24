@@ -41,7 +41,7 @@ PixelInputType SkysphereVertexShader(VertexInputType input)
     output.Position = mul(output.Position, ProjectionMatrix);
     
     // Send the unmodified position through to the pixel shader.
-    output.Position = input.Position;
+    output.DomePosition = input.Position;
 
     return output;
 }

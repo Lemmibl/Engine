@@ -75,7 +75,17 @@ bool ControllerClass::Initialize(InputClass* input, CameraClass *extCam, float m
 
 void ControllerClass::Update(float frameTime)
 {
-	float movementValue = moveSpeed * frameTime;
+	float movementValue;
+
+	if(inputManager->IsKeyPressed(DIK_LSHIFT))
+	{
+		movementValue = (moveSpeed*3) * frameTime;
+	}
+	else
+	{
+		movementValue = moveSpeed * frameTime;
+	}
+
 	float rotationValue = rotationSpeed * frameTime;
 	XMVECTOR rotationThisUpdate, movementThisUpdate, tempPos, tempRot;
 	XMFLOAT2 mousePos;

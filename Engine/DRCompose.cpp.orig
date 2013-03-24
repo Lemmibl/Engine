@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Filename: drcompose.cpp
+// Filename: lightshaderclass.cpp
 ////////////////////////////////////////////////////////////////////////////////
 #include "DRCompose.h"
 
@@ -49,7 +49,12 @@ void DRCompose::Shutdown()
 	return;
 }
 
-bool DRCompose::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection,
+<<<<<<< HEAD:Engine/DRCompose.cpp
+bool DRCompose::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, 
+XMMATRIX* invertedViewProjection, XMMATRIX* invertedView, XMMATRIX* lightViewProj,
+=======
+bool DRFinalComposition::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection,
+>>>>>>> 91be0cb0f9cf37eb45e2bf40feaf4dceacdb8ef6:Engine/DRFinalComposition.cpp
 	ID3D11ShaderResourceView** textureArray)
 {
 	bool result;
@@ -314,8 +319,13 @@ void DRCompose::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WC
 	return;
 }
 
+<<<<<<< HEAD:Engine/DRCompose.cpp
 bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* world, XMMATRIX* view, 
+XMMATRIX* projection, XMMATRIX* invertedViewProjection, XMMATRIX* invertedView, XMMATRIX* lightViewProj, ID3D11ShaderResourceView** textureArray)
+=======
+bool DRFinalComposition::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* world, XMMATRIX* view, 
 XMMATRIX* projection, ID3D11ShaderResourceView** textureArray)
+>>>>>>> 91be0cb0f9cf37eb45e2bf40feaf4dceacdb8ef6:Engine/DRFinalComposition.cpp
 {		
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;

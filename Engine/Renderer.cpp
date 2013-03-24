@@ -27,6 +27,7 @@ Renderer::Renderer()
 	groundModel = 0;
 	sphereModel = 0;
 	otherModel = 0;
+	skySphere = 0;
 
 	colorRT = 0;
 	normalRT = 0;
@@ -109,6 +110,18 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
+		return false;
+	}
+
+	skySphere = new Skysphere();
+	if(!skySphere)
+	{
+		return false;
+	}
+
+	result = skySphere->Initialize(d3D->GetDevice(), hwnd);
+	if(!result)
+	{
 		return false;
 	}
 
@@ -351,6 +364,7 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	timer = 0.0f;
 	returning = false;
 	debutRotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	timeOfDay = 0.1f;
 
 	/*
 	Inför perlin/simplex noise:
@@ -449,7 +463,18 @@ bool Renderer::Update(int fps, int cpu, float frameTime)
 		debutRotation.y -= frameTime*0.002f;		
 	}
 
+	if(inputManager->IsKeyPressed(DIK_1))
+	{
+		timeOfDay += frameTime*0.003f;
+	}
+
+	if(inputManager->IsKeyPressed(DIK_2))
+	{
+		timeOfDay -= frameTime*0.003f;	
+	}
+
 	XMVECTOR lookAt = XMVectorZero();
+	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix
 
@@ -485,6 +510,8 @@ bool Renderer::Render()
 	ID3D11DepthStencilView* shadowDS = d3D->GetShadowmapDSV();
 	ID3D11DepthStencilView* ds;
 
+	// Generate the view matrix based on the camera's position.
+	camera->Update();
 	camPos = camera->GetPosition();
 
 	gbufferRenderTargets[0] = colorRT->RTView;
@@ -520,9 +547,6 @@ bool Renderer::Render()
 #pragma endregion
 
 #pragma region Matrix preparations
-	// Generate the view matrix based on the camera's position.
-	camera->Update();
-
 	// Get the world, view, projection, and ortho matrices from the camera and Direct3D objects.
 	d3D->GetWorldMatrix(worldMatrix);
 	d3D->GetOrthoMatrix(orthoMatrix);
@@ -604,13 +628,25 @@ bool Renderer::Render()
 #pragma region GBuffer building stage
 	d3D->SetDefaultViewport();
 	ds = d3D->GetDepthStencilView();
-	d3D->SetBackFaceCullingRasterizer();
 	context->OMSetRenderTargets(3, gbufferRenderTargets, ds);
 	context->ClearDepthStencilView(ds, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	context->ClearRenderTargetView(gbufferRenderTargets[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 	context->ClearRenderTargetView(gbufferRenderTargets[1], D3DXVECTOR4(0.5f, 0.5f, 0.5f, 0.0f));
 	context->ClearRenderTargetView(gbufferRenderTargets[2], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
+
+	d3D->SetNoCullRasterizer();
+	d3D->TurnZBufferOff();
+
+	worldMatrix = XMMatrixTranslation(camPos.x, camPos.y, camPos.z);
+	worldMatrix = XMMatrixTranspose(worldMatrix);
+
+	skySphere->Render(context, &worldMatrix, &viewMatrix, &projectionMatrix, timeOfDay);
+
+	d3D->SetBackFaceCullingRasterizer();
+	d3D->TurnZBufferOn();
+
+	context->ClearDepthStencilView(ds, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	// Move the model to the location it should be rendered at.
 	worldMatrix = XMMatrixTranslation(0.0f, -10.0f, 0.0f);
@@ -991,6 +1027,13 @@ void Renderer::Shutdown()
 		otherModel->Shutdown();
 		delete otherModel;
 		otherModel = 0;
+	}
+
+	if(skySphere)
+	{
+		skySphere->Shutdown();
+		delete skySphere;
+		skySphere = 0;
 	}
 
 	for(std::vector<PointLight*>::iterator tmp = pointLights.begin(); tmp != pointLights.end(); tmp++) 

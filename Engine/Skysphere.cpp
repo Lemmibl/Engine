@@ -27,6 +27,7 @@ Skysphere::Skysphere()
 	model = 0;
 	vertexBuffer = 0;
 	indexBuffer = 0;
+	skysphereShader = 0;
 }
 
 
@@ -39,13 +40,13 @@ Skysphere::~Skysphere()
 {
 }
 
-bool Skysphere::Initialize(ID3D11Device* device)
+bool Skysphere::Initialize(ID3D11Device* device, HWND hwnd)
 {
 	bool result;
 
 
 	// Load in the sky dome model.
-	result = LoadModel("../Engine/data/skydome.txt");
+	result = LoadModel("../Engine/data/sphere.txt");
 	if(!result)
 	{
 		return false;
@@ -58,9 +59,21 @@ bool Skysphere::Initialize(ID3D11Device* device)
 		return false;
 	}
 
-	apexColor = XMFLOAT4(0.0f, 0.15f, 0.66f, 1.0f);
-	centerColor =  XMFLOAT4(0.81f, 0.38f, 0.66f, 1.0f);
+	apexColor = XMFLOAT4(0.900f, 0.8f, 0.8f, 1.0f);
+	centerColor =  XMFLOAT4(0.538f, 0.568f, 0.960f, 1.0f);
 	antapexColor = XMFLOAT4(0.1f, 0.1f, 0.6f, 1.0f);
+
+	skysphereShader = new SkysphereShader();
+	if(!skysphereShader)
+	{
+		return false;
+	}
+
+	result = skysphereShader->Initialize(device, hwnd);
+	if(!result)
+	{
+		return false;
+	}
 
 	return true;
 }
@@ -73,13 +86,23 @@ void Skysphere::Shutdown()
 	// Release the sky dome model.
 	ReleaseModel();
 
+	if(skysphereShader)
+	{
+		skysphereShader->Shutdown();
+		delete skysphereShader;
+		skysphereShader = 0;
+	}
+	
+
 	return;
 }
 
-void Skysphere::Render(ID3D11DeviceContext* deviceContext)
+void Skysphere::Render(ID3D11DeviceContext* context, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, float time)
 {
 	// Render the sky dome.
-	RenderBuffers(deviceContext);
+	RenderBuffers(context);
+
+	skysphereShader->Render(context, GetIndexCount(), world, view, projection, apexColor, centerColor, antapexColor, time);
 
 	return;
 }
@@ -181,7 +204,7 @@ bool Skysphere::InitializeBuffers(ID3D11Device* device)
 	// Load the vertex array and index array with data.
 	for(i=0; i<vertexCount; i++)
 	{
-		vertices[i].position = model->position;
+		vertices[i].position = model[i].position;
 		indices[i] = i;
 	}
 

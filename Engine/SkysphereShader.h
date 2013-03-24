@@ -37,6 +37,12 @@ private:
 		XMFLOAT4 AntapexColor;
 	};
 
+	struct TimeBufferType
+	{
+		float Time;
+		XMFLOAT3 padding;
+	};
+
 public:
 	SkysphereShader();
 	SkysphereShader(const SkysphereShader&);
@@ -45,7 +51,7 @@ public:
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
 	bool Render(ID3D11DeviceContext* context, int indexCount, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, 
-	XMFLOAT4 ApexColor, XMFLOAT4 CenterColor, XMFLOAT4 AntapexColor);
+	XMFLOAT4 ApexColor, XMFLOAT4 CenterColor, XMFLOAT4 AntapexColor, float time);
 
 private:
 	bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
@@ -53,7 +59,7 @@ private:
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
 
 	bool SetShaderParameters(ID3D11DeviceContext* context, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, 
-		XMFLOAT4 ApexColor, XMFLOAT4 CenterColor, XMFLOAT4 AntapexColor);
+		XMFLOAT4 ApexColor, XMFLOAT4 CenterColor, XMFLOAT4 AntapexColor, float time);
 	void RenderShader(ID3D11DeviceContext*, int);
 
 private:
@@ -61,8 +67,8 @@ private:
 	ID3D11PixelShader* pixelShader;
 	ID3D11InputLayout* layout;
 	ID3D11Buffer* matrixBuffer;
-
 	ID3D11Buffer* gradientBuffer;
+	ID3D11Buffer* timeBuffer;
 };
 
 #endif
