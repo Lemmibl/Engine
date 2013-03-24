@@ -199,13 +199,13 @@ bool DRDirLight::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFile
 	}
 
 	// Create a texture sampler state description.
-	depthSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-	depthSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-	depthSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-	depthSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	depthSamplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
+	depthSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_MIRROR;
+	depthSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_MIRROR;
+	depthSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_MIRROR;
 	depthSamplerDesc.MipLODBias = 0.0f;
 	depthSamplerDesc.MaxAnisotropy = 1;
-	depthSamplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	depthSamplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
 	depthSamplerDesc.BorderColor[0] = depthSamplerDesc.BorderColor[1] = depthSamplerDesc.BorderColor[2] = depthSamplerDesc.BorderColor[3] = 0;
 	depthSamplerDesc.MinLOD = 0;
 	depthSamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
@@ -510,7 +510,8 @@ void DRDirLight::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount
 	deviceContext->PSSetShader(pixelShader, NULL, 0);
 
 	// Set the sampler state in the pixel shader.
-	deviceContext->PSSetSamplers(0, 2, samplers);
+	deviceContext->PSSetSamplers(0, 1, &samplers[0]);
+	deviceContext->PSSetSamplers(1, 1, &samplers[1]);
 
 	// Render the triangle.
 	deviceContext->DrawIndexed(indexCount, 0, 0);

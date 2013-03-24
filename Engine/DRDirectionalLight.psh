@@ -27,7 +27,10 @@ cbuffer LightBuffer
 };
 
 //0 == linear, 1 == point
-SamplerState samplers[2];
+//SamplerState samplers[2];
+
+SamplerState linearSampler : register(s0);
+SamplerComparisonState cmpSampler : register(s1);
 
 // 0 = normal, 1 = standard depth, 2 = shadowmap depth.
 Texture2D shaderTextures[3];
@@ -48,6 +51,11 @@ float3 decode(float3 enc)
 	return (2.0f * enc.xyz- 1.0f);
 }
 
+float2 texOffset( int u, int v )
+{
+	float2 shadowMapSize = float2(1024.0f, 1024.0f);
+    return float2( u * 1.0f/shadowMapSize.x, v * 1.0f/shadowMapSize.y );
+}
 
 half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 {
@@ -56,7 +64,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	half4 finalDiffuseProduct = half4(0.0f, 0.0f, 0.0f, 0.0f);
 	float finalSpecularProduct = 0.0f;
 
-	float depth = shaderTextures[1].Sample(samplers[1], input.TexCoord);
+	float depth = shaderTextures[1].Sample(linearSampler, input.TexCoord);
 	
 	if(0 >= depth) //Skip as early as possible if this pixel isn't supposed to be lit.
 	{
@@ -64,7 +72,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	}
 
 	finalAmbienceProduct += Ka * AmbientColor;
-	float4 encodedNormal = shaderTextures[0].Sample(samplers[0], input.TexCoord);
+	float4 encodedNormal = shaderTextures[0].Sample(linearSampler, input.TexCoord);
 	float3 normal = normalize(decode(encodedNormal.xyz));
 
 	input.ScreenPosition /= input.ScreenPosition.w; //Adjust value
@@ -92,18 +100,36 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//We cull a large part of the light calculations if it's outside of the light frustum.
 	if(!(sampleLightScreen.x > 1 || sampleLightScreen.x < 0 || sampleLightScreen.y > 1 || sampleLightScreen.y < 0))
 	{
-			float distanceStoredInDepthMap = shaderTextures[2].Sample(samplers[1], sampleLightScreen);
-			
-			if (realDistanceToLight - 0.0002f > distanceStoredInDepthMap)
+		float sum = 0.0f;
+		float x, y;
+
+		realDistanceToLight -= 0.00002f; //Apply shadow bias
+
+		//perform PCF filtering on a 4 x 4 texel neighborhood
+		for (y = -1.5; y <= 1.5; y += 1.0)
 			{
-				shadowMultiplier = 0.2f;
+			for (x = -1.5; x <= 1.5; x += 1.0)
+			{
+				sum += shaderTextures[2].SampleCmpLevelZero(cmpSampler, sampleLightScreen + texOffset(x,y), realDistanceToLight);
 			}
+		}
+
+		shadowMultiplier = sum / 16.0f;
+
+		////Use this instead for normal unfiltered shadows. Produces more artifacts. Nasty.
+
+		//float distanceStoredInDepthMap = shaderTextures[2].Sample(linearSampler, sampleLightScreen);
+		//
+		//if (realDistanceToLight < 1.0f && realDistanceToLight - 0.0002f > distanceStoredInDepthMap)
+		//{
+		//	shadowMultiplier = 0.35f;
+		//}
 		
 		//surface-to-light vector
 		float3 lightVector = -LightDirection;
 
 		//Sigh, idk
-		float NdL = max(0, dot(normal, lightVector));
+		float NdL = (max(0, dot(normal, lightVector)));
 
 		//reflection vector
 		float3 reflectionVector = normalize(-reflect(lightVector, normal));

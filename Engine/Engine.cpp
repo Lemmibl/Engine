@@ -34,8 +34,8 @@ bool Engine::Initialize()
 	toggleDebug = true;
 	screenWidth = 0;
 	screenHeight = 0;
-	shadowMapWidth = 4096;
-	shadowMapHeight = 4096;
+	shadowMapWidth = 1024;
+	shadowMapHeight = 1024;
 
 	// Initialize the windows api.
 	InitializeWindows(screenWidth, screenHeight);

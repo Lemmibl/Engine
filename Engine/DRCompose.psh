@@ -17,6 +17,8 @@ half4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 			return float4(baseColor, 0.0f);
 		}
 
+		//http://www.iquilezles.org/www/articles/ssao/ssao.htm
+
 		//specular intensity is stored in the color map's alpha channel.
 		float4 light = shaderTextures[1].Sample(samplers[0], input.TexCoord);
 		float3 diffuseLight = light.rgb;

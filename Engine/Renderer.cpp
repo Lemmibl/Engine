@@ -310,8 +310,8 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	XMVECTOR direction = XMVector3Normalize(lookAt - XMLoadFloat3(&dirLight->Position));
 	XMStoreFloat3(&dirLight->Direction, direction);
 
-	XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(((float)D3DX_PI/4.0f), 1.0f, 10.0f, 140.0f)); //Generate perspective light projection matrix and store it as float4x4
-	//XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(60.0f, 60.0f, 10.0f, 140.0f)); //Generate orthogonal light projection matrix and store it as float4x4
+	XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(((float)D3DX_PI/2.0f), 1.0f, 10.0f, 150.0f)); //Generate perspective light projection matrix and store it as float4x4
+	//XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(60.0f, 60.0f, 10.0f, 150.0f)); //Generate orthogonal light projection matrix and store it as float4x4
 
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix and store it as float4x4.
 #pragma endregion
@@ -371,6 +371,19 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 
 	http://stackoverflow.com/questions/4120108/how-to-save-backbuffer-to-file-in-directx-10
 
+	Inför SSAO:
+	http://www.gamedev.net/page/resources/_/technical/graphics-programming-and-theory/a-simple-and-practical-approach-to-ssao-r2753
+	http://www.iquilezles.org/www/articles/ssao/ssao.htm
+
+	Inför gräsquads:
+	http://www.rastertek.com/dx11tut37.html
+	http://blogs.msdn.com/b/shawnhar/archive/2009/02/18/depth-sorting-alpha-blended-objects.aspx
+	http://software.intel.com/en-us/articles/rendering-grass-with-instancing-in-directx-10
+	http://http.developer.nvidia.com/GPUGems/gpugems_ch07.html
+
+	http://developer.amd.com/wordpress/media/2012/10/ShaderX_AnimatedGrass.pdf
+	https://rit.digication.com/computer_graphics_2/Final
+	http://gamedev.stackexchange.com/questions/22507/what-is-the-alphatocoverage-blend-state-useful-for
 	*/
 
 	return true;

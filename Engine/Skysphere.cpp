@@ -60,6 +60,7 @@ bool Skysphere::Initialize(ID3D11Device* device, HWND hwnd)
 	}
 
 	//http://www.picturetopeople.org/color_converter.html
+	//Or you could just use the normal [0,255] number and divide it by 255 to get the [0,1] counterpart.
 	apexColor = XMFLOAT4(0.900f, 0.8f, 0.8f, 1.0f);
 	centerColor =  XMFLOAT4(0.538f, 0.568f, 0.960f, 1.0f);
 	antapexColor = XMFLOAT4(0.1f, 0.1f, 0.6f, 1.0f);
