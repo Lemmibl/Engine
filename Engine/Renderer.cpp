@@ -299,7 +299,7 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 		return false;
 	}
 
-	XMVECTOR lookAt = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f); //LookAt for dir light. We always want this to be (0,0,0), because it's the easiest to visualize.
+	XMVECTOR lookAt = XMVectorZero(); //LookAt for dir light. We always want this to be (0,0,0), because it's the easiest to visualize.
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 
 	// Initialize the directional light.

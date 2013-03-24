@@ -97,36 +97,43 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 
 	float shadowMultiplier = 1.0f;
 	
-	//We cull a large part of the light calculations if it's outside of the light frustum.
-	if(!(sampleLightScreen.x > 1 || sampleLightScreen.x < 0 || sampleLightScreen.y > 1 || sampleLightScreen.y < 0))
+	//We cull a large part of the light and shadow calculations if it's outside of the light frustum.
+	if
+	(		
+		!(	sampleLightScreen.x > 1 || sampleLightScreen.x < 0	|| 
+			sampleLightScreen.y > 1 || sampleLightScreen.y < 0	|| 
+			lightScreenPos.z > 1	|| lightScreenPos.z < 0		)
+	)
 	{
 		float sum = 0.0f;
 		float x, y;
 
+		//TODO: variance shadow mapping... http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html
+
 		realDistanceToLight -= 0.00002f; //Apply shadow bias
 
 		//perform PCF filtering on a 4 x 4 texel neighborhood
-		for (y = -1.5; y <= 1.5; y += 1.0)
-			{
-			for (x = -1.5; x <= 1.5; x += 1.0)
+		for (y = -1.5f; y <= 1.5f; y += 1.0f)
+		{
+			for (x = -1.5f; x <= 1.5f; x += 1.0f)
 			{
 				sum += shaderTextures[2].SampleCmpLevelZero(cmpSampler, sampleLightScreen + texOffset(x,y), realDistanceToLight);
 			}
 		}
 
-		shadowMultiplier = sum / 16.0f;
+		shadowMultiplier = (sum / 16.0f);
 
 		////Use this instead for normal unfiltered shadows. Produces more artifacts. Nasty.
 
 		//float distanceStoredInDepthMap = shaderTextures[2].Sample(linearSampler, sampleLightScreen);
-		//
-		//if (realDistanceToLight < 1.0f && realDistanceToLight - 0.0002f > distanceStoredInDepthMap)
+
+		//if (realDistanceToLight < 1.0f && realDistanceToLight > distanceStoredInDepthMap)
 		//{
 		//	shadowMultiplier = 0.35f;
 		//}
 		
 		//surface-to-light vector
-		float3 lightVector = -LightDirection;
+		float3 lightVector = (-LightDirection);
 
 		//Sigh, idk
 		float NdL = (max(0, dot(normal, lightVector)));
