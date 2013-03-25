@@ -25,12 +25,15 @@ public:
 	void Frame();
 
 	float GetFrameTime();
+	float GetFrameTimeSeconds();
 
 private:
 	INT64 frequency;
 	INT64 startTime;
 	float ticksPerMillisecond;
+	float ticksPerSecond;
 	float frameTime;
+	float frameTimeSeconds;
 };
 
 #endif

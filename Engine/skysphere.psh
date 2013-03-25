@@ -3,8 +3,8 @@
 /////////////
 cbuffer GradientBuffer
 {
-    float4 ApexColor;
-    float4 CenterColor;
+	float4 ApexColor;
+	float4 CenterColor;
 	float4 AntapexColor;
 };
 
@@ -20,8 +20,8 @@ cbuffer TimeBuffer
 //////////////
 struct PixelInputType
 {
-    float4 Position : SV_POSITION;
-    float4 DomePosition : TEXCOORD0;
+	float4 Position : SV_POSITION;
+	float4 DomePosition : TEXCOORD0;
 };
 
 //Perlin noise ease curve: 3p² - 2p³
@@ -36,17 +36,17 @@ float PerlinEaseCurve(float value)
 ////////////////////////////////////////////////////////////////////////////////
 float4 SkyspherePixelShader(PixelInputType input) : SV_TARGET0
 {
-    float width;
-    float4 outputColor;
+	float width;
+	float4 outputColor;
 
-    // Determine the position on the sky dome where this pixel is located.
-    width = (0.5f*input.DomePosition.x+0.5f)*time; //We translate it down from [-1,1] to [0,1], then we scale it with time. 
+	// Determine the position on the sky dome where this pixel is located.
+	width = (0.5f*input.DomePosition.x+0.5f)*time; //We translate it down from [-1,1] to [0,1], then we scale it with time. 
 
-    if(width < 0.000001f) //Clamp values in one direction
-    {
+	if(width < 0.000001f) //Clamp values in one direction
+	{
 		outputColor = ApexColor;
-    }
-	else if(width > 1.0f || time >= 170.0f) //Clamp values in the other direction
+	}
+	else if(width > 1.0f || time >= 350.0f) //Clamp values in the other direction
 	{
 		outputColor = CenterColor;
 	}
@@ -55,5 +55,5 @@ float4 SkyspherePixelShader(PixelInputType input) : SV_TARGET0
 		outputColor = lerp(ApexColor, CenterColor, width);
 	}
 
-    return outputColor;
+	return outputColor;
 }

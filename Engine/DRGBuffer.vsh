@@ -28,7 +28,7 @@ VertexShaderOutput GBufferVertexShader(VertexShaderInput input)
 {
 	VertexShaderOutput output;
 
-	float4 worldPosition = mul(input.Position, World);
+	output.WorldPosition = mul(input.Position, World);
 	float4 viewPosition = mul(output.WorldPosition, View);
 	output.Position = mul(viewPosition, Projection);
 

@@ -59,11 +59,11 @@ PixelShaderOutput GBufferPixelShader(VertexShaderOutput input)
 	output.Color = ((XZColor * blend_weights.y) + (YZColor * blend_weights.x) + (XYColor * blend_weights.z));
 
 	/* Use this instead if you want "pure" texturing -- no blending.
-    *
+	*
 	*	float x = abs(input.TangentToWorld[2].x);
 	*	float y = abs(input.TangentToWorld[2].y);
 	*	float z = abs(input.TangentToWorld[2].z);
-    *	
+	*	
 	*	if(x > y && x > z)
 	*	{
 	*		output.Color = cYZ;
@@ -76,7 +76,7 @@ PixelShaderOutput GBufferPixelShader(VertexShaderOutput input)
 	*	{
 	*		output.Color = cXY;
 	*	} 
-    *
+	*
 	*/
 
 	float3 normalFromMap =				shaderTextures[1].Sample(samplers[0], input.TexCoord);
@@ -149,12 +149,12 @@ float3 bump3 = float3(bumpFetch3.x, bumpFetch3.y, 0);
   
  // Finally, blend the results of the 3 planar projections.  
 blended_color = col1.xyzw * blend_weights.xxxx +  
-                col2.xyzw * blend_weights.yyyy +  
-                col3.xyzw * blend_weights.zzzz;
+				col2.xyzw * blend_weights.yyyy +  
+				col3.xyzw * blend_weights.zzzz;
 
 blended_bump_vec = bump1.xyz * blend_weights.xxx +  
-                   bump2.xyz * blend_weights.yyy +  
-                   bump3.xyz * blend_weights.zzz;  
+				   bump2.xyz * blend_weights.yyy +  
+				   bump3.xyz * blend_weights.zzz;  
 }  
 // Apply bump vector to vertex-interpolated normal vector.  
 float3 N_for_lighting = normalize(N_orig + blended_bump);  

@@ -55,7 +55,7 @@ float2 GetShadowTexOffset( int u, int v )
 {
 	float2 shadowMapSize = float2(1024.0f, 1024.0f); //This has to mirror shadowmap render target width and height; I'm just really, really lazy.
 
-    return float2( u * 1.0f/shadowMapSize.x, v * 1.0f/shadowMapSize.y ); //Scale and return texture coordinates
+	return float2( u * 1.0f/shadowMapSize.x, v * 1.0f/shadowMapSize.y ); //Scale and return texture coordinates
 }
 
 half4 LightPixelShader(VertexShaderOutput input) : SV_Target
@@ -123,6 +123,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		}
 
 		shadowMultiplier = (sum / 16.0f);
+
 
 		////Use this instead for normal unfiltered shadows. Produces more artifacts. Nasty.
 

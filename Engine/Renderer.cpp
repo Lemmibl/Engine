@@ -78,7 +78,7 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	}
 
 	// Initialize the model object.
-	result = groundModel->Initialize(d3D->GetDevice(), "../Engine/data/ground.txt", L"../Engine/data/seafloor.dds", L"../Engine/data/ground_normal.dds", L"../Engine/data/ground_specular.dds");
+	result = groundModel->Initialize(d3D->GetDevice(), "../Engine/data/ground.txt", L"../Engine/data/ground_diffuse.dds", L"../Engine/data/ground_normal.dds", L"../Engine/data/ground_specular.dds");
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
@@ -271,13 +271,9 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	}
 #pragma endregion
 
-	/************************************************************************/
-	/* TODO: Look up http://stackoverflow.com/questions/35950/i-dont-understand-stdtr1unordered-map  */
-	/************************************************************************/
-
 #pragma region Directional light initialization
 
-	ambientLight = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f);
+	ambientLight = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
 
 	// Create the directional light.
 	dirLight = new DirLight();
@@ -305,7 +301,7 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	// Initialize the directional light.
 	dirLight->Color = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
 	dirLight->Intensity = 256.0f;
-	dirLight->Position = XMFLOAT3(0.5f, 55.0f, 10.0f);
+	dirLight->Position = XMFLOAT3(70.0f, 0.0f, 0.0f);
 
 	XMVECTOR direction = XMVector3Normalize(lookAt - XMLoadFloat3(&dirLight->Position));
 	XMStoreFloat3(&dirLight->Direction, direction);
@@ -361,14 +357,29 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 		return false;
 	}
 
+	dayNightCycle = new DayNightCycle();
+	if(!dayNightCycle)
+	{
+		return false;
+	}
+
+	result = dayNightCycle->Initialize(8.0f, DAWN);
+	if(!result)
+	{
+		return false;
+	}
+
 	timer = 0.0f;
 	returning = false;
 	debutRotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	timeOfDay = 0.0f;
 
 	/*
-	Inför perlin/simplex noise:
+	Inför terrain rendering / många texturer:
+	http://stackoverflow.com/questions/35950/i-dont-understand-stdtr1unordered-map
+	Multitexturing pixel shader tutorials i allmänt om något är oklart.
 
+	Inför perlin/simplex noise:
 	http://stackoverflow.com/questions/4120108/how-to-save-backbuffer-to-file-in-directx-10
 
 	Inför SSAO:
@@ -389,7 +400,7 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	return true;
 }
 
-bool Renderer::Update(int fps, int cpu, float frameTime)
+bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 {
 	bool result;
 
@@ -486,6 +497,8 @@ bool Renderer::Update(int fps, int cpu, float frameTime)
 			timeOfDay -= frameTime*0.0003f;	
 		}
 	}
+
+	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
 
 	//Adding some little comment here so that I can commit. Ignore this.
 
@@ -713,7 +726,7 @@ bool Renderer::Render()
 		}
 	}
 
-	text->SetRenderCount(renderCount, context);
+	text->SetRenderCount(timeOfDay, context);
 #pragma endregion
 
 	context->OMSetRenderTargets(1, lightTarget, ds);
@@ -1074,6 +1087,12 @@ void Renderer::Shutdown()
 	{
 		mcubeShader->Shutdown();
 		mcubeShader = 0;
+	}
+
+	if(dayNightCycle)
+	{
+		delete dayNightCycle;
+		dayNightCycle = 0;
 	}
 
 	return;

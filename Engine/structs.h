@@ -13,6 +13,14 @@ struct MaterialStruct
 	float a;
 };
 
+enum StageOfDay
+{
+	DAWN,
+	DAY,
+	DUSK,
+	NIGHT
+};
+
 struct PointLight
 {
 	XMFLOAT3 Position;
@@ -29,6 +37,8 @@ struct DirLight
 
 	XMFLOAT4 Color;
 	XMFLOAT3 Position;
+	XMFLOAT3 OldPosition; //For day/night cycles
+	XMFLOAT3 NextPosition; //For day/night cycles
 	XMFLOAT3 Direction;
 	float Intensity;
 };

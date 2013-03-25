@@ -27,6 +27,8 @@
 #include "textclass.h"
 #include "renderToTextureClass.h"
 
+#include "DayNightCycle.h"
+
 
 //Objects
 #include "modelclass.h"
@@ -64,7 +66,7 @@ public:
 	bool Initialize(HWND hwnd, CameraClass* camera, InputClass* inputManager, D3DClass* d3D, UINT screenWidth, UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear);
 	void Shutdown();
 
-	bool Update(int, int, float);
+	bool Update(int, int, float, float seconds);
 	bool Render();
 	bool RenderToTexture(RenderToTextureClass* const);
 	bool RenderScene();
@@ -120,6 +122,8 @@ private:
 	bool returning;
 
 	MarchingCubeShader* mcubeShader;
+
+	DayNightCycle* dayNightCycle;
 };
 
 #endif

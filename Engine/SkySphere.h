@@ -48,11 +48,10 @@ public:
 
 	//Top of the skysphere.
 	XMFLOAT4 GetApexColor();
-
 	XMFLOAT4 GetCenterColor();
 
-	//Bottom of the skysphere; opposite of apex.
-	XMFLOAT4 GetAntapexColor();
+	void SetApexColor(XMFLOAT4 val);
+	void SetCenterColor(XMFLOAT4 val);
 
 private:
 	bool LoadModel(char*);
@@ -66,7 +65,7 @@ private:
 	ModelType* model;
 	int vertexCount, indexCount;
 	ID3D11Buffer *vertexBuffer, *indexBuffer;
-	XMFLOAT4 apexColor, centerColor, antapexColor;
+	XMFLOAT4 apexColor, centerColor;
 	SkysphereShader* skysphereShader;
 };
 

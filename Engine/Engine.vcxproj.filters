@@ -13,12 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Effects">
-      <UniqueIdentifier>{be3b0400-d2c8-4af6-85ed-054686215f54}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Deferred stuff">
-      <UniqueIdentifier>{b603451a-643d-458e-b56e-5f2068c079b2}</UniqueIdentifier>
-    </Filter>
     <Filter Include="MarchingCubes">
       <UniqueIdentifier>{9c4f1c3c-95b4-4a57-8f47-dc3466f7afd0}</UniqueIdentifier>
     </Filter>
@@ -36,6 +30,12 @@
     </Filter>
     <Filter Include="Rendering\Utility">
       <UniqueIdentifier>{51b1641f-d707-479c-a05b-d0c977b80194}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Deferred stuff">
+      <UniqueIdentifier>{b603451a-643d-458e-b56e-5f2068c079b2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Non-deferred effects">
+      <UniqueIdentifier>{be3b0400-d2c8-4af6-85ed-054686215f54}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -69,20 +69,17 @@
     <ClCompile Include="controllerclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="structs.cpp">
-      <Filter>Deferred stuff</Filter>
-    </ClCompile>
     <ClCompile Include="DRGBuffer.cpp">
-      <Filter>Deferred stuff</Filter>
+      <Filter>Rendering\Deferred stuff</Filter>
     </ClCompile>
     <ClCompile Include="VertexShaderOnly.cpp">
-      <Filter>Deferred stuff</Filter>
+      <Filter>Rendering\Deferred stuff</Filter>
     </ClCompile>
     <ClCompile Include="DRPointLight.cpp">
-      <Filter>Deferred stuff</Filter>
+      <Filter>Rendering\Deferred stuff</Filter>
     </ClCompile>
     <ClCompile Include="DepthOnlyShader.cpp">
-      <Filter>Deferred stuff</Filter>
+      <Filter>Rendering\Deferred stuff</Filter>
     </ClCompile>
     <ClCompile Include="marchingCubesClass.cpp">
       <Filter>MarchingCubes</Filter>
@@ -115,7 +112,7 @@
       <Filter>Rendering\Utility</Filter>
     </ClCompile>
     <ClCompile Include="DRDirectionalLight.cpp">
-      <Filter>Deferred stuff</Filter>
+      <Filter>Rendering\Deferred stuff</Filter>
     </ClCompile>
     <ClCompile Include="debugwindowclass.cpp">
       <Filter>Rendering\Utility</Filter>
@@ -148,7 +145,13 @@
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="DRCompose.cpp">
-      <Filter>Deferred stuff</Filter>
+      <Filter>Rendering\Deferred stuff</Filter>
+    </ClCompile>
+    <ClCompile Include="DayNightCycle.cpp">
+      <Filter>Rendering\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="structs.cpp">
+      <Filter>Rendering\Utility</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -188,20 +191,17 @@
     <ClInclude Include="interfacepointers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="structs.h">
-      <Filter>Deferred stuff</Filter>
-    </ClInclude>
     <ClInclude Include="DRGBuffer.h">
-      <Filter>Deferred stuff</Filter>
+      <Filter>Rendering\Deferred stuff</Filter>
     </ClInclude>
     <ClInclude Include="VertexShaderOnly.h">
-      <Filter>Deferred stuff</Filter>
+      <Filter>Rendering\Deferred stuff</Filter>
     </ClInclude>
     <ClInclude Include="DRPointLight.h">
-      <Filter>Deferred stuff</Filter>
+      <Filter>Rendering\Deferred stuff</Filter>
     </ClInclude>
     <ClInclude Include="DepthOnlyShader.h">
-      <Filter>Deferred stuff</Filter>
+      <Filter>Rendering\Deferred stuff</Filter>
     </ClInclude>
     <ClInclude Include="customStructs.h">
       <Filter>MarchingCubes</Filter>
@@ -261,7 +261,7 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DRDirectionalLight.h">
-      <Filter>Deferred stuff</Filter>
+      <Filter>Rendering\Deferred stuff</Filter>
     </ClInclude>
     <ClInclude Include="SkySphere.h">
       <Filter>Rendering</Filter>
@@ -270,52 +270,58 @@
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="DRCompose.h">
-      <Filter>Deferred stuff</Filter>
+      <Filter>Rendering\Deferred stuff</Filter>
+    </ClInclude>
+    <ClInclude Include="DayNightCycle.h">
+      <Filter>Rendering\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="structs.h">
+      <Filter>Rendering\Utility</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="font.psh">
-      <Filter>Effects</Filter>
+      <Filter>Rendering\Non-deferred effects</Filter>
     </None>
     <None Include="font.vsh">
-      <Filter>Effects</Filter>
+      <Filter>Rendering\Non-deferred effects</Filter>
     </None>
     <None Include="standard.vsh">
-      <Filter>Effects</Filter>
+      <Filter>Rendering\Non-deferred effects</Filter>
     </None>
     <None Include="DRDirectionalLight.psh">
-      <Filter>Deferred stuff</Filter>
+      <Filter>Rendering\Deferred stuff</Filter>
     </None>
     <None Include="DRDirectionalLight.vsh">
-      <Filter>Deferred stuff</Filter>
+      <Filter>Rendering\Deferred stuff</Filter>
     </None>
     <None Include="shader-error.txt" />
     <None Include="BasicVertexShader.vsh">
-      <Filter>Deferred stuff</Filter>
+      <Filter>Rendering\Deferred stuff</Filter>
     </None>
     <None Include="DepthOnlyShader.psh">
-      <Filter>Deferred stuff</Filter>
+      <Filter>Rendering\Deferred stuff</Filter>
     </None>
     <None Include="DepthOnlyShader.vsh">
-      <Filter>Deferred stuff</Filter>
+      <Filter>Rendering\Deferred stuff</Filter>
     </None>
     <None Include="DRGBuffer.psh">
-      <Filter>Deferred stuff</Filter>
+      <Filter>Rendering\Deferred stuff</Filter>
     </None>
     <None Include="DRGBuffer.vsh">
-      <Filter>Deferred stuff</Filter>
+      <Filter>Rendering\Deferred stuff</Filter>
     </None>
     <None Include="DRPointLight.psh">
-      <Filter>Deferred stuff</Filter>
+      <Filter>Rendering\Deferred stuff</Filter>
     </None>
     <None Include="DRPointLight.vsh">
-      <Filter>Deferred stuff</Filter>
+      <Filter>Rendering\Deferred stuff</Filter>
     </None>
     <None Include="DRCompose.psh">
-      <Filter>Deferred stuff</Filter>
+      <Filter>Rendering\Deferred stuff</Filter>
     </None>
     <None Include="DRCompose.vsh">
-      <Filter>Deferred stuff</Filter>
+      <Filter>Rendering\Deferred stuff</Filter>
     </None>
     <None Include="mcubes.psh">
       <Filter>MarchingCubes</Filter>
@@ -324,10 +330,10 @@
       <Filter>MarchingCubes</Filter>
     </None>
     <None Include="skysphere.psh">
-      <Filter>Effects</Filter>
+      <Filter>Rendering\Non-deferred effects</Filter>
     </None>
     <None Include="skysphere.vsh">
-      <Filter>Effects</Filter>
+      <Filter>Rendering\Non-deferred effects</Filter>
     </None>
   </ItemGroup>
 </Project>

@@ -16,9 +16,14 @@ XMFLOAT4 Skysphere::GetCenterColor()
 	return centerColor;
 }
 
-XMFLOAT4 Skysphere::GetAntapexColor()
+void Skysphere::SetApexColor(XMFLOAT4 val)
 {
-	return antapexColor;
+	apexColor = val;
+}
+
+void Skysphere::SetCenterColor(XMFLOAT4 val)
+{
+	centerColor = val;
 }
 #pragma endregion Properties
 
@@ -68,10 +73,8 @@ bool Skysphere::Initialize(ID3D11Device* device, HWND hwnd)
 	//Cornflower Blue = {R:100 G:149 B:237 A:255}
 	//Deep Sky Blue = {R:0 G:191 B:255 A:255}
 	//Dark Turquoise = {R:0 G:206 B:209 A:255}
-	//
 	apexColor = XMFLOAT4(0.9f, 160.0f/255, 0.9f, 1.0f);
 	centerColor =  XMFLOAT4(0.538f, 0.568f, 0.960f, 1.0f);
-	antapexColor = XMFLOAT4(0.0f, 0.0f, 65.0f/255, 1.0f);
 
 	skysphereShader = new SkysphereShader();
 	if(!skysphereShader)
@@ -112,7 +115,7 @@ void Skysphere::Render(ID3D11DeviceContext* context, XMMATRIX* world, XMMATRIX* 
 	// Render the sky dome.
 	RenderBuffers(context);
 
-	skysphereShader->Render(context, GetIndexCount(), world, view, projection, apexColor, centerColor, antapexColor, time);
+	skysphereShader->Render(context, GetIndexCount(), world, view, projection, apexColor, centerColor, XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f), time);
 
 	return;
 }

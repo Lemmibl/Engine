@@ -16,6 +16,7 @@
     <ClCompile Include="controllerclass.cpp" />
     <ClCompile Include="cpumeter.cpp" />
     <ClCompile Include="d3dclass.cpp" />
+    <ClCompile Include="DayNightCycle.cpp" />
     <ClCompile Include="debugwindowclass.cpp" />
     <ClCompile Include="DepthOnlyShader.cpp" />
     <ClCompile Include="DRDirectionalLight.cpp" />
@@ -55,6 +56,7 @@
     <ClInclude Include="cpumeter.h" />
     <ClInclude Include="customStructs.h" />
     <ClInclude Include="d3dclass.h" />
+    <ClInclude Include="DayNightCycle.h" />
     <ClInclude Include="debugwindowclass.h" />
     <ClInclude Include="DepthOnlyShader.h" />
     <ClInclude Include="DRDirectionalLight.h" />

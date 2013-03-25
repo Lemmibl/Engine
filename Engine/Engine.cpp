@@ -327,7 +327,7 @@ bool Engine::Update()
 	//marchingCubes->CalculateMesh(d3D->GetDevice());
 	
 	// Do the frame processing for the graphics object.
-	result = renderer->Update(fpsMeter->GetFps(), cpuMeter->GetCpuPercentage(), timer->GetFrameTime());
+	result = renderer->Update(fpsMeter->GetFps(), cpuMeter->GetCpuPercentage(), timer->GetFrameTime(), timer->GetFrameTimeSeconds());
 	if(!result)
 	{
 		return false;
