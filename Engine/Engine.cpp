@@ -82,7 +82,7 @@ bool Engine::Initialize()
 	camera->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
 	camera->Update();
 
-	camera->SetPosition(XMFLOAT3(0.0f, 10.0f, -10.0f));
+	camera->SetPosition(XMFLOAT3(0.0f, 45.0f, -50.0f));
 	camera->SetRotation(XMFLOAT3(45.0f, 0.0f, 0.0f));
 
 	camera->SetPerspectiveProjection(screenWidth, screenHeight, XM_PIDIV4, SCREEN_NEAR, SCREEN_FAR); 

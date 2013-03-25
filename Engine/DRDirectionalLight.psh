@@ -101,9 +101,9 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//We cull a large part of the light and shadow calculations if it's outside of the light frustum.
 	if
 	(		
-		!(	sampleLightScreen.x > 1 || sampleLightScreen.x < 0	|| 
-			sampleLightScreen.y > 1 || sampleLightScreen.y < 0	|| 
-			lightScreenPos.z > 1	|| lightScreenPos.z < 0		)
+		!(	sampleLightScreen.x > 1 || sampleLightScreen.x	< 0	|| 
+			sampleLightScreen.y > 1 || sampleLightScreen.y	< 0	|| 
+			lightScreenPos.z	> 1 || lightScreenPos.z		< 0		)
 	)
 	{
 		float sum = 0.0f;
@@ -122,8 +122,13 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 			}
 		}
 
-		shadowMultiplier = (sum / 16.0f);
+		shadowMultiplier = (sum / 16.0f)-0.00002f;
 
+		//This here is just for debug purposes
+		if(shadowMultiplier <= 0.45f)
+		{
+			finalDiffuseProduct.x += 5.0f;
+		}
 
 		////Use this instead for normal unfiltered shadows. Produces more artifacts. Nasty.
 
