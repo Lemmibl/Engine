@@ -7,7 +7,7 @@ cbuffer MatrixBuffer
 
 struct VertexShaderInput
 {
-	float3 Position : POSITION;
+	float4 Position : POSITION;
 	float2 TexCoord : TEXCOORD0;
 	float3 Normal : NORMAL;
 	float3 Tangent : TANGENT;
@@ -28,7 +28,7 @@ VertexShaderOutput GBufferVertexShader(VertexShaderInput input)
 {
 	VertexShaderOutput output;
 
-	output.WorldPosition = mul(float4(input.Position, 1.0f), World);
+	float4 worldPosition = mul(input.Position, World);
 	float4 viewPosition = mul(output.WorldPosition, View);
 	output.Position = mul(viewPosition, Projection);
 
