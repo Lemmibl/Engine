@@ -37,7 +37,7 @@ bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
 	skysphereDawnColor = XMFLOAT4(1.0f, GetColorValueFromRGB(160.0f), GetColorValueFromRGB(122.0f), 1.0f);
 	skysphereDayColor = XMFLOAT4(GetColorValueFromRGB(100.0f), GetColorValueFromRGB(149.0f), GetColorValueFromRGB(237.0f), 1.0f);
 	skysphereDuskColor = XMFLOAT4(0.0f, GetColorValueFromRGB(206.0f), GetColorValueFromRGB(209.0f), 1.0f);
-	skysphereNightColor = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
+	skysphereNightColor = XMFLOAT4(0.05f, 0.05f, 0.1f, 1.0f);
 
 	/*
 	DAWN
@@ -76,8 +76,8 @@ bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
 
 	//which leads into...
 
-	startAndEndPositions[5] = XMFLOAT3(70.0f, 65.0f, 0.0f); //start pos for night
-	startAndEndPositions[11] = XMFLOAT3(-70.0f, 65.0f, 0.0f); //end pos for night
+	startAndEndPositions[5] = XMFLOAT3(30.0f, 80.0f, 50.0f); //start pos for night
+	startAndEndPositions[11] = XMFLOAT3(30.0f, 80.0f, 50.0f); //end pos for night
 
 	//which ends and repeats; goto start pos for dawn. 
 
@@ -90,23 +90,19 @@ bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
 
 float DayNightCycle::Update( float elapsedTime, DirLight* directionalLight, Skysphere* skysphere )
 {
-	this->elapsedTime += elapsedTime;
-	float lerpAmountThisFrame = clamp((elapsedTime / timePerStage), 0.0f, 1.0f);
-
-	//	float amount = MathHelper.Clamp(elapsedTime / Duration, 0, 1);
-	//	byte value = (byte) MathHelper.Lerp(255, 0, amount);
-
-	timeOfDay += lerp(0.0f, 1.0f, lerpAmountThisFrame);
-
 	XMVECTOR oldPosition, futureposition, currentPos, resultPos;
 
-	currentPos =  XMLoadFloat3(&directionalLight->Position);
+	currentPos =  XMLoadFloat3(&directionalLight->Position); //Save current position in XMVECTOR format, needed when calculating sum of each frame's lerping
 
-	//We do approximate comparison because float x float comparisons could get nasty.
+	this->elapsedTime += elapsedTime;
+	float lerpAmountThisFrame = clamp((elapsedTime / timePerStage), 0.0f, 1.0f); //Calculate amount we'll be moving by this frame
+
+	timeOfDay += lerpAmountThisFrame; //This is for controlling the skysphere lerping.
+
+	//We do approximate comparison because float X float comparisons could get nasty.
 	if((int)this->elapsedTime >= timePerStage)
 	{
 		//If this has happened, then we switch to next stage of day, because the time has passed
-
 		if(currentStageOfDay == NIGHT) //If it was night, we've reached the end of the enum list, hence...
 		{
 			currentStageOfDay = DAWN; //We reset
