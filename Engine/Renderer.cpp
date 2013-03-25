@@ -363,7 +363,7 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 		return false;
 	}
 
-	result = dayNightCycle->Initialize(8.0f, DAWN);
+	result = dayNightCycle->Initialize(20.0f, DAWN);
 	if(!result)
 	{
 		return false;
@@ -485,18 +485,18 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		debutRotation.y -= frameTime*0.002f;		
 	}
 
-	if(inputManager->IsKeyPressed(DIK_1))
+	if(inputManager->WasKeyPressed(DIK_1))
 	{
-		timeOfDay += frameTime*0.0003f;
+		seconds = timeOfDay += 3.0f;
 	}
 
-	if(inputManager->IsKeyPressed(DIK_2))
-	{
-		if(timeOfDay > 0.0f)
-		{
-			timeOfDay -= frameTime*0.0003f;	
-		}
-	}
+	//if(inputManager->WasKeyPressed(DIK_2))
+	//{
+	//	if(timeOfDay >= 3.0f)
+	//	{
+	//		seconds = timeOfDay -= 3.0f;	
+	//	}
+	//}
 
 	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
 

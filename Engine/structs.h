@@ -16,8 +16,10 @@ struct MaterialStruct
 enum StageOfDay
 {
 	DAWN,
+	MORNING, //Transition between dawn and day
 	DAY,
 	DUSK,
+	EVENING, //Transition between dusk and night
 	NIGHT
 };
 
