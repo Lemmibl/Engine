@@ -737,7 +737,7 @@ bool Renderer::Render()
 		}
 	}
 
-	text->SetRenderCount(timeOfDay, context);
+	text->SetRenderCount((int)timeOfDay, context);
 #pragma endregion
 
 	context->OMSetRenderTargets(1, lightTarget, ds);

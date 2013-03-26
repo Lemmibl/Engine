@@ -27,6 +27,8 @@
 #include "textclass.h"
 #include "renderToTextureClass.h"
 
+#include "DayNightCycle.h"
+
 
 //Objects
 #include "modelclass.h"
@@ -44,23 +46,15 @@
 #include "DepthOnlyShader.h"
 #include "DRCompose.h"
 #include "DRPointLight.h"
-<<<<<<< Updated upstream
 #include "DRDirectionalLight.h"
 #include "fontshaderclass.h"
 #include "DRGBuffer.h"
 
 
 
-=======
-#include "DRDirLight.h"
-#include "inputclass.h"
-#include "pointlight.h"
-#include "modellistclass.h"
-#include "modelclass.h"
 #include "marchingCubesClass.h"
 #include "MarchingCubeShader.h"
 #include "MCTerrainClass.h"
->>>>>>> Stashed changes
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: GraphicsClass
@@ -75,7 +69,7 @@ public:
 	bool Initialize(HWND hwnd, CameraClass* camera, InputClass* inputManager, D3DClass* d3D, UINT screenWidth, UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear);
 	void Shutdown();
 
-	bool Update(int, int, float);
+	bool Update(int, int, float, float seconds);
 	bool Render();
 	bool RenderToTexture(RenderToTextureClass* const);
 	bool RenderScene();
@@ -132,8 +126,13 @@ private:
 	
 	MetaballsClass* metaBalls;
 	MarchingCubeShader* mcubeShader;
+<<<<<<< Updated upstream
+
+	DayNightCycle* dayNightCycle;
+=======
 	MarchingCubesClass* marchingCubes;
 	MCTerrainClass* mcTerrain;
+>>>>>>> Stashed changes
 };
 
 #endif
