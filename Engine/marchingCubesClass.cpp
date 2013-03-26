@@ -1,6 +1,5 @@
-#include "types.h"
+
 #include "marchingCubesClass.h"
-#include <windows.h>
 
 
 #include <stdio.h>
@@ -382,6 +381,7 @@ const int MarchingCubesClass::edgeTable[256] = {
 		}
 
 		this->Terrain = new MCTerrainClass(sizeX,sizeY,sizeZ,this->marchingCubeVertices);
+		Terrain->MCHeightMap();
 		this->Tree = new TreeClass(sizeX,sizeY,sizeZ,this->marchingCubeVertices);
 	}
 

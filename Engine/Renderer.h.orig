@@ -9,35 +9,58 @@
 ///////////////////////
 #pragma once;
 
+//System includes
 #include <stdlib.h>
 #include <time.h>
 #include <windows.h>
 #include <xnamath.h>
 
-#include "structs.h"
 
+//Utility
+#include "structs.h"
+#include "modellistclass.h"
+#include "inputclass.h"
 #include "d3dclass.h"
-#include "cameraclass.h"
 #include "timerclass.h"
 #include "controllerclass.h"
 #include "fpsmeter.h"
-#include "fontshaderclass.h"
 #include "textclass.h"
 #include "renderToTextureClass.h"
-#include "DRGBuffer.h"
+
+
+//Objects
+#include "modelclass.h"
+#include "pointlight.h"
+#include "cameraclass.h"
 #include "frustumclass.h"
 #include "debugwindowclass.h"
+#include "SkySphere.h"
+
+
+//Shaders
+#include "MarchingCubeShader.h"
 #include "textureshaderclass.h"
 #include "VertexShaderOnly.h"
 #include "DepthOnlyShader.h"
-#include "DRFinalComposition.h"
+#include "DRCompose.h"
 #include "DRPointLight.h"
+<<<<<<< Updated upstream
+#include "DRDirectionalLight.h"
+#include "fontshaderclass.h"
+#include "DRGBuffer.h"
+
+
+
+=======
 #include "DRDirLight.h"
 #include "inputclass.h"
 #include "pointlight.h"
 #include "modellistclass.h"
 #include "modelclass.h"
+#include "marchingCubesClass.h"
 #include "MarchingCubeShader.h"
+#include "MCTerrainClass.h"
+>>>>>>> Stashed changes
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: GraphicsClass
@@ -51,13 +74,8 @@ public:
 
 	bool Initialize(HWND hwnd, CameraClass* camera, InputClass* inputManager, D3DClass* d3D, UINT screenWidth, UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear);
 	void Shutdown();
-<<<<<<< Updated upstream:Engine/Renderer.h
 
 	bool Update(int, int, float);
-=======
-	
-	bool Frame(int, int, float, bool, bool, bool);
->>>>>>> Stashed changes:Engine/graphicsclass.h
 	bool Render();
 	bool RenderToTexture(RenderToTextureClass* const);
 	bool RenderScene();
@@ -75,7 +93,7 @@ private:
 
 	VertexShaderOnly* vertexOnlyShader;
 	DepthOnlyShader* depthOnlyShader;
-	DRFinalComposition* composeShader;
+	DRCompose* composeShader;
 
 	DRDirLight* dirLightShader;
 	DirLight* dirLight;
@@ -84,6 +102,7 @@ private:
 	ModelClass* groundModel;
 	ModelClass* otherModel;
 	ModelClass* sphereModel;
+	Skysphere* skySphere;
 
 	MaterialStruct defaultModelMaterial;
 
@@ -106,11 +125,15 @@ private:
 
 	UINT shadowMapWidth, shadowMapHeight, screenWidth, screenHeight;
 	float screenFar, screenNear;
+	XMFLOAT3 debutRotation;
 
-	float timer;
+	float timer, timeOfDay;
 	bool returning;
-
+	
+	MetaballsClass* metaBalls;
 	MarchingCubeShader* mcubeShader;
+	MarchingCubesClass* marchingCubes;
+	MCTerrainClass* mcTerrain;
 };
 
 #endif

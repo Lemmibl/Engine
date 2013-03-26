@@ -1,6 +1,10 @@
+
+#pragma once;
 #include "metaballsClass.h"
 #include "TreeClass.h"
 #include "MCTerrainClass.h"
+#include "types.h"
+#include <windows.h>
 
 
 

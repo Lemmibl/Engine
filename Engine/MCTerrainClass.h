@@ -11,9 +11,12 @@ private:
 	int sizeX;
 	int sizeY;
 	int sizeZ;
+	int worldSize;
+	int worldSizeMargin;
 	int x,y,z, idx;
 	MarchingCubeVertex *marchingCubeVertices2;
 	SimplexNoise *noise;
+	int worldArraySize;
 public:
 	MCTerrainClass(void);
 
@@ -34,5 +37,9 @@ public:
 	void LSystemTree();
 
 	void MCHeightMap();
+
+	void Noise3D();
+
+	
 
 };

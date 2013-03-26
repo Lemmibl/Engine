@@ -52,6 +52,9 @@
 
 
 
+#include "marchingCubesClass.h"
+#include "MarchingCubeShader.h"
+#include "MCTerrainClass.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: GraphicsClass
@@ -120,10 +123,13 @@ private:
 
 	float timer, timeOfDay;
 	bool returning;
-
+	
+	MetaballsClass* metaBalls;
 	MarchingCubeShader* mcubeShader;
 
 	DayNightCycle* dayNightCycle;
+	MarchingCubesClass* marchingCubes;
+	MCTerrainClass* mcTerrain;
 };
 
 #endif

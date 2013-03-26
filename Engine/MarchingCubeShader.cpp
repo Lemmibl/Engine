@@ -47,8 +47,8 @@ void MarchingCubeShader::Shutdown()
 }
 
 
-bool MarchingCubeShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMFLOAT4X4 world, 
-	XMFLOAT4X4 view, XMFLOAT4X4 proj)
+bool MarchingCubeShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* world, 
+	XMMATRIX* view, XMMATRIX* proj)
 {
 	bool result;
 
@@ -260,8 +260,8 @@ void MarchingCubeShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND
 }
 
 
-bool MarchingCubeShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMFLOAT4X4 world, 
-	XMFLOAT4X4 view, XMFLOAT4X4 proj)
+bool MarchingCubeShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* world, 
+	XMMATRIX* view, XMMATRIX* proj)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -279,9 +279,9 @@ bool MarchingCubeShader::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 	dataPtr = (MatrixBufferType*)mappedResource.pData;
 
 	// Copy the matrices into the constant buffer.
-	dataPtr->world = world;
-	dataPtr->view = view;
-	dataPtr->projection = proj;
+	dataPtr->world = *world;
+	dataPtr->view = *view;
+	dataPtr->projection = *proj;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(matrixBuffer, 0);

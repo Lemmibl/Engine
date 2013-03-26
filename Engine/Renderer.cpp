@@ -36,6 +36,8 @@ Renderer::Renderer()
 	lightRT = 0;
 
 	mcubeShader = 0;
+	marchingCubes = 0;
+	mcTerrain = 0;
 }
 
 
@@ -343,6 +345,15 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	depthRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
 	shadowRT->Initialize(d3D->GetDevice(), shadowmapWidth, shadowmapHeight, DXGI_FORMAT_R32_FLOAT);
 	lightRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
+
+
+	metaBalls = new MetaballsClass();
+	marchingCubes = new MarchingCubesClass(-40.0f, -40.0f, -40.0f, 40.0f, 40.0f, 40.0f, 1.5f, 1.5f, 1.5f);
+	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
+
+
+	marchingCubes->GetTree().LSystemTree();
+	marchingCubes->CalculateMesh(d3D->GetDevice());
 
 
 	mcubeShader = new MarchingCubeShader();
@@ -845,9 +856,9 @@ bool Renderer::Render()
 	d3D->SetBackFaceCullingRasterizer();
 	context->ClearDepthStencilView(ds,  D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	//marchingCubes->Render(context);
-	//result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
-	//	worldMatrix, viewMatrix, projectionMatrix);
+	marchingCubes->Render(context);
+	result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
+		&worldMatrix, &viewMatrix, &projectionMatrix);
 
 	fullScreenQuad.Render(context, 0, 0);
 
@@ -1078,6 +1089,14 @@ void Renderer::Shutdown()
 			// Release the sentence.
 			delete light;
 			light = 0;
+		}
+
+
+
+		if(marchingCubes)
+		{
+			delete marchingCubes;
+			marchingCubes = 0;
 		}
 	}
 
