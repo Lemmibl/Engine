@@ -26,7 +26,6 @@
 #include "fpsmeter.h"
 #include "textclass.h"
 #include "renderToTextureClass.h"
-
 #include "DayNightCycle.h"
 
 
@@ -40,7 +39,7 @@
 
 
 //Shaders
-#include "MarchingCubeShader.h"
+#include "MCubesGBufferShader.h"
 #include "textureshaderclass.h"
 #include "VertexShaderOnly.h"
 #include "DepthOnlyShader.h"
@@ -125,7 +124,7 @@ private:
 	bool returning;
 	
 	MetaballsClass* metaBalls;
-	MarchingCubeShader* mcubeShader;
+	MCubesGBufferShader* mcubeShader;
 
 	DayNightCycle* dayNightCycle;
 	MarchingCubesClass* marchingCubes;

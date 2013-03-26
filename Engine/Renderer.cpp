@@ -356,7 +356,7 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	marchingCubes->CalculateMesh(d3D->GetDevice());
 
 
-	mcubeShader = new MarchingCubeShader();
+	mcubeShader = new MCubesGBufferShader();
 	if(!mcubeShader)
 	{
 		return false;
@@ -483,7 +483,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		dirLight->Position.x -= frameTime*0.02f;
 		dirLight->Position.z -= frameTime*0.02f;
 	}
-	
+
 	if(inputManager->IsKeyPressed(DIK_C))
 	{
 		debutRotation.x += frameTime*0.002f;
@@ -516,6 +516,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 	XMVECTOR lookAt = XMVectorZero();
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 
+	XMStoreFloat3(&dirLight->Direction, XMVector3Normalize(lookAt - XMLoadFloat3(&dirLight->Position)));
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix
 
 	return true;
@@ -656,7 +657,15 @@ bool Renderer::Render()
 		// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 		otherModel->Render(context);
 
-		// Render the model using the gbuffer shader.
+		result = depthOnlyShader->Render(context, otherModel->GetIndexCount(), &worldMatrix, &lightView, &lightProj);
+		if(!result)
+		{
+			return false;
+		}
+
+		d3D->SetBackFaceCullingRasterizer();
+		marchingCubes->Render(context);
+
 		result = depthOnlyShader->Render(context, otherModel->GetIndexCount(), &worldMatrix, &lightView, &lightProj);
 		if(!result)
 		{
@@ -735,6 +744,11 @@ bool Renderer::Render()
 			// Since this model was rendered then increase the count for this frame.
 			renderCount++;
 		}
+
+		marchingCubes->Render(context);
+		result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
+			&worldMatrix, &viewMatrix, &projectionMatrix, groundModel->GetTexture());
+
 	}
 
 	text->SetRenderCount((int)timeOfDay, context);
@@ -855,10 +869,6 @@ bool Renderer::Render()
 	d3D->SetBackBufferRenderTarget();
 	d3D->SetBackFaceCullingRasterizer();
 	context->ClearDepthStencilView(ds,  D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-	marchingCubes->Render(context);
-	result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
-		&worldMatrix, &viewMatrix, &projectionMatrix);
 
 	fullScreenQuad.Render(context, 0, 0);
 
@@ -1090,8 +1100,6 @@ void Renderer::Shutdown()
 			delete light;
 			light = 0;
 		}
-
-
 
 		if(marchingCubes)
 		{

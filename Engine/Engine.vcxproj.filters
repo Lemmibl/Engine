@@ -153,6 +153,9 @@
     <ClCompile Include="structs.cpp">
       <Filter>Rendering\Utility</Filter>
     </ClCompile>
+    <ClCompile Include="MCubesGBufferShader.cpp">
+      <Filter>Rendering\Deferred stuff</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inputclass.h">
@@ -278,6 +281,9 @@
     <ClInclude Include="structs.h">
       <Filter>Rendering\Utility</Filter>
     </ClInclude>
+    <ClInclude Include="MCubesGBufferShader.h">
+      <Filter>Rendering\Deferred stuff</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="font.psh">
@@ -334,6 +340,12 @@
     </None>
     <None Include="skysphere.vsh">
       <Filter>Rendering\Non-deferred effects</Filter>
+    </None>
+    <None Include="MCubesGBufferShader.vsh">
+      <Filter>Rendering\Deferred stuff</Filter>
+    </None>
+    <None Include="MCubesGBufferShader.psh">
+      <Filter>Rendering\Deferred stuff</Filter>
     </None>
   </ItemGroup>
 </Project>
