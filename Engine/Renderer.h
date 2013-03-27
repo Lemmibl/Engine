@@ -69,6 +69,7 @@ public:
 	bool InitializeShaders(HWND hwnd);
 	bool InitializeLights(HWND hwnd);
 	bool InitializeModels(HWND hwnd);
+	bool InitializeEverythingElse(HWND hwnd);
 	void Shutdown();
 
 	bool Update(int, int, float, float seconds);

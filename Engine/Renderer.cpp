@@ -79,7 +79,6 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear)
 {
 	srand((unsigned int)time(NULL));
-	toggleTextureShader = false;
 	bool result;
 
 	this->inputManager = input;
@@ -89,84 +88,38 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	this->screenHeight = screenHeight;
 	this->screenFar = screenFar;
 	this->screenNear = screenNear;
-
-	// Create the Direct3D object.
 	this->d3D = d3D;
-
 	this->camera = camera;
-	XMStoreFloat4x4(&baseViewMatrix, camera->GetView());
-
-
-	dayNightCycle = new DayNightCycle();
-	if(!dayNightCycle)
-	{
-		return false;
-	}
-
-	result = dayNightCycle->Initialize(20.0f, DAWN);
-	if(!result)
-	{
-		return false;
-	}
-
-	// Create the text object.
-	text = new TextClass();
-	if(!text)
-	{
-		return false;
-	}
-
-	// Initialize the text object.
-	result = text->Initialize(d3D->GetDevice(), d3D->GetDeviceContext(), hwnd, screenWidth, screenHeight);
-	if(!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the text object. Look in graphicsclass.", L"Error", MB_OK);
-		return false;
-	}
-
-	for(int i = 0; i < 5; i++)
-	{
-		debugWindows[i].Initialize(d3D->GetDevice(), screenWidth, screenHeight, 200, 200);
-	}
-
-
-	defaultModelMaterial.a = 2.0f;
-	defaultModelMaterial.Ka = 0.3f;
-	defaultModelMaterial.Kd = 0.8f;
-	defaultModelMaterial.Ks = 0.7f;
-
-	fullScreenQuad.Initialize(d3D->GetDevice(), screenWidth, screenHeight, screenWidth, screenHeight);
-
-	colorRT = new RenderTarget2D();
-	normalRT = new RenderTarget2D();
-	depthRT = new RenderTarget2D();
-	shadowRT = new RenderTarget2D();
-	lightRT = new RenderTarget2D();
-
-	colorRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
-	normalRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
-	depthRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
-	shadowRT->Initialize(d3D->GetDevice(), shadowmapWidth, shadowmapHeight, DXGI_FORMAT_R32_FLOAT);
-	lightRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
-
-	// Create the frustum object.
-	frustum = new FrustumClass;
-	if(!frustum)
-	{
-		return false;
-	}
-
-	metaBalls = new MetaballsClass();
-	marchingCubes = new MarchingCubesClass(-40.0f, -40.0f, -40.0f, 40.0f, 40.0f, 40.0f, 1.5f, 1.5f, 1.5f);
-	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
-
-	marchingCubes->GetTree().LSystemTree();
-	marchingCubes->CalculateMesh(d3D->GetDevice());
-
-	timer = 0.0f;
+	timeOfDay = timer = 0.0f;
+	toggleTextureShader = false;
 	returning = false;
 	debugRotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	timeOfDay = 0.0f;
+
+	XMStoreFloat4x4(&baseViewMatrix, camera->GetView());
+
+	result = InitializeModels(hwnd);
+	if(!result)
+	{
+		return false;
+	}
+
+	result = InitializeShaders(hwnd);
+	if(!result)
+	{
+		return false;
+	}
+
+	result = InitializeLights(hwnd);
+	if(!result)
+	{
+		return false;
+	}
+
+	result = InitializeEverythingElse(hwnd);
+	if(!result)
+	{
+		return false;
+	}
 
 	return true;
 }
@@ -429,6 +382,79 @@ bool Renderer::InitializeModels(HWND hwnd)
 	{
 		return false;
 	}
+
+	return true;
+}
+
+bool Renderer::InitializeEverythingElse( HWND hwnd )
+{
+	bool result;
+
+	dayNightCycle = new DayNightCycle();
+	if(!dayNightCycle)
+	{
+		return false;
+	}
+
+	result = dayNightCycle->Initialize(20.0f, DAWN);
+	if(!result)
+	{
+		return false;
+	}
+
+	// Create the text object.
+	text = new TextClass();
+	if(!text)
+	{
+		return false;
+	}
+
+	// Initialize the text object.
+	result = text->Initialize(d3D->GetDevice(), d3D->GetDeviceContext(), hwnd, screenWidth, screenHeight);
+	if(!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the text object. Look in graphicsclass.", L"Error", MB_OK);
+		return false;
+	}
+
+	for(int i = 0; i < 5; i++)
+	{
+		debugWindows[i].Initialize(d3D->GetDevice(), screenWidth, screenHeight, 200, 200);
+	}
+
+
+	defaultModelMaterial.a = 2.0f;
+	defaultModelMaterial.Ka = 0.3f;
+	defaultModelMaterial.Kd = 0.8f;
+	defaultModelMaterial.Ks = 0.7f;
+
+	fullScreenQuad.Initialize(d3D->GetDevice(), screenWidth, screenHeight, screenWidth, screenHeight);
+
+	colorRT = new RenderTarget2D();
+	normalRT = new RenderTarget2D();
+	depthRT = new RenderTarget2D();
+	shadowRT = new RenderTarget2D();
+	lightRT = new RenderTarget2D();
+
+	colorRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
+	normalRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
+	depthRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
+	shadowRT->Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R32_FLOAT);
+	lightRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
+
+	// Create the frustum object.
+	frustum = new FrustumClass;
+	if(!frustum)
+	{
+		return false;
+	}
+
+	metaBalls = new MetaballsClass();
+	marchingCubes = new MarchingCubesClass(-40.0f, -40.0f, -40.0f, 40.0f, 40.0f, 40.0f, 1.5f, 1.5f, 1.5f);
+	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
+
+	marchingCubes->GetTree().LSystemTree();
+	marchingCubes->CalculateMesh(d3D->GetDevice());
 
 	return true;
 }
@@ -1149,3 +1175,5 @@ void Renderer::Shutdown()
 
 	return;
 }
+
+
