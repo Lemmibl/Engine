@@ -463,20 +463,6 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 {
 	bool result;
 
-	//for(unsigned int i = 0; i < pointLights.size(); i++)
-	//{
-	//	pointLights[i]->Position.y += frameTime*0.01f;
-	//
-	//	XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z));
-	//}
-
-	//for(unsigned int i = 0; i < pointLights.size(); i++)
-	//{
-	//	pointLights[i]->Position.y -= frameTime*0.01f;
-	//	
-	//	XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z));
-	//}
-
 	if(inputManager->WasKeyPressed(DIK_Q))
 	{
 		toggleDebugInfo = !toggleDebugInfo;

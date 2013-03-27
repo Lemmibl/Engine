@@ -104,7 +104,6 @@ void MCTerrainClass::Noise3D()
 	min = 1;
 	for (z = worldSizeMargin; z < (this->sizeZ - worldSizeMargin); z++)
 	{
-
 		for (z = 16; z < (this->sizeZ - 16); z++)
 		{
 			for (y = 16; y < (this->sizeY - 16); y++)
@@ -116,16 +115,16 @@ void MCTerrainClass::Noise3D()
 
 
 					//float r = (float)rand()/(float)RAND_MAX;
-					float r = noise->noise3D2(this->marchingCubeVertices2[idx].posX,marchingCubeVertices2[idx].posY,marchingCubeVertices2[idx].posZ + 0.005f);
-					if(max < r){max = r;}
-					if(min > r){min = r;}
+					float r = noise->noise3D2(this->marchingCubeVertices2[idx].posX,marchingCubeVertices2[idx].posY,marchingCubeVertices2[idx].posZ);
+					if(max < r)
+						{max = r;}
+					if(min > r)
+						{min = r;}
 					
 
-					this->marchingCubeVertices2[idx].flux = r * 100.0f;
+					this->marchingCubeVertices2[idx].flux = r*100;
 
-
-
-					if (this->marchingCubeVertices2[idx].flux > 0.01f)
+					if (r > 0.0008f)
 					{
 						this->marchingCubeVertices2[idx].inside = true;
 					}
@@ -133,7 +132,6 @@ void MCTerrainClass::Noise3D()
 					{
 						this->marchingCubeVertices2[idx].inside = false;
 					}
-
 
 					this->marchingCubeVertices2[idx].normalX = this->marchingCubeVertices2[idx - 1].flux - this->marchingCubeVertices2[idx+1].flux;
 					this->marchingCubeVertices2[idx].normalY = this->marchingCubeVertices2[idx - this->sizeY].flux - this->marchingCubeVertices2[idx + this->sizeY].flux;

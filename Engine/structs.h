@@ -13,6 +13,20 @@ struct MaterialStruct
 	float a;
 };
 
+struct Grads
+{
+	int x;
+	int y;
+	int z;
+
+	Grads(int extX, int extY, int extZ)
+	{
+		this->x = extX;
+		this->y = extY;
+		this->z = extZ;
+	}
+};
+
 enum StageOfDay
 {
 	DAWN,

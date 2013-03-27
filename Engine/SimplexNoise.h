@@ -1,5 +1,6 @@
 #pragma once
 #include <math.h>
+#include "structs.h"
 
 class SimplexNoise
 {
@@ -43,6 +44,8 @@ static double dot(int g[], float x, float y, float z, float w) {
 	return g[0]*x + g[1]*y + g[2]*z + g[3]*w; }
 
 
-	
+static double dot(Grads g, float x, float y, float z) {
+	return g.x*x + g.y*y + g.z*z; }
+
 };
 
