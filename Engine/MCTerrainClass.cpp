@@ -99,19 +99,9 @@ void MCTerrainClass::MCHeightMap()
 
 void MCTerrainClass::Noise3D()
 {
-	//int worldArray[worldArraySize];
-
-
-	float* worldArray = new float[worldArraySize];
-
-	for(int i = 0; i < worldArraySize; i++)
-	{
-		float r = noise->noise2D(this->marchingCubeVertices2[i].posX,marchingCubeVertices2[i].posZ);
-		worldArray[i] = r;
-	}
-
-	int i = -2;
-
+	float max, min;
+	max = 0;
+	min = 1;
 	for (z = worldSizeMargin; z < (this->sizeZ - worldSizeMargin); z++)
 	{
 
@@ -126,14 +116,10 @@ void MCTerrainClass::Noise3D()
 
 
 					//float r = (float)rand()/(float)RAND_MAX;
-					float r = noise->noise3D(this->marchingCubeVertices2[idx].posX,marchingCubeVertices2[idx].posY,marchingCubeVertices2[idx].posZ);
-
-
-
-					if(r<0)
-					{
-						r=0.000001f;
-					}
+					float r = noise->noise3D2(this->marchingCubeVertices2[idx].posX,marchingCubeVertices2[idx].posY,marchingCubeVertices2[idx].posZ + 0.005f);
+					if(max < r){max = r;}
+					if(min > r){min = r;}
+					
 
 					this->marchingCubeVertices2[idx].flux = r * 100.0f;
 
@@ -156,10 +142,6 @@ void MCTerrainClass::Noise3D()
 			}
 		}
 	}
-
-	if (worldArray != 0)
-	{
-		delete worldArray;
-	}
-
+	max = max;
+	min = min;
 }

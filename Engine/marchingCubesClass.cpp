@@ -381,8 +381,8 @@ const int MarchingCubesClass::edgeTable[256] = {
 		}
 
 		this->Terrain = new MCTerrainClass(sizeX,sizeY,sizeZ,this->marchingCubeVertices);
-		Terrain->MCHeightMap();
-		this->Tree = new TreeClass(sizeX,sizeY,sizeZ,this->marchingCubeVertices);
+		Terrain->Noise3D();
+		//this->Tree = new TreeClass(sizeX,sizeY,sizeZ,this->marchingCubeVertices);
 	}
 
 	/* 
