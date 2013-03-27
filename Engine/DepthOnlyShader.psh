@@ -5,9 +5,26 @@ struct VertexShaderOutput
 	float2 Depth : TEXCOORD2;
 };
 
+float2 ComputeMoments(float depth)  
+{ 
+	float2 moments; 
+	 
+	// First moment is normal depth.  
+	moments.x = depth;  
+
+	// Compute partial derivatives of depth.  
+	float dx = ddx(depth);  
+	float dy = ddy(depth);
+
+	// Compute second moment over the pixel extents.  
+	moments.y = depth*depth + 0.25*(dx*dx + dy*dy);  
+	return moments;
+};
+
 float DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 {
 	//return (input.ViewPosition.z / 140.0f); //To store depth linearly, divide viewposition depth by camera's FarZ.
 	//return length(input.ViewPosition); //For worldspace position reconstruction.
 	return (input.Depth.x / input.Depth.y);
-}
+};
+

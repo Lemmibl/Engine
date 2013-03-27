@@ -53,9 +53,32 @@ float3 Decode(float3 enc)
 
 float2 GetShadowTexOffset( int u, int v )
 {
-	float2 shadowMapSize = float2(1024.0f, 1024.0f); //This has to mirror shadowmap render target width and height; I'm just really, really lazy.
+	float2 shadowMapSize = float2(2048.0f, 2048.0f); //This has to mirror shadowmap render target width and height; I'm just really, really lazy.
 
 	return float2( u * 1.0f/shadowMapSize.x, v * 1.0f/shadowMapSize.y ); //Scale and return texture coordinates
+}
+
+float ChebyshevUpperBound(float2 moments, float t)  
+{  
+	float minVariance = 0.1f;
+
+  // One-tailed inequality valid if t > Moments.x  
+   float p = (t <= moments.x);  
+  // Compute variance.  
+   float variance = moments.y - (moments.x*moments.x);  
+  variance = max(variance, minVariance);  
+  // Compute probabilistic upper bound.  
+   float d = t - moments.x;  
+  float p_max = variance / (variance + d*d);  
+  return max(p, p_max);  
+} 
+
+float ShadowContribution(float2 lightTexCoord, float distanceToLight)  
+{  
+  // Read the moments from the variance shadow map.  
+   float2 moments = shaderTextures[2].Sample(linearSampler, lightTexCoord).xy;  
+  // Compute the Chebyshev upper bound.  
+   return ChebyshevUpperBound(moments, distanceToLight);  
 }
 
 half4 LightPixelShader(VertexShaderOutput input) : SV_Target

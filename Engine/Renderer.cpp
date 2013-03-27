@@ -82,8 +82,8 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	bool result;
 
 	this->inputManager = input;
-	this->shadowMapWidth = shadowmapWidth;//screenWidth;
-	this->shadowMapHeight = shadowmapHeight;//screenHeight;
+	this->shadowMapWidth = shadowmapWidth;
+	this->shadowMapHeight = shadowmapHeight;
 	this->screenWidth = screenWidth;
 	this->screenHeight = screenHeight;
 	this->screenFar = screenFar;
@@ -229,46 +229,44 @@ bool Renderer::InitializeLights(HWND hwnd)
 	ambientLight = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
 
 #pragma region Point light initialization
-	float x, y, z;
-	x = -6.0f;
-	z = -4.0f;
-	y = -2.0f;
+	//float x, y, z;
+	//x = -6.0f;
+	//z = -4.0f;
+	//y = -2.0f;
 
-	float pointLightRadius = 2.0f;
-	XMMATRIX tempScale = XMMatrixScaling(pointLightRadius, pointLightRadius, pointLightRadius);
+	//float pointLightRadius = 2.0f;
+	//XMMATRIX tempScale = XMMatrixScaling(pointLightRadius, pointLightRadius, pointLightRadius);
 
-	/*
-	http://www.asawicki.info/news_1429_xna_math_and_access_violation.html
-	http://xboxforums.create.msdn.com/forums/p/60156/370310.aspx#370310
-	http://www.gamasutra.com/view/feature/4248/designing_fast_crossplatform_simd_.php
-	*/
+	///*
+	//http://www.gamasutra.com/view/feature/4248/designing_fast_crossplatform_simd_.php
+	//*/
 
-	for(int i = 0; i < 20; i++)
-	{
-		pointLights.push_back(new PointLight());
-		pointLights[i]->Position = XMFLOAT3(x, y, z);
-		pointLights[i]->Color = XMFLOAT3(0.3f + i%4, 0.7f + i % 2, 0.2f + i%3);
-		pointLights[i]->Radius = pointLightRadius;
-		pointLights[i]->Intensity = 128.0f;
+	//for(int i = 0; i < 20; i++)
+	//{
+	//	pointLights.push_back(new PointLight());
+	//	pointLights[i]->Position = XMFLOAT3(x, y, z);
+	//	pointLights[i]->Color = XMFLOAT3(0.3f + i%4, 0.7f + i % 2, 0.2f + i%3);
+	//	pointLights[i]->Radius = pointLightRadius;
+	//	pointLights[i]->Intensity = 128.0f;
 
-		x += 4.0f;
+	//	x += 4.0f;
 
-		if(x >= 10.0f) //Every 10th light gets reseted in x and z plane.
-		{
-			x = -6.0f;
-			z += 4.0f;
-		}
+	//	if(x >= 10.0f) //Every 10th light gets reseted in x and z plane.
+	//	{
+	//		x = -6.0f;
+	//		z += 4.0f;
+	//	}
 
-		if(i != 0 && i % 100 == 0) //Every 100 pointlights we reset and make another layer that is (y+5) higher up.
-		{
-			x = -10.0f;
-			z = -10.0f;
-			y += 5.0f;
-		}
+	//	if(i != 0 && i % 100 == 0) //Every 100 pointlights we reset and make another layer that is (y+5) higher up.
+	//	{
+	//		x = -10.0f;
+	//		z = -10.0f;
+	//		y += 5.0f;
+	//	}
 
-		XMMATRIX tempTranslation = XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z);
-		XMStoreFloat4x4(&pointLights[i]->World, tempScale * tempTranslation);
-	}
+	//	XMMATRIX tempTranslation = XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z);
+	//	XMStoreFloat4x4(&pointLights[i]->World, tempScale * tempTranslation);
+	//}
 #pragma endregion
 
 #pragma region Directional light initialization
@@ -298,7 +296,7 @@ bool Renderer::InitializeLights(HWND hwnd)
 	// Initialize the directional light.
 	dirLight->Color = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
 	dirLight->Intensity = 256.0f;
-	dirLight->Position = XMFLOAT3(70.0f, 0.0f, 0.0f);
+	dirLight->Position = XMFLOAT3(1.0f, 80.0f, 1.0f);
 
 	XMVECTOR direction = XMVector3Normalize(lookAt - XMLoadFloat3(&dirLight->Position));
 	XMStoreFloat3(&dirLight->Direction, direction);
@@ -543,7 +541,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 	//	}
 	//}
 
-	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
+	//timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
 
 	//Adding some little comment here so that I can commit. Ignore this.
 
@@ -698,6 +696,8 @@ bool Renderer::Render()
 		}
 	}
 
+	worldMatrix = XMMatrixIdentity(); 
+	worldMatrix = XMMatrixTranspose(worldMatrix);
 	marchingCubes->Render(context);
 
 	result = depthOnlyShader->Render(context, marchingCubes->GetIndexCount(), &worldMatrix, &lightView, &lightProj);
