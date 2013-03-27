@@ -61,8 +61,8 @@ bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
 
 	//which leads into...
 
-	startAndEndPositions[2] = XMFLOAT3(35.0f, 65.0f, 70.0f); //start pos for day
-	startAndEndPositions[8] = XMFLOAT3(-35.0f, 65.0f, 70.0f); //end pos for day
+	startAndEndPositions[2] = XMFLOAT3(35.0f, 90.0f, 70.0f); //start pos for day
+	startAndEndPositions[8] = XMFLOAT3(-35.0f, 90.0f, 70.0f); //end pos for day
 
 	//which leads into...
 
@@ -120,7 +120,8 @@ float DayNightCycle::Update( float elapsedTime, DirLight* directionalLight, Skys
 	futureposition = XMLoadFloat3(&startAndEndPositions[currentStageOfDay+6]);
 
 	/* 
-			Possibly change enums to a struct containing: enum, duration in float, skysphere color and directional light color (maybe ambient color?)
+			//Possibly change enums to a struct containing: enum, duration in float, skysphere color 
+			//and directional light color (maybe ambient color?)
 
 			http://alvyray.com/Memos/CG/Pixar/spline77.pdf
 	*/

@@ -3,6 +3,30 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "Renderer.h"
 
+	/*
+	Inför terrain rendering / många texturer:
+	http://stackoverflow.com/questions/35950/i-dont-understand-stdtr1unordered-map
+	Multitexturing pixel shader tutorials i allmänt om något är oklart.
+
+	Inför perlin/simplex noise:
+	http://stackoverflow.com/questions/4120108/how-to-save-backbuffer-to-file-in-directx-10
+
+	Inför SSAO:
+	http://www.gamedev.net/page/resources/_/technical/graphics-programming-and-theory/a-simple-and-practical-approach-to-ssao-r2753
+	http://www.iquilezles.org/www/articles/ssao/ssao.htm
+
+	Inför gräsquads:
+	http://ogldev.atspace.co.uk/www/tutorial27/tutorial27.html
+
+	http://www.rastertek.com/dx11tut37.html
+	http://blogs.msdn.com/b/shawnhar/archive/2009/02/18/depth-sorting-alpha-blended-objects.aspx
+	http://software.intel.com/en-us/articles/rendering-grass-with-instancing-in-directx-10
+	http://http.developer.nvidia.com/GPUGems/gpugems_ch07.html
+
+	http://developer.amd.com/wordpress/media/2012/10/ShaderX_AnimatedGrass.pdf
+	http://gamedev.stackexchange.com/questions/22507/what-is-the-alphatocoverage-blend-state-useful-for
+	*/
+
 Renderer::Renderer()
 {
 	toggleDebugInfo = true;
@@ -72,68 +96,14 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	this->camera = camera;
 	XMStoreFloat4x4(&baseViewMatrix, camera->GetView());
 
-	// Create the model object.
-	groundModel = new ModelClass;
-	if(!groundModel)
+
+	dayNightCycle = new DayNightCycle();
+	if(!dayNightCycle)
 	{
 		return false;
 	}
 
-	// Initialize the model object.
-	result = groundModel->Initialize(d3D->GetDevice(), "../Engine/data/ground.txt", L"../Engine/data/ground_diffuse.dds", L"../Engine/data/ground_normal.dds", L"../Engine/data/ground_specular.dds");
-	if(!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
-		return false;
-	}
-
-	// Create the model object.
-	sphereModel = new ModelClass();
-	if(!sphereModel)
-	{
-		return false;
-	}
-
-	// Initialize the model object. It really doesn't matter what textures it has because it's only used for point light volume culling.
-	result = sphereModel->Initialize(d3D->GetDevice(), "../Engine/data/sphere2.txt", L"../Engine/data/stone02.dds", L"../Engine/data/bump02.dds", L"../Engine/data/stone_specmap.dds");
-	if(!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
-		return false;
-	}
-
-	otherModel = new ModelClass();
-	if(!otherModel)
-	{
-		return false;
-	}
-
-	result = otherModel->Initialize(d3D->GetDevice(), "../Engine/data/cube.txt", L"../Engine/data/stone02.dds", L"../Engine/data/bump02.dds", L"../Engine/data/stone_specmap.dds");
-	if(!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
-		return false;
-	}
-
-	skySphere = new Skysphere();
-	if(!skySphere)
-	{
-		return false;
-	}
-
-	result = skySphere->Initialize(d3D->GetDevice(), hwnd);
-	if(!result)
-	{
-		return false;
-	}
-
-	modelList = new ModelListClass();
-	if(!modelList)
-	{
-		return false;
-	}
-
-	result = modelList->Initialize(10);
+	result = dayNightCycle->Initialize(20.0f, DAWN);
 	if(!result)
 	{
 		return false;
@@ -154,12 +124,56 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 		return false;
 	}
 
+	for(int i = 0; i < 5; i++)
+	{
+		debugWindows[i].Initialize(d3D->GetDevice(), screenWidth, screenHeight, 200, 200);
+	}
+
+
+	defaultModelMaterial.a = 2.0f;
+	defaultModelMaterial.Ka = 0.3f;
+	defaultModelMaterial.Kd = 0.8f;
+	defaultModelMaterial.Ks = 0.7f;
+
+	fullScreenQuad.Initialize(d3D->GetDevice(), screenWidth, screenHeight, screenWidth, screenHeight);
+
+	colorRT = new RenderTarget2D();
+	normalRT = new RenderTarget2D();
+	depthRT = new RenderTarget2D();
+	shadowRT = new RenderTarget2D();
+	lightRT = new RenderTarget2D();
+
+	colorRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
+	normalRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
+	depthRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
+	shadowRT->Initialize(d3D->GetDevice(), shadowmapWidth, shadowmapHeight, DXGI_FORMAT_R32_FLOAT);
+	lightRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
+
 	// Create the frustum object.
 	frustum = new FrustumClass;
 	if(!frustum)
 	{
 		return false;
 	}
+
+	metaBalls = new MetaballsClass();
+	marchingCubes = new MarchingCubesClass(-40.0f, -40.0f, -40.0f, 40.0f, 40.0f, 40.0f, 1.5f, 1.5f, 1.5f);
+	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
+
+	marchingCubes->GetTree().LSystemTree();
+	marchingCubes->CalculateMesh(d3D->GetDevice());
+
+	timer = 0.0f;
+	returning = false;
+	debugRotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	timeOfDay = 0.0f;
+
+	return true;
+}
+
+bool Renderer::InitializeShaders(HWND hwnd)
+{
+	bool result;
 
 	gbufferShader = new DRGBuffer();
 	if(!gbufferShader)
@@ -222,13 +236,44 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	result = composeShader->Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
+		MessageBox(hwnd, L"Compose shader couldn't be initialized.", L"Error", MB_OK);
 		return false;
 	}
 
-	for(int i = 0; i < 5; i++)
+	textureShader = new TextureShaderClass();
+	if(!textureShader)
 	{
-		debugWindows[i].Initialize(d3D->GetDevice(), screenWidth, screenHeight, 200, 200);
+		return false;
 	}
+
+	result = textureShader->Initialize(d3D->GetDevice(), hwnd);
+	if(!result)
+	{
+		MessageBox(hwnd, L"Texture shader couldn't be initialized.", L"Error", MB_OK);
+		return false;
+	}
+
+	mcubeShader = new MCubesGBufferShader();
+	if(!mcubeShader)
+	{
+		return false;
+	}
+
+	result = mcubeShader->Initialize(d3D->GetDevice(), hwnd);
+	if(!result)
+	{
+		MessageBox(hwnd, L"Marching cubes gbuffer shader couldn't be initialized.", L"Error", MB_OK);
+		return false;
+	}
+
+	return true;
+}
+
+bool Renderer::InitializeLights(HWND hwnd)
+{
+	bool result;
+
+	ambientLight = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
 
 #pragma region Point light initialization
 	float x, y, z;
@@ -274,9 +319,6 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 #pragma endregion
 
 #pragma region Directional light initialization
-
-	ambientLight = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
-
 	// Create the directional light.
 	dirLight = new DirLight();
 	if(!dirLight)
@@ -314,99 +356,79 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix and store it as float4x4.
 #pragma endregion
 
-	textureShader = new TextureShaderClass();
-	if(!textureShader)
+	return true;
+}
+
+bool Renderer::InitializeModels(HWND hwnd)
+{
+	bool result;
+
+	skySphere = new Skysphere();
+	if(!skySphere)
 	{
 		return false;
 	}
 
-	result = textureShader->Initialize(d3D->GetDevice(), hwnd);
-	if(!result)
-	{
-		MessageBox(hwnd, L"Texture shader couldn't be initialized.", L"Error", MB_OK);
-		return false;
-	}
-
-	defaultModelMaterial.a = 2.0f;
-	defaultModelMaterial.Ka = 0.3f;
-	defaultModelMaterial.Kd = 0.8f;
-	defaultModelMaterial.Ks = 0.7f;
-
-	fullScreenQuad.Initialize(d3D->GetDevice(), screenWidth, screenHeight, screenWidth, screenHeight);
-
-	colorRT = new RenderTarget2D();
-	normalRT = new RenderTarget2D();
-	depthRT = new RenderTarget2D();
-	shadowRT = new RenderTarget2D();
-	lightRT = new RenderTarget2D();
-
-	colorRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
-	normalRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
-	depthRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
-	shadowRT->Initialize(d3D->GetDevice(), shadowmapWidth, shadowmapHeight, DXGI_FORMAT_R32_FLOAT);
-	lightRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
-
-
-	metaBalls = new MetaballsClass();
-	marchingCubes = new MarchingCubesClass(-40.0f, -40.0f, -40.0f, 40.0f, 40.0f, 40.0f, 1.5f, 1.5f, 1.5f);
-	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
-
-
-	marchingCubes->GetTree().LSystemTree();
-	marchingCubes->CalculateMesh(d3D->GetDevice());
-
-
-	mcubeShader = new MCubesGBufferShader();
-	if(!mcubeShader)
-	{
-		return false;
-	}
-
-	result = mcubeShader->Initialize(d3D->GetDevice(), hwnd);
+	result = skySphere->Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		return false;
 	}
 
-	dayNightCycle = new DayNightCycle();
-	if(!dayNightCycle)
+	// Create the model object.
+	groundModel = new ModelClass;
+	if(!groundModel)
 	{
 		return false;
 	}
 
-	result = dayNightCycle->Initialize(20.0f, DAWN);
+	// Initialize the model object.
+	result = groundModel->Initialize(d3D->GetDevice(), "../Engine/data/ground.txt", L"../Engine/data/ground_diffuse.dds", L"../Engine/data/ground_normal.dds", L"../Engine/data/ground_specular.dds");
+	if(!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the model object.
+	sphereModel = new ModelClass();
+	if(!sphereModel)
+	{
+		return false;
+	}
+
+	// Initialize the model object. It really doesn't matter what textures it has because it's only used for point light volume culling.
+	result = sphereModel->Initialize(d3D->GetDevice(), "../Engine/data/sphere2.txt", L"../Engine/data/stone02.dds", L"../Engine/data/bump02.dds", L"../Engine/data/stone_specmap.dds");
+	if(!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
+		return false;
+	}
+
+	otherModel = new ModelClass();
+	if(!otherModel)
+	{
+		return false;
+	}
+
+	result = otherModel->Initialize(d3D->GetDevice(), "../Engine/data/cube.txt", L"../Engine/data/stone02.dds", L"../Engine/data/bump02.dds", L"../Engine/data/stone_specmap.dds");
+	if(!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
+		return false;
+	}
+
+	modelList = new ModelListClass();
+	if(!modelList)
+	{
+		return false;
+	}
+
+	result = modelList->Initialize(10);
 	if(!result)
 	{
 		return false;
 	}
-
-	timer = 0.0f;
-	returning = false;
-	debutRotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	timeOfDay = 0.0f;
-
-	/*
-	Inför terrain rendering / många texturer:
-	http://stackoverflow.com/questions/35950/i-dont-understand-stdtr1unordered-map
-	Multitexturing pixel shader tutorials i allmänt om något är oklart.
-
-	Inför perlin/simplex noise:
-	http://stackoverflow.com/questions/4120108/how-to-save-backbuffer-to-file-in-directx-10
-
-	Inför SSAO:
-	http://www.gamedev.net/page/resources/_/technical/graphics-programming-and-theory/a-simple-and-practical-approach-to-ssao-r2753
-	http://www.iquilezles.org/www/articles/ssao/ssao.htm
-
-	Inför gräsquads:
-	http://www.rastertek.com/dx11tut37.html
-	http://blogs.msdn.com/b/shawnhar/archive/2009/02/18/depth-sorting-alpha-blended-objects.aspx
-	http://software.intel.com/en-us/articles/rendering-grass-with-instancing-in-directx-10
-	http://http.developer.nvidia.com/GPUGems/gpugems_ch07.html
-
-	http://developer.amd.com/wordpress/media/2012/10/ShaderX_AnimatedGrass.pdf
-	https://rit.digication.com/computer_graphics_2/Final
-	http://gamedev.stackexchange.com/questions/22507/what-is-the-alphatocoverage-blend-state-useful-for
-	*/
 
 	return true;
 }
@@ -486,14 +508,14 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 	if(inputManager->IsKeyPressed(DIK_C))
 	{
-		debutRotation.x += frameTime*0.002f;
-		debutRotation.y += frameTime*0.002f;
+		debugRotation.x += frameTime*0.002f;
+		debugRotation.y += frameTime*0.002f;
 	}
 
 	if(inputManager->IsKeyPressed(DIK_V))
 	{
-		debutRotation.x -= frameTime*0.002f;
-		debutRotation.y -= frameTime*0.002f;		
+		debugRotation.x -= frameTime*0.002f;
+		debugRotation.y -= frameTime*0.002f;		
 	}
 
 	if(inputManager->WasKeyPressed(DIK_1))
@@ -662,15 +684,14 @@ bool Renderer::Render()
 		{
 			return false;
 		}
+	}
 
-		d3D->SetBackFaceCullingRasterizer();
-		marchingCubes->Render(context);
+	marchingCubes->Render(context);
 
-		result = depthOnlyShader->Render(context, otherModel->GetIndexCount(), &worldMatrix, &lightView, &lightProj);
-		if(!result)
-		{
-			return false;
-		}
+	result = depthOnlyShader->Render(context, marchingCubes->GetIndexCount(), &worldMatrix, &lightView, &lightProj);
+	if(!result)
+	{
+		return false;
 	}
 #pragma endregion
 
@@ -700,7 +721,7 @@ bool Renderer::Render()
 	// Move the model to the location it should be rendered at.
 	worldMatrix = XMMatrixTranslation(0.0f, -10.0f, 0.0f);
 	scalingMatrix = XMMatrixScaling(0.2f, 0.2f, 0.2f);
-	XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(debutRotation.x, debutRotation.y, debutRotation.z);
+	XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(debugRotation.x, debugRotation.y, debugRotation.z);
 
 	worldMatrix = scalingMatrix* rotationMatrix * worldMatrix;
 	worldMatrix = XMMatrixTranspose(worldMatrix);
@@ -744,14 +765,18 @@ bool Renderer::Render()
 			// Since this model was rendered then increase the count for this frame.
 			renderCount++;
 		}
-
-		marchingCubes->Render(context);
-		result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
-			&worldMatrix, &viewMatrix, &projectionMatrix, groundModel->GetTexture());
-
 	}
 
-	text->SetRenderCount((int)timeOfDay, context);
+	worldMatrix = XMMatrixIdentity(); 
+	worldMatrix = XMMatrixTranspose(worldMatrix);
+
+	marchingCubes->Render(context);
+	result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
+		&worldMatrix, &viewMatrix, &projectionMatrix, groundModel->GetTexture());
+
+	renderCount++;
+
+	text->SetRenderCount(renderCount, context);
 #pragma endregion
 
 	context->OMSetRenderTargets(1, lightTarget, ds);
@@ -1124,4 +1149,3 @@ void Renderer::Shutdown()
 
 	return;
 }
-

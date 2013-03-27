@@ -66,6 +66,9 @@ public:
 	~Renderer();
 
 	bool Initialize(HWND hwnd, CameraClass* camera, InputClass* inputManager, D3DClass* d3D, UINT screenWidth, UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear);
+	bool InitializeShaders(HWND hwnd);
+	bool InitializeLights(HWND hwnd);
+	bool InitializeModels(HWND hwnd);
 	void Shutdown();
 
 	bool Update(int, int, float, float seconds);
@@ -111,17 +114,16 @@ private:
 	DebugWindowClass debugWindows[5];
 	DebugWindowClass fullScreenQuad;
 
-	bool toggleDebugInfo;
-	bool toggleTextureShader;
 	XMFLOAT4X4 baseViewMatrix;
 	XMFLOAT4 ambientLight;
+	XMFLOAT3 debugRotation;
 
 	UINT shadowMapWidth, shadowMapHeight, screenWidth, screenHeight;
-	float screenFar, screenNear;
-	XMFLOAT3 debutRotation;
+	float screenFar, screenNear, timer, timeOfDay;
 
-	float timer, timeOfDay;
 	bool returning;
+	bool toggleDebugInfo;
+	bool toggleTextureShader;
 	
 	MetaballsClass* metaBalls;
 	MCubesGBufferShader* mcubeShader;
