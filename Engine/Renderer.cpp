@@ -334,7 +334,7 @@ bool Renderer::InitializeModels(HWND hwnd)
 	}
 
 	// Initialize the model object.
-	result = groundModel->Initialize(d3D->GetDevice(), "../Engine/data/ground.txt", L"../Engine/data/ground_diffuse.dds", L"../Engine/data/ground_normal.dds", L"../Engine/data/ground_specular.dds");
+	result = groundModel->Initialize(d3D->GetDevice(), "../Engine/data/ground.txt", L"../Engine/data/victory_screen.dds", L"../Engine/data/ground_normal.dds", L"../Engine/data/ground_specular.dds");
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
