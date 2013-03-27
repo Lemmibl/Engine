@@ -48,7 +48,7 @@ struct VertexShaderOutput
 //Decoding of GBuffer Normals
 float3 Decode(float3 enc)
 {
-	return (2.0f * enc.xyz- 1.0f);
+	return (2.0f * enc.xyz - 1.0f);
 }
 
 float2 GetShadowTexOffset( int u, int v )
@@ -116,8 +116,8 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	float realDistanceToLight = lightScreenPos.z; //Depth as seen from light POV.
 
 	float2 sampleLightScreen;
-	sampleLightScreen.x = (lightScreenPos.x * 0.5f + 0.5f);
-	sampleLightScreen.y = (-lightScreenPos.y * 0.5f + 0.5f);
+	sampleLightScreen.x = ((lightScreenPos.x * 0.5f) + 0.5f);
+	sampleLightScreen.y = ((-lightScreenPos.y * 0.5f) + 0.5f);
 
 	float shadowMultiplier = 1.0f;
 	
