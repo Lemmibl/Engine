@@ -295,14 +295,14 @@ bool Renderer::InitializeLights(HWND hwnd)
 
 	// Initialize the directional light.
 	dirLight->Color = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
-	dirLight->Intensity = 256.0f;
+	dirLight->Intensity = 128.0f;
 	dirLight->Position = XMFLOAT3(1.0f, 80.0f, 1.0f);
 
 	XMVECTOR direction = XMVector3Normalize(lookAt - XMLoadFloat3(&dirLight->Position));
 	XMStoreFloat3(&dirLight->Direction, direction);
 
-	XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(((float)D3DX_PI/2.0f), 1.0f, 10.0f, 150.0f)); //Generate perspective light projection matrix and store it as float4x4
-	//XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(60.0f, 60.0f, 10.0f, 150.0f)); //Generate orthogonal light projection matrix and store it as float4x4
+	//XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(((float)D3DX_PI/2.0f), 1.0f, 15.0f, 300.0f)); //Generate perspective light projection matrix and store it as float4x4
+	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(80.0f, 80.0f, 10.0f, 300.0f)); //Generate orthogonal light projection matrix and store it as float4x4
 
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix and store it as float4x4.
 #pragma endregion
@@ -660,7 +660,7 @@ bool Renderer::Render()
 	d3D->SetShadowViewport();
 	d3D->SetFrontFaceCullingRasterizer();
 	context->ClearDepthStencilView(shadowDS, D3D11_CLEAR_DEPTH, 1.0f, 0);
-	context->ClearRenderTargetView(shadowTarget[0], D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f));
+	context->ClearRenderTargetView(shadowTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 1.0f));
 
 	// Move the model to the location it should be rendered at.
 	worldMatrix = XMMatrixTranslation(0.0f, -10.0f, 0.0f);
