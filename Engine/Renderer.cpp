@@ -641,7 +641,6 @@ bool Renderer::Render()
 
 	XMVECTOR nullVec;
 	lightViewProj = XMMatrixMultiply(lightView, lightProj);
-	//lightViewProj = XMMatrixInverse(&nullVec, lightViewProj);
 
 	viewProjection = XMMatrixMultiply(viewMatrix, projectionMatrix);
 
@@ -666,7 +665,7 @@ bool Renderer::Render()
 #pragma region Early depth pass for shadowmap
 	context->OMSetRenderTargets(1, shadowTarget, shadowDS);
 	d3D->SetShadowViewport();
-	d3D->SetFrontFaceCullingRasterizer();
+
 	context->ClearDepthStencilView(shadowDS, D3D11_CLEAR_DEPTH, 1.0f, 0);
 	context->ClearRenderTargetView(shadowTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 1.0f));
 
@@ -677,12 +676,16 @@ bool Renderer::Render()
 	worldMatrix = scalingMatrix * worldMatrix;
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
+	d3D->SetBackFaceCullingRasterizer();
+
 	groundModel->Render(context);
 	result = depthOnlyShader->Render(context, groundModel->GetIndexCount(), &worldMatrix, &lightView, &lightProj);
 	if(!result)
 	{
 		return false;
 	}
+
+	d3D->SetFrontFaceCullingRasterizer();
 
 	// Go through all the models and render them only if they can be seen by the camera view.
 	for(int i =0; i < modelCount; i++)
@@ -704,15 +707,15 @@ bool Renderer::Render()
 		}
 	}
 
-	worldMatrix = XMMatrixIdentity(); 
-	worldMatrix = XMMatrixTranspose(worldMatrix);
-	marchingCubes->Render(context);
+	//worldMatrix = XMMatrixIdentity(); 
+	//worldMatrix = XMMatrixTranspose(worldMatrix);
+	//marchingCubes->Render(context);
 
-	result = depthOnlyShader->Render(context, marchingCubes->GetIndexCount(), &worldMatrix, &lightView, &lightProj);
-	if(!result)
-	{
-		return false;
-	}
+	//result = depthOnlyShader->Render(context, marchingCubes->GetIndexCount(), &worldMatrix, &lightView, &lightProj);
+	//if(!result)
+	//{
+	//	return false;
+	//}
 #pragma endregion
 
 #pragma region GBuffer building stage
@@ -787,12 +790,12 @@ bool Renderer::Render()
 		}
 	}
 
-	worldMatrix = XMMatrixIdentity(); 
-	worldMatrix = XMMatrixTranspose(worldMatrix);
+	//worldMatrix = XMMatrixIdentity(); 
+	//worldMatrix = XMMatrixTranspose(worldMatrix);
 
-	marchingCubes->Render(context);
-	result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
-		&worldMatrix, &viewMatrix, &projectionMatrix, groundModel->GetTexture());
+	//marchingCubes->Render(context);
+	//result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
+	//	&worldMatrix, &viewMatrix, &projectionMatrix, groundModel->GetTexture());
 
 	renderCount++;
 

@@ -60,7 +60,7 @@ float2 GetShadowTexOffset( int u, int v )
 
 float ChebyshevUpperBound(float2 moments, float t)  
 {  
-	float minVariance = 0.1f;
+	float minVariance = 0.0f;
 
   // One-tailed inequality valid if t > Moments.x  
    float p = (t <= moments.x);  
@@ -136,16 +136,19 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 
 		realDistanceToLight -= 0.00002f; //Apply shadow bias
 
-		//perform PCF filtering on a 4 x 4 texel neighborhood
-		for (y = -1.5f; y <= 1.5f; y += 1.0f)
-		{
-			for (x = -1.5f; x <= 1.5f; x += 1.0f)
-			{
-				sum += shaderTextures[2].SampleCmpLevelZero(cmpSampler, sampleLightScreen + GetShadowTexOffset(x,y), realDistanceToLight);
-			}
-		}
+		shadowMultiplier = ShadowContribution(sampleLightScreen, realDistanceToLight);
 
-		shadowMultiplier = (sum / 16.0f);
+
+		//perform PCF filtering on a 4 x 4 texel neighborhood
+		//for (y = -1.5f; y <= 1.5f; y += 1.0f)
+		//{
+		//	for (x = -1.5f; x <= 1.5f; x += 1.0f)
+		//	{
+		//		sum += shaderTextures[2].SampleCmpLevelZero(cmpSampler, sampleLightScreen + GetShadowTexOffset(x,y), realDistanceToLight);
+		//	}
+		//}
+
+		//shadowMultiplier = (sum / 16.0f);
 
 		////Use this instead for normal unfiltered shadows. Produces more artifacts. Nasty.
 

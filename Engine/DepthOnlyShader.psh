@@ -21,10 +21,10 @@ float2 ComputeMoments(float depth)
 	return moments;
 };
 
-float DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
+float2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 {
 	//return (input.ViewPosition.z / 140.0f); //To store depth linearly, divide viewposition depth by camera's FarZ.
 	//return length(input.ViewPosition); //For worldspace position reconstruction.
-	return (input.Depth.x / input.Depth.y);
+	return ComputeMoments(input.Depth.x / input.Depth.y);
 };
 
