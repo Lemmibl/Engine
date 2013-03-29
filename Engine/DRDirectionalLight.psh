@@ -78,22 +78,22 @@ float ReduceLightBleeding(float p_max, float amount)
    return Linstep(amount, 1, p_max);
 }
   
-
+//Calculate shadow contribution using chevyshev's inequality.
 float ChebyshevUpperBound(float2 moments, float t)  
 {
-	float minVariance = 0.0002f;
+	float p = smoothstep(t-0.02f, t, moments.x);
 
+	float minVariance = 0.0001f; //Scaling value.
 
 	// Compute variance.  
 	float variance = moments.y - (moments.x*moments.x);
 	variance = max(variance, minVariance);
 
-
 	// Compute probabilistic upper bound.  
 	float d = t - moments.x;
-	float p_max = variance / (variance + d*d);
+	float p_max = Linstep(0.2f, 1.0f, variance / (variance + d*d));
 
-	return p_max;
+	return clamp(max(p, p_max), 0.0, 1.0);;
 }
  
 
@@ -103,7 +103,7 @@ float ShadowContribution(float2 lightTexCoord, float distanceToLight)
 	float2 moments = shaderTextures[2].Sample(anisotropicSampler, lightTexCoord).xy;
 
 	//If surface is fully lit, break early.
-	if(distanceToLight <= moments.x)
+	if(distanceToLight < moments.x)
 	{
 		return 1.0f;
 	}
@@ -111,7 +111,7 @@ float ShadowContribution(float2 lightTexCoord, float distanceToLight)
 	// Compute the Chebyshev upper bound.
 	float shadowContribution = ChebyshevUpperBound(moments, distanceToLight);
 
-	shadowContribution = ReduceLightBleeding(shadowContribution, distanceToLight);
+	//shadowContribution = ReduceLightBleeding(shadowContribution, distanceToLight);
 
 	return shadowContribution;
 }
@@ -178,8 +178,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		float x, y;
 		//TODO: variance shadow mapping... http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html
 
-		realDistanceToLight -= 0.002f;
-		//Apply shadow bias
+		//realDistanceToLight -= 0.0002f; //Apply shadow bias	
 
 		shadowMultiplier = ShadowContribution(sampleLightScreen, realDistanceToLight);
 		//perform PCF filtering on a 4 x 4 texel neighborhood

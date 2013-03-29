@@ -204,7 +204,7 @@ bool DRDirLight::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFile
 	depthSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_MIRROR;
 	depthSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_MIRROR;
 	depthSamplerDesc.MipLODBias = 0.0f;
-	depthSamplerDesc.MaxAnisotropy = 16;
+	depthSamplerDesc.MaxAnisotropy = 1;
 	depthSamplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
 	depthSamplerDesc.BorderColor[0] = depthSamplerDesc.BorderColor[1] = depthSamplerDesc.BorderColor[2] = depthSamplerDesc.BorderColor[3] = 0;
 	depthSamplerDesc.MinLOD = 0;
