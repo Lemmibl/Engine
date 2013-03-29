@@ -18,6 +18,14 @@
 	Inför gräsquads:
 	http://ogldev.atspace.co.uk/www/tutorial27/tutorial27.html
 
+	http://zeuxcg.blogspot.se/2007/09/particle-rendering-revisited.html
+	http://realtimecollisiondetection.net/blog/?p=91
+
+	http://www.flashbang.se/archives/315
+
+	http://faculty.ycp.edu/~dbabcock/PastCourses/cs470/labs/lab11.html
+	http://faculty.ycp.edu/~dbabcock/PastCourses/cs470/labs/lab13.html
+
 	http://www.rastertek.com/dx11tut37.html
 	http://blogs.msdn.com/b/shawnhar/archive/2009/02/18/depth-sorting-alpha-blended-objects.aspx
 	http://software.intel.com/en-us/articles/rendering-grass-with-instancing-in-directx-10
@@ -334,7 +342,7 @@ bool Renderer::InitializeModels(HWND hwnd)
 	}
 
 	// Initialize the model object.
-	result = groundModel->Initialize(d3D->GetDevice(), "../Engine/data/ground.txt", L"../Engine/data/victory_screen.dds", L"../Engine/data/ground_normal.dds", L"../Engine/data/ground_specular.dds");
+	result = groundModel->Initialize(d3D->GetDevice(), "../Engine/data/ground.txt", L"../Engine/data/ground_diffuse.dds", L"../Engine/data/ground_normal.dds", L"../Engine/data/ground_specular.dds");
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
@@ -394,7 +402,7 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 		return false;
 	}
 
-	result = dayNightCycle->Initialize(20.0f, DAWN);
+	result = dayNightCycle->Initialize(100.0f, DAWN);
 	if(!result)
 	{
 		return false;
@@ -541,7 +549,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 	//	}
 	//}
 
-	//timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
+	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
 
 	//Adding some little comment here so that I can commit. Ignore this.
 
