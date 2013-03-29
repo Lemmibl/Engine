@@ -707,15 +707,15 @@ bool Renderer::Render()
 		}
 	}
 
-	//worldMatrix = XMMatrixIdentity(); 
-	//worldMatrix = XMMatrixTranspose(worldMatrix);
-	//marchingCubes->Render(context);
+	worldMatrix = XMMatrixIdentity(); 
+	worldMatrix = XMMatrixTranspose(worldMatrix);
+	marchingCubes->Render(context);
 
-	//result = depthOnlyShader->Render(context, marchingCubes->GetIndexCount(), &worldMatrix, &lightView, &lightProj);
-	//if(!result)
-	//{
-	//	return false;
-	//}
+	result = depthOnlyShader->Render(context, marchingCubes->GetIndexCount(), &worldMatrix, &lightView, &lightProj);
+	if(!result)
+	{
+		return false;
+	}
 #pragma endregion
 
 #pragma region GBuffer building stage
@@ -790,12 +790,12 @@ bool Renderer::Render()
 		}
 	}
 
-	//worldMatrix = XMMatrixIdentity(); 
-	//worldMatrix = XMMatrixTranspose(worldMatrix);
+	worldMatrix = XMMatrixIdentity(); 
+	worldMatrix = XMMatrixTranspose(worldMatrix);
 
-	//marchingCubes->Render(context);
-	//result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
-	//	&worldMatrix, &viewMatrix, &projectionMatrix, groundModel->GetTexture());
+	marchingCubes->Render(context);
+	result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
+		&worldMatrix, &viewMatrix, &projectionMatrix, groundModel->GetTexture());
 
 	renderCount++;
 

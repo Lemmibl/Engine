@@ -1,3 +1,7 @@
+/////////////////////////////////////////////
+//////////////////INPUT//////////////////////
+/////////////////////////////////////////////
+
 cbuffer PositionalBuffer //Whatever, idk what else to name it
 {
 	float3 LightDirection;
@@ -30,7 +34,7 @@ cbuffer LightBuffer
 //SamplerState samplers[2];
 
 SamplerState linearSampler : register(s0);
-SamplerComparisonState cmpSampler : register(s1);
+SamplerState anisotropicSampler : register(s1);
 
 // 0 = normal, 1 = standard depth, 2 = shadowmap depth.
 Texture2D shaderTextures[3];
@@ -44,6 +48,10 @@ struct VertexShaderOutput
 	float4 ScreenPosition : TEXCOORD2;
 	float4 WorldPosition : TEXCOORD3;
 };
+
+/////////////////////////////////////////////
+////////////UTILITY FUNCTIONS////////////////
+/////////////////////////////////////////////
 
 //Decoding of GBuffer Normals
 float3 Decode(float3 enc)
@@ -64,9 +72,11 @@ float ChebyshevUpperBound(float2 moments, float t)
 
   // One-tailed inequality valid if t > Moments.x  
    float p = (t <= moments.x);  
+
   // Compute variance.  
    float variance = moments.y - (moments.x*moments.x);  
-  variance = max(variance, minVariance);  
+  variance = max(variance, minVariance);
+
   // Compute probabilistic upper bound.  
    float d = t - moments.x;  
   float p_max = variance / (variance + d*d);  
@@ -76,10 +86,14 @@ float ChebyshevUpperBound(float2 moments, float t)
 float ShadowContribution(float2 lightTexCoord, float distanceToLight)  
 {  
   // Read the moments from the variance shadow map.  
-   float2 moments = shaderTextures[2].Sample(linearSampler, lightTexCoord).xy;  
+   float2 moments = shaderTextures[2].Sample(anisotropicSampler, lightTexCoord).xy;  
   // Compute the Chebyshev upper bound.  
    return ChebyshevUpperBound(moments, distanceToLight);  
 }
+
+/////////////////////////////////////////////
+///////////////MAIN FUNCTION/////////////////
+/////////////////////////////////////////////
 
 half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 {
@@ -134,7 +148,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 
 		//TODO: variance shadow mapping... http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html
 
-		realDistanceToLight -= 0.00002f; //Apply shadow bias
+		realDistanceToLight -= 0.002f; //Apply shadow bias
 
 		shadowMultiplier = ShadowContribution(sampleLightScreen, realDistanceToLight);
 
@@ -180,14 +194,12 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	}
 
 	//Storing specular in alpha channel. Applying shadow multiplier to both diffuse product and specular, but not ambient, to make sure it's not just black.
-		return half4(finalAmbienceProduct.rgb + shadowMultiplier * (DiffuseColor.rgb*finalDiffuseProduct.rgb), shadowMultiplier * finalSpecularProduct);
+	return half4(finalAmbienceProduct.rgb + shadowMultiplier * (DiffuseColor.rgb*finalDiffuseProduct.rgb), shadowMultiplier * finalSpecularProduct);
 }
 
 
 
 /*
-
-
 float4 ps_lighting(VS_OUTPUT IN) : SV_Target
 {
 	if (renderingSkel || renderingRBody)
