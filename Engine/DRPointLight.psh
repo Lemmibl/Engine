@@ -38,19 +38,23 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	float depth = textures[2].Sample(pointSampler, texCoord);
 	float3 normal = normalize(normalData.xyz);
 	
+	//Create a clip space position (I think?)
 	float4 position;
 	position.xy = input.ScreenPosition.xy;
-	position.z = depth;
+	position.z = depth; //With depth from camera
 	position.w = 1.0f;
 
-	position = mul(position, InvViewProjection);
+	position = mul(position, InvViewProjection); //And revert it back to world position
 	position /= position.w;
 
-	//surface-to-light vector
-	float3 lightVector =  normalize(position-LightPosition);
+	float4 adjustedLightPos = LightPosition;
+	adjustedLightPos.y -= 0.5f; //Need to adjust light position so that origin is at the center of the sphere...
 
-	float d = distance(position, LightPosition);
-	float att = (LightRadius / (d*d));
+	//surface-to-light vector
+	float3 lightVector =  normalize(position-adjustedLightPos);
+
+	float d = distance(position, adjustedLightPos);
+	float attenuation = (1.0f / ((d*d)+0.6f)); //Slight offset to dampen the light
 
 	//compute diffuse light
 	float NdL = max(dot(normal, lightVector), 0);
@@ -66,7 +70,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	//compute specular light
 	float specularLight =  pow( saturate(dot(reflectionVector, directionToCamera)), LightPower); //it's 128 because idk.
 
-	return att * half4(diffuseLight, specularLight);
+	return attenuation * half4(diffuseLight, specularLight);
 }
 
 /*

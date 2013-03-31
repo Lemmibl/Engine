@@ -355,7 +355,7 @@ bool Renderer::InitializeModels(HWND hwnd)
 	}
 
 	// Initialize the model object. It really doesn't matter what textures it has because it's only used for point light volume culling.
-	result = sphereModel->Initialize(d3D->GetDevice(), "../Engine/data/sphere2.txt", L"../Engine/data/stone02.dds", L"../Engine/data/bump02.dds", L"../Engine/data/stone_specmap.dds");
+	result = sphereModel->Initialize(d3D->GetDevice(), "../Engine/data/skydome.txt", L"../Engine/data/stone02.dds", L"../Engine/data/bump02.dds", L"../Engine/data/stone_specmap.dds");
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
@@ -512,11 +512,11 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 	if(inputManager->IsKeyPressed(DIK_R))
 	{
-		for(int i = 0; i < pointLights.size(); i++)
+		for(int i = 0; i < (int)pointLights.size(); i++)
 		{
 			pointLights[i]->Position.y += frameTime*0.006f;
 
-			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y+0.5f, pointLights[i]->Position.z)));
+			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z)));
 		}
 	}
 
@@ -525,11 +525,11 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		//dirLight->Position.x -= frameTime*0.02f;
 		//dirLight->Position.z -= frameTime*0.02f;
 
-		for(int i = 0; i < pointLights.size(); i++)
+		for(int i = 0; i < (int)pointLights.size(); i++)
 		{
 			pointLights[i]->Position.y -= frameTime*0.006f;
 
-			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y+0.5f, pointLights[i]->Position.z)));
+			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z)));
 		}
 	}
 
@@ -708,15 +708,15 @@ bool Renderer::Render()
 		}
 	}
 
-	//worldMatrix = XMMatrixIdentity(); 
-	//worldMatrix = XMMatrixTranspose(worldMatrix);
-	//marchingCubes->Render(context);
+	worldMatrix = XMMatrixIdentity(); 
+	worldMatrix = XMMatrixTranspose(worldMatrix);
+	marchingCubes->Render(context);
 
-	//result = depthOnlyShader->Render(context, marchingCubes->GetIndexCount(), &worldMatrix, &lightView, &lightProj);
-	//if(!result)
-	//{
-	//	return false;
-	//}
+	result = depthOnlyShader->Render(context, marchingCubes->GetIndexCount(), &worldMatrix, &lightView, &lightProj);
+	if(!result)
+	{
+		return false;
+	}
 #pragma endregion
 
 #pragma region GBuffer building stage
@@ -791,14 +791,14 @@ bool Renderer::Render()
 		}
 	}
 
-	//worldMatrix = XMMatrixIdentity(); 
-	//worldMatrix = XMMatrixTranspose(worldMatrix);
+	worldMatrix = XMMatrixIdentity(); 
+	worldMatrix = XMMatrixTranspose(worldMatrix);
 
-	//marchingCubes->Render(context);
-	//result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
-	//	&worldMatrix, &viewMatrix, &projectionMatrix, groundModel->GetTexture());
+	marchingCubes->Render(context);
+	result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
+		&worldMatrix, &viewMatrix, &projectionMatrix, groundModel->GetTexture());
 
-	//renderCount++;
+	renderCount++;
 
 	text->SetRenderCount(renderCount, context);
 #pragma endregion
@@ -807,7 +807,7 @@ bool Renderer::Render()
 	context->ClearRenderTargetView(lightTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 	context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	#pragma region Point light stage
+#pragma region Point light stage
 	//Phase one, draw sphere with vertex-only shader.
 	d3D->TurnOnLightBlending();
 
@@ -857,12 +857,12 @@ bool Renderer::Render()
 
 	fullScreenQuad.Render(context, 0, 0);
 
-	//result = dirLightShader->Render(context, fullScreenQuad.GetIndexCount(), &worldMatrix, &baseView, &orthoMatrix, &invertedViewProjection, &invertedView, 
-	//	dirLightTextures, camPos, dirLight, ambientLight, defaultModelMaterial, &lightViewProj);
-	//if(!result)
-	//{
-	//	return false;
-	//}
+	result = dirLightShader->Render(context, fullScreenQuad.GetIndexCount(), &worldMatrix, &baseView, &orthoMatrix, &invertedViewProjection, &invertedView, 
+		dirLightTextures, camPos, dirLight, ambientLight, defaultModelMaterial, &lightViewProj);
+	if(!result)
+	{
+		return false;
+	}
 #pragma endregion
 
 #pragma region Final compose stage
