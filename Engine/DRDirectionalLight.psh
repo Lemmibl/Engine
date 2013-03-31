@@ -1,3 +1,7 @@
+/////////////////////////////////////////////
+//////////////////INPUT//////////////////////
+/////////////////////////////////////////////
+
 cbuffer PositionalBuffer //Whatever, idk what else to name it
 {
 	float3 LightDirection;
@@ -5,6 +9,7 @@ cbuffer PositionalBuffer //Whatever, idk what else to name it
 	float3 CameraPosition;
 	float3 Padding;
 };
+
 cbuffer PixelMatrixBuffer
 {
 	float4x4 InverseView;
@@ -30,12 +35,9 @@ cbuffer LightBuffer
 //SamplerState samplers[2];
 
 SamplerState linearSampler : register(s0);
-SamplerComparisonState cmpSampler : register(s1);
-
+SamplerState anisotropicSampler : register(s1);
 // 0 = normal, 1 = standard depth, 2 = shadowmap depth.
 Texture2D shaderTextures[3];
-
-
 struct VertexShaderOutput
 {
 	float4 Position : SV_POSITION;
@@ -44,6 +46,9 @@ struct VertexShaderOutput
 	float4 ScreenPosition : TEXCOORD2;
 	float4 WorldPosition : TEXCOORD3;
 };
+/////////////////////////////////////////////
+////////////UTILITY FUNCTIONS////////////////
+/////////////////////////////////////////////
 
 //Decoding of GBuffer Normals
 float3 Decode(float3 enc)
@@ -51,35 +56,70 @@ float3 Decode(float3 enc)
 	return (2.0f * enc.xyz - 1.0f);
 }
 
+
 float2 GetShadowTexOffset( int u, int v )
 {
-	float2 shadowMapSize = float2(2048.0f, 2048.0f); //This has to mirror shadowmap render target width and height; I'm just really, really lazy.
+	float2 shadowMapSize = float2(2048.0f, 2048.0f);
+	//This has to mirror shadowmap render target width and height; I'm just really, really lazy.
 
-	return float2( u * 1.0f/shadowMapSize.x, v * 1.0f/shadowMapSize.y ); //Scale and return texture coordinates
+	return float2( u * 1.0f/shadowMapSize.x, v * 1.0f/shadowMapSize.y );
+	//Scale and return texture coordinates
 }
 
-float ChebyshevUpperBound(float2 moments, float t)  
-{  
-	float minVariance = 0.1f;
+float Linstep(float minVal, float maxVal, float value)  
+{
+	return clamp( ((value - minVal) / (maxVal - minVal)), 0, 1);
+}
 
-  // One-tailed inequality valid if t > Moments.x  
-   float p = (t <= moments.x);  
-  // Compute variance.  
-   float variance = moments.y - (moments.x*moments.x);  
-  variance = max(variance, minVariance);  
-  // Compute probabilistic upper bound.  
-   float d = t - moments.x;  
-  float p_max = variance / (variance + d*d);  
-  return max(p, p_max);  
-} 
+
+float ReduceLightBleeding(float p_max, float amount)  
+{
+	// Remove the [0, Amount] tail and linearly rescale (Amount, 1].  
+   return Linstep(amount, 1, p_max);
+}
+  
+//Calculate shadow contribution using chevyshev's inequality.
+float ChebyshevUpperBound(float2 moments, float t)  
+{
+	float p = smoothstep(t-0.02f, t, moments.x);
+
+	float minVariance = 0.0001f; //Scaling value.
+
+	// Compute variance.  
+	float variance = moments.y - (moments.x*moments.x);
+	variance = max(variance, minVariance);
+
+	// Compute probabilistic upper bound.  
+	float d = t - moments.x;
+	float p_max = Linstep(0.2f, 1.0f, variance / (variance + d*d));
+
+	return clamp(max(p, p_max), 0.0, 1.0);;
+}
+ 
 
 float ShadowContribution(float2 lightTexCoord, float distanceToLight)  
-{  
-  // Read the moments from the variance shadow map.  
-   float2 moments = shaderTextures[2].Sample(linearSampler, lightTexCoord).xy;  
-  // Compute the Chebyshev upper bound.  
-   return ChebyshevUpperBound(moments, distanceToLight);  
+{
+	// Read the moments from the variance shadow map.  
+	float2 moments = shaderTextures[2].Sample(anisotropicSampler, lightTexCoord).xy;
+
+	//If surface is fully lit, break early.
+	if(distanceToLight < moments.x)
+	{
+		return 1.0f;
+	}
+
+	// Compute the Chebyshev upper bound.
+	float shadowContribution = ChebyshevUpperBound(moments, distanceToLight);
+
+	//shadowContribution = ReduceLightBleeding(shadowContribution, distanceToLight);
+
+	return shadowContribution;
 }
+
+
+/////////////////////////////////////////////
+///////////////MAIN FUNCTION/////////////////
+/////////////////////////////////////////////
 
 half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 {
@@ -87,40 +127,45 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	half4 finalAmbienceProduct = half4(0.0f, 0.0f, 0.0f, 0.0f);
 	half4 finalDiffuseProduct = half4(0.0f, 0.0f, 0.0f, 0.0f);
 	float finalSpecularProduct = 0.0f;
-
 	float depth = shaderTextures[1].Sample(linearSampler, input.TexCoord);
-	
 	if(0 >= depth) //Skip as early as possible if this pixel isn't supposed to be lit.
 	{
-		return finalAmbienceProduct; //0, 0, 0, 0
+		return finalAmbienceProduct;
+		//0, 0, 0, 0
 	}
 
 	finalAmbienceProduct += Ka * AmbientColor;
 	float4 encodedNormal = shaderTextures[0].Sample(linearSampler, input.TexCoord);
 	float3 normal = normalize(Decode(encodedNormal.xyz));
-
-	input.ScreenPosition /= input.ScreenPosition.w; //Adjust value
+	input.ScreenPosition /= input.ScreenPosition.w;
+	//Adjust value
 	
-	float4 position; //Reconstructing position
+	float4 position;
+	//Reconstructing position
 	position.xy = input.ScreenPosition.xy;
-	position.z = depth; //Add camera depth
-	position.w = 1.0f; //Set .w to 1.0f for later matrix multiplications
+	position.z = depth;
+	//Add camera depth
+	position.w = 1.0f;
+	//Set .w to 1.0f for later matrix multiplications
 
 
-	position = mul(position, InverseViewProjection); //Extract pixel world position as seen from camera POV.
-	position /= position.w; //Adjust value
+	position = mul(position, InverseViewProjection);
+	//Extract pixel world position as seen from camera POV.
+	position /= position.w;
+	//Adjust value
 
-	float4 lightScreenPos = mul(position, LightViewProjection); //Extract pixel position as seen from light POV for shadow map extraction.
-	lightScreenPos /= lightScreenPos.w; //Adjust value again.
+	float4 lightScreenPos = mul(position, LightViewProjection);
+	//Extract pixel position as seen from light POV for shadow map extraction.
+	lightScreenPos /= lightScreenPos.w;
+	//Adjust value again.
 
-	float realDistanceToLight = lightScreenPos.z; //Depth as seen from light POV.
+	float realDistanceToLight = lightScreenPos.z;
+	//Depth as seen from light POV.
 
 	float2 sampleLightScreen;
 	sampleLightScreen.x = ((lightScreenPos.x * 0.5f) + 0.5f);
 	sampleLightScreen.y = ((-lightScreenPos.y * 0.5f) + 0.5f);
-
 	float shadowMultiplier = 1.0f;
-	
 	//We cull a large part of the light and shadow calculations if it's outside of the light frustum.
 	if
 	(		
@@ -131,21 +176,21 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	{
 		float sum = 0.0f;
 		float x, y;
-
 		//TODO: variance shadow mapping... http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html
 
-		realDistanceToLight -= 0.00002f; //Apply shadow bias
+		//realDistanceToLight -= 0.0002f; //Apply shadow bias	
 
+		shadowMultiplier = ShadowContribution(sampleLightScreen, realDistanceToLight);
 		//perform PCF filtering on a 4 x 4 texel neighborhood
-		for (y = -1.5f; y <= 1.5f; y += 1.0f)
-		{
-			for (x = -1.5f; x <= 1.5f; x += 1.0f)
-			{
-				sum += shaderTextures[2].SampleCmpLevelZero(cmpSampler, sampleLightScreen + GetShadowTexOffset(x,y), realDistanceToLight);
-			}
-		}
+		//for (y = -1.5f; y <= 1.5f; y += 1.0f)
+		//{
+		//	for (x = -1.5f; x <= 1.5f; x += 1.0f)
+		//	{
+		//		sum += shaderTextures[2].SampleCmpLevelZero(cmpSampler, sampleLightScreen + GetShadowTexOffset(x,y), realDistanceToLight);
+		//	}
+		//}
 
-		shadowMultiplier = (sum / 16.0f);
+		//shadowMultiplier = (sum / 16.0f);
 
 		////Use this instead for normal unfiltered shadows. Produces more artifacts. Nasty.
 
@@ -158,33 +203,27 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		
 		//surface-to-light vector
 		float3 lightVector = (-LightDirection);
-
 		//Calculate diffuse intensity, the usual
 		float NdL = (max(0, dot(normal, lightVector)));
-
 		//reflection vector
 		float3 reflectionVector = normalize(-reflect(lightVector, normal));
-
 		//camera-to-surface vector
 		float3 directionToCamera = normalize(position-CameraPosition);
-
 		//compute diffuse light
 		finalDiffuseProduct.xyzw += Kd * NdL;
-
 		//compute specular light 
 		finalSpecularProduct += Ks * pow( saturate(dot(directionToCamera, reflectionVector)), a);
-
 	}
 
+
 	//Storing specular in alpha channel. Applying shadow multiplier to both diffuse product and specular, but not ambient, to make sure it's not just black.
-		return half4(finalAmbienceProduct.rgb + shadowMultiplier * (DiffuseColor.rgb*finalDiffuseProduct.rgb), shadowMultiplier * finalSpecularProduct);
+	return half4(finalAmbienceProduct.rgb + shadowMultiplier * (DiffuseColor.rgb*finalDiffuseProduct.rgb), shadowMultiplier * finalSpecularProduct);
 }
 
 
 
+
 /*
-
-
 float4 ps_lighting(VS_OUTPUT IN) : SV_Target
 {
 	if (renderingSkel || renderingRBody)

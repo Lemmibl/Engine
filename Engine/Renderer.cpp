@@ -708,15 +708,15 @@ bool Renderer::Render()
 		}
 	}
 
-	worldMatrix = XMMatrixIdentity(); 
-	worldMatrix = XMMatrixTranspose(worldMatrix);
-	marchingCubes->Render(context);
+	//worldMatrix = XMMatrixIdentity(); 
+	//worldMatrix = XMMatrixTranspose(worldMatrix);
+	//marchingCubes->Render(context);
 
-	result = depthOnlyShader->Render(context, marchingCubes->GetIndexCount(), &worldMatrix, &lightView, &lightProj);
-	if(!result)
-	{
-		return false;
-	}
+	//result = depthOnlyShader->Render(context, marchingCubes->GetIndexCount(), &worldMatrix, &lightView, &lightProj);
+	//if(!result)
+	//{
+	//	return false;
+	//}
 #pragma endregion
 
 #pragma region GBuffer building stage
@@ -791,14 +791,14 @@ bool Renderer::Render()
 		}
 	}
 
-	worldMatrix = XMMatrixIdentity(); 
-	worldMatrix = XMMatrixTranspose(worldMatrix);
+	//worldMatrix = XMMatrixIdentity(); 
+	//worldMatrix = XMMatrixTranspose(worldMatrix);
 
-	marchingCubes->Render(context);
-	result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
-		&worldMatrix, &viewMatrix, &projectionMatrix, groundModel->GetTexture());
+	//marchingCubes->Render(context);
+	//result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
+	//	&worldMatrix, &viewMatrix, &projectionMatrix, groundModel->GetTexture());
 
-	renderCount++;
+	//renderCount++;
 
 	text->SetRenderCount(renderCount, context);
 #pragma endregion
@@ -877,8 +877,8 @@ bool Renderer::Render()
 
 		if(!toggleDebugInfo)
 		{
-			//result = textureShader->Render(context, sphereModel->GetIndexCount(), &XMLoadFloat4x4(&pointLights[i]->World), &viewMatrix, 
-			//	&projectionMatrix, sphereModel->GetTexture());
+			result = textureShader->Render(context, sphereModel->GetIndexCount(), &XMLoadFloat4x4(&pointLights[i]->World), &viewMatrix, 
+				&projectionMatrix, sphereModel->GetTexture());
 		}
 		else
 		{
@@ -905,12 +905,12 @@ bool Renderer::Render()
 
 	fullScreenQuad.Render(context, 0, 0);
 
-	result = dirLightShader->Render(context, fullScreenQuad.GetIndexCount(), &worldMatrix, &baseView, &orthoMatrix, &invertedViewProjection, &invertedView, 
-		dirLightTextures, camPos, dirLight, ambientLight, defaultModelMaterial, &lightViewProj);
-	if(!result)
-	{
-		return false;
-	}
+	//result = dirLightShader->Render(context, fullScreenQuad.GetIndexCount(), &worldMatrix, &baseView, &orthoMatrix, &invertedViewProjection, &invertedView, 
+	//	dirLightTextures, camPos, dirLight, ambientLight, defaultModelMaterial, &lightViewProj);
+	//if(!result)
+	//{
+	//	return false;
+	//}
 #pragma endregion
 
 #pragma region Final compose stage
