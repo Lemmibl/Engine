@@ -808,54 +808,6 @@ bool Renderer::Render()
 	context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	#pragma region Point light stage
-	#pragma region Old pointlight code
-	////Phase one, draw sphere with vertex-only shader.
-	//d3D->SetLightStencilMethod2Phase1();
-	//d3D->SetBackFaceCullingRasterizer();
-	//d3D->TurnOffColorBlending();
-
-	//for(unsigned int i = 0; i < pointLights.size(); i++)
-	//{	
-	//	sphereModel->Render(context);
-
-	//	result = vertexOnlyShader->Render(context, sphereModel->GetIndexCount(), pointLights[i]->World, viewMatrix, 
-	//		projectionMatrix);
-	//	if(!result)
-	//	{
-	//		return false;
-	//	}
-	//}
-
-	//context->OMSetRenderTargets(1, lightTarget, ds);
-	//context->ClearRenderTargetView(lightTarget[0], XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f));
-
-	////Phase two, draw sphere with light algorithm
-	//d3D->SetLightStencilMethod2Phase2();
-	//d3D->SetFrontFaceCullingRasterizer();
-	//d3D->TurnOnLightBlending();
-
-	//for(unsigned int i = 0; i < pointLights.size(); i++)
-	//{	
-	//	sphereModel->Render(context);
-
-	//	if(!toggleDebugInfo)
-	//	{
-	//		result = textureShader->Render(context, sphereModel->GetIndexCount(), pointLights[i]->World, viewMatrix, 
-	//			projectionMatrix, sphereModel->GetTexture());
-	//	}
-	//	else
-	//	{
-	//		result = pointLightShader->Render(context, sphereModel->GetIndexCount(), pointLights[i]->World, viewMatrix, 
-	//			projectionMatrix, invertedViewProjection, pointLights[i], gbufferTextures, camera->GetPosition());
-	//	}
-
-	//	if(!result)
-	//	{
-	//		return false;
-	//	}
-	//}
-	#pragma endregion
-
 	//Phase one, draw sphere with vertex-only shader.
 	d3D->TurnOnLightBlending();
 
