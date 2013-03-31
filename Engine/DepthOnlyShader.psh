@@ -7,7 +7,7 @@ struct VertexShaderOutput
 
 float2 ComputeMoments(float depth)  
 { 
-	float2 moments; 
+	float2 moments;
 	 
 	// First moment is normal depth.  
 	moments.x = depth;  
@@ -17,14 +17,70 @@ float2 ComputeMoments(float depth)
 	float dy = ddy(depth);
 
 	// Compute second moment over the pixel extents.  
-	moments.y = depth*depth + 0.25*(dx*dx + dy*dy);  
+	moments.y = depth*depth + 0.25*(dx*dx + dy*dy);
+
 	return moments;
 };
 
 float2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 {
 	//return (input.ViewPosition.z / 140.0f); //To store depth linearly, divide viewposition depth by camera's FarZ.
-	//return length(input.ViewPosition); //For worldspace position reconstruction.
+
+	//return length(input.ViewPosition); //For worldspace position reconstruction
+
+
 	return ComputeMoments(input.Depth.x / input.Depth.y);
 };
 
+
+/*
+sampler2D Tex0;
+
+float TintColour;
+int TexHeight = 640;
+int TexWidth = 480;
+
+const int KernelSize = 7;
+float2 PixelKernel[7] = 
+{
+	{-3, 0},
+	{-2, 0},
+	{-1, 0},
+	{0, 0},
+	{1, 0},
+	{2, 0},
+	{3, 0},
+};
+
+const float BlurWeights[7] = 
+{
+	0.064759,
+	0.120985,
+	0.176033,
+	0.199471,
+	0.176033,
+	0.120985,
+	0.064759,
+};
+
+struct VertexShaderOutput
+{
+	float2 TexCoord0 : TEXCOORD0;
+};
+
+float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
+{
+float4 colour = 0;
+
+float2 TexSize = float2(1.0/TexHeight, 1.0/TexWidth);
+
+for(int p = 0; p < 7; p++)
+{
+	colour += tex2D(Tex0, input.TexCoord0 + (PixelKernel[p] * TexSize)) * BlurWeights[p];
+}
+
+colour.a = 1.0f;
+
+return colour;
+}
+*/

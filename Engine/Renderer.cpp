@@ -16,6 +16,8 @@
 	http://www.iquilezles.org/www/articles/ssao/ssao.htm
 
 	Inför gräsquads:
+	http://www.geeks3d.com/20100831/shader-library-noise-and-pseudo-random-number-generator-in-glsl/
+
 	http://ogldev.atspace.co.uk/www/tutorial27/tutorial27.html
 
 	http://zeuxcg.blogspot.se/2007/09/particle-rendering-revisited.html
@@ -237,44 +239,40 @@ bool Renderer::InitializeLights(HWND hwnd)
 	ambientLight = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
 
 #pragma region Point light initialization
-	//float x, y, z;
-	//x = -6.0f;
-	//z = -4.0f;
-	//y = -2.0f;
+	float x, y, z;
+	x = -6.0f;
+	z = -4.0f;
+	y = -2.0f;
 
-	//float pointLightRadius = 2.0f;
-	//XMMATRIX tempScale = XMMatrixScaling(pointLightRadius, pointLightRadius, pointLightRadius);
+	float pointLightRadius = 2.0f;
+	XMMATRIX tempScale = XMMatrixScaling(pointLightRadius, pointLightRadius, pointLightRadius);
 
-	///*
-	//http://www.gamasutra.com/view/feature/4248/designing_fast_crossplatform_simd_.php
-	//*/
+	for(int i = 0; i < 20; i++)
+	{
+		pointLights.push_back(new PointLight());
+		pointLights[i]->Position = XMFLOAT3(x, y, z);
+		pointLights[i]->Color = XMFLOAT3(0.3f + i%4, 0.7f + i % 2, 0.2f + i%3);
+		pointLights[i]->Radius = pointLightRadius;
+		pointLights[i]->Intensity = 128.0f;
 
-	//for(int i = 0; i < 20; i++)
-	//{
-	//	pointLights.push_back(new PointLight());
-	//	pointLights[i]->Position = XMFLOAT3(x, y, z);
-	//	pointLights[i]->Color = XMFLOAT3(0.3f + i%4, 0.7f + i % 2, 0.2f + i%3);
-	//	pointLights[i]->Radius = pointLightRadius;
-	//	pointLights[i]->Intensity = 128.0f;
+		x += 4.0f;
 
-	//	x += 4.0f;
+		if(x >= 10.0f) //Every 10th light gets reseted in x and z plane.
+		{
+			x = -6.0f;
+			z += 4.0f;
+		}
 
-	//	if(x >= 10.0f) //Every 10th light gets reseted in x and z plane.
-	//	{
-	//		x = -6.0f;
-	//		z += 4.0f;
-	//	}
+		if(i != 0 && i % 100 == 0) //Every 100 pointlights we reset and make another layer that is (y+5) higher up.
+		{
+			x = -10.0f;
+			z = -10.0f;
+			y += 5.0f;
+		}
 
-	//	if(i != 0 && i % 100 == 0) //Every 100 pointlights we reset and make another layer that is (y+5) higher up.
-	//	{
-	//		x = -10.0f;
-	//		z = -10.0f;
-	//		y += 5.0f;
-	//	}
-
-	//	XMMATRIX tempTranslation = XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z);
-	//	XMStoreFloat4x4(&pointLights[i]->World, tempScale * tempTranslation);
-	//}
+		XMMATRIX tempTranslation = XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z);
+		XMStoreFloat4x4(&pointLights[i]->World, tempScale * tempTranslation);
+	}
 #pragma endregion
 
 #pragma region Directional light initialization
@@ -514,14 +512,25 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 	if(inputManager->IsKeyPressed(DIK_R))
 	{
-		dirLight->Position.x += frameTime*0.02f;
-		dirLight->Position.z += frameTime*0.02f;
+		for(int i = 0; i < pointLights.size(); i++)
+		{
+			pointLights[i]->Position.y += frameTime*0.006f;
+
+			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y+0.5f, pointLights[i]->Position.z)));
+		}
 	}
 
 	if(inputManager->IsKeyPressed(DIK_F))
 	{
-		dirLight->Position.x -= frameTime*0.02f;
-		dirLight->Position.z -= frameTime*0.02f;
+		//dirLight->Position.x -= frameTime*0.02f;
+		//dirLight->Position.z -= frameTime*0.02f;
+
+		for(int i = 0; i < pointLights.size(); i++)
+		{
+			pointLights[i]->Position.y -= frameTime*0.006f;
+
+			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y+0.5f, pointLights[i]->Position.z)));
+		}
 	}
 
 	if(inputManager->IsKeyPressed(DIK_C))
@@ -540,14 +549,6 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 	{
 		seconds = timeOfDay += 3.0f;
 	}
-
-	//if(inputManager->WasKeyPressed(DIK_2))
-	//{
-	//	if(timeOfDay >= 3.0f)
-	//	{
-	//		seconds = timeOfDay -= 3.0f;	
-	//	}
-	//}
 
 	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
 
@@ -707,15 +708,15 @@ bool Renderer::Render()
 		}
 	}
 
-	worldMatrix = XMMatrixIdentity(); 
-	worldMatrix = XMMatrixTranspose(worldMatrix);
-	marchingCubes->Render(context);
+	//worldMatrix = XMMatrixIdentity(); 
+	//worldMatrix = XMMatrixTranspose(worldMatrix);
+	//marchingCubes->Render(context);
 
-	result = depthOnlyShader->Render(context, marchingCubes->GetIndexCount(), &worldMatrix, &lightView, &lightProj);
-	if(!result)
-	{
-		return false;
-	}
+	//result = depthOnlyShader->Render(context, marchingCubes->GetIndexCount(), &worldMatrix, &lightView, &lightProj);
+	//if(!result)
+	//{
+	//	return false;
+	//}
 #pragma endregion
 
 #pragma region GBuffer building stage
@@ -790,14 +791,14 @@ bool Renderer::Render()
 		}
 	}
 
-	worldMatrix = XMMatrixIdentity(); 
-	worldMatrix = XMMatrixTranspose(worldMatrix);
+	//worldMatrix = XMMatrixIdentity(); 
+	//worldMatrix = XMMatrixTranspose(worldMatrix);
 
-	marchingCubes->Render(context);
-	result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
-		&worldMatrix, &viewMatrix, &projectionMatrix, groundModel->GetTexture());
+	//marchingCubes->Render(context);
+	//result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
+	//	&worldMatrix, &viewMatrix, &projectionMatrix, groundModel->GetTexture());
 
-	renderCount++;
+	//renderCount++;
 
 	text->SetRenderCount(renderCount, context);
 #pragma endregion
@@ -806,93 +807,92 @@ bool Renderer::Render()
 	context->ClearRenderTargetView(lightTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 	context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	//#pragma region Point light stage
-	//#pragma region Old pointlight code
-	//////Phase one, draw sphere with vertex-only shader.
-	////d3D->SetLightStencilMethod2Phase1();
-	////d3D->SetBackFaceCullingRasterizer();
-	////d3D->TurnOffColorBlending();
-
-	////for(unsigned int i = 0; i < pointLights.size(); i++)
-	////{	
-	////	sphereModel->Render(context);
-
-	////	result = vertexOnlyShader->Render(context, sphereModel->GetIndexCount(), pointLights[i]->World, viewMatrix, 
-	////		projectionMatrix);
-	////	if(!result)
-	////	{
-	////		return false;
-	////	}
-	////}
-
-	////context->OMSetRenderTargets(1, lightTarget, ds);
-	////context->ClearRenderTargetView(lightTarget[0], XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f));
-
-	//////Phase two, draw sphere with light algorithm
-	////d3D->SetLightStencilMethod2Phase2();
-	////d3D->SetFrontFaceCullingRasterizer();
-	////d3D->TurnOnLightBlending();
-
-	////for(unsigned int i = 0; i < pointLights.size(); i++)
-	////{	
-	////	sphereModel->Render(context);
-
-	////	if(!toggleDebugInfo)
-	////	{
-	////		result = textureShader->Render(context, sphereModel->GetIndexCount(), pointLights[i]->World, viewMatrix, 
-	////			projectionMatrix, sphereModel->GetTexture());
-	////	}
-	////	else
-	////	{
-	////		result = pointLightShader->Render(context, sphereModel->GetIndexCount(), pointLights[i]->World, viewMatrix, 
-	////			projectionMatrix, invertedViewProjection, pointLights[i], gbufferTextures, camera->GetPosition());
-	////	}
-
-	////	if(!result)
-	////	{
-	////		return false;
-	////	}
-	////}
-	//#pragma endregion
-
+	#pragma region Point light stage
+	#pragma region Old pointlight code
 	////Phase one, draw sphere with vertex-only shader.
+	//d3D->SetLightStencilMethod2Phase1();
+	//d3D->SetBackFaceCullingRasterizer();
+	//d3D->TurnOffColorBlending();
+
+	//for(unsigned int i = 0; i < pointLights.size(); i++)
+	//{	
+	//	sphereModel->Render(context);
+
+	//	result = vertexOnlyShader->Render(context, sphereModel->GetIndexCount(), pointLights[i]->World, viewMatrix, 
+	//		projectionMatrix);
+	//	if(!result)
+	//	{
+	//		return false;
+	//	}
+	//}
+
+	//context->OMSetRenderTargets(1, lightTarget, ds);
+	//context->ClearRenderTargetView(lightTarget[0], XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f));
+
+	////Phase two, draw sphere with light algorithm
+	//d3D->SetLightStencilMethod2Phase2();
+	//d3D->SetFrontFaceCullingRasterizer();
 	//d3D->TurnOnLightBlending();
 
 	//for(unsigned int i = 0; i < pointLights.size(); i++)
 	//{	
-	//	d3D->SetLightStencilMethod1Phase1();
-	//	d3D->SetNoCullRasterizer();
-
-	//	sphereModel->Render(context);
-
-	//	result = vertexOnlyShader->Render(context, sphereModel->GetIndexCount(), &XMMatrixTranspose(XMLoadFloat4x4(&pointLights[i]->World)), &viewMatrix, 
-	//		&projectionMatrix);
-
-	//	//Phase two, draw sphere with light algorithm
-	//	d3D->SetLightStencilMethod1Phase2();
-	//	d3D->SetFrontFaceCullingRasterizer();
-
 	//	sphereModel->Render(context);
 
 	//	if(!toggleDebugInfo)
 	//	{
-	//		result = textureShader->Render(context, sphereModel->GetIndexCount(), &XMMatrixTranspose(XMLoadFloat4x4(&pointLights[i]->World)), &viewMatrix, 
-	//			&projectionMatrix, sphereModel->GetTexture());
+	//		result = textureShader->Render(context, sphereModel->GetIndexCount(), pointLights[i]->World, viewMatrix, 
+	//			projectionMatrix, sphereModel->GetTexture());
 	//	}
 	//	else
 	//	{
-	//		result = pointLightShader->Render(context, sphereModel->GetIndexCount(), &viewMatrix, 
-	//			&projectionMatrix, &invertedViewProjection, pointLights[i], gbufferTextures, camPos);
+	//		result = pointLightShader->Render(context, sphereModel->GetIndexCount(), pointLights[i]->World, viewMatrix, 
+	//			projectionMatrix, invertedViewProjection, pointLights[i], gbufferTextures, camera->GetPosition());
 	//	}
 
 	//	if(!result)
 	//	{
 	//		return false;
 	//	}
-
-	//	context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
 	//}
-	//#pragma endregion
+	#pragma endregion
+
+	//Phase one, draw sphere with vertex-only shader.
+	d3D->TurnOnLightBlending();
+
+	for(unsigned int i = 0; i < pointLights.size(); i++)
+	{	
+		d3D->SetLightStencilMethod1Phase1();
+		d3D->SetNoCullRasterizer();
+
+		sphereModel->Render(context);
+
+		result = vertexOnlyShader->Render(context, sphereModel->GetIndexCount(), &XMLoadFloat4x4(&pointLights[i]->World), &viewMatrix, 
+			&projectionMatrix);
+
+		//Phase two, draw sphere with light algorithm
+		d3D->SetLightStencilMethod1Phase2();
+		d3D->SetFrontFaceCullingRasterizer();
+
+		sphereModel->Render(context);
+
+		if(!toggleDebugInfo)
+		{
+			result = textureShader->Render(context, sphereModel->GetIndexCount(), &XMLoadFloat4x4(&pointLights[i]->World), &viewMatrix, 
+				&projectionMatrix, sphereModel->GetTexture());
+		}
+		else
+		{
+			result = pointLightShader->Render(context, sphereModel->GetIndexCount(), &viewMatrix, 
+				&projectionMatrix, &invertedViewProjection, pointLights[i], gbufferTextures, camPos);
+		}
+		if(!result)
+		{
+			return false;
+		}
+
+		context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
+	}
+	#pragma endregion
 
 #pragma region Directional light stage
 	///*TODO: Create a directional light stencilstate that does a NOTEQUAL==0 stencil check.*/
@@ -905,12 +905,12 @@ bool Renderer::Render()
 
 	fullScreenQuad.Render(context, 0, 0);
 
-	result = dirLightShader->Render(context, fullScreenQuad.GetIndexCount(), &worldMatrix, &baseView, &orthoMatrix, &invertedViewProjection, &invertedView, 
-		dirLightTextures, camPos, dirLight, ambientLight, defaultModelMaterial, &lightViewProj);
-	if(!result)
-	{
-		return false;
-	}
+	//result = dirLightShader->Render(context, fullScreenQuad.GetIndexCount(), &worldMatrix, &baseView, &orthoMatrix, &invertedViewProjection, &invertedView, 
+	//	dirLightTextures, camPos, dirLight, ambientLight, defaultModelMaterial, &lightViewProj);
+	//if(!result)
+	//{
+	//	return false;
+	//}
 #pragma endregion
 
 #pragma region Final compose stage

@@ -35,13 +35,13 @@ private:
 	struct PixelMatrixBufferType
 	{
 		XMMATRIX InvertedViewProjection;
-		XMFLOAT3 LightPosition;
 	};
 
 	struct LightBufferType
 	{
+		XMFLOAT4 LightPosition;
 		XMFLOAT3 LightColor;
-		int LightRadius;
+		float LightRadius;
 		float LightPower;
 		XMFLOAT3 CameraPosition;
 	};
