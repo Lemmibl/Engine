@@ -54,7 +54,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	float3 lightVector =  normalize(position-adjustedLightPos);
 
 	float d = distance(position, adjustedLightPos);
-	float attenuation = (1.0f / ((d*d)+0.6f)); //Slight offset to dampen the light
+	float attenuation = (LightRadius / ((d*d)+0.6f)); //Slight offset to dampen the light
 
 	//compute diffuse light
 	float NdL = max(dot(normal, lightVector), 0);

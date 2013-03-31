@@ -3,39 +3,39 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "Renderer.h"
 
-	/*
-	Inför terrain rendering / många texturer:
-	http://stackoverflow.com/questions/35950/i-dont-understand-stdtr1unordered-map
-	Multitexturing pixel shader tutorials i allmänt om något är oklart.
+/*
+Inför terrain rendering / många texturer:
+http://stackoverflow.com/questions/35950/i-dont-understand-stdtr1unordered-map
+Multitexturing pixel shader tutorials i allmänt om något är oklart.
 
-	Inför perlin/simplex noise:
-	http://stackoverflow.com/questions/4120108/how-to-save-backbuffer-to-file-in-directx-10
+Inför perlin/simplex noise:
+http://stackoverflow.com/questions/4120108/how-to-save-backbuffer-to-file-in-directx-10
 
-	Inför SSAO:
-	http://www.gamedev.net/page/resources/_/technical/graphics-programming-and-theory/a-simple-and-practical-approach-to-ssao-r2753
-	http://www.iquilezles.org/www/articles/ssao/ssao.htm
+Inför SSAO:
+http://www.gamedev.net/page/resources/_/technical/graphics-programming-and-theory/a-simple-and-practical-approach-to-ssao-r2753
+http://www.iquilezles.org/www/articles/ssao/ssao.htm
 
-	Inför gräsquads:
-	http://www.geeks3d.com/20100831/shader-library-noise-and-pseudo-random-number-generator-in-glsl/
+Inför gräsquads:
+http://www.geeks3d.com/20100831/shader-library-noise-and-pseudo-random-number-generator-in-glsl/
 
-	http://ogldev.atspace.co.uk/www/tutorial27/tutorial27.html
+http://ogldev.atspace.co.uk/www/tutorial27/tutorial27.html
 
-	http://zeuxcg.blogspot.se/2007/09/particle-rendering-revisited.html
-	http://realtimecollisiondetection.net/blog/?p=91
+http://zeuxcg.blogspot.se/2007/09/particle-rendering-revisited.html
+http://realtimecollisiondetection.net/blog/?p=91
 
-	http://www.flashbang.se/archives/315
+http://www.flashbang.se/archives/315
 
-	http://faculty.ycp.edu/~dbabcock/PastCourses/cs470/labs/lab11.html
-	http://faculty.ycp.edu/~dbabcock/PastCourses/cs470/labs/lab13.html
+http://faculty.ycp.edu/~dbabcock/PastCourses/cs470/labs/lab11.html
+http://faculty.ycp.edu/~dbabcock/PastCourses/cs470/labs/lab13.html
 
-	http://www.rastertek.com/dx11tut37.html
-	http://blogs.msdn.com/b/shawnhar/archive/2009/02/18/depth-sorting-alpha-blended-objects.aspx
-	http://software.intel.com/en-us/articles/rendering-grass-with-instancing-in-directx-10
-	http://http.developer.nvidia.com/GPUGems/gpugems_ch07.html
+http://www.rastertek.com/dx11tut37.html
+http://blogs.msdn.com/b/shawnhar/archive/2009/02/18/depth-sorting-alpha-blended-objects.aspx
+http://software.intel.com/en-us/articles/rendering-grass-with-instancing-in-directx-10
+http://http.developer.nvidia.com/GPUGems/gpugems_ch07.html
 
-	http://developer.amd.com/wordpress/media/2012/10/ShaderX_AnimatedGrass.pdf
-	http://gamedev.stackexchange.com/questions/22507/what-is-the-alphatocoverage-blend-state-useful-for
-	*/
+http://developer.amd.com/wordpress/media/2012/10/ShaderX_AnimatedGrass.pdf
+http://gamedev.stackexchange.com/questions/22507/what-is-the-alphatocoverage-blend-state-useful-for
+*/
 
 Renderer::Renderer()
 {
@@ -244,34 +244,32 @@ bool Renderer::InitializeLights(HWND hwnd)
 	z = -4.0f;
 	y = -2.0f;
 
-	float pointLightRadius = 2.0f;
-	XMMATRIX tempScale = XMMatrixScaling(pointLightRadius, pointLightRadius, pointLightRadius);
-
 	for(int i = 0; i < 20; i++)
 	{
 		pointLights.push_back(new PointLight());
 		pointLights[i]->Position = XMFLOAT3(x, y, z);
 		pointLights[i]->Color = XMFLOAT3(0.3f + i%4, 0.7f + i % 2, 0.2f + i%3);
-		pointLights[i]->Radius = pointLightRadius;
-		pointLights[i]->Intensity = 128.0f;
+		pointLights[i]->Radius = 4.0f;
+		pointLights[i]->Intensity = 4.0f; //The lower the more intense it gets
 
-		x += 4.0f;
+		x += 8.0f;
 
 		if(x >= 10.0f) //Every 10th light gets reseted in x and z plane.
 		{
 			x = -6.0f;
-			z += 4.0f;
+			z += 8.0f;
 		}
 
-		if(i != 0 && i % 100 == 0) //Every 100 pointlights we reset and make another layer that is (y+5) higher up.
+		if(i != 0 && i % 100 == 0) //Every 100 pointlights we reset and make another layer that is (y+8) higher up.
 		{
 			x = -10.0f;
 			z = -10.0f;
-			y += 5.0f;
+			y += 8.0f;
 		}
 
+		XMMATRIX tempScale = XMMatrixScaling(pointLights[0]->Radius, pointLights[0]->Radius, pointLights[0]->Radius);
 		XMMATRIX tempTranslation = XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z);
-		XMStoreFloat4x4(&pointLights[i]->World, tempScale * tempTranslation);
+		XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale * tempTranslation));
 	}
 #pragma endregion
 
@@ -467,6 +465,8 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 {
 	bool result;
 
+	XMMATRIX tempScale = XMMatrixScaling(pointLights[0]->Radius, pointLights[0]->Radius, pointLights[0]->Radius);
+
 	if(inputManager->WasKeyPressed(DIK_Q))
 	{
 		toggleDebugInfo = !toggleDebugInfo;
@@ -516,7 +516,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		{
 			pointLights[i]->Position.y += frameTime*0.006f;
 
-			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z)));
+			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale*XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z)));
 		}
 	}
 
@@ -529,7 +529,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		{
 			pointLights[i]->Position.y -= frameTime*0.006f;
 
-			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z)));
+			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale*XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z)));
 		}
 	}
 
@@ -551,8 +551,6 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 	}
 
 	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
-
-	//Adding some little comment here so that I can commit. Ignore this.
 
 	XMVECTOR lookAt = XMVectorZero();
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
@@ -844,13 +842,12 @@ bool Renderer::Render()
 
 		context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
 	}
-	#pragma endregion
+#pragma endregion
 
 #pragma region Directional light stage
 	///*TODO: Create a directional light stencilstate that does a NOTEQUAL==0 stencil check.*/
 	ds = d3D->GetDepthStencilView();
 	context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL|D3D11_CLEAR_DEPTH, 1.0f, 0);
-	d3D->TurnOnLightBlending();
 	d3D->SetBackFaceCullingRasterizer();
 	d3D->GetWorldMatrix(worldMatrix);
 	worldMatrix = XMMatrixTranspose(worldMatrix);
