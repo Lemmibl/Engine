@@ -1,7 +1,8 @@
 cbuffer LightBufferType
 {
+	float4 LightPosition;
 	float3 LightColor;
-	int LightRadius;
+	float LightRadius;
 	float LightPower;
 	float3 CameraPosition;
 }
@@ -9,65 +10,80 @@ cbuffer LightBufferType
 cbuffer PixelMatrixBufferType
 {
 	float4x4 InvViewProjection;
-	float3 LightPosition;
 }
 
 struct VertexShaderOutput
 {
 	float4 Position : SV_Position;
 	float4 ScreenPosition : TEXCOORD0;
-	float4 WorldPosition : TEXCOORD1;
-	float4 ViewPosition : TEXCOORD2;
 };
 
-Texture2D textures[3];//Color, Normal, depth. In that order
+//Decoding of GBuffer Normals
+float3 Decode(float3 enc)
+{
+	return (2.0f * enc.xyz - 1.0f);
+}
+
+Texture2D textures[3]; //Color, Normal, depth. In that order
 SamplerState pointSampler;
 
 half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 {
-	input.ScreenPosition.xy /= input.ScreenPosition.w; //Get screen position
+	input.ScreenPosition /= input.ScreenPosition.w; //Get screen position
 
-	float2 texCoord = 0.5f * (float2(input.ScreenPosition.x, -input.ScreenPosition.y) + 1);
+	float2 texCoord = 0.5f * (float2(input.ScreenPosition.x, -input.ScreenPosition.y) + 1.0f);
 
 	//get normal data from the normalMap
 	float4 normalData = textures[1].Sample(pointSampler, texCoord);
+	float depth = textures[2].Sample(pointSampler, texCoord);
+	float3 normal = normalize(normalData.xyz);
+	
+	float4 position;
+	position.xy = input.ScreenPosition.xy;
+	position.z = depth;
+	position.w = 1.0f;
 
-	//tranform normal back into [-1,1] range
-	float3 normal = 2.0f * normalData.xyz - 1.0f;
-
-	/*
-		TODO: Try only using InvertedProj instead of InvertedViewProj to project position into viewspace.
-
-		D3DXVec4Transform(&lightPosView, &XMFLOAT4(0, 0, 0, 1), &matWorldView);
-	*/
+	position = mul(position, InvViewProjection);
+	position /= position.w;
 
 	//surface-to-light vector
-	float3 lightVector =  LightPosition.xyz - input.WorldPosition.xyz;
-	float lightDistance = length(lightVector);
-	//float oneOverSqrLightRadius = 1 / (LightRadius * LightRadius);
-	//saturate(1 - (lightVector*lightVector) * oneOverSqrLightRadius);
+	float3 lightVector =  normalize(position-LightPosition);
 
-	float attenuation = (1 / lightDistance);
-
-	//normalize light vector
-	lightVector = normalize(lightVector);
+	float d = distance(position, LightPosition);
+	float att = (LightRadius / (d*d));
 
 	//compute diffuse light
-	float NdL = max(0, dot(normal, lightVector));
+	float NdL = max(dot(normal, lightVector), 0);
 
-	float3 diffuseLight = ((LightPower*LightColor.rgb) * NdL);
+	float3 diffuseLight = (NdL * LightColor.rgb);
 
 	//reflection vector
-	float3 reflectionVector = normalize(-reflect(lightVector, normal));
+	float3 reflectionVector = normalize(reflect(-lightVector, normal));
 
 	//camera-to-surface vector
-	float3 directionToCamera = normalize(CameraPosition.xyz - input.WorldPosition.xyz);
+	float3 directionToCamera = normalize(CameraPosition-position);
 
 	//compute specular light
-	float specularLight =  pow( saturate(dot(reflectionVector, directionToCamera)), 128.0f); //it's 128 because idk.
+	float specularLight =  pow( saturate(dot(reflectionVector, directionToCamera)), LightPower); //it's 128 because idk.
 
-	return half4(diffuseLight, specularLight); //attenuation * half4(diffuseLight, specularLight);
+	return att * half4(diffuseLight, specularLight);
 }
+
+/*
+		//surface-to-light vector
+		float3 lightVector = (-LightDirection);
+		//Calculate diffuse intensity, the usual
+		float NdL = (max(0, dot(normal, lightVector)));
+		//reflection vector
+		float3 reflectionVector = normalize(-reflect(lightVector, normal));
+		//camera-to-surface vector
+		float3 directionToCamera = normalize(position-CameraPosition);
+		//compute diffuse light
+		finalDiffuseProduct.xyzw += Kd * NdL;
+		//compute specular light 
+		finalSpecularProduct += Ks * pow( saturate(dot(directionToCamera, reflectionVector)), a);
+*/
+
 
 /*
 vec3 DirectIllumination(vec3 P, vec3 N, vec3 lightCentre, float lightRadius, vec3 lightColour, float cutoff)
