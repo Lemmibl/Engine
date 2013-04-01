@@ -36,8 +36,9 @@ cbuffer LightBuffer
 
 SamplerState linearSampler : register(s0);
 SamplerState anisotropicSampler : register(s1);
-// 0 = normal, 1 = standard depth, 2 = shadowmap depth.
-Texture2D shaderTextures[3];
+
+Texture2D shaderTextures[3]; // 0 = normal, 1 = standard depth, 2 = shadowmap depth.
+
 struct VertexShaderOutput
 {
 	float4 Position : SV_POSITION;
@@ -46,6 +47,7 @@ struct VertexShaderOutput
 	float4 ScreenPosition : TEXCOORD2;
 	float4 WorldPosition : TEXCOORD3;
 };
+
 /////////////////////////////////////////////
 ////////////UTILITY FUNCTIONS////////////////
 /////////////////////////////////////////////
@@ -59,18 +61,18 @@ float3 Decode(float3 enc)
 
 float2 GetShadowTexOffset( int u, int v )
 {
-	float2 shadowMapSize = float2(2048.0f, 2048.0f);
 	//This has to mirror shadowmap render target width and height; I'm just really, really lazy.
+	float2 shadowMapSize = float2(2048.0f, 2048.0f);	
 
-	return float2( u * 1.0f/shadowMapSize.x, v * 1.0f/shadowMapSize.y );
 	//Scale and return texture coordinates
+	return float2( u * 1.0f/shadowMapSize.x, v * 1.0f/shadowMapSize.y );
 }
 
+//Not much to say, really
 float Linstep(float minVal, float maxVal, float value)  
 {
 	return clamp( ((value - minVal) / (maxVal - minVal)), 0, 1);
 }
-
 
 float ReduceLightBleeding(float p_max, float amount)  
 {
@@ -123,49 +125,59 @@ float ShadowContribution(float2 lightTexCoord, float distanceToLight)
 
 half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 {
-	//compute ambient light
+	//I pre-declare all values so that I can still return the same variables if we break because we're outside of light frustum. It's neater this way.
 	half4 finalAmbienceProduct = half4(0.0f, 0.0f, 0.0f, 0.0f);
 	half4 finalDiffuseProduct = half4(0.0f, 0.0f, 0.0f, 0.0f);
 	float finalSpecularProduct = 0.0f;
+
+	//Sample camera depth
 	float depth = shaderTextures[1].Sample(linearSampler, input.TexCoord);
-	if(0 >= depth) //Skip as early as possible if this pixel isn't supposed to be lit.
+
+	//Skip as early as possible if this pixel isn't supposed to be lit.
+	if(0 >= depth) 
 	{
-		return finalAmbienceProduct;
 		//0, 0, 0, 0
+		return finalAmbienceProduct;	
 	}
 
 	finalAmbienceProduct += Ka * AmbientColor;
 	float4 encodedNormal = shaderTextures[0].Sample(linearSampler, input.TexCoord);
 	float3 normal = normalize(Decode(encodedNormal.xyz));
-	input.ScreenPosition /= input.ScreenPosition.w;
-	//Adjust value
 	
-	float4 position;
-	//Reconstructing position
-	position.xy = input.ScreenPosition.xy;
-	position.z = depth;
-	//Add camera depth
-	position.w = 1.0f;
-	//Set .w to 1.0f for later matrix multiplications
-
-
-	position = mul(position, InverseViewProjection);
-	//Extract pixel world position as seen from camera POV.
-	position /= position.w;
 	//Adjust value
+	input.ScreenPosition /= input.ScreenPosition.w;
+	
+	//Reconstructing position
+	float4 position;
+	position.xy = input.ScreenPosition.xy;
 
-	float4 lightScreenPos = mul(position, LightViewProjection);
+	//Add camera depth
+	position.z = depth;
+
+	//Set .w to 1.0f for later matrix multiplications
+	position.w = 1.0f;
+
+	//Extract pixel world position as seen from camera POV.
+	position = mul(position, InverseViewProjection);
+
+	//Adjust value
+	position /= position.w;
+
 	//Extract pixel position as seen from light POV for shadow map extraction.
-	lightScreenPos /= lightScreenPos.w;
-	//Adjust value again.
+	float4 lightScreenPos = mul(position, LightViewProjection);
 
+	//Adjust value again.
+	lightScreenPos /= lightScreenPos.w;
+
+	//Depth as seen from camera POV.
 	float realDistanceToLight = lightScreenPos.z;
-	//Depth as seen from light POV.
 
 	float2 sampleLightScreen;
 	sampleLightScreen.x = ((lightScreenPos.x * 0.5f) + 0.5f);
 	sampleLightScreen.y = ((-lightScreenPos.y * 0.5f) + 0.5f);
+
 	float shadowMultiplier = 1.0f;
+
 	//We cull a large part of the light and shadow calculations if it's outside of the light frustum.
 	if
 	(		
@@ -181,6 +193,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		//realDistanceToLight -= 0.0002f; //Apply shadow bias	
 
 		shadowMultiplier = ShadowContribution(sampleLightScreen, realDistanceToLight);
+		
 		//perform PCF filtering on a 4 x 4 texel neighborhood
 		//for (y = -1.5f; y <= 1.5f; y += 1.0f)
 		//{
@@ -201,94 +214,26 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		//	shadowMultiplier = 0.35f;
 		//}
 		
-		//surface-to-light vector
+		//Surface-to-light vector
 		float3 lightVector = (-LightDirection);
+
 		//Calculate diffuse intensity, the usual
 		float NdL = (max(0, dot(normal, lightVector)));
-		//reflection vector
+
+		//Reflection vector
 		float3 reflectionVector = normalize(-reflect(lightVector, normal));
-		//camera-to-surface vector
+
+		//Camera-to-surface vector
 		float3 directionToCamera = normalize(position-CameraPosition);
-		//compute diffuse light
+
+		//Calculate diffuse light
 		finalDiffuseProduct.xyzw += Kd * NdL;
-		//compute specular light 
+
+		//Calculate specular light 
 		finalSpecularProduct += Ks * pow( saturate(dot(directionToCamera, reflectionVector)), a);
 	}
 
 
-	//Storing specular in alpha channel. Applying shadow multiplier to both diffuse product and specular, but not ambient, to make sure it's not just black.
+	//Storing specular in alpha channel. Applying shadow multiplier to both diffuse product and specular, but not ambient, to make sure it's not completely black in shaded places.
 	return half4(finalAmbienceProduct.rgb + shadowMultiplier * (DiffuseColor.rgb*finalDiffuseProduct.rgb), shadowMultiplier * finalSpecularProduct);
 }
-
-
-
-
-/*
-float4 ps_lighting(VS_OUTPUT IN) : SV_Target
-{
-	if (renderingSkel || renderingRBody)
-	{
-		return float4(1, 1, 1, 1);
-	}
-	else
-	{
-		//shadow mapping stuff
-		IN.LightPosition.xyz /= IN.LightPosition.w;
-		
-		float4 ambient = ambientBright * materialAmbient;
-
-		if( IN.LightPosition.x < -1.0f || IN.LightPosition.x > 1.0f || IN.LightPosition.y < -1.0f || IN.LightPosition.y > 1.0f || IN.LightPosition.z < 0.0f  || IN.LightPosition.z > 1.0f ) 
-			return ambient;
-
-		IN.LightPosition.x = IN.LightPosition.x/2 + 0.5;
-		IN.LightPosition.y = IN.LightPosition.y/-2 + 0.5;
-
-		float shadowMapDepth = shadowMap.Sample(ShadowSampler, IN.LightPosition.xy).r;
-
-		if (shadowMapDepth < IN.LightPosition.z) return ambient;
-
-		float3 V = normalize(IN.eye - IN.position);
-		float3 R = reflect(lightDir, IN.normal);
-		
-		float4 diffuse = diffuseBright * (materialDiffuse * saturate(dot(lightDir, IN.normal)));
-		float4 specular = specularBright * pow(saturate(dot(R, V)), normalize(shine));
-		float4 finalColor = ambient + diffuse;
-		if (shine > 0)
-		{
-			finalColor = saturate(finalColor + specular);
-		}
-
-		
-
-		float4 color = texDiffuse.Sample(DiffuseSampler, IN.tex0);
-		float4 sphCol = sphTexture.Sample(SphereSampler, IN.spTex);
-		if (useTexture)
-		{
-			finalColor *= color;
-		}
-		if (useSphere)
-		{
-			if (isSphereAdd)
-			{
-				finalColor += sphCol;
-			}
-			else
-			{
-				finalColor *= sphCol;
-			}
-		}
-		float4 o = (finalColor * extraBright) * fadeCoef;
-		if (useTexture)
-		{
-			o.a = color.a * materialDiffuse.a;
-		}
-		else
-		{
-			o.a = materialDiffuse.a;
-		}
-		return o;
-	}
-}
-
-
-*/

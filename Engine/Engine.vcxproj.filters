@@ -105,9 +105,6 @@
     <ClCompile Include="Renderer.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="textclass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="bitmapclass.cpp">
       <Filter>Rendering\Utility</Filter>
     </ClCompile>
@@ -155,6 +152,12 @@
     </ClCompile>
     <ClCompile Include="MCubesGBufferShader.cpp">
       <Filter>Rendering\Deferred stuff</Filter>
+    </ClCompile>
+    <ClCompile Include="textclass.cpp">
+      <Filter>Rendering\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="VegetationManager.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -284,6 +287,9 @@
     <ClInclude Include="MCubesGBufferShader.h">
       <Filter>Rendering\Deferred stuff</Filter>
     </ClInclude>
+    <ClInclude Include="VegetationManager.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="font.psh">
@@ -302,9 +308,6 @@
       <Filter>Rendering\Deferred stuff</Filter>
     </None>
     <None Include="shader-error.txt" />
-    <None Include="BasicVertexShader.vsh">
-      <Filter>Rendering\Deferred stuff</Filter>
-    </None>
     <None Include="DepthOnlyShader.psh">
       <Filter>Rendering\Deferred stuff</Filter>
     </None>
@@ -346,6 +349,18 @@
     </None>
     <None Include="MCubesGBufferShader.psh">
       <Filter>Rendering\Deferred stuff</Filter>
+    </None>
+    <None Include="BasicVertexShader.vsh">
+      <Filter>Rendering\Non-deferred effects</Filter>
+    </None>
+    <None Include="VegetationQuad.vsh">
+      <Filter>Rendering\Non-deferred effects</Filter>
+    </None>
+    <None Include="VegetationQuad.gsh">
+      <Filter>Rendering\Non-deferred effects</Filter>
+    </None>
+    <None Include="VegetationQuad.psh">
+      <Filter>Rendering\Non-deferred effects</Filter>
     </None>
   </ItemGroup>
 </Project>

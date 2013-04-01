@@ -48,6 +48,7 @@
     <ClCompile Include="textureshaderclass.cpp" />
     <ClCompile Include="timerclass.cpp" />
     <ClCompile Include="TreeClass.cpp" />
+    <ClCompile Include="VegetationManager.cpp" />
     <ClCompile Include="VertexShaderOnly.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -92,6 +93,7 @@
     <ClInclude Include="texturetriarray.h" />
     <ClInclude Include="timerclass.h" />
     <ClInclude Include="TreeClass.h" />
+    <ClInclude Include="VegetationManager.h" />
     <ClInclude Include="VertexShaderOnly.h" />
   </ItemGroup>
   <ItemGroup>
@@ -117,6 +119,9 @@
     <None Include="skysphere.psh" />
     <None Include="skysphere.vsh" />
     <None Include="standard.vsh" />
+    <None Include="VegetationQuad.gsh" />
+    <None Include="VegetationQuad.psh" />
+    <None Include="VegetationQuad.vsh" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{06865CFB-43FF-4F0C-B8D0-4D834721545B}</ProjectGuid>

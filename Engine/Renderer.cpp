@@ -6,7 +6,9 @@
 /*
 Inför terrain rendering / många texturer:
 http://stackoverflow.com/questions/35950/i-dont-understand-stdtr1unordered-map
+Spara material ID i normal alpha channel
 Multitexturing pixel shader tutorials i allmänt om något är oklart.
+
 
 Inför perlin/simplex noise:
 http://stackoverflow.com/questions/4120108/how-to-save-backbuffer-to-file-in-directx-10
@@ -35,6 +37,11 @@ http://http.developer.nvidia.com/GPUGems/gpugems_ch07.html
 
 http://developer.amd.com/wordpress/media/2012/10/ShaderX_AnimatedGrass.pdf
 http://gamedev.stackexchange.com/questions/22507/what-is-the-alphatocoverage-blend-state-useful-for
+
+Directional light lens flare:
+http://www.madgamedev.com/post/2010/04/21/Article-Sun-and-Lens-Flare-as-a-Post-Process.aspx
+http://stackoverflow.com/questions/14161727/hlsl-drawing-a-centered-circle
+if cross product (cameraDirection, lightDirection) == 0 then they're both facing the same way? I think.
 */
 
 Renderer::Renderer()
