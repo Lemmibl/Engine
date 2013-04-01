@@ -247,24 +247,24 @@ bool Renderer::InitializeLights(HWND hwnd)
 
 #pragma region Point light initialization
 	float x, y, z;
-	x = -6.0f;
-	z = -4.0f;
-	y = -2.0f;
+	x = -10.0f;
+	z = -10.0f;
+	y = 10.0f;
 
 	for(int i = 0; i < 20; i++)
 	{
 		pointLights.push_back(new PointLight());
 		pointLights[i]->Position = XMFLOAT3(x, y, z);
-		pointLights[i]->Color = XMFLOAT3(0.3f + i%4, 0.7f + i % 2, 0.2f + i%3);
-		pointLights[i]->Radius = 4.0f;
-		pointLights[i]->Intensity = 256.0f; //The lower it gets, the more intense it gets
+		pointLights[i]->Color = XMFLOAT3(0.1f+i%4, 0.1f+i%2, 1.0f-i%3);
+		pointLights[i]->Radius = 3.0f;
+		pointLights[i]->Intensity = 512.0f; //The lower it gets, the more intense it gets
 
-		x += 8.0f;
+		x += 5.0f;
 
-		if(x >= 10.0f) //Every 10th light gets reseted in x and z plane.
+		if(x >= 12.0f) //Every 10th light gets reseted in x and z plane.
 		{
-			x = -6.0f;
-			z += 8.0f;
+			x = -10.0f;
+			z += 5.0f;
 		}
 
 		if(i != 0 && i % 100 == 0) //Every 100 pointlights we reset and make another layer that is (y+8) higher up.
@@ -432,7 +432,7 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 	}
 
 
-	defaultModelMaterial.a = 2.0f;
+	defaultModelMaterial.a = 8.0f;
 	defaultModelMaterial.Ka = 0.3f;
 	defaultModelMaterial.Kd = 0.8f;
 	defaultModelMaterial.Ks = 0.7f;

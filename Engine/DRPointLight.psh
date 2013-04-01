@@ -72,7 +72,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	float specularLight =  pow( saturate( dot(reflectionVector, directionToCamera)), LightPower);
 
 	//scale final value with attenuation, leave specular light unaffected
-	return half4(attenuation * diffuseLight, specularLight);
+	return attenuation * half4(diffuseLight, specularLight);
 }
 
 /*
