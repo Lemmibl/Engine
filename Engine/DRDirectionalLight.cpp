@@ -199,7 +199,7 @@ bool DRDirLight::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFile
 	}
 
 	// Create a texture sampler state description.
-	depthSamplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	depthSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
 	depthSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_MIRROR;
 	depthSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_MIRROR;
 	depthSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_MIRROR;
