@@ -83,9 +83,7 @@ float ReduceLightBleeding(float p_max, float amount)
 //Calculate shadow contribution using chevyshev's inequality.
 float ChebyshevUpperBound(float2 moments, float t)  
 {
-	float p = smoothstep(t-0.02f, t, moments.x);
-
-	float minVariance = 0.0001f; //Scaling value.
+	float minVariance = 0.00002f; //Scaling value.
 
 	// Compute variance.  
 	float variance = moments.y - (moments.x*moments.x);
@@ -93,9 +91,9 @@ float ChebyshevUpperBound(float2 moments, float t)
 
 	// Compute probabilistic upper bound.  
 	float d = t - moments.x;
-	float p_max = Linstep(0.2f, 1.0f, variance / (variance + d*d));
+	float p_max = variance / (variance + d*d);
 
-	return clamp(max(p, p_max), 0.0, 1.0);;
+	return p_max;
 }
  
 
@@ -105,7 +103,7 @@ float ShadowContribution(float2 lightTexCoord, float distanceToLight)
 	float2 moments = shaderTextures[2].Sample(anisotropicSampler, lightTexCoord).xy;
 
 	//If surface is fully lit, break early.
-	if(distanceToLight < moments.x)
+	if(distanceToLight <= moments.x)
 	{
 		return 1.0f;
 	}

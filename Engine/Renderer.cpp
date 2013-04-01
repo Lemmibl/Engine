@@ -713,7 +713,7 @@ bool Renderer::Render()
 		}
 	}
 
-	d3D->SetBackFaceCullingRasterizer();
+	d3D->SetFrontFaceCullingRasterizer();
 
 	worldMatrix = XMMatrixIdentity(); 
 	worldMatrix = XMMatrixTranspose(worldMatrix);
