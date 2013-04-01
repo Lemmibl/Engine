@@ -73,7 +73,7 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 	*
 	*/
 
-	output.Normal.xyz = (0.5f * (NormalizedWorldNormal + 1.0f));//normalize(input.Normal);			//revert the normal output to [0,1] space then assign it to the output normal map's RGB channel
+	output.Normal.xyz = normalize(input.Normal); //revert the normal output to [0,1] space then assign it to the output normal map's RGB channel
 	output.Normal.w = 1.0f; //specular power stored in normal map's alpha channel
 
 	output.Depth = (input.Depth.x / input.Depth.y);

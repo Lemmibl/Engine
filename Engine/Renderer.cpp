@@ -257,7 +257,7 @@ bool Renderer::InitializeLights(HWND hwnd)
 		pointLights[i]->Position = XMFLOAT3(x, y, z);
 		pointLights[i]->Color = XMFLOAT3(0.3f + i%4, 0.7f + i % 2, 0.2f + i%3);
 		pointLights[i]->Radius = 4.0f;
-		pointLights[i]->Intensity = 4.0f; //The lower the more intense it gets
+		pointLights[i]->Intensity = 256.0f; //The lower it gets, the more intense it gets
 
 		x += 8.0f;
 
@@ -712,6 +712,8 @@ bool Renderer::Render()
 			return false;
 		}
 	}
+
+	d3D->SetBackFaceCullingRasterizer();
 
 	worldMatrix = XMMatrixIdentity(); 
 	worldMatrix = XMMatrixTranspose(worldMatrix);

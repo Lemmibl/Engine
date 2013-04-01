@@ -97,8 +97,8 @@ PixelShaderOutput GBufferPixelShader(VertexShaderOutput input)
 	normalFromMap = mul(normalFromMap, input.TangentToWorld);	//transform it into world space
 	normalFromMap = normalize(normalFromMap);					//then normalize the result
 
-	//output.Normal.xyz = encode(normalFromMap);			//revert the normal output to [0,1] space then assign it to the output normal map's RGB channel
-	output.Normal.xyz = normalize(input.Normal);
+	output.Normal.xyz = encode(normalFromMap);			//revert the normal output to [0,1] space then assign it to the output normal map's RGB channel
+	//output.Normal.xyz = normalize(input.Normal);
 
 	output.Normal.w = specularAttributes.y; //specular power stored in normal map's alpha channel
 
