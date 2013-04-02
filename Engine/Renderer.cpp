@@ -462,7 +462,6 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 	marchingCubes = new MarchingCubesClass(-40.0f, -40.0f, -40.0f, 40.0f, 40.0f, 40.0f, 1.5f, 1.5f, 1.5f);
 	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
 
-	//marchingCubes->GetTree().LSystemTree();
 	marchingCubes->GetTerrain().Noise3D();
 	marchingCubes->CalculateMesh(d3D->GetDevice());
 
