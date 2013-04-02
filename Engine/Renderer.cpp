@@ -466,6 +466,8 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 	marchingCubes->GetTerrain().Noise3D();
 	marchingCubes->CalculateMesh(d3D->GetDevice());
 
+	//Asdafasd.
+
 	return true;
 }
 
