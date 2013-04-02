@@ -51,33 +51,33 @@ bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
 
 	startAndEndPositions = new XMFLOAT3[12]; //2 positions for the 6 different stages of the day. We store them as such: 0-5 previous positions, 6-11 future positions
 
-	startAndEndPositions[0] = XMFLOAT3(70.0f, 0.0f, 0.0f); //start pos for dawn
-	startAndEndPositions[6] = XMFLOAT3(35.0f, 35.0f, 35.0f); //end pos for dawn
+	startAndEndPositions[0] = XMFLOAT3(70.0f, 35.0f, 0.0f); //start pos for dawn
+	startAndEndPositions[6] = XMFLOAT3(35.0f, 70.0f, 35.0f); //end pos for dawn
 
 	//which leads into...
 
-	startAndEndPositions[1] = XMFLOAT3(35.0f, 35.0f, 35.0f); //start pos for morning
-	startAndEndPositions[7] = XMFLOAT3(35.0f, 65.0f, 70.0f); //end pos for morning
+	startAndEndPositions[1] = XMFLOAT3(35.0f, 70.0f, 35.0f); //start pos for morning
+	startAndEndPositions[7] = XMFLOAT3(35.0f, 90.0f, 70.0f); //end pos for morning
 
 	//which leads into...
 
-	startAndEndPositions[2] = XMFLOAT3(35.0f, 90.0f, 70.0f); //start pos for day
-	startAndEndPositions[8] = XMFLOAT3(-35.0f, 90.0f, 70.0f); //end pos for day
+	startAndEndPositions[2] = XMFLOAT3(35.0f, 120.0f, 70.0f); //start pos for day
+	startAndEndPositions[8] = XMFLOAT3(-35.0f, 120.0f, 70.0f); //end pos for day
 
 	//which leads into...
 
-	startAndEndPositions[3] = XMFLOAT3(-35.0f, 65.0f, 70.0f); //start pos for dusk
-	startAndEndPositions[9] = XMFLOAT3(-35.0f, 35.0f, 35.0f); //end pos for dusk
+	startAndEndPositions[3] = XMFLOAT3(-35.0f, 90.0f, 70.0f); //start pos for dusk
+	startAndEndPositions[9] = XMFLOAT3(-35.0f, 70.0f, 35.0f); //end pos for dusk
 
 	//which leads into...
 
-	startAndEndPositions[4] = XMFLOAT3(-35.0f, 35.0f, 35.0f); //start pos for evening
-	startAndEndPositions[10] = XMFLOAT3(-70.0f, 0.0f, 0.0f); //end pos for evening
+	startAndEndPositions[4] = XMFLOAT3(-35.0f, 70.0f, 35.0f); //start pos for evening
+	startAndEndPositions[10] = XMFLOAT3(-70.0f, 35.0f, 0.0f); //end pos for evening
 
 	//which leads into...
 
-	startAndEndPositions[5] = XMFLOAT3(0.0f, 60.0f, 0.0f); //start pos for night
-	startAndEndPositions[11] = XMFLOAT3(0.0f, 60.0f, 0.0f); //end pos for night
+	startAndEndPositions[5] = XMFLOAT3(0.0f, 120.0f, 0.0f); //start pos for night
+	startAndEndPositions[11] = XMFLOAT3(0.0f, 120.0f, 0.0f); //end pos for night
 
 	//which ends and repeats; goto start pos for dawn. 
 

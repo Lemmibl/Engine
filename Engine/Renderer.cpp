@@ -245,7 +245,7 @@ bool Renderer::InitializeLights(HWND hwnd)
 
 	ambientLight = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
 
-#pragma region Point light initialization
+	#pragma region Point light initialization
 	float x, y, z;
 	x = -10.0f;
 	z = -10.0f;
@@ -278,9 +278,9 @@ bool Renderer::InitializeLights(HWND hwnd)
 		XMMATRIX tempTranslation = XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z);
 		XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale * tempTranslation));
 	}
-#pragma endregion
+	#pragma endregion
 
-#pragma region Directional light initialization
+	#pragma region Directional light initialization
 	// Create the directional light.
 	dirLight = new DirLight();
 	if(!dirLight)
@@ -307,7 +307,7 @@ bool Renderer::InitializeLights(HWND hwnd)
 	// Initialize the directional light.
 	dirLight->Color = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
 	dirLight->Intensity = 128.0f;
-	dirLight->Position = XMFLOAT3(1.0f, 100.0f, 1.0f);
+	dirLight->Position = XMFLOAT3(1.0f, 120.0f, 1.0f);
 
 	XMVECTOR direction = XMVector3Normalize(lookAt - XMLoadFloat3(&dirLight->Position));
 	XMStoreFloat3(&dirLight->Direction, direction);
@@ -316,7 +316,7 @@ bool Renderer::InitializeLights(HWND hwnd)
 	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(100.0f, 100.0f, 10.0f, 300.0f)); //Generate orthogonal light projection matrix and store it as float4x4
 
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix and store it as float4x4.
-#pragma endregion
+	#pragma endregion
 
 	return true;
 }
@@ -460,7 +460,7 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 
 	metaBalls = new MetaballsClass();
 	marchingCubes = new MarchingCubesClass(-40.0f, -40.0f, -40.0f, 40.0f, 40.0f, 40.0f, 1.5f, 1.5f, 1.5f);
-	marchingCubes->SetMetaBalls(metaBalls, 0.3f);
+	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
 
 	marchingCubes->GetTerrain().Noise3D();
 	marchingCubes->CalculateMesh(d3D->GetDevice());
@@ -683,20 +683,6 @@ bool Renderer::Render()
 	context->ClearDepthStencilView(shadowDS, D3D11_CLEAR_DEPTH, 1.0f, 0);
 	context->ClearRenderTargetView(shadowTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 1.0f));
 
-	// Move the model to the location it should be rendered at.
-	//worldMatrix = XMMatrixTranslation(0.0f, -10.0f, 0.0f);
-	//scalingMatrix = XMMatrixScaling(0.2f, 0.2f, 0.2f);
-
-	//worldMatrix = scalingMatrix * worldMatrix;
-	//worldMatrix = XMMatrixTranspose(worldMatrix);
-
-	d3D->SetBackFaceCullingRasterizer();
-
-	//if(!result)
-	//{
-	//	return false;
-	//}
-
 	d3D->SetFrontFaceCullingRasterizer();
 
 	// Go through all the models and render them only if they can be seen by the camera view.
@@ -718,8 +704,6 @@ bool Renderer::Render()
 			return false;
 		}
 	}
-
-	d3D->SetFrontFaceCullingRasterizer();
 
 	worldMatrix = XMMatrixIdentity(); 
 	worldMatrix = XMMatrixTranspose(worldMatrix);
@@ -763,9 +747,10 @@ bool Renderer::Render()
 	worldMatrix = scalingMatrix* rotationMatrix * worldMatrix;
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
-	//groundModel->Render(context);
-	//gbufferShader->Render(context, groundModel->GetIndexCount(), &worldMatrix, &viewMatrix, &projectionMatrix, 
-	//	groundModel->GetTextureArray(), screenFar);
+	groundModel->Render(context);
+
+	gbufferShader->Render(context, groundModel->GetIndexCount(), &worldMatrix, &viewMatrix, &projectionMatrix, 
+		groundModel->GetTextureArray(), screenFar);
 
 	renderCount++;
 
