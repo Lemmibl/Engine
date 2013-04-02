@@ -17,6 +17,8 @@ private:
 	MarchingCubeVertex *marchingCubeVertices2;
 	SimplexNoise *noise;
 	int worldArraySize;
+	int *marchingCubesFluxArray;
+	//float[][][] marchingCubesFluxArray;
 public:
 	MCTerrainClass(void);
 
@@ -39,6 +41,9 @@ public:
 	void MCHeightMap();
 
 	void Noise3D();
+
+private:
+	void CreateMCVerts();
 
 	
 

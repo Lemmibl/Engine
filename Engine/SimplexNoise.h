@@ -1,6 +1,8 @@
 #pragma once
 #include <math.h>
 #include "structs.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 class SimplexNoise
 {
@@ -14,7 +16,7 @@ public:
 
 	int perm[512];
 
-	//int p[];
+	int p[256];
 
 	
 private:

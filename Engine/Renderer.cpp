@@ -557,6 +557,13 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		seconds = timeOfDay += 3.0f;
 	}
 
+	
+	if(inputManager->WasKeyPressed(DIK_N))
+	{
+		marchingCubes->GetTerrain().Noise3D();
+		marchingCubes->CalculateMesh(d3D->GetDevice());
+	}
+
 	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
 
 	XMVECTOR lookAt = XMVectorZero();
@@ -676,20 +683,18 @@ bool Renderer::Render()
 	context->ClearRenderTargetView(shadowTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 1.0f));
 
 	// Move the model to the location it should be rendered at.
-	worldMatrix = XMMatrixTranslation(0.0f, -10.0f, 0.0f);
-	scalingMatrix = XMMatrixScaling(0.2f, 0.2f, 0.2f);
+	//worldMatrix = XMMatrixTranslation(0.0f, -10.0f, 0.0f);
+	//scalingMatrix = XMMatrixScaling(0.2f, 0.2f, 0.2f);
 
-	worldMatrix = scalingMatrix * worldMatrix;
-	worldMatrix = XMMatrixTranspose(worldMatrix);
+	//worldMatrix = scalingMatrix * worldMatrix;
+	//worldMatrix = XMMatrixTranspose(worldMatrix);
 
 	d3D->SetBackFaceCullingRasterizer();
 
-	groundModel->Render(context);
-	result = depthOnlyShader->Render(context, groundModel->GetIndexCount(), &worldMatrix, &lightView, &lightProj);
-	if(!result)
-	{
-		return false;
-	}
+	//if(!result)
+	//{
+	//	return false;
+	//}
 
 	d3D->SetFrontFaceCullingRasterizer();
 
@@ -757,9 +762,9 @@ bool Renderer::Render()
 	worldMatrix = scalingMatrix* rotationMatrix * worldMatrix;
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
-	groundModel->Render(context);
-	gbufferShader->Render(context, groundModel->GetIndexCount(), &worldMatrix, &viewMatrix, &projectionMatrix, 
-		groundModel->GetTextureArray(), screenFar);
+	//groundModel->Render(context);
+	//gbufferShader->Render(context, groundModel->GetIndexCount(), &worldMatrix, &viewMatrix, &projectionMatrix, 
+	//	groundModel->GetTextureArray(), screenFar);
 
 	renderCount++;
 
