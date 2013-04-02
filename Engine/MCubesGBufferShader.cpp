@@ -47,13 +47,13 @@ void MCubesGBufferShader::Shutdown()
 }
 
 bool MCubesGBufferShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, XMMATRIX* viewMatrix, 
-	XMMATRIX* projectionMatrix, ID3D11ShaderResourceView* texture)
+	XMMATRIX* projectionMatrix, ID3D11ShaderResourceView** textures)
 {
 	bool result;
 
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture);
+	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, textures);
 	if(!result)
 	{
 		return false;
@@ -318,7 +318,7 @@ void MCubesGBufferShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWN
 }
 
 bool MCubesGBufferShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, 
-	XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, ID3D11ShaderResourceView* texture)
+	XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, ID3D11ShaderResourceView** textures)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -350,7 +350,7 @@ bool MCubesGBufferShader::SetShaderParameters(ID3D11DeviceContext* deviceContext
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &matrixBuffer);
 
 	// Set shader texture array resource in the pixel shader.
-	deviceContext->PSSetShaderResources(0, 1, &texture);
+	deviceContext->PSSetShaderResources(0, 3, textures);
 
 	return true;
 }

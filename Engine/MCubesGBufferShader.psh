@@ -14,14 +14,14 @@ struct PixelShaderOutput
 	float Depth : SV_TARGET2; //R32
 };
 
-Texture2D shaderTextures[1]; //0 == diffuse, 1 == specular, 2 == normal
+Texture2D shaderTextures[3];
 
 SamplerState samplers[2];
 
 //Normal Encoding Function
-half3 encode(half3 n)
+half3 encode(float3 n)
 {
-	n.xyz = 0.5f * (n.xyz + 1.0f);
+	n = 0.5f * (n + 1.0f);
 
 	return n;
 }
@@ -31,48 +31,46 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 	PixelShaderOutput output;
 
 	//Create weights for color interpolation based on world-space normal of surface
-	float tighten = 0.4f; 
-	float3 NormalizedWorldNormal = normalize(input.WorldNormal);
+	float tighten = 0.3f; 
+	float3 NormalizedWorldNormal = normalize(input.Normal);
 
 	float3 blend_weights = abs(NormalizedWorldNormal);     
 	blend_weights = (blend_weights - tighten) * 7;  // Tighten up the blending zone
 	blend_weights = max(blend_weights, 0);
-	blend_weights /= (blend_weights.x + blend_weights.y + blend_weights.z).xxx; // Force weights to sum to 1.0 (very important!)  
+	blend_weights /= (blend_weights.x + blend_weights.y + blend_weights.z); // Force weights to sum to 1.0 (very important!)  
 
-	float scale = 0.4f;
+	float scale = 0.6f;
 
 	float2 YZCoord = input.WorldPosition.yz * scale;  
-	float2 ZXCoord = input.WorldPosition.zx * scale;  
-	float2 XYCoord = input.WorldPosition.xy * scale; 
+	float2 XZCoord = input.WorldPosition.zx * 0.2f;  
+	float2 XYCoord = input.WorldPosition.xy * scale;
 
-	float4 YZColor = shaderTextures[0].Sample(samplers[1], YZCoord);
-	float4 XZColor = shaderTextures[0].Sample(samplers[1], ZXCoord);
-	float4 XYColor = shaderTextures[0].Sample(samplers[1], XYCoord);
+	float4 YZColor = shaderTextures[1].Sample(samplers[1], YZCoord);
+	float4 XZColor = shaderTextures[0].Sample(samplers[1], XZCoord);
+	float4 XYColor = shaderTextures[2].Sample(samplers[1], XYCoord);
 	
 	output.Color = ((XZColor * blend_weights.y) + (YZColor * blend_weights.x) + (XYColor * blend_weights.z));
 	output.Color.w = 1.0f;
 
-	/* Use this instead if you want "pure" texturing -- no blending.
-	*
-	*	float x = abs(input.TangentToWorld[2].x);
-	*	float y = abs(input.TangentToWorld[2].y);
-	*	float z = abs(input.TangentToWorld[2].z);
-	*	
-	*	if(x > y && x > z)
-	*	{
-	*		output.Color = cYZ;
-	*	}
-	*	else if(y > x && y > z)
-	*	{
-	*		output.Color = cXZ;
-	*	}
-	*	else if(z > y && z > x)
-	*	{
-	*		output.Color = cXY;
-	*	} 
-	*
-	*/
-
+	//Use this instead if you want "pure" texturing -- no blending.
+	
+	//float x = abs(NormalizedWorldNormal.x);
+	//float y = abs(NormalizedWorldNormal.y);
+	//float z = abs(NormalizedWorldNormal.z);
+	
+	//if(x > y && x > z)
+	//{
+	//	output.Color = (YZColor * blend_weights.x);
+	//}
+	//else if(y > x && y > z)
+	//{
+	//	output.Color = (XZColor * blend_weights.y);
+	//}
+	//else if(z > y && z > x)
+	//{
+	//	output.Color = (XYColor * blend_weights.z);
+	//} 
+	
 	output.Normal.xyz = (0.5f * (NormalizedWorldNormal + 1.0f));//normalize(input.Normal);			//revert the normal output to [0,1] space then assign it to the output normal map's RGB channel
 	output.Normal.w = 1.0f; //specular power stored in normal map's alpha channel
 

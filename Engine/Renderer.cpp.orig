@@ -3,39 +3,46 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "Renderer.h"
 
-	/*
-	Inför terrain rendering / många texturer:
-	http://stackoverflow.com/questions/35950/i-dont-understand-stdtr1unordered-map
-	Multitexturing pixel shader tutorials i allmänt om något är oklart.
+/*
+Inför terrain rendering / många texturer:
+http://stackoverflow.com/questions/35950/i-dont-understand-stdtr1unordered-map
+Spara material ID i normal alpha channel
+Multitexturing pixel shader tutorials i allmänt om något är oklart.
 
-	Inför perlin/simplex noise:
-	http://stackoverflow.com/questions/4120108/how-to-save-backbuffer-to-file-in-directx-10
 
-	Inför SSAO:
-	http://www.gamedev.net/page/resources/_/technical/graphics-programming-and-theory/a-simple-and-practical-approach-to-ssao-r2753
-	http://www.iquilezles.org/www/articles/ssao/ssao.htm
+Inför perlin/simplex noise:
+http://stackoverflow.com/questions/4120108/how-to-save-backbuffer-to-file-in-directx-10
 
-	Inför gräsquads:
-	http://www.geeks3d.com/20100831/shader-library-noise-and-pseudo-random-number-generator-in-glsl/
+Inför SSAO:
+http://www.gamedev.net/page/resources/_/technical/graphics-programming-and-theory/a-simple-and-practical-approach-to-ssao-r2753
+http://www.iquilezles.org/www/articles/ssao/ssao.htm
 
-	http://ogldev.atspace.co.uk/www/tutorial27/tutorial27.html
+Inför gräsquads:
+http://www.geeks3d.com/20100831/shader-library-noise-and-pseudo-random-number-generator-in-glsl/
 
-	http://zeuxcg.blogspot.se/2007/09/particle-rendering-revisited.html
-	http://realtimecollisiondetection.net/blog/?p=91
+http://ogldev.atspace.co.uk/www/tutorial27/tutorial27.html
 
-	http://www.flashbang.se/archives/315
+http://zeuxcg.blogspot.se/2007/09/particle-rendering-revisited.html
+http://realtimecollisiondetection.net/blog/?p=91
 
-	http://faculty.ycp.edu/~dbabcock/PastCourses/cs470/labs/lab11.html
-	http://faculty.ycp.edu/~dbabcock/PastCourses/cs470/labs/lab13.html
+http://www.flashbang.se/archives/315
 
-	http://www.rastertek.com/dx11tut37.html
-	http://blogs.msdn.com/b/shawnhar/archive/2009/02/18/depth-sorting-alpha-blended-objects.aspx
-	http://software.intel.com/en-us/articles/rendering-grass-with-instancing-in-directx-10
-	http://http.developer.nvidia.com/GPUGems/gpugems_ch07.html
+http://faculty.ycp.edu/~dbabcock/PastCourses/cs470/labs/lab11.html
+http://faculty.ycp.edu/~dbabcock/PastCourses/cs470/labs/lab13.html
 
-	http://developer.amd.com/wordpress/media/2012/10/ShaderX_AnimatedGrass.pdf
-	http://gamedev.stackexchange.com/questions/22507/what-is-the-alphatocoverage-blend-state-useful-for
-	*/
+http://www.rastertek.com/dx11tut37.html
+http://blogs.msdn.com/b/shawnhar/archive/2009/02/18/depth-sorting-alpha-blended-objects.aspx
+http://software.intel.com/en-us/articles/rendering-grass-with-instancing-in-directx-10
+http://http.developer.nvidia.com/GPUGems/gpugems_ch07.html
+
+http://developer.amd.com/wordpress/media/2012/10/ShaderX_AnimatedGrass.pdf
+http://gamedev.stackexchange.com/questions/22507/what-is-the-alphatocoverage-blend-state-useful-for
+
+Directional light lens flare:
+http://www.madgamedev.com/post/2010/04/21/Article-Sun-and-Lens-Flare-as-a-Post-Process.aspx
+http://stackoverflow.com/questions/14161727/hlsl-drawing-a-centered-circle
+if cross product (cameraDirection, lightDirection) == 0 then they're both facing the same way? I think.
+*/
 
 Renderer::Renderer()
 {
@@ -240,45 +247,36 @@ bool Renderer::InitializeLights(HWND hwnd)
 
 #pragma region Point light initialization
 	float x, y, z;
-	x = -6.0f;
-	z = -4.0f;
-	y = -2.0f;
-<<<<<<< HEAD
+	x = -10.0f;
+	z = -10.0f;
+	y = 10.0f;
 
-	float pointLightRadius = 2.0f;
-	XMMATRIX tempScale = XMMatrixScaling(pointLightRadius, pointLightRadius, pointLightRadius);
-
-=======
-
-	float pointLightRadius = 2.0f;
-	XMMATRIX tempScale = XMMatrixScaling(pointLightRadius, pointLightRadius, pointLightRadius);
-
->>>>>>> 817db3b47d68fa821b00ec6ac07bc4e987a9ed87
 	for(int i = 0; i < 20; i++)
 	{
 		pointLights.push_back(new PointLight());
 		pointLights[i]->Position = XMFLOAT3(x, y, z);
-		pointLights[i]->Color = XMFLOAT3(0.3f + i%4, 0.7f + i % 2, 0.2f + i%3);
-		pointLights[i]->Radius = pointLightRadius;
-		pointLights[i]->Intensity = 128.0f;
+		pointLights[i]->Color = XMFLOAT3(0.1f+i%4, 0.1f+i%2, 1.0f-i%3);
+		pointLights[i]->Radius = 3.0f;
+		pointLights[i]->Intensity = 512.0f; //The lower it gets, the more intense it gets
 
-		x += 4.0f;
+		x += 5.0f;
 
-		if(x >= 10.0f) //Every 10th light gets reseted in x and z plane.
+		if(x >= 12.0f) //Every 10th light gets reseted in x and z plane.
 		{
-			x = -6.0f;
-			z += 4.0f;
+			x = -10.0f;
+			z += 5.0f;
 		}
 
-		if(i != 0 && i % 100 == 0) //Every 100 pointlights we reset and make another layer that is (y+5) higher up.
+		if(i != 0 && i % 100 == 0) //Every 100 pointlights we reset and make another layer that is (y+8) higher up.
 		{
 			x = -10.0f;
 			z = -10.0f;
-			y += 5.0f;
+			y += 8.0f;
 		}
 
+		XMMATRIX tempScale = XMMatrixScaling(pointLights[0]->Radius, pointLights[0]->Radius, pointLights[0]->Radius);
 		XMMATRIX tempTranslation = XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z);
-		XMStoreFloat4x4(&pointLights[i]->World, tempScale * tempTranslation);
+		XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale * tempTranslation));
 	}
 #pragma endregion
 
@@ -362,7 +360,7 @@ bool Renderer::InitializeModels(HWND hwnd)
 	}
 
 	// Initialize the model object. It really doesn't matter what textures it has because it's only used for point light volume culling.
-	result = sphereModel->Initialize(d3D->GetDevice(), "../Engine/data/sphere2.txt", L"../Engine/data/stone02.dds", L"../Engine/data/bump02.dds", L"../Engine/data/stone_specmap.dds");
+	result = sphereModel->Initialize(d3D->GetDevice(), "../Engine/data/skydome.txt", L"../Engine/data/stone02.dds", L"../Engine/data/bump02.dds", L"../Engine/data/stone_specmap.dds");
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
@@ -434,8 +432,13 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 	}
 
 
-	defaultModelMaterial.a = 2.0f;
+<<<<<<< Updated upstream
+	defaultModelMaterial.a = 8.0f;
 	defaultModelMaterial.Ka = 0.3f;
+=======
+	defaultModelMaterial.a = 128.0f;
+	defaultModelMaterial.Ka = 0.8f;
+>>>>>>> Stashed changes
 	defaultModelMaterial.Kd = 0.8f;
 	defaultModelMaterial.Ks = 0.7f;
 
@@ -473,6 +476,8 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 {
 	bool result;
+
+	XMMATRIX tempScale = XMMatrixScaling(pointLights[0]->Radius, pointLights[0]->Radius, pointLights[0]->Radius);
 
 	if(inputManager->WasKeyPressed(DIK_Q))
 	{
@@ -519,11 +524,11 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 	if(inputManager->IsKeyPressed(DIK_R))
 	{
-		for(int i = 0; i < pointLights.size(); i++)
+		for(int i = 0; i < (int)pointLights.size(); i++)
 		{
 			pointLights[i]->Position.y += frameTime*0.006f;
 
-			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y+0.5f, pointLights[i]->Position.z)));
+			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale*XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z)));
 		}
 	}
 
@@ -532,11 +537,11 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		//dirLight->Position.x -= frameTime*0.02f;
 		//dirLight->Position.z -= frameTime*0.02f;
 
-		for(int i = 0; i < pointLights.size(); i++)
+		for(int i = 0; i < (int)pointLights.size(); i++)
 		{
 			pointLights[i]->Position.y -= frameTime*0.006f;
 
-			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y+0.5f, pointLights[i]->Position.z)));
+			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale*XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z)));
 		}
 	}
 
@@ -557,9 +562,14 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		seconds = timeOfDay += 3.0f;
 	}
 
-	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
+	
+	if(inputManager->WasKeyPressed(DIK_N))
+	{
+		marchingCubes->GetTerrain().Noise3D();
+		marchingCubes->CalculateMesh(d3D->GetDevice());
+	}
 
-	//Adding some little comment here so that I can commit. Ignore this.
+	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
 
 	XMVECTOR lookAt = XMVectorZero();
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
@@ -678,20 +688,18 @@ bool Renderer::Render()
 	context->ClearRenderTargetView(shadowTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 1.0f));
 
 	// Move the model to the location it should be rendered at.
-	worldMatrix = XMMatrixTranslation(0.0f, -10.0f, 0.0f);
-	scalingMatrix = XMMatrixScaling(0.2f, 0.2f, 0.2f);
+	//worldMatrix = XMMatrixTranslation(0.0f, -10.0f, 0.0f);
+	//scalingMatrix = XMMatrixScaling(0.2f, 0.2f, 0.2f);
 
-	worldMatrix = scalingMatrix * worldMatrix;
-	worldMatrix = XMMatrixTranspose(worldMatrix);
+	//worldMatrix = scalingMatrix * worldMatrix;
+	//worldMatrix = XMMatrixTranspose(worldMatrix);
 
 	d3D->SetBackFaceCullingRasterizer();
 
-	groundModel->Render(context);
-	result = depthOnlyShader->Render(context, groundModel->GetIndexCount(), &worldMatrix, &lightView, &lightProj);
-	if(!result)
-	{
-		return false;
-	}
+	//if(!result)
+	//{
+	//	return false;
+	//}
 
 	d3D->SetFrontFaceCullingRasterizer();
 
@@ -715,15 +723,17 @@ bool Renderer::Render()
 		}
 	}
 
-	//worldMatrix = XMMatrixIdentity(); 
-	//worldMatrix = XMMatrixTranspose(worldMatrix);
-	//marchingCubes->Render(context);
+	d3D->SetFrontFaceCullingRasterizer();
 
-	//result = depthOnlyShader->Render(context, marchingCubes->GetIndexCount(), &worldMatrix, &lightView, &lightProj);
-	//if(!result)
-	//{
-	//	return false;
-	//}
+	worldMatrix = XMMatrixIdentity(); 
+	worldMatrix = XMMatrixTranspose(worldMatrix);
+	marchingCubes->Render(context);
+
+	result = depthOnlyShader->Render(context, marchingCubes->GetIndexCount(), &worldMatrix, &lightView, &lightProj);
+	if(!result)
+	{
+		return false;
+	}
 #pragma endregion
 
 #pragma region GBuffer building stage
@@ -757,9 +767,9 @@ bool Renderer::Render()
 	worldMatrix = scalingMatrix* rotationMatrix * worldMatrix;
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
-	groundModel->Render(context);
-	gbufferShader->Render(context, groundModel->GetIndexCount(), &worldMatrix, &viewMatrix, &projectionMatrix, 
-		groundModel->GetTextureArray(), screenFar);
+	//groundModel->Render(context);
+	//gbufferShader->Render(context, groundModel->GetIndexCount(), &worldMatrix, &viewMatrix, &projectionMatrix, 
+	//	groundModel->GetTextureArray(), screenFar);
 
 	renderCount++;
 
@@ -798,14 +808,14 @@ bool Renderer::Render()
 		}
 	}
 
-	//worldMatrix = XMMatrixIdentity(); 
-	//worldMatrix = XMMatrixTranspose(worldMatrix);
+	worldMatrix = XMMatrixIdentity(); 
+	worldMatrix = XMMatrixTranspose(worldMatrix);
 
-	//marchingCubes->Render(context);
-	//result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
-	//	&worldMatrix, &viewMatrix, &projectionMatrix, groundModel->GetTexture());
+	marchingCubes->Render(context);
+	result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
+		&worldMatrix, &viewMatrix, &projectionMatrix, groundModel->GetTexture());
 
-	//renderCount++;
+	renderCount++;
 
 	text->SetRenderCount(renderCount, context);
 #pragma endregion
@@ -814,55 +824,7 @@ bool Renderer::Render()
 	context->ClearRenderTargetView(lightTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 	context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	#pragma region Point light stage
-	#pragma region Old pointlight code
-	////Phase one, draw sphere with vertex-only shader.
-	//d3D->SetLightStencilMethod2Phase1();
-	//d3D->SetBackFaceCullingRasterizer();
-	//d3D->TurnOffColorBlending();
-
-	//for(unsigned int i = 0; i < pointLights.size(); i++)
-	//{	
-	//	sphereModel->Render(context);
-
-	//	result = vertexOnlyShader->Render(context, sphereModel->GetIndexCount(), pointLights[i]->World, viewMatrix, 
-	//		projectionMatrix);
-	//	if(!result)
-	//	{
-	//		return false;
-	//	}
-	//}
-
-	//context->OMSetRenderTargets(1, lightTarget, ds);
-	//context->ClearRenderTargetView(lightTarget[0], XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f));
-
-	////Phase two, draw sphere with light algorithm
-	//d3D->SetLightStencilMethod2Phase2();
-	//d3D->SetFrontFaceCullingRasterizer();
-	//d3D->TurnOnLightBlending();
-
-	//for(unsigned int i = 0; i < pointLights.size(); i++)
-	//{	
-	//	sphereModel->Render(context);
-
-	//	if(!toggleDebugInfo)
-	//	{
-	//		result = textureShader->Render(context, sphereModel->GetIndexCount(), pointLights[i]->World, viewMatrix, 
-	//			projectionMatrix, sphereModel->GetTexture());
-	//	}
-	//	else
-	//	{
-	//		result = pointLightShader->Render(context, sphereModel->GetIndexCount(), pointLights[i]->World, viewMatrix, 
-	//			projectionMatrix, invertedViewProjection, pointLights[i], gbufferTextures, camera->GetPosition());
-	//	}
-
-	//	if(!result)
-	//	{
-	//		return false;
-	//	}
-	//}
-	#pragma endregion
-
+#pragma region Point light stage
 	//Phase one, draw sphere with vertex-only shader.
 	d3D->TurnOnLightBlending();
 
@@ -884,13 +846,8 @@ bool Renderer::Render()
 
 		if(!toggleDebugInfo)
 		{
-<<<<<<< HEAD
-			//result = textureShader->Render(context, sphereModel->GetIndexCount(), &XMLoadFloat4x4(&pointLights[i]->World), &viewMatrix, 
-			//	&projectionMatrix, sphereModel->GetTexture());
-=======
 			result = textureShader->Render(context, sphereModel->GetIndexCount(), &XMLoadFloat4x4(&pointLights[i]->World), &viewMatrix, 
 				&projectionMatrix, sphereModel->GetTexture());
->>>>>>> 817db3b47d68fa821b00ec6ac07bc4e987a9ed87
 		}
 		else
 		{
@@ -904,25 +861,24 @@ bool Renderer::Render()
 
 		context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
 	}
-	#pragma endregion
+#pragma endregion
 
 #pragma region Directional light stage
 	///*TODO: Create a directional light stencilstate that does a NOTEQUAL==0 stencil check.*/
 	ds = d3D->GetDepthStencilView();
 	context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL|D3D11_CLEAR_DEPTH, 1.0f, 0);
-	d3D->TurnOnLightBlending();
 	d3D->SetBackFaceCullingRasterizer();
 	d3D->GetWorldMatrix(worldMatrix);
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
 	fullScreenQuad.Render(context, 0, 0);
 
-	//result = dirLightShader->Render(context, fullScreenQuad.GetIndexCount(), &worldMatrix, &baseView, &orthoMatrix, &invertedViewProjection, &invertedView, 
-	//	dirLightTextures, camPos, dirLight, ambientLight, defaultModelMaterial, &lightViewProj);
-	//if(!result)
-	//{
-	//	return false;
-	//}
+	result = dirLightShader->Render(context, fullScreenQuad.GetIndexCount(), &worldMatrix, &baseView, &orthoMatrix, &invertedViewProjection, &invertedView, 
+		dirLightTextures, camPos, dirLight, ambientLight, defaultModelMaterial, &lightViewProj);
+	if(!result)
+	{
+		return false;
+	}
 #pragma endregion
 
 #pragma region Final compose stage

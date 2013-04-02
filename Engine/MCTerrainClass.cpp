@@ -114,10 +114,10 @@ void MCTerrainClass::Noise3D()
 			{
 				idx = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
 
-					float r =  + sizeY * 0.4f - y;
-					r += (noise->noise3D2(this->marchingCubeVertices2[idx].posX/20,marchingCubeVertices2[idx].posY/260,marchingCubeVertices2[idx].posZ/20) + 1.0f) *2.0f;
-					r += (noise->noise3D2(this->marchingCubeVertices2[idx].posX/20,marchingCubeVertices2[idx].posY/260,marchingCubeVertices2[idx].posZ/20) + 1.0f) *2.0f;
-					r += (noise->noise3D2(this->marchingCubeVertices2[idx].posX/30,marchingCubeVertices2[idx].posY/30,marchingCubeVertices2[idx].posZ/30) + 1.0f) *2.0f;
+					float r =  + sizeY * 0.8f - y;
+					r += (noise->noise3D2(this->marchingCubeVertices2[idx].posX/20,marchingCubeVertices2[idx].posY/260,marchingCubeVertices2[idx].posZ/20) + 1.0f) *4.0f;
+					//r += (noise->noise3D2(this->marchingCubeVertices2[idx].posX/20,marchingCubeVertices2[idx].posY/260,marchingCubeVertices2[idx].posZ/20) + 1.0f) *2.0f;
+					//r += (noise->noise3D2(this->marchingCubeVertices2[idx].posX/30,marchingCubeVertices2[idx].posY/30,marchingCubeVertices2[idx].posZ/30) + 1.0f) *2.0f;
 					//r += (noise->noise3D2(this->marchingCubeVertices2[idx].posX/120,marchingCubeVertices2[idx].posY/20,marchingCubeVertices2[idx].posZ/120) + 1.0f) *5.0f;
 					r -= (noise->noise3D2(this->marchingCubeVertices2[idx].posX/320,marchingCubeVertices2[idx].posY/20,marchingCubeVertices2[idx].posZ/320) + 1.0f) *10.0f;
 					/**shelves
@@ -130,10 +130,6 @@ void MCTerrainClass::Noise3D()
 					r += (noise->noise3D2(this->marchingCubeVertices2[idx].posX/30,marchingCubeVertices2[idx].posY/230,marchingCubeVertices2[idx].posZ/30) + 1.0f) *5.0f;
 					r -= (noise->noise3D2(this->marchingCubeVertices2[idx].posX/30,marchingCubeVertices2[idx].posY/30,marchingCubeVertices2[idx].posZ/300) + 1.0f) *10.0f;
 					//***
-
-
-
-					
 
 					//Hardfloor
 					if(y < 5)
@@ -191,20 +187,13 @@ void MCTerrainClass::Noise3D()
 					//r *= 1000 *3;
 
 				if(max < r)
-				{max = r;}
+					{max = r;}
 				if(min > r)
-				{min = r;}
+					{min = r;}
 
 					
-					if (r > 0.2f)
-				{
-					this->marchingCubeVertices2[idx].flux = 0.0f;
-				}
-				else
-				{
-					this->marchingCubeVertices2[idx].flux = r;
-				}		
-				{
+				if (r > 0.2f)
+								{
 					this->marchingCubeVertices2[idx].inside = true;
 				}
 				else
