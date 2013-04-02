@@ -243,7 +243,7 @@ bool Renderer::InitializeLights(HWND hwnd)
 {
 	bool result;
 
-	ambientLight = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
+	ambientLight = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
 
 	#pragma region Point light initialization
 	float x, y, z;
@@ -256,7 +256,7 @@ bool Renderer::InitializeLights(HWND hwnd)
 		pointLights.push_back(new PointLight());
 		pointLights[i]->Position = XMFLOAT3(x, y, z);
 		pointLights[i]->Color = XMFLOAT3(0.1f+i%4, 0.1f+i%2, 1.0f-i%3);
-		pointLights[i]->Radius = 3.0f;
+		pointLights[i]->Radius = 2.0f;
 		pointLights[i]->Intensity = 512.0f; //The lower it gets, the more intense it gets
 
 		x += 5.0f;
@@ -301,11 +301,11 @@ bool Renderer::InitializeLights(HWND hwnd)
 		return false;
 	}
 
-	XMVECTOR lookAt = XMVectorZero(); //LookAt for dir light. We always want this to be (0,0,0), because it's the easiest to visualize.
+	XMVECTOR lookAt = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);//LookAt for dir light. We always want this to be (0,0,0), because it's the easiest to visualize.
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 
 	// Initialize the directional light.
-	dirLight->Color = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
+	dirLight->Color = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
 	dirLight->Intensity = 128.0f;
 	dirLight->Position = XMFLOAT3(1.0f, 120.0f, 1.0f);
 
@@ -313,7 +313,7 @@ bool Renderer::InitializeLights(HWND hwnd)
 	XMStoreFloat3(&dirLight->Direction, direction);
 
 	//XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(((float)D3DX_PI/2.0f), 1.0f, 10.0f, 300.0f)); //Generate perspective light projection matrix and store it as float4x4
-	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(100.0f, 100.0f, 10.0f, 300.0f)); //Generate orthogonal light projection matrix and store it as float4x4
+	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(120.0f, 120.0f, 10.0f, 300.0f)); //Generate orthogonal light projection matrix and store it as float4x4
 
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix and store it as float4x4.
 	#pragma endregion
@@ -567,7 +567,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
 
-	XMVECTOR lookAt = XMVectorZero();
+	XMVECTOR lookAt = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 
 	XMStoreFloat3(&dirLight->Direction, XMVector3Normalize(lookAt - XMLoadFloat3(&dirLight->Position)));

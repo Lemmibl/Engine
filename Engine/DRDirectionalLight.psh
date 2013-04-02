@@ -35,7 +35,7 @@ cbuffer LightBuffer
 //SamplerState samplers[2];
 
 SamplerState linearSampler : register(s0);
-SamplerState anisotropicSampler : register(s1);
+SamplerState pointSampler : register(s1);
 
 Texture2D shaderTextures[3]; // 0 = normal, 1 = standard depth, 2 = shadowmap depth.
 
@@ -83,7 +83,7 @@ float ReduceLightBleeding(float p_max, float amount)
 //Calculate shadow contribution using chevyshev's inequality.
 float ChebyshevUpperBound(float2 moments, float t)  
 {
-	float minVariance = 0.0002f; //Scaling value.
+	float minVariance = 0.00001f; //Scaling value.
 
 	// Compute variance.  
 	float variance = moments.y - (moments.x*moments.x);
@@ -100,7 +100,7 @@ float ChebyshevUpperBound(float2 moments, float t)
 float ShadowContribution(float2 lightTexCoord, float distanceToLight)  
 {
 	// Read the moments from the variance shadow map.  
-	float2 moments = shaderTextures[2].Sample(anisotropicSampler, lightTexCoord).rg;
+	float2 moments = shaderTextures[2].Sample(pointSampler, lightTexCoord).rg;
 
 	//If surface is fully lit, break early.
 	if(distanceToLight <= moments.x)
@@ -111,7 +111,7 @@ float ShadowContribution(float2 lightTexCoord, float distanceToLight)
 	// Compute the Chebyshev upper bound.
 	float shadowContribution = ChebyshevUpperBound(moments, distanceToLight);
 
-	shadowContribution = ReduceLightBleeding(shadowContribution, distanceToLight);
+	//shadowContribution = ReduceLightBleeding(shadowContribution, distanceToLight);
 
 	return shadowContribution;
 }
@@ -129,7 +129,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	float finalSpecularProduct = 0.0f;
 
 	//Sample camera depth
-	float depth = shaderTextures[1].Sample(linearSampler, input.TexCoord);
+	float depth = shaderTextures[1].Sample(pointSampler, input.TexCoord);
 
 	//Skip as early as possible if this pixel isn't supposed to be lit.
 	if(0 >= depth) 
@@ -168,7 +168,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	lightScreenPos /= lightScreenPos.w;
 
 	//Depth as seen from camera POV.
-	float realDistanceToLight = lightScreenPos.z;
+	float realDistanceToLight = lightScreenPos.z - 0.000002f;
 
 	float2 sampleLightScreen;
 	sampleLightScreen.x = ((lightScreenPos.x * 0.5f) + 0.5f);
@@ -179,16 +179,13 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//We cull a large part of the light and shadow calculations if it's outside of the light frustum.
 	if
 	(		
-		!(	sampleLightScreen.x > 1 || sampleLightScreen.x	< 0	|| 
-			sampleLightScreen.y > 1 || sampleLightScreen.y	< 0	|| 
-			lightScreenPos.z	> 1 || lightScreenPos.z		< 0		)
+		!(	sampleLightScreen.x >= 1 || sampleLightScreen.x	< 0	|| 
+			sampleLightScreen.y >= 1 || sampleLightScreen.y	< 0	)
 	)
 	{
 		float sum = 0.0f;
 		float x, y;
 		//TODO: variance shadow mapping... http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html
-
-		//realDistanceToLight -= 0.0002f; //Apply shadow bias	
 
 		shadowMultiplier = ShadowContribution(sampleLightScreen, realDistanceToLight);
 		
