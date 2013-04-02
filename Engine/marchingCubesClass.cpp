@@ -609,18 +609,18 @@ const int MarchingCubesClass::edgeTable[256] = {
 								indices[indexCounter] = vertexCounter;
 
 								vertices[vertexCounter].position = XMFLOAT3	
-									(	
+								(	
 									this->verts[this->triTable[lookup][j]].posX,
 									this->verts[this->triTable[lookup][j]].posY,
 									this->verts[this->triTable[lookup][j]].posZ		
-									);
+								);
 
 								vertices[vertexCounter].normal = XMFLOAT3	
-									(	
+								(	
 									this->verts[this->triTable[lookup][j]].normalX, 
 									this->verts[this->triTable[lookup][j]].normalY, 
 									this->verts[this->triTable[lookup][j]].normalZ	
-									);
+								);
 
 								vertexCounter++;
 								indexCounter++;
@@ -630,9 +630,8 @@ const int MarchingCubesClass::edgeTable[256] = {
 								indices[indexCount++] = vertexCount;
 								vertices[vertexCount++] = vertexPos;
 								*/
-
-								numberOfTriangles++;
 							}
+							numberOfTriangles++;
 						}
 
 						/*
@@ -676,8 +675,8 @@ const int MarchingCubesClass::edgeTable[256] = {
 		}
 
 
-		/*	indexCount = indexCounter;
-		vertexCount = vertexCounter;*/
+		indexCount = indexCounter;
+		vertexCount = vertexCounter;
 
 		// Set up the description of the static vertex buffer.
 		vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -739,4 +738,44 @@ const int MarchingCubesClass::edgeTable[256] = {
 		deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		return true;
+	}
+
+	void MarchingCubesClass::Reset()
+	{
+		lookup = 0;
+
+		vertexCount = (this->sizeX * this->sizeY * this->sizeZ);
+		indexCount = vertexCount;
+
+		this->marchingCubeVertices = new MarchingCubeVertex[vertexCount];
+
+
+		/* setter default-verdier */
+		for (z = 0; z < this->sizeZ; z++)
+		{
+			for (y = 0; y < this->sizeY; y++)
+			{
+				for (x = 0; x < this->sizeX; x++)
+				{
+					/* regner ut idx en gang (sparer en haug med MULs) */
+					idx = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
+
+					/* setter default-verdier ut fra hvor i gridden vi befinner oss */
+					this->marchingCubeVertices[idx].posX = this->startX + this->stepX * x;
+					this->marchingCubeVertices[idx].posY = this->startY + this->stepY * y;
+					this->marchingCubeVertices[idx].posZ = this->startZ + this->stepZ * z;
+					this->marchingCubeVertices[idx].flux = 0.0;
+					this->marchingCubeVertices[idx].inside = false;
+					this->marchingCubeVertices[idx].normalX = 0.0;
+					this->marchingCubeVertices[idx].normalY = 0.0;
+					this->marchingCubeVertices[idx].normalZ = 0.0;
+
+					this->things[idx].position = XMFLOAT3(this->startX + this->stepX * x, this->startY + this->stepY * y, this->startZ + this->stepZ * z);
+					this->things[idx].normal = XMFLOAT3(0.0f, 0.0f, 0.0f);
+				}
+			}
+		}
+
+		this->Terrain = new MCTerrainClass(sizeX,sizeY,sizeZ,this->marchingCubeVertices);
+		Terrain->Noise3D();
 	}

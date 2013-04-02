@@ -44,7 +44,6 @@ class MarchingCubesClass
 	/* Pointer to a metaball object */
 	MetaballsClass *mb;
 	
-	
 	TreeClass *Tree;
 
 	MCTerrainClass *Terrain;
@@ -88,6 +87,7 @@ public:
 		this->metaballsIsoValue = isoValue;
 	}
 
+	void Reset();
 
 	void SetWireframe(bool s)
 	{

@@ -460,7 +460,7 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 
 	metaBalls = new MetaballsClass();
 	marchingCubes = new MarchingCubesClass(-40.0f, -40.0f, -40.0f, 40.0f, 40.0f, 40.0f, 1.5f, 1.5f, 1.5f);
-	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
+	marchingCubes->SetMetaBalls(metaBalls, 0.3f);
 
 	marchingCubes->GetTerrain().Noise3D();
 	marchingCubes->CalculateMesh(d3D->GetDevice());
@@ -560,6 +560,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 	
 	if(inputManager->WasKeyPressed(DIK_N))
 	{
+		marchingCubes->Reset();
 		marchingCubes->GetTerrain().Noise3D();
 		marchingCubes->CalculateMesh(d3D->GetDevice());
 	}

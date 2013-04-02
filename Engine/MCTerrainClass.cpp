@@ -109,10 +109,10 @@ void MCTerrainClass::Noise3D()
 		for (z = worldSizeMargin; z < (this->sizeZ - worldSizeMargin); z++)
 		{
 			for (y = worldSizeMargin; y < (this->sizeY - worldSizeMargin); y++)
-		{
-				for (x = worldSizeMargin; x < (this->sizeX - worldSizeMargin); x++)
 			{
-				idx = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
+				for (x = worldSizeMargin; x < (this->sizeX - worldSizeMargin); x++)
+				{
+					idx = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
 
 					float r =  + sizeY * 0.8f - y;
 					r += (noise->noise3D2(this->marchingCubeVertices2[idx].posX/20,marchingCubeVertices2[idx].posY/260,marchingCubeVertices2[idx].posZ/20) + 1.0f) *4.0f;
@@ -182,7 +182,7 @@ void MCTerrainClass::Noise3D()
 					/*if(r<0)
 						{r = 0.0f;}*/
 
-					this->marchingCubeVertices2[idx].flux = r * 1;
+					this->marchingCubeVertices2[idx].flux = r * 1.0f;
 					
 					//r *= 1000 *3;
 
