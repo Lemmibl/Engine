@@ -109,12 +109,10 @@ void MCTerrainClass::Noise3D()
 		for (z = worldSizeMargin; z < (this->sizeZ - worldSizeMargin); z++)
 		{
 			for (y = worldSizeMargin; y < (this->sizeY - worldSizeMargin); y++)
-			{
+		{
 				for (x = worldSizeMargin; x < (this->sizeX - worldSizeMargin); x++)
-				{
-
-					idx = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
-
+			{
+				idx = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
 
 					float r =  + sizeY * 0.4f - y;
 					r += (noise->noise3D2(this->marchingCubeVertices2[idx].posX/20,marchingCubeVertices2[idx].posY/260,marchingCubeVertices2[idx].posZ/20) + 1.0f) *2.0f;
@@ -192,29 +190,36 @@ void MCTerrainClass::Noise3D()
 					
 					//r *= 1000 *3;
 
-					if(max < r)
-						{max = r;}
-					if(min > r)
-						{min = r;}
+				if(max < r)
+				{max = r;}
+				if(min > r)
+				{min = r;}
 
 					
 					if (r > 0.2f)
-					{
-						this->marchingCubeVertices2[idx].inside = true;
-					}
-					else
-					{
-						this->marchingCubeVertices2[idx].inside = false;
-					}
+				{
+					this->marchingCubeVertices2[idx].flux = 0.0f;
+				}
+				else
+				{
+					this->marchingCubeVertices2[idx].flux = r;
+				}		
+				{
+					this->marchingCubeVertices2[idx].inside = true;
+				}
+				else
+				{
+					this->marchingCubeVertices2[idx].inside = false;
+				}
 					
 					
 	
-					this->marchingCubeVertices2[idx].normalX = this->marchingCubeVertices2[idx - 1].flux - this->marchingCubeVertices2[idx+1].flux;
-					this->marchingCubeVertices2[idx].normalY = this->marchingCubeVertices2[idx - this->sizeY].flux - this->marchingCubeVertices2[idx + this->sizeY].flux;
-					this->marchingCubeVertices2[idx].normalZ = this->marchingCubeVertices2[idx - (this->sizeY * this->sizeZ)].flux - this->marchingCubeVertices2[idx + (this->sizeY * this->sizeZ)].flux;
-				}
+				this->marchingCubeVertices2[idx].normalX = this->marchingCubeVertices2[idx - 1].flux - this->marchingCubeVertices2[idx+1].flux;
+				this->marchingCubeVertices2[idx].normalY = this->marchingCubeVertices2[idx - this->sizeY].flux - this->marchingCubeVertices2[idx + this->sizeY].flux;
+				this->marchingCubeVertices2[idx].normalZ = this->marchingCubeVertices2[idx - (this->sizeY * this->sizeZ)].flux - this->marchingCubeVertices2[idx + (this->sizeY * this->sizeZ)].flux;
 			}
 		}
+	}
 	max = max;
 	min = min;
 }

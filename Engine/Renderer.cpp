@@ -433,7 +433,7 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 
 
 	defaultModelMaterial.a = 8.0f;
-	defaultModelMaterial.Ka = 0.3f;
+	defaultModelMaterial.Ka = 0.8f;
 	defaultModelMaterial.Kd = 0.8f;
 	defaultModelMaterial.Ks = 0.7f;
 

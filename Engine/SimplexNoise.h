@@ -36,18 +36,21 @@ private:
 
 	
 
-static double dot(int g[], float x, float y) {
+static float dot(int g[], float x, float y) {
 	return g[0]*x + g[1]*y; }
 
-static double dot(int g[], float x, float y, float z) {
+static float dot(int g[], float x, float y, float z) {
 	return g[0]*x + g[1]*y + g[2]*z; }
 
-static double dot(int g[], float x, float y, float z, float w) {
+static float dot(int g[], float x, float y, float z, float w) {
 	return g[0]*x + g[1]*y + g[2]*z + g[3]*w; }
 
 
-static double dot(Grads g, float x, float y, float z) {
-	return g.x*x + g.y*y + g.z*z; }
+static float dot(Grads g, float x, float y) {
+	return x*g.x + y*g.y; }
+
+static float dot(Grads g, float x, float y, float z) {
+	return x*g.x + y*g.y + z*g.z; }
 
 };
 

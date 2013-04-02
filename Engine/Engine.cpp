@@ -149,16 +149,8 @@ bool Engine::Initialize()
 	cameraController->SetPosition(camera->GetPositionPtr());
 	cameraController->SetRotation(camera->GetRotationPtr());
 
-	//metaBalls = new MetaballsClass();
-	//marchingCubes = new MarchingCubesClass(-20.0f, -20.0f, -20.0f, 30.0f, 30.0f, 30.0f, 1.5f, 1.5f, 1.5f);
-	//marchingCubes->SetMetaBalls(metaBalls, 0.2f);
-
-	//marchingCubes->ComputeMetaBalls();
-	//marchingCubes->CalculateMesh(d3D->GetDevice());
-
 	return true;	
 }
-
 
 void Engine::Shutdown()
 {
