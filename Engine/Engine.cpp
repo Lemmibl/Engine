@@ -274,7 +274,6 @@ void Engine::Run()
 bool Engine::Update()
 {
 	bool result;
-	int mouseX, mouseY;
 
 	timer->Frame();
 	fpsMeter->Update();
@@ -287,36 +286,7 @@ bool Engine::Update()
 		return false;
 	}
 
-	// Get the location of the mouse from the input object,
-	input->GetMouseLocation(mouseX, mouseY);
-
 	cameraController->Update(timer->GetFrameTime()); //Processes all of the movement for this controller.
-
-	//if(returning)
-	//{
-	//	metaBalls->MoveBall(0, 0.01f, 0.01f, 0.01f);
-
-	//	timer -= 0.0008f*frameTime;
-	//}
-	//else
-	//{
-	//	metaBalls->MoveBall(0, -0.01f, -0.01f, -0.01f);
-
-	//	timer += 0.0008f*frameTime;
-	//}
-
-	//if(timer > 5.0f && !returning)
-	//{
-	//	returning = true;
-	//}
-	//else if(timer < -5.0f && returning)
-	//{
-	//	returning = false;
-	//}
-
-
-	//marchingCubes->ComputeMetaBalls();
-	//marchingCubes->CalculateMesh(d3D->GetDevice());
 	
 	// Do the frame processing for the graphics object.
 	result = renderer->Update(fpsMeter->GetFps(), cpuMeter->GetCpuPercentage(), timer->GetFrameTime(), timer->GetFrameTimeSeconds());

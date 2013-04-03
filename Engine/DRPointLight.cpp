@@ -106,7 +106,7 @@ bool DRPointLight::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFi
 	}
 
 	// Compile the pixel shader code.
-	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "LightPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG | D3D10_SHADER_SKIP_OPTIMIZATION, 0, NULL, 
+	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "LightPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
 		&pixelShaderBuffer, &errorMessage, NULL);
 	if(FAILED(result))
 	{

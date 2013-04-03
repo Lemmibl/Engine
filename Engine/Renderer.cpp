@@ -7,8 +7,6 @@
 Inför terrain rendering / många texturer:
 http://stackoverflow.com/questions/35950/i-dont-understand-stdtr1unordered-map
 Spara material ID i normal alpha channel
-Multitexturing pixel shader tutorials i allmänt om något är oklart.
-
 
 Inför perlin/simplex noise:
 http://stackoverflow.com/questions/4120108/how-to-save-backbuffer-to-file-in-directx-10
@@ -552,9 +550,9 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		debugRotation.y -= frameTime*0.002f;		
 	}
 
-	if(inputManager->WasKeyPressed(DIK_1))
+	if(inputManager->IsKeyPressed(DIK_1))
 	{
-		seconds = timeOfDay += 3.0f;
+		seconds = timeOfDay += frameTime*0.2f;
 	}
 
 	
@@ -864,7 +862,6 @@ bool Renderer::Render()
 
 #pragma region Final compose stage
 	d3D->SetBackBufferRenderTarget();
-	d3D->SetBackFaceCullingRasterizer();
 	context->ClearDepthStencilView(ds,  D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	fullScreenQuad.Render(context, 0, 0);
@@ -878,6 +875,7 @@ bool Renderer::Render()
 	d3D->ResetBlendState();
 	ds = d3D->GetDepthStencilView(); //This also resets the depth stencil state to "default".
 	context->ClearDepthStencilView(ds,  D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
+	
 	d3D->GetWorldMatrix(worldMatrix);
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 

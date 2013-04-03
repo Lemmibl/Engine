@@ -10,6 +10,7 @@ DRDirLight::DRDirLight()
 	layout = 0;
 	samplers[0] = 0;
 	samplers[1] = 0;
+	samplers[2] = 0;
 
 	lightBuffer = 0;
 	pixelMatrixBuffer = 0; 
@@ -110,7 +111,7 @@ bool DRDirLight::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFile
 	}
 
 	// Compile the pixel shader code.
-	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "LightPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG | D3D10_SHADER_SKIP_OPTIMIZATION, 0, NULL, 
+	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "LightPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
 		&pixelShaderBuffer, &errorMessage, NULL);
 	if(FAILED(result))
 	{
@@ -212,6 +213,25 @@ bool DRDirLight::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFile
 
 	// Create the texture sampler state.
 	result = device->CreateSamplerState(&depthSamplerDesc, &samplers[1]);
+	if(FAILED(result))
+	{
+		return false;
+	}
+
+	// Create a texture sampler state description.
+	depthSamplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
+	depthSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_MIRROR;
+	depthSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_MIRROR;
+	depthSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_MIRROR;
+	depthSamplerDesc.MipLODBias = 0.0f;
+	depthSamplerDesc.MaxAnisotropy = 1;
+	depthSamplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
+	depthSamplerDesc.BorderColor[0] = depthSamplerDesc.BorderColor[1] = depthSamplerDesc.BorderColor[2] = depthSamplerDesc.BorderColor[3] = 0;
+	depthSamplerDesc.MinLOD = 0;
+	depthSamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	// Create the texture sampler state.
+	result = device->CreateSamplerState(&depthSamplerDesc, &samplers[2]);
 	if(FAILED(result))
 	{
 		return false;
@@ -323,6 +343,13 @@ void DRDirLight::ShutdownShader()
 	{
 		samplers[1]->Release();
 		samplers[1] = 0;
+	}
+
+	// Release the sampler state.
+	if(samplers[2])
+	{
+		samplers[2]->Release();
+		samplers[2] = 0;
 	}
 
 	// Release the layout.
@@ -512,6 +539,7 @@ void DRDirLight::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount
 	// Set the sampler state in the pixel shader.
 	deviceContext->PSSetSamplers(0, 1, &samplers[0]);
 	deviceContext->PSSetSamplers(1, 1, &samplers[1]);
+	deviceContext->PSSetSamplers(2, 1, &samplers[2]);
 
 	// Render the triangle.
 	deviceContext->DrawIndexed(indexCount, 0, 0);

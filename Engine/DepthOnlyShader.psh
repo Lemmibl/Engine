@@ -26,6 +26,7 @@ float2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 
 	//return length(input.ViewPosition); //For worldspace position reconstruction
 
+	//return ComputeMoments(input.Position.z / input.Position.w);
 	return ComputeMoments(input.Position.z / input.Position.w);
 };
 

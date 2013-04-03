@@ -356,9 +356,6 @@
     <None Include="VegetationQuad.vsh">
       <Filter>Rendering\Non-deferred effects</Filter>
     </None>
-    <None Include="VegetationQuad.gsh">
-      <Filter>Rendering\Non-deferred effects</Filter>
-    </None>
     <None Include="VegetationQuad.psh">
       <Filter>Rendering\Non-deferred effects</Filter>
     </None>

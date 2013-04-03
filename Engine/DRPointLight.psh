@@ -36,7 +36,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	//get normal data from the normalMap
 	float4 normalData = textures[1].Sample(pointSampler, texCoord);
 	float depth = textures[2].Sample(pointSampler, texCoord);
-	float3 normal = normalize(normalData.xyz);
+	float3 normal = normalize(Decode(normalData.xyz));
 	
 	//Create a clip space position (I think?)
 	float4 position;

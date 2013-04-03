@@ -812,6 +812,19 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 	}
 
 
+	////create shader resource view desc
+	//srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	//srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	//srvDesc.Texture2D.MipLevels = texDesc.MipLevels;
+	//srvDesc.Texture2D.MostDetailedMip = 0;
+
+	//result = device->CreateShaderResourceView(shadowmapTexture, &srvDesc, &shadowmapResourceView);
+	//if(FAILED(result))
+	//{
+	//	return false;
+	//}
+
+
 	texDesc.Width = shadowMapWidth;
 	texDesc.Height = shadowMapHeight;
 	texDesc.MipLevels = 1;

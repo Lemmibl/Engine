@@ -36,6 +36,7 @@ cbuffer LightBuffer
 
 SamplerState linearSampler : register(s0);
 SamplerState pointSampler : register(s1);
+SamplerComparisonState cmpSampler : register(s2);
 
 Texture2D shaderTextures[3]; // 0 = normal, 1 = standard depth, 2 = shadowmap depth.
 
@@ -183,12 +184,15 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 			sampleLightScreen.y >= 1 || sampleLightScreen.y	< 0	)
 	)
 	{
-		float sum = 0.0f;
-		float x, y;
-		//TODO: variance shadow mapping... http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html
+		/*Variance shadow mapping. http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html */
 
 		shadowMultiplier = ShadowContribution(sampleLightScreen, realDistanceToLight);
 		
+
+		/*PCF 16X shadow mapping. */
+		//float sum = 0.0f;
+		//float x, y;
+
 		//perform PCF filtering on a 4 x 4 texel neighborhood
 		//for (y = -1.5f; y <= 1.5f; y += 1.0f)
 		//{
@@ -200,7 +204,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 
 		//shadowMultiplier = (sum / 16.0f);
 
-		////Use this instead for normal unfiltered shadows. Produces more artifacts. Nasty.
+		/*Normal shadow mapping. Produces more artifacts. Nasty.*/
 
 		//float distanceStoredInDepthMap = shaderTextures[2].Sample(linearSampler, sampleLightScreen);
 

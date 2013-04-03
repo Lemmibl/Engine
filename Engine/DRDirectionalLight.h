@@ -82,7 +82,7 @@ private:
 	ID3D11VertexShader* vertexShader;
 	ID3D11PixelShader* pixelShader;
 	ID3D11InputLayout* layout;
-	ID3D11SamplerState* samplers[2];
+	ID3D11SamplerState* samplers[3];
 
 	ID3D11Buffer* lightBuffer;
 	ID3D11Buffer* vertexMatrixBuffer;

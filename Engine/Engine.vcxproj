@@ -119,7 +119,6 @@
     <None Include="skysphere.psh" />
     <None Include="skysphere.vsh" />
     <None Include="standard.vsh" />
-    <None Include="VegetationQuad.gsh" />
     <None Include="VegetationQuad.psh" />
     <None Include="VegetationQuad.vsh" />
   </ItemGroup>

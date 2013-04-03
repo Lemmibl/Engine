@@ -10,6 +10,13 @@ private:
 	struct VertexType
 	{
 		XMFLOAT3 position;
+		XMFLOAT2 texCoord;
+		int texID;
+	};
+
+	struct InstanceType
+	{
+		XMFLOAT3 position;
 	};
 
 public:
@@ -17,21 +24,18 @@ public:
 	VegetationManager(const VegetationManager&);
 	~VegetationManager();
 
-	bool Initialize(ID3D11Device*, char*, WCHAR*, WCHAR*, WCHAR*);
+	bool Initialize(ID3D11Device*, WCHAR*, WCHAR*);
 	void Shutdown();
-
 	bool SetupQuads(ID3D11Device* device, std::vector<XMFLOAT3>* positions);
-
 	void Render(ID3D11DeviceContext*);
 
 
 private:
 	void RenderBuffers(ID3D11DeviceContext*);
 
-	ID3D11Buffer *vertexBuffer, *indexBuffer;
-	int vertexCount, indexCount;
-	TextureClass* textureArray; //should probably have a bunch of textures
-	//ID3D11ShaderResourceView* textures[3];
+	ID3D11Buffer *vertexBuffer, *instanceBuffer;
+	int vertexCount, instanceCount;
+	TextureClass* textureArray[2];
 };
 
 /*

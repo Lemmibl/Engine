@@ -29,7 +29,6 @@ bool TextureArray::Initialize(ID3D11Device* device, WCHAR* filename1, WCHAR* fil
 {
 	HRESULT result;
 
-
 	// Load the first texture in.
 	result = D3DX11CreateShaderResourceViewFromFile(device, filename1, NULL, NULL, &textures[0], NULL);
 	if(FAILED(result))

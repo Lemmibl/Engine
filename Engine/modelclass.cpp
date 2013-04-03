@@ -119,48 +119,6 @@ void ModelClass::Render(ID3D11DeviceContext* deviceContext)
 
 bool ModelClass::InitializeBuffers(ID3D11Device* device)
 {
-	
-	#pragma region old quad code
-	//// Set the number of vertices in the vertex array.
-	//vertexCount = 4;
-
-	//// Set the number of indices in the index array.
-	//indexCount = 6;
-
-	//// Load the vertex array with data.
-	//vertices[0].position = XMFLOAT3(-1.0f, -1.0f, 0.0f);  // Bottom left.
-	//vertices[0].textexture = XMFLOAT2(0.0f, 1.0f);
-	//vertices[0].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
-
-	//vertices[1].position = XMFLOAT3(-1.0f, 1.0f, 0.0f);  // Top left.
-	//vertices[1].textexture = XMFLOAT2(0.0f, 0.0f);
-	//vertices[1].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
-
-	//vertices[2].position = XMFLOAT3(1.0f, 1.0f, 0.0f);  // Top right.
-	//vertices[2].textexture = XMFLOAT2(1.0f, 0.0f);
-	//vertices[2].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
-
-	//vertices[3].position = XMFLOAT3(1.0f, -1.0f, 0.0f);  // Bottom right.
-	//vertices[3].textexture = XMFLOAT2(1.0f, 1.0f);
-	//vertices[3].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
-
-	//// Load the index array with data.
-	//// First triangle
-	//indices[0] = 0;	// Bottom left.
-	//indices[1] = 1;	// Top left.
-	//indices[2] = 3;	// Bottom right.
-
-	//// Second triangle
-	//indices[3] = 1;	// Top left.
-	//indices[4] = 2;	// Top right.
-	//indices[5] = 3;	// Bottom right.
-
-	///* 
-	// CW:  T1: 0,1,3  T2: 1,2,3
-	// CCW: T1: 0,3,1  T2: 1,3,2
-	//*/
-	#pragma endregion
-
 	VertexType* vertices;
 	unsigned long* indices;
 	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;

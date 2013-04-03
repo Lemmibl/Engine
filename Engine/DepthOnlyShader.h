@@ -4,7 +4,6 @@
 #ifndef _DEPTHONLYSHADER_H_
 #define _DEPTHONLYSHADER_H_
 
-
 //////////////
 // INCLUDES //
 //////////////
