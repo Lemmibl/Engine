@@ -18,6 +18,7 @@
     <ClCompile Include="d3dclass.cpp" />
     <ClCompile Include="DayNightCycle.cpp" />
     <ClCompile Include="debugwindowclass.cpp" />
+    <ClCompile Include="DepthOnlyQuadShader.cpp" />
     <ClCompile Include="DepthOnlyShader.cpp" />
     <ClCompile Include="DRDirectionalLight.cpp" />
     <ClCompile Include="DRCompose.cpp" />
@@ -25,6 +26,7 @@
     <ClCompile Include="fontshaderclass.cpp" />
     <ClCompile Include="fpsmeter.cpp" />
     <ClCompile Include="frustumclass.cpp" />
+    <ClCompile Include="VegetationShader.cpp" />
     <ClCompile Include="MCubesGBufferShader.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="inputclass.cpp" />
@@ -60,6 +62,7 @@
     <ClInclude Include="d3dclass.h" />
     <ClInclude Include="DayNightCycle.h" />
     <ClInclude Include="debugwindowclass.h" />
+    <ClInclude Include="DepthOnlyQuadShader.h" />
     <ClInclude Include="DepthOnlyShader.h" />
     <ClInclude Include="DRDirectionalLight.h" />
     <ClInclude Include="DRCompose.h" />
@@ -68,6 +71,7 @@
     <ClInclude Include="fpsmeter.h" />
     <ClInclude Include="frustumclass.h" />
     <ClInclude Include="DRGBuffer.h" />
+    <ClInclude Include="VegetationShader.h" />
     <ClInclude Include="MCubesGBufferShader.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="inputclass.h" />

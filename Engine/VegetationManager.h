@@ -1,7 +1,7 @@
 #include <vector>
 #include <windows.h>
 #include <xnamath.h>
-
+#include "VegetationShader.h"
 #include "textureclass.h"
 
 class VegetationManager
@@ -11,12 +11,12 @@ private:
 	{
 		XMFLOAT3 position;
 		XMFLOAT2 texCoord;
-		int texID;
 	};
 
+	//This actually contains a float3 position and alpha channel contains texture ID for each instance
 	struct InstanceType
 	{
-		XMFLOAT3 position;
+		XMFLOAT4 position; 
 	};
 
 public:
@@ -24,18 +24,18 @@ public:
 	VegetationManager(const VegetationManager&);
 	~VegetationManager();
 
-	bool Initialize(ID3D11Device*, WCHAR*, WCHAR*);
+	bool Initialize(ID3D11Device*, HWND, WCHAR*, WCHAR*);
 	void Shutdown();
-	bool SetupQuads(ID3D11Device* device, std::vector<XMFLOAT3>* positions);
-	void Render(ID3D11DeviceContext*);
+	bool SetupQuads(ID3D11Device* device, std::vector<XMFLOAT4>* positions);
+	bool Render(ID3D11DeviceContext* deviceContext, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection);
+	void RenderBuffers(ID3D11DeviceContext*);
 
 
 private:
-	void RenderBuffers(ID3D11DeviceContext*);
-
 	ID3D11Buffer *vertexBuffer, *instanceBuffer;
 	int vertexCount, instanceCount;
-	TextureClass* textureArray[2];
+	ID3D11ShaderResourceView* textureArray[2];
+	VegetationShader* vegetationShader;
 };
 
 /*

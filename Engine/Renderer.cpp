@@ -5,6 +5,8 @@
 
 /*
 Inför terrain rendering / många texturer:
+http://www.gamedev.net/topic/612977-dynamic-updating-of-structuredbuffer-in-dx11/ < DEN HÄR
+
 http://stackoverflow.com/questions/35950/i-dont-understand-stdtr1unordered-map
 Spara material ID i normal alpha channel
 
@@ -67,6 +69,7 @@ Renderer::Renderer()
 	sphereModel = 0;
 	otherModel = 0;
 	skySphere = 0;
+	vegetationManager = 0;
 
 	colorRT = 0;
 	normalRT = 0;
@@ -77,6 +80,7 @@ Renderer::Renderer()
 	mcubeShader = 0;
 	marchingCubes = 0;
 	mcTerrain = 0;
+
 }
 
 
@@ -334,6 +338,29 @@ bool Renderer::InitializeModels(HWND hwnd)
 	{
 		return false;
 	}
+
+	vegetationManager = new VegetationManager();
+	if(!vegetationManager)
+	{
+		return false;
+	}
+
+	result = vegetationManager->Initialize(d3D->GetDevice(), hwnd, L"../Engine/data/grassQuad.dds", L"../Engine/data/leafbranch.dds");
+	if(!result)
+	{
+		return false;
+	}
+
+
+	std::vector<XMFLOAT4>* tempContainer = new std::vector<XMFLOAT4>();
+
+	for(int i = 0; i < 5000; i++)
+	{
+		XMFLOAT4 temp = XMFLOAT4(-50.0f + (rand() % 100), 10.0f, -50.0f + (rand() % 100), (i%2));
+		tempContainer->push_back(temp);
+	}
+
+	vegetationManager->SetupQuads(d3D->GetDevice(), tempContainer);
 
 	// Create the model object.
 	groundModel = new ModelClass;
@@ -794,6 +821,11 @@ bool Renderer::Render()
 	result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
 		&worldMatrix, &viewMatrix, &projectionMatrix, sphereModel->GetTextureArray());
 
+	d3D->TurnOnAlphaBlending();
+	d3D->SetNoCullRasterizer();
+	vegetationManager->Render(context, &worldMatrix, &viewMatrix, &projectionMatrix);
+	d3D->TurnOffAlphaBlending();
+
 	renderCount++;
 
 	text->SetRenderCount(renderCount, context);
@@ -1082,6 +1114,13 @@ void Renderer::Shutdown()
 		skySphere->Shutdown();
 		delete skySphere;
 		skySphere = 0;
+	}
+
+	if(vegetationManager)
+	{
+		vegetationManager->Shutdown();
+		delete vegetationManager;
+		vegetationManager = 0;
 	}
 
 	for(std::vector<PointLight*>::iterator tmp = pointLights.begin(); tmp != pointLights.end(); tmp++) 

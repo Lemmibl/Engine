@@ -27,7 +27,7 @@
 #include "textclass.h"
 #include "renderToTextureClass.h"
 #include "DayNightCycle.h"
-
+#include "VegetationManager.h"
 
 //Objects
 #include "modelclass.h"
@@ -36,7 +36,8 @@
 #include "frustumclass.h"
 #include "debugwindowclass.h"
 #include "SkySphere.h"
-
+#include "marchingCubesClass.h"
+#include "MCTerrainClass.h"
 
 //Shaders
 #include "MCubesGBufferShader.h"
@@ -48,12 +49,8 @@
 #include "DRDirectionalLight.h"
 #include "fontshaderclass.h"
 #include "DRGBuffer.h"
-
-
-
-#include "marchingCubesClass.h"
 #include "MarchingCubeShader.h"
-#include "MCTerrainClass.h"
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: GraphicsClass
@@ -100,6 +97,7 @@ private:
 	ModelClass* otherModel;
 	ModelClass* sphereModel;
 	Skysphere* skySphere;
+	VegetationManager* vegetationManager;
 
 	MaterialStruct defaultModelMaterial;
 

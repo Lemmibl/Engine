@@ -72,13 +72,7 @@
     <ClCompile Include="DRGBuffer.cpp">
       <Filter>Rendering\Deferred stuff</Filter>
     </ClCompile>
-    <ClCompile Include="VertexShaderOnly.cpp">
-      <Filter>Rendering\Deferred stuff</Filter>
-    </ClCompile>
     <ClCompile Include="DRPointLight.cpp">
-      <Filter>Rendering\Deferred stuff</Filter>
-    </ClCompile>
-    <ClCompile Include="DepthOnlyShader.cpp">
       <Filter>Rendering\Deferred stuff</Filter>
     </ClCompile>
     <ClCompile Include="marchingCubesClass.cpp">
@@ -138,9 +132,6 @@
     <ClCompile Include="SkySphere.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="SkysphereShader.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="DRCompose.cpp">
       <Filter>Rendering\Deferred stuff</Filter>
     </ClCompile>
@@ -158,6 +149,21 @@
     </ClCompile>
     <ClCompile Include="VegetationManager.cpp">
       <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="DepthOnlyShader.cpp">
+      <Filter>Rendering\Non-deferred effects</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexShaderOnly.cpp">
+      <Filter>Rendering\Non-deferred effects</Filter>
+    </ClCompile>
+    <ClCompile Include="SkysphereShader.cpp">
+      <Filter>Rendering\Non-deferred effects</Filter>
+    </ClCompile>
+    <ClCompile Include="VegetationShader.cpp">
+      <Filter>Rendering\Non-deferred effects</Filter>
+    </ClCompile>
+    <ClCompile Include="DepthOnlyQuadShader.cpp">
+      <Filter>Rendering\Deferred stuff</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -200,13 +206,7 @@
     <ClInclude Include="DRGBuffer.h">
       <Filter>Rendering\Deferred stuff</Filter>
     </ClInclude>
-    <ClInclude Include="VertexShaderOnly.h">
-      <Filter>Rendering\Deferred stuff</Filter>
-    </ClInclude>
     <ClInclude Include="DRPointLight.h">
-      <Filter>Rendering\Deferred stuff</Filter>
-    </ClInclude>
-    <ClInclude Include="DepthOnlyShader.h">
       <Filter>Rendering\Deferred stuff</Filter>
     </ClInclude>
     <ClInclude Include="customStructs.h">
@@ -272,9 +272,6 @@
     <ClInclude Include="SkySphere.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="SkysphereShader.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="DRCompose.h">
       <Filter>Rendering\Deferred stuff</Filter>
     </ClInclude>
@@ -289,6 +286,21 @@
     </ClInclude>
     <ClInclude Include="VegetationManager.h">
       <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="DepthOnlyShader.h">
+      <Filter>Rendering\Non-deferred effects</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexShaderOnly.h">
+      <Filter>Rendering\Non-deferred effects</Filter>
+    </ClInclude>
+    <ClInclude Include="SkysphereShader.h">
+      <Filter>Rendering\Non-deferred effects</Filter>
+    </ClInclude>
+    <ClInclude Include="VegetationShader.h">
+      <Filter>Rendering\Non-deferred effects</Filter>
+    </ClInclude>
+    <ClInclude Include="DepthOnlyQuadShader.h">
+      <Filter>Rendering\Deferred stuff</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -308,12 +320,6 @@
       <Filter>Rendering\Deferred stuff</Filter>
     </None>
     <None Include="shader-error.txt" />
-    <None Include="DepthOnlyShader.psh">
-      <Filter>Rendering\Deferred stuff</Filter>
-    </None>
-    <None Include="DepthOnlyShader.vsh">
-      <Filter>Rendering\Deferred stuff</Filter>
-    </None>
     <None Include="DRGBuffer.psh">
       <Filter>Rendering\Deferred stuff</Filter>
     </None>
@@ -357,6 +363,12 @@
       <Filter>Rendering\Non-deferred effects</Filter>
     </None>
     <None Include="VegetationQuad.psh">
+      <Filter>Rendering\Non-deferred effects</Filter>
+    </None>
+    <None Include="DepthOnlyShader.psh">
+      <Filter>Rendering\Non-deferred effects</Filter>
+    </None>
+    <None Include="DepthOnlyShader.vsh">
       <Filter>Rendering\Non-deferred effects</Filter>
     </None>
   </ItemGroup>

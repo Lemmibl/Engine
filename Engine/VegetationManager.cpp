@@ -2,7 +2,11 @@
 
 VegetationManager::VegetationManager()
 {
-
+	vegetationShader = 0;
+	vertexBuffer = 0;
+	instanceBuffer = 0;
+	textureArray[0] = 0;
+	textureArray[1] = 0;
 }
 
 VegetationManager::VegetationManager( const VegetationManager& )
@@ -15,24 +19,30 @@ VegetationManager::~VegetationManager()
 
 }
 
-bool VegetationManager::Initialize(ID3D11Device* device, WCHAR* filename1, WCHAR* filename2)
+bool VegetationManager::Initialize(ID3D11Device* device, HWND hwnd, WCHAR* filename1, WCHAR* filename2)
 {
-	bool result;
+	HRESULT result;
 
 
-	textureArray[0] = new TextureClass();
-
-	// Initialize the texture object.
-	result = textureArray[0]->Initialize(device, filename1);
-	if(!result)
+	result = D3DX11CreateShaderResourceViewFromFile(device, filename1, NULL, NULL, &textureArray[0], NULL);
+	if(FAILED(result))
 	{
 		return false;
 	}
 
-	textureArray[1] = new TextureClass();
+	result = D3DX11CreateShaderResourceViewFromFile(device, filename2, NULL, NULL, &textureArray[1], NULL);
+	if(FAILED(result))
+	{
+		return false;
+	}
 
-	// Initialize the texture object.
-	result = textureArray[1]->Initialize(device, filename1);
+	vegetationShader = new VegetationShader();
+	if(!vegetationShader)
+	{
+		return false;
+	}
+
+	result = vegetationShader->Initialize(device, hwnd);
 	if(!result)
 	{
 		return false;
@@ -41,7 +51,7 @@ bool VegetationManager::Initialize(ID3D11Device* device, WCHAR* filename1, WCHAR
 	return true;
 }
 
-bool VegetationManager::SetupQuads( ID3D11Device* device, std::vector<XMFLOAT3>* positions )
+bool VegetationManager::SetupQuads( ID3D11Device* device, std::vector<XMFLOAT4>* positions )
 {
 
 	#pragma region old quad code
@@ -92,7 +102,7 @@ bool VegetationManager::SetupQuads( ID3D11Device* device, std::vector<XMFLOAT3>*
 	HRESULT result;
 
 	// Set the number of vertices in the vertex array.
-	vertexCount = 8;
+	vertexCount = 18;
 
 	// Create the vertex array.
 	vertices = new VertexType[vertexCount];
@@ -101,39 +111,76 @@ bool VegetationManager::SetupQuads( ID3D11Device* device, std::vector<XMFLOAT3>*
 		return false;
 	}
 
+	XMFLOAT2 quad1Left, quad1Right;
+	quad1Left = XMFLOAT2(-0.6f, -0.2f);
+	quad1Right = XMFLOAT2(0.5f, 0.0f);
+
+	XMFLOAT2 quad2Left, quad2Right;
+	quad2Left = XMFLOAT2(0.0f, -0.7f);
+	quad2Right = XMFLOAT2(0.1f, 0.3f);
+
+	XMFLOAT2 quad3Left, quad3Right;
+	quad3Left = XMFLOAT2(-0.45f, 0.15f);
+	quad3Right = XMFLOAT2(0.35f, -0.6f);
+
 	//Quad #1
-	vertices[0].position = XMFLOAT3(-1.0f, -1.0f, 0.0f);  // Bottom left.
+	vertices[0].position = XMFLOAT3(quad1Left.x, 0.0f, quad1Left.y);  // Bottom left.
 	vertices[0].texCoord = XMFLOAT2(0.0f, 1.0f);
-	vertices[0].texID = 0;
 
-	vertices[1].position = XMFLOAT3(-1.0f, 1.0f, 0.0f);  // Top left.
+	vertices[1].position = XMFLOAT3(quad1Left.x, 1.0f, quad1Left.y);  // Top left.
 	vertices[1].texCoord = XMFLOAT2(0.0f, 0.0f);
-	vertices[1].texID = 0;
 
-	vertices[2].position = XMFLOAT3(1.0f, 1.0f, 0.0f);  // Top right.
+	vertices[2].position = XMFLOAT3(quad1Right.x, 1.0f, quad1Right.y);  // Top right.
 	vertices[2].texCoord = XMFLOAT2(1.0f, 0.0f);
-	vertices[2].texID = 0;
 
-	vertices[3].position = XMFLOAT3(1.0f, -1.0f, 0.0f);  // Bottom right.
+	vertices[3].position = XMFLOAT3(quad1Right.x, 0.0f, quad1Right.y);  // Bottom right.
 	vertices[3].texCoord = XMFLOAT2(1.0f, 1.0f);
-	vertices[3].texID = 0;
+
+	vertices[4].position = XMFLOAT3(quad1Left.x, 0.0f, quad1Left.y);  // Bottom left.
+	vertices[4].texCoord = XMFLOAT2(0.0f, 1.0f);
+
+	vertices[5].position = XMFLOAT3(quad1Right.x, 1.0f, quad1Right.y);  // Top right.
+	vertices[5].texCoord = XMFLOAT2(1.0f, 0.0f);
+
 
 	//Quad #2
-	vertices[4].position = XMFLOAT3(0.0f, -1.0f, -1.0f);  // Bottom left.
-	vertices[4].texCoord = XMFLOAT2(0.0f, 1.0f);
-	vertices[4].texID = 1;
+	vertices[6].position = XMFLOAT3(quad2Left.x, 0.0f, quad2Left.y);  // Bottom left.
+	vertices[6].texCoord = XMFLOAT2(0.0f, 1.0f);
 
-	vertices[5].position = XMFLOAT3(0.0f, 1.0f, -1.0f);  // Top left.
-	vertices[5].texCoord = XMFLOAT2(0.0f, 0.0f);
-	vertices[5].texID = 1;
+	vertices[7].position = XMFLOAT3(quad2Left.x, 1.0f, quad2Left.y);  // Top left.
+	vertices[7].texCoord = XMFLOAT2(0.0f, 0.0f);
 
-	vertices[6].position = XMFLOAT3(0.0f, 1.0f, 1.0f);  // Top right.
-	vertices[6].texCoord = XMFLOAT2(1.0f, 0.0f);
-	vertices[6].texID = 1;
+	vertices[8].position = XMFLOAT3(quad2Right.x, 1.0f, quad2Right.y);  // Top right.
+	vertices[8].texCoord = XMFLOAT2(1.0f, 0.0f);
 
-	vertices[7].position = XMFLOAT3(0.0f, -1.0f, 1.0f);  // Bottom right.
-	vertices[7].texCoord = XMFLOAT2(1.0f, 1.0f);
-	vertices[7].texID = 1;
+	vertices[9].position = XMFLOAT3(quad2Right.x, 0.0f, quad2Right.y);  // Bottom right.
+	vertices[9].texCoord = XMFLOAT2(1.0f, 1.0f);
+
+	vertices[10].position = XMFLOAT3(quad2Left.x, 0.0f, quad2Left.y);  // Bottom left.
+	vertices[10].texCoord = XMFLOAT2(0.0f, 1.0f);
+
+	vertices[11].position = XMFLOAT3(quad2Right.x, 1.0f, quad2Right.y);  // Top right.
+	vertices[11].texCoord = XMFLOAT2(1.0f, 0.0f);
+
+
+	//Quad #3
+	vertices[12].position = XMFLOAT3(quad3Left.x, 0.0f, quad3Left.y);  // Bottom left.
+	vertices[12].texCoord = XMFLOAT2(0.0f, 1.0f);
+
+	vertices[13].position = XMFLOAT3(quad3Left.x, 1.0f, quad3Left.y);  // Top left.
+	vertices[13].texCoord = XMFLOAT2(0.0f, 0.0f);
+
+	vertices[14].position = XMFLOAT3(quad3Right.x, 1.0f, quad3Right.y);  // Top right.
+	vertices[14].texCoord = XMFLOAT2(1.0f, 0.0f);
+
+	vertices[15].position = XMFLOAT3(quad3Right.x, 0.0f, quad3Right.y);  // Bottom right.
+	vertices[15].texCoord = XMFLOAT2(1.0f, 1.0f);
+
+	vertices[16].position = XMFLOAT3(quad3Left.x, 0.0f, quad3Left.y);  // Bottom left.
+	vertices[16].texCoord = XMFLOAT2(0.0f, 1.0f);
+
+	vertices[17].position = XMFLOAT3(quad3Right.x, 1.0f, quad3Right.y);  // Top right.
+	vertices[17].texCoord = XMFLOAT2(1.0f, 0.0f);
 
 
 	// Set up the description of the static vertex buffer.
@@ -171,9 +218,9 @@ bool VegetationManager::SetupQuads( ID3D11Device* device, std::vector<XMFLOAT3>*
 	}
 
 	// Load the instance array with data.
-	for(int i = 0; i < positions->size(); i++)
+	for(unsigned int i = 0; i < positions->size(); i++)
 	{
-		instances[i].position = positions->at(i);
+		instances[i].position = positions->at(i); //positions contains an XMFLOAT4 that consists of a float3 position and a float/int that contains texture ID
 	}
 
 	// Set up the description of the instance buffer.
@@ -219,14 +266,38 @@ void VegetationManager::Shutdown()
 		vertexBuffer = 0;
 	}
 
-	delete textureArray[0];
-	textureArray[0] = 0;
+	if(textureArray[0])
+	{
+		textureArray[0]->Release();
+		textureArray[0] = 0;
+	}
 
-	delete textureArray[1];
-	textureArray[1] = 0;
+	if(textureArray[1])
+	{
+		textureArray[1]->Release();
+		textureArray[1] = 0;
+	}
+
+	if(vegetationShader)
+	{
+		vegetationShader->Shutdown();
+		vegetationShader = 0;
+	}
 }
 
-void VegetationManager::Render(ID3D11DeviceContext* deviceContext)
+bool VegetationManager::Render(ID3D11DeviceContext* deviceContext, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection)
+{
+	RenderBuffers(deviceContext);
+
+	if(!vegetationShader->Render(deviceContext, vertexCount, instanceCount, world, view, projection, textureArray))
+	{
+		return false;
+	}
+
+	return true;
+}
+
+void VegetationManager::RenderBuffers( ID3D11DeviceContext* deviceContext)
 {
 	unsigned int strides[2];
 	unsigned int offsets[2];

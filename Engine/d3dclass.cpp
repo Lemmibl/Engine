@@ -712,6 +712,7 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 	blendStateDescription.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
 	blendStateDescription.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	blendStateDescription.RenderTarget[0].RenderTargetWriteMask = 0x0F;
+	blendStateDescription.AlphaToCoverageEnable = true;
 
 	// Create the blend state using the description.
 	result = device->CreateBlendState(&blendStateDescription, &alphaEnableBlendingState); //Enable
@@ -722,6 +723,7 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 
 	// Modify the description to create an alpha disabled blend state description.
 	blendStateDescription.RenderTarget[0].BlendEnable = FALSE;
+	blendStateDescription.AlphaToCoverageEnable = false;
 
 	// Create the blend state using the description.
 	result = device->CreateBlendState(&blendStateDescription, &alphaDisableBlendingState); //Disable
