@@ -206,12 +206,6 @@ void Engine::Shutdown()
 		marchingCubes = 0;
 	}
 
-	//if(metaBalls)
-	//{
-	//	delete metaBalls;
-	//	metaBalls = 0;
-	//}
-
 	// Release the input object.
 	if(input)
 	{

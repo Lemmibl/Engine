@@ -239,9 +239,6 @@ void CameraClass::Update()
 	XMVECTOR determinant;
 	XMStoreFloat4x4(&world, XMMatrixInverse(&determinant, tempView));
 
-	XMStoreFloat3(&position, tempPos);
-	XMStoreFloat3(&rotation, tempRot);
-
 	return;
 }
 

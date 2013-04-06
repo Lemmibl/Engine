@@ -53,8 +53,10 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	//surface-to-light vector
 	float3 lightVector =  normalize(position-adjustedLightPos);
 
+	//saturate( 1.0f - (length(lightVector) / LightRadius) );
+
 	float d = distance(position, adjustedLightPos);
-	float attenuation = (LightRadius / ((d*d)+0.6f)); //Slight offset to dampen the light
+	float attenuation = (LightRadius / ((d*d)+0.1f)); //Slight offset to dampen the light
 
 	//calculate NdotL product
 	float NdL = max(dot(normal, lightVector), 0);
@@ -69,7 +71,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	float3 directionToCamera = normalize(CameraPosition-position);
 
 	//compute specular light
-	float specularLight =  pow( saturate( dot(reflectionVector, directionToCamera)), LightPower);
+	float specularLight = pow( saturate( dot(reflectionVector, directionToCamera)), LightPower);
 
 	//scale final value with attenuation, leave specular light unaffected
 	return attenuation * half4(diffuseLight, specularLight);

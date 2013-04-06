@@ -855,16 +855,9 @@ bool Renderer::Render()
 
 		sphereModel->Render(context);
 
-		if(!toggleDebugInfo)
-		{
-			result = textureShader->Render(context, sphereModel->GetIndexCount(), &XMLoadFloat4x4(&pointLights[i]->World), &viewMatrix, 
-				&projectionMatrix, sphereModel->GetTexture());
-		}
-		else
-		{
-			result = pointLightShader->Render(context, sphereModel->GetIndexCount(), &viewMatrix, 
-				&projectionMatrix, &invertedViewProjection, pointLights[i], gbufferTextures, camPos);
-		}
+
+		result = pointLightShader->Render(context, sphereModel->GetIndexCount(), &viewMatrix, 
+			&projectionMatrix, &invertedViewProjection, pointLights[i], gbufferTextures, camPos);
 		if(!result)
 		{
 			return false;
@@ -973,7 +966,7 @@ bool Renderer::Render()
 		// Turn the Z buffer back on now that all 2D rendering has completed.
 		d3D->TurnZBufferOn();
 	}
-#pragma endregion
+	#pragma endregion
 
 	// Present the rendered scene to the screen.
 	d3D->EndScene();

@@ -134,6 +134,11 @@ void ControllerClass::Update(float frameTime)
 	tempPos += movementThisUpdate;
 	tempRot += rotationThisUpdate;
 
+	if(abs(XMVectorGetX(tempRot)) >= 180.0f)
+	{
+		XMVectorSetX(tempRot, 180.0f);
+	}
+
 	XMStoreFloat3(position, tempPos);
 	XMStoreFloat3(rotation, tempRot);
 
