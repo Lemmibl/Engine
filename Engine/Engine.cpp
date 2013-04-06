@@ -70,6 +70,19 @@ bool Engine::Initialize()
 		return false;
 	}
 
+	cameraController = new ControllerClass();
+	if(!cameraController)
+	{
+		return false;
+	}
+
+	result = cameraController->Initialize(input, 0.01f, 0.05f);
+	if(!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the camera controller object.", L"Error", MB_OK);
+		return false;
+	}
+
 	// Create the camera object.
 	camera = new CameraClass();
 	if(!camera)
@@ -77,6 +90,8 @@ bool Engine::Initialize()
 		MessageBox(hwnd, L"Could not create the camera object. Look in engine.", L"Error", MB_OK);
 		return false;
 	}
+
+	camera->Initialize(cameraController);
 
 	// Initialize a base view matrix with the camera for 2D user interface rendering.
 	camera->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
@@ -132,22 +147,6 @@ bool Engine::Initialize()
 		MessageBox(hwnd, L"Could not initialize the Timer object.", L"Error", MB_OK);
 		return false;
 	}
-
-	cameraController = new ControllerClass();
-	if(!cameraController)
-	{
-		return false;
-	}
-
-	result = cameraController->Initialize(input, camera, 0.01f, 0.05f);
-	if(!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the camera controller object.", L"Error", MB_OK);
-		return false;
-	}
-
-	cameraController->SetPosition(camera->GetPositionPtr());
-	cameraController->SetRotation(camera->GetRotationPtr());
 
 	return true;	
 }
@@ -280,7 +279,8 @@ bool Engine::Update()
 		return false;
 	}
 
-	cameraController->Update(timer->GetFrameTime()); //Processes all of the movement for this controller.
+	cameraController->Update(timer->GetFrameTime(), camera->GetWorldMatrix()); //Processes all of the movement for this controller.
+	camera->Update();
 	
 	// Do the frame processing for the graphics object.
 	result = renderer->Update(fpsMeter->GetFps(), cpuMeter->GetCpuPercentage(), timer->GetFrameTime(), timer->GetFrameTimeSeconds());

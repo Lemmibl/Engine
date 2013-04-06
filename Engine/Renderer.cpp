@@ -633,7 +633,6 @@ bool Renderer::Render()
 	ID3D11DepthStencilView* ds;
 
 	// Generate the view matrix based on the camera's position.
-	camera->Update();
 	camPos = camera->GetPosition();
 
 	gbufferRenderTargets[0] = colorRT->RTView;

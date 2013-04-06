@@ -134,26 +134,26 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	half3 finalDiffuseProduct = half3(0.0f, 0.0f, 0.0f);
 	float finalSpecularProduct = 0.0f;
 
-	float4 encodedNormal = shaderTextures[0].Sample(linearSampler, input.TexCoord);
-	float3 normal = normalize(Decode(encodedNormal.xyz));
-
 	//Sample camera depth
 	float depth = shaderTextures[1].Sample(pointSampler, input.TexCoord);
+
+	//Skip as early as possible if this pixel isn't supposed to be lit.
+	if(0.0f >= depth) 
+	{
+		//0, 0, 0, 0 at this point
+		return finalAmbienceProduct;
+	}
+
+	finalAmbienceProduct += Ka * AmbientColor;
+
+	float4 encodedNormal = shaderTextures[0].Sample(linearSampler, input.TexCoord);
+	float3 normal = normalize(Decode(encodedNormal.xyz));
 
 	//Surface-to-light vector
 	float3 lightVector = (-LightDirection);
 
 	//Calculate diffuse intensity, the usual
-	float NdL = (max(0, dot(normal, lightVector)));
-
-	//Skip as early as possible if this pixel isn't supposed to be lit.
-	if(0.0f >= depth) 
-	{
-		//0, 0, 0, 0
-		return finalAmbienceProduct;
-	}
-
-	finalAmbienceProduct += Ka * AmbientColor;
+	float NdL = max(0.0f, dot(normal, lightVector));
 
 	//Adjust value
 	input.ScreenPosition /= input.ScreenPosition.w;
@@ -161,11 +161,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//Reconstructing position
 	float4 position;
 	position.xy = input.ScreenPosition.xy;
-
-	//Add camera depth
 	position.z = depth;
-
-	//Set .w to 1.0f for later matrix multiplications
 	position.w = 1.0f;
 
 	//Extract pixel world position as seen from camera POV.
@@ -177,11 +173,10 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//Extract pixel position as seen from light POV for shadow map extraction.
 	float4 lightScreenPos = mul(position, LightViewProjection);
 
-	//Adjust value again.
+	//Adjust this value too.
 	lightScreenPos /= lightScreenPos.w;
 
-	//Depth as seen from camera POV.
-	float realDistanceToLight = lightScreenPos.z - 0.000002f;
+	float realDistanceToLight = lightScreenPos.z - 0.0002f;
 
 	float2 sampleLightScreen;
 	sampleLightScreen.x = ((lightScreenPos.x * 0.5f) + 0.5f);
@@ -203,23 +198,25 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		
 
 		/*PCF 16X shadow mapping. */
+
 		//float sum = 0.0f;
 		//float x, y;
 
-		//perform PCF filtering on a 4 x 4 texel neighborhood
+		////perform PCF filtering on a 4 x 4 texel neighborhood
 		//for (y = -1.5f; y <= 1.5f; y += 1.0f)
 		//{
 		//	for (x = -1.5f; x <= 1.5f; x += 1.0f)
 		//	{
-		//		sum += shaderTextures[2].SampleCmpLevelZero(cmpSampler, sampleLightScreen + GetShadowTexOffset(x,y), realDistanceToLight);
+		//		sum += shaderTextures[2].SampleCmpLevelZero(cmpSampler, sampleLightScreen + GetShadowTexOffset(x,y), realDistanceToLight).x;
 		//	}
 		//}
 
 		//shadowMultiplier = (sum / 16.0f);
 
+
 		/*Normal shadow mapping. Produces more artifacts. Nasty.*/
 
-		//float distanceStoredInDepthMap = shaderTextures[2].Sample(linearSampler, sampleLightScreen);
+		//float distanceStoredInDepthMap = shaderTextures[2].Sample(linearSampler, sampleLightScreen).x;
 
 		//if (realDistanceToLight < 1.0f && realDistanceToLight > distanceStoredInDepthMap)
 		//{

@@ -12,6 +12,7 @@
 //////////////
 #include <windows.h>
 #include <xnamath.h>
+#include "controllerclass.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: CameraClass
@@ -23,14 +24,19 @@ public:
 	CameraClass(const CameraClass&);
 	~CameraClass();
 
-#pragma region get and setters
+	bool Initialize(ControllerClass* externalController);
+
+	#pragma region get and setters
 	void SetPosition(XMFLOAT3);
 	void SetRotation(XMFLOAT3);
 
 	void GetViewMatrix(XMMATRIX&);
 	void GetProjectionMatrix(XMMATRIX&);
+
 	XMMATRIX GetView();
 	XMMATRIX GetProj();
+	XMFLOAT4X4* GetWorldMatrix();
+
 	XMFLOAT3* GetPositionPtr();
 	XMFLOAT3* GetRotationPtr();
 	XMFLOAT3 GetPosition();
@@ -49,20 +55,20 @@ public:
 	XMVECTOR RightVector();
 	XMVECTOR UpVector();
 	XMVECTOR DownVector();
-#pragma endregion
-
+	#pragma endregion
 
 	void Update();
 	void SetPerspectiveProjection(int screenWidth, int screenHeight, float FOVinDegrees, float zNear, float zFar);
 
 private:
-	XMFLOAT3 MatrixForward(XMMATRIX& matrix);
-	XMFLOAT3 MatrixBackward(XMMATRIX& matrix);
-	XMFLOAT3 MatrixLeft(XMMATRIX& matrix);
-	XMFLOAT3 MatrixRight(XMMATRIX& matrix);
-	XMFLOAT3 MatrixUp(XMMATRIX& matrix);
-	XMFLOAT3 MatrixDown(XMMATRIX& matrix);
+	XMFLOAT3 MatrixForward();
+	XMFLOAT3 MatrixBackward();
+	XMFLOAT3 MatrixLeft();
+	XMFLOAT3 MatrixRight();
+	XMFLOAT3 MatrixUp();
+	XMFLOAT3 MatrixDown();
 
+	ControllerClass* controller;
 	XMFLOAT3 position, rotation;
 	XMFLOAT4X4 world, view, projection;
 	float yaw, pitch, roll;
