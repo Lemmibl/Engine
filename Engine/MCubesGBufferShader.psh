@@ -41,7 +41,7 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 	blend_weights = max(blend_weights, 0);
 	blend_weights /= (blend_weights.x + blend_weights.y + blend_weights.z); // Force weights to sum to 1.0 (very important!)  
 
-	float scale = 0.6f;
+	float scale = 0.45f;
 
 	float2 YZCoord = input.WorldPosition.yz * scale;  
 	float2 XZCoord = input.WorldPosition.zx * 0.2f;  

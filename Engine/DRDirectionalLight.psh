@@ -109,6 +109,11 @@ float ShadowContribution(float2 lightTexCoord, float distanceToLight)
 		return 1.0f;
 	}
 
+	if(moments.x == 0.0f)
+	{
+		return 0.0f; //There is no depth.
+	}
+
 	// Compute the Chebyshev upper bound.
 	float shadowContribution = ChebyshevUpperBound(moments, distanceToLight);
 
@@ -129,20 +134,27 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	half3 finalDiffuseProduct = half3(0.0f, 0.0f, 0.0f);
 	float finalSpecularProduct = 0.0f;
 
+	float4 encodedNormal = shaderTextures[0].Sample(linearSampler, input.TexCoord);
+	float3 normal = normalize(Decode(encodedNormal.xyz));
+
 	//Sample camera depth
 	float depth = shaderTextures[1].Sample(pointSampler, input.TexCoord);
 
+	//Surface-to-light vector
+	float3 lightVector = (-LightDirection);
+
+	//Calculate diffuse intensity, the usual
+	float NdL = (max(0, dot(normal, lightVector)));
+
 	//Skip as early as possible if this pixel isn't supposed to be lit.
-	if(0 >= depth) 
+	if(0.0f >= depth) 
 	{
 		//0, 0, 0, 0
 		return finalAmbienceProduct;
 	}
 
 	finalAmbienceProduct += Ka * AmbientColor;
-	float4 encodedNormal = shaderTextures[0].Sample(linearSampler, input.TexCoord);
-	float3 normal = normalize(Decode(encodedNormal.xyz));
-	
+
 	//Adjust value
 	input.ScreenPosition /= input.ScreenPosition.w;
 	
@@ -182,6 +194,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	(		
 		!(	sampleLightScreen.x >= 1 || sampleLightScreen.x	< 0	|| 
 			sampleLightScreen.y >= 1 || sampleLightScreen.y	< 0	)
+		&& NdL > 0.0f
 	)
 	{
 		/*Variance shadow mapping. http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html */
@@ -212,12 +225,6 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		//{
 		//	shadowMultiplier = 0.35f;
 		//}
-		
-		//Surface-to-light vector
-		float3 lightVector = (-LightDirection);
-
-		//Calculate diffuse intensity, the usual
-		float NdL = (max(0, dot(normal, lightVector)));
 
 		//Reflection vector
 		float3 reflectionVector = normalize(-reflect(lightVector, normal));
@@ -234,5 +241,5 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 
 
 	//Storing specular in alpha channel. Applying shadow multiplier to both diffuse product and specular, but not ambient, to make sure it's not completely black in shaded places.
-	return half4(finalAmbienceProduct.rgb + shadowMultiplier * finalDiffuseProduct, shadowMultiplier * finalSpecularProduct);
+	return half4(finalAmbienceProduct.rgb + shadowMultiplier * finalDiffuseProduct, (finalSpecularProduct*shadowMultiplier));
 }
