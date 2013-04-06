@@ -354,9 +354,9 @@ bool Renderer::InitializeModels(HWND hwnd)
 
 	std::vector<XMFLOAT4>* tempContainer = new std::vector<XMFLOAT4>();
 
-	for(int i = 0; i < 100000; i++)
+	for(int i = 0; i < 5000; i++)
 	{
-		XMFLOAT4 temp = XMFLOAT4(-50.0f + 100.0f*random(), 0.0f, -50.0f + 100.0f*random(), (i%2));
+		XMFLOAT4 temp = XMFLOAT4(-50.0f + 100.0f*random(), 40.0f, -50.0f + 100.0f*random(), (i%2));
 		tempContainer->push_back(temp);
 	}
 
@@ -734,13 +734,13 @@ bool Renderer::Render()
 
 	worldMatrix = XMMatrixIdentity(); 
 	worldMatrix = XMMatrixTranspose(worldMatrix);
-	//marchingCubes->Render(context);
+	marchingCubes->Render(context);
 
-	//result = depthOnlyShader->Render(context, marchingCubes->GetIndexCount(), &worldMatrix, &lightView, &lightProj);
-	//if(!result)
-	//{
-	//	return false;
-	//}
+	result = depthOnlyShader->Render(context, marchingCubes->GetIndexCount(), &worldMatrix, &lightView, &lightProj);
+	if(!result)
+	{
+		return false;
+	}
 #pragma endregion
 
 #pragma region GBuffer building stage
@@ -816,9 +816,9 @@ bool Renderer::Render()
 	worldMatrix = XMMatrixIdentity(); 
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
-	//marchingCubes->Render(context);
-	//result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
-	//	&worldMatrix, &viewMatrix, &projectionMatrix, sphereModel->GetTextureArray());
+	marchingCubes->Render(context);
+	result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
+		&worldMatrix, &viewMatrix, &projectionMatrix, sphereModel->GetTextureArray());
 
 	d3D->TurnOnAlphaBlending();
 	d3D->SetNoCullRasterizer();

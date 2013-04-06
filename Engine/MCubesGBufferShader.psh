@@ -30,9 +30,11 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 {
 	PixelShaderOutput output;
 
+	float3 UpVector = float3(0.0f, 1.0f, 0.0f);
+
 	//Create weights for color interpolation based on world-space normal of surface
 	float tighten = 0.3f; 
-	float3 NormalizedWorldNormal = normalize(input.Normal);
+	float3 NormalizedWorldNormal = normalize(input.WorldNormal);
 
 	float3 blend_weights = abs(NormalizedWorldNormal);     
 	blend_weights = (blend_weights - tighten) * 7;  // Tighten up the blending zone
@@ -45,9 +47,21 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 	float2 XZCoord = input.WorldPosition.zx * 0.2f;  
 	float2 XYCoord = input.WorldPosition.xy * scale;
 
+	float4 XZColor;
+
+	if(dot(UpVector, NormalizedWorldNormal) <= 0.0f)
+	{
+		XZColor = shaderTextures[2].Sample(samplers[1], XZCoord);
+	}
+	else
+	{
+		XZColor = shaderTextures[0].Sample(samplers[1], XZCoord);
+	}
+
 	float4 YZColor = shaderTextures[1].Sample(samplers[1], YZCoord);
-	float4 XZColor = shaderTextures[0].Sample(samplers[1], XZCoord);
 	float4 XYColor = shaderTextures[2].Sample(samplers[1], XYCoord);
+
+	//if(NormalizedWorldNormal
 	
 	output.Color = ((XZColor * blend_weights.y) + (YZColor * blend_weights.x) + (XYColor * blend_weights.z));
 	output.Color.w = 1.0f;
