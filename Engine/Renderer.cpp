@@ -309,7 +309,7 @@ bool Renderer::InitializeLights(HWND hwnd)
 	// Initialize the directional light.
 	dirLight->Color = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
 	dirLight->Intensity = 128.0f;
-	dirLight->Position = XMFLOAT3(1.0f, 120.0f, 1.0f);
+	dirLight->Position = XMFLOAT3(0.0f, 120.0f, 0.0f);
 
 	XMVECTOR direction = XMVector3Normalize(lookAt - XMLoadFloat3(&dirLight->Position));
 	XMStoreFloat3(&dirLight->Direction, direction);
@@ -354,9 +354,9 @@ bool Renderer::InitializeModels(HWND hwnd)
 
 	std::vector<XMFLOAT4>* tempContainer = new std::vector<XMFLOAT4>();
 
-	for(int i = 0; i < 5000; i++)
+	for(int i = 0; i < 100000; i++)
 	{
-		XMFLOAT4 temp = XMFLOAT4(-50.0f + (rand() % 100), 10.0f, -50.0f + (rand() % 100), (i%2));
+		XMFLOAT4 temp = XMFLOAT4(-50.0f + 100.0f*random(), 0.0f, -50.0f + 100.0f*random(), (i%2));
 		tempContainer->push_back(temp);
 	}
 
@@ -430,11 +430,13 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 		return false;
 	}
 
-	result = dayNightCycle->Initialize(100.0f, DAWN);
+	result = dayNightCycle->Initialize(100.0f, DUSK);
 	if(!result)
 	{
 		return false;
 	}
+
+	dayNightCycle->Update(0.0f, dirLight, skySphere);
 
 	// Create the text object.
 	text = new TextClass();
@@ -732,13 +734,13 @@ bool Renderer::Render()
 
 	worldMatrix = XMMatrixIdentity(); 
 	worldMatrix = XMMatrixTranspose(worldMatrix);
-	marchingCubes->Render(context);
+	//marchingCubes->Render(context);
 
-	result = depthOnlyShader->Render(context, marchingCubes->GetIndexCount(), &worldMatrix, &lightView, &lightProj);
-	if(!result)
-	{
-		return false;
-	}
+	//result = depthOnlyShader->Render(context, marchingCubes->GetIndexCount(), &worldMatrix, &lightView, &lightProj);
+	//if(!result)
+	//{
+	//	return false;
+	//}
 #pragma endregion
 
 #pragma region GBuffer building stage
@@ -765,8 +767,8 @@ bool Renderer::Render()
 	context->ClearDepthStencilView(ds, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	// Move the model to the location it should be rendered at.
-	worldMatrix = XMMatrixTranslation(0.0f, -10.0f, 0.0f);
-	scalingMatrix = XMMatrixScaling(0.2f, 0.2f, 0.2f);
+	worldMatrix = XMMatrixTranslation(0.0f, 0.0f, 0.0f);
+	scalingMatrix = XMMatrixScaling(0.5f, 0.5f, 0.5f);
 	XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(debugRotation.x, debugRotation.y, debugRotation.z);
 
 	worldMatrix = scalingMatrix* rotationMatrix * worldMatrix;
@@ -808,25 +810,20 @@ bool Renderer::Render()
 			{
 				return false;
 			}
-
-			// Since this model was rendered then increase the count for this frame.
-			renderCount++;
 		}
 	}
 
 	worldMatrix = XMMatrixIdentity(); 
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
-	marchingCubes->Render(context);
-	result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
-		&worldMatrix, &viewMatrix, &projectionMatrix, sphereModel->GetTextureArray());
+	//marchingCubes->Render(context);
+	//result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
+	//	&worldMatrix, &viewMatrix, &projectionMatrix, sphereModel->GetTextureArray());
 
 	d3D->TurnOnAlphaBlending();
 	d3D->SetNoCullRasterizer();
 	vegetationManager->Render(context, &worldMatrix, &viewMatrix, &projectionMatrix);
 	d3D->TurnOffAlphaBlending();
-
-	renderCount++;
 
 	text->SetRenderCount(renderCount, context);
 #pragma endregion

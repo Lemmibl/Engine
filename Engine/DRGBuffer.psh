@@ -97,10 +97,11 @@ PixelShaderOutput GBufferPixelShader(VertexShaderOutput input)
 	normalFromMap = mul(normalFromMap, input.TangentToWorld);	//transform it into world space
 	normalFromMap = normalize(normalFromMap);					//then normalize the result
 
-	output.Normal.xyz = normalFromMap;//encode(normalFromMap);			//revert the normal output to [0,1] space then assign it to the output normal map's RGB channel
+	//output.Normal.xyz = encode(normalFromMap);	//normalFromMap;//		//revert the normal output to [0,1] space then assign it to the output normal map's RGB channel
 	//output.Normal.xyz = normalize(input.Normal);
+	output.Normal.xyz = encode(NormalizedWorldNormal);
 
-	output.Normal.w = specularAttributes.y; //specular power stored in normal map's alpha channel
+	output.Normal.w = 1.0f;//specularAttributes.y; //specular power stored in normal map's alpha channel
 
 	//output.Depth.x = (input.ViewPosition.z / FarZ); //Store depth linearly. Doesn't quite work with current shadowmapping technique.
 	output.Depth = (input.Depth.x / input.Depth.y);

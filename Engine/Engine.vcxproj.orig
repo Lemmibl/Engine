@@ -16,14 +16,18 @@
     <ClCompile Include="controllerclass.cpp" />
     <ClCompile Include="cpumeter.cpp" />
     <ClCompile Include="d3dclass.cpp" />
+    <ClCompile Include="DayNightCycle.cpp" />
     <ClCompile Include="debugwindowclass.cpp" />
+    <ClCompile Include="DepthOnlyQuadShader.cpp" />
     <ClCompile Include="DepthOnlyShader.cpp" />
-    <ClCompile Include="DRDirLight.cpp" />
-    <ClCompile Include="DRFinalComposition.cpp" />
+    <ClCompile Include="DRDirectionalLight.cpp" />
+    <ClCompile Include="DRCompose.cpp" />
     <ClCompile Include="DRGBuffer.cpp" />
     <ClCompile Include="fontshaderclass.cpp" />
     <ClCompile Include="fpsmeter.cpp" />
     <ClCompile Include="frustumclass.cpp" />
+    <ClCompile Include="VegetationShader.cpp" />
+    <ClCompile Include="MCubesGBufferShader.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="inputclass.cpp" />
     <ClCompile Include="main.cpp" />
@@ -33,13 +37,10 @@
     <ClCompile Include="modelclass.cpp" />
     <ClCompile Include="modellistclass.cpp" />
     <ClCompile Include="DRPointLight.cpp" />
-<<<<<<< Updated upstream
-=======
-    <ClCompile Include="PerlinNoise.cpp" />
-    <ClCompile Include="quadtreeclass.cpp" />
->>>>>>> Stashed changes
     <ClCompile Include="renderToTextureClass.cpp" />
     <ClCompile Include="SimplexNoise.cpp" />
+    <ClCompile Include="SkySphere.cpp" />
+    <ClCompile Include="SkysphereShader.cpp" />
     <ClCompile Include="soundclass.cpp" />
     <ClCompile Include="structs.cpp" />
     <ClCompile Include="Engine.cpp" />
@@ -48,11 +49,8 @@
     <ClCompile Include="textureclass.cpp" />
     <ClCompile Include="textureshaderclass.cpp" />
     <ClCompile Include="timerclass.cpp" />
-<<<<<<< Updated upstream
-=======
-    <ClCompile Include="tinyxml2.cpp" />
     <ClCompile Include="TreeClass.cpp" />
->>>>>>> Stashed changes
+    <ClCompile Include="VegetationManager.cpp" />
     <ClCompile Include="VertexShaderOnly.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -62,15 +60,19 @@
     <ClInclude Include="cpumeter.h" />
     <ClInclude Include="customStructs.h" />
     <ClInclude Include="d3dclass.h" />
+    <ClInclude Include="DayNightCycle.h" />
     <ClInclude Include="debugwindowclass.h" />
+    <ClInclude Include="DepthOnlyQuadShader.h" />
     <ClInclude Include="DepthOnlyShader.h" />
-    <ClInclude Include="DRDirLight.h" />
-    <ClInclude Include="DRFinalComposition.h" />
+    <ClInclude Include="DRDirectionalLight.h" />
+    <ClInclude Include="DRCompose.h" />
     <ClInclude Include="fontclass.h" />
     <ClInclude Include="fontshaderclass.h" />
     <ClInclude Include="fpsmeter.h" />
     <ClInclude Include="frustumclass.h" />
     <ClInclude Include="DRGBuffer.h" />
+    <ClInclude Include="VegetationShader.h" />
+    <ClInclude Include="MCubesGBufferShader.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="inputclass.h" />
     <ClInclude Include="interfacepointers.h" />
@@ -81,13 +83,10 @@
     <ClInclude Include="modelclass.h" />
     <ClInclude Include="modellistclass.h" />
     <ClInclude Include="DRPointLight.h" />
-<<<<<<< Updated upstream
-=======
-    <ClInclude Include="PerlinNoise.h" />
-    <ClInclude Include="quadtreeclass.h" />
->>>>>>> Stashed changes
     <ClInclude Include="renderToTextureClass.h" />
     <ClInclude Include="SimplexNoise.h" />
+    <ClInclude Include="SkySphere.h" />
+    <ClInclude Include="SkysphereShader.h" />
     <ClInclude Include="soundclass.h" />
     <ClInclude Include="structs.h" />
     <ClInclude Include="Engine.h" />
@@ -97,11 +96,8 @@
     <ClInclude Include="textureshaderclass.h" />
     <ClInclude Include="texturetriarray.h" />
     <ClInclude Include="timerclass.h" />
-<<<<<<< Updated upstream
-=======
-    <ClInclude Include="tinyxml2.h" />
     <ClInclude Include="TreeClass.h" />
->>>>>>> Stashed changes
+    <ClInclude Include="VegetationManager.h" />
     <ClInclude Include="VertexShaderOnly.h" />
   </ItemGroup>
   <ItemGroup>
@@ -121,8 +117,20 @@
     <None Include="mcubes.vsh" />
     <None Include="DRPointLight.psh" />
     <None Include="DRPointLight.vsh" />
+    <None Include="MCubesGBufferShader.psh" />
+    <None Include="MCubesGBufferShader.vsh" />
     <None Include="shader-error.txt" />
+    <None Include="skysphere.psh" />
+    <None Include="skysphere.vsh" />
     <None Include="standard.vsh" />
+<<<<<<< Updated upstream
+=======
+    <None Include="texture.psh" />
+    <None Include="texture.vsh" />
+    <None Include="VegetationQuad.gsh" />
+>>>>>>> Stashed changes
+    <None Include="VegetationQuad.psh" />
+    <None Include="VegetationQuad.vsh" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{06865CFB-43FF-4F0C-B8D0-4D834721545B}</ProjectGuid>
