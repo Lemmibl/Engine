@@ -153,10 +153,23 @@ void ControllerClass::Update(float frameTime, XMFLOAT4X4* cameraMatrix)
 	tempPos += movementThisUpdate;
 	tempRot += rotationThisUpdate;
 
-	if(abs(XMVectorGetX(tempRot)) >= 180.0f)
+	float X = XMVectorGetX(tempRot);
+	float Y = XMVectorGetY(tempRot);
+
+	if(X >= 89.0f) //We make sure the X rotation doesn't stray off the good path, lest it give in to temptation and sin.
 	{
-		tempRot = XMVectorSetX(tempRot, 180.0f);
+		tempRot = XMVectorSetX(tempRot, 89.0f);
 	}
+	else if(X <= -89.0f)
+	{
+		tempRot = XMVectorSetX(tempRot, -89.0f);
+	}
+
+	if(Y >= 360.0f || Y <= -360.0f) //We clamp Y rotation to a decent, goodhearted value that heeds the word of god.
+	{
+		tempRot = XMVectorSetY(tempRot, 0.0f);
+	}
+
 
 	XMStoreFloat3(position, tempPos);
 	XMStoreFloat3(rotation, tempRot);

@@ -222,30 +222,9 @@ void CameraClass::Update()
 	tempPos = XMLoadFloat3(&position);
 	tempRot = XMLoadFloat3(&rotation);
 
-	float y = XMVectorGetY(tempRot);
-
-	y *= (float)DEG_TO_RAD;
-
-	if(y > TWO_PI || y < -TWO_PI) //Just clamping the values to make sure it doesn't go out of control.
-	{
-		XMVectorSetY(tempRot, 0.0f);
-	}
-
 	pitch = XMVectorGetX(tempRot) * (float)DEG_TO_RAD;
 	yaw = XMVectorGetY(tempRot) * (float)DEG_TO_RAD;
 	roll = XMVectorGetZ(tempRot) * (float)DEG_TO_RAD;
-
-	if(pitch > PITCHROOF)
-	{
-		XMVectorSetX(tempRot, 80.0f);
-		pitch = PITCHROOF;
-	}
-
-	if(pitch < PITCHFLOOR)
-	{
-		XMVectorSetX(tempRot, -80.0f);
-		pitch = PITCHFLOOR;
-	}
 
 	rotationMatrix = XMMatrixRotationRollPitchYaw(pitch, yaw, roll); //Create rotation matrix
 
