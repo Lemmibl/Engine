@@ -106,40 +106,27 @@ void MCTerrainClass::Noise3D()
 	float max, min;
 	max = 0;
 	min = 1;
-<<<<<<< Updated upstream
-		for (z = worldSizeMargin; z < (this->sizeZ - worldSizeMargin); z++)
+
+		for (z = 0; z < (this->sizeZ); z++)
 		{
+<<<<<<< Updated upstream
 			for (y = worldSizeMargin; y < (this->sizeY - worldSizeMargin); y++)
+=======
+			for (y = 0; y < (this->sizeY); y++)
+		{
+				for (x = 0; x < (this->sizeX); x++)
+>>>>>>> Stashed changes
 			{
 				for (x = worldSizeMargin; x < (this->sizeX - worldSizeMargin); x++)
 				{
-=======
+					idx = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
 
-	//for (int w = worldSizeMargin; w < (this->sizeZ - worldSizeMargin); w++)
-	//{
-	for (z = 16; z < (this->sizeZ - 16); z++)
-	{
-		for (y = 16; y < (this->sizeY - 16); y++)
-		{
-			for (x = 16; x < (this->sizeX - 16); x++)
-			{
-				idx = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
-
-				//float r = (float)rand()/(float)RAND_MAX;
-				float r = (noise->noise3D(this->marchingCubeVertices2[idx].posX, marchingCubeVertices2[idx].posY, marchingCubeVertices2[idx].posZ) + 1.0f) * 0.5f;
->>>>>>> Stashed changes
-
-				r += ((noise->noise3D(this->marchingCubeVertices2[idx].posX, marchingCubeVertices2[idx].posY, marchingCubeVertices2[idx].posZ)))*0.25f;
-
-				r += ((noise->noise3D(this->marchingCubeVertices2[idx].posX, marchingCubeVertices2[idx].posY, marchingCubeVertices2[idx].posZ)))*7.25f;
-
-<<<<<<< Updated upstream
-					float r =  + sizeY * 0.4f - y;
-					r += (noise->noise3D2(this->marchingCubeVertices2[idx].posX/20,marchingCubeVertices2[idx].posY/260,marchingCubeVertices2[idx].posZ/20) + 1.0f) *2.0f;
+					float r =  + sizeY * 0.2f - y;
+					r += (noise->noise3D2(this->marchingCubeVertices2[idx].posX/20,marchingCubeVertices2[idx].posY/260,marchingCubeVertices2[idx].posZ/20) + 1.0f) *4.0f;
 					r += (noise->noise3D2(this->marchingCubeVertices2[idx].posX/20,marchingCubeVertices2[idx].posY/260,marchingCubeVertices2[idx].posZ/20) + 1.0f) *2.0f;
 					r += (noise->noise3D2(this->marchingCubeVertices2[idx].posX/30,marchingCubeVertices2[idx].posY/30,marchingCubeVertices2[idx].posZ/30) + 1.0f) *2.0f;
-					//r += (noise->noise3D2(this->marchingCubeVertices2[idx].posX/120,marchingCubeVertices2[idx].posY/20,marchingCubeVertices2[idx].posZ/120) + 1.0f) *5.0f;
-					r -= (noise->noise3D2(this->marchingCubeVertices2[idx].posX/320,marchingCubeVertices2[idx].posY/20,marchingCubeVertices2[idx].posZ/320) + 1.0f) *10.0f;
+					r += (noise->noise3D2(this->marchingCubeVertices2[idx].posX/120,marchingCubeVertices2[idx].posY/20,marchingCubeVertices2[idx].posZ/120) + 1.0f) *5.0f;
+					//r -= (noise->noise3D2(this->marchingCubeVertices2[idx].posX/320,marchingCubeVertices2[idx].posY/20,marchingCubeVertices2[idx].posZ/320) + 1.0f) *10.0f;
 					/**shelves
 					
 					////***
@@ -150,10 +137,6 @@ void MCTerrainClass::Noise3D()
 					r += (noise->noise3D2(this->marchingCubeVertices2[idx].posX/30,marchingCubeVertices2[idx].posY/230,marchingCubeVertices2[idx].posZ/30) + 1.0f) *5.0f;
 					r -= (noise->noise3D2(this->marchingCubeVertices2[idx].posX/30,marchingCubeVertices2[idx].posY/30,marchingCubeVertices2[idx].posZ/300) + 1.0f) *10.0f;
 					//***
-
-
-
-					
 
 					//Hardfloor
 					if(y < 5)
@@ -206,68 +189,37 @@ void MCTerrainClass::Noise3D()
 					/*if(r<0)
 						{r = 0.0f;}*/
 
-					this->marchingCubeVertices2[idx].flux = r * 1;
+					this->marchingCubeVertices2[idx].flux = r * 1.0f;
 					
 					//r *= 1000 *3;
 
-					if(max < r)
-						{max = r;}
-					if(min > r)
-						{min = r;}
-
-					
-					if (r > 0.2f)
-					{
-						this->marchingCubeVertices2[idx].inside = true;
-					}
-					else
-					{
-						this->marchingCubeVertices2[idx].inside = false;
-					}
-					
-					
-	
-					this->marchingCubeVertices2[idx].normalX = this->marchingCubeVertices2[idx - 1].flux - this->marchingCubeVertices2[idx+1].flux;
-					this->marchingCubeVertices2[idx].normalY = this->marchingCubeVertices2[idx - this->sizeY].flux - this->marchingCubeVertices2[idx + this->sizeY].flux;
-					this->marchingCubeVertices2[idx].normalZ = this->marchingCubeVertices2[idx - (this->sizeY * this->sizeZ)].flux - this->marchingCubeVertices2[idx + (this->sizeY * this->sizeZ)].flux;
-=======
-				r += ((noise->noise3D(this->marchingCubeVertices2[idx].posX, marchingCubeVertices2[idx].posY, marchingCubeVertices2[idx].posZ)))*2.5f;
-
 				if(max < r)
-				{max = r;}
+					{max = r;}
 				if(min > r)
-				{min = r;}
+					{min = r;}
 
-
-				if(r < 0.0f)
-				{
-					this->marchingCubeVertices2[idx].flux = 0.0f;
-				}
-				else
-				{
-					this->marchingCubeVertices2[idx].flux = r;
-				}		
-
+					
 				if (r > 0.2f)
-				{
+								{
 					this->marchingCubeVertices2[idx].inside = true;
 				}
 				else
 				{
 					this->marchingCubeVertices2[idx].inside = false;
->>>>>>> Stashed changes
 				}
-
+					
+					
+	
 				this->marchingCubeVertices2[idx].normalX = this->marchingCubeVertices2[idx - 1].flux - this->marchingCubeVertices2[idx+1].flux;
-				this->marchingCubeVertices2[idx].normalY = this->marchingCubeVertices2[idx - this->sizeY].flux - this->marchingCubeVertices2[idx + this->sizeY].flux;
-				this->marchingCubeVertices2[idx].normalZ = this->marchingCubeVertices2[idx - (this->sizeY * this->sizeZ)].flux - this->marchingCubeVertices2[idx + (this->sizeY * this->sizeZ)].flux;
+				int i = idx + this->sizeY;
+				int j = idx - this->sizeY;
+				this->marchingCubeVertices2[idx].normalY = this->marchingCubeVertices2[i].flux - this->marchingCubeVertices2[j].flux;
+				int k = idx - (this->sizeY * this->sizeZ);
+				int l = idx + (this->sizeY * this->sizeZ);
+				this->marchingCubeVertices2[idx].normalZ = this->marchingCubeVertices2[k].flux - this->marchingCubeVertices2[k].flux;
 			}
 		}
-<<<<<<< Updated upstream
-=======
 	}
-	//}
->>>>>>> Stashed changes
 	max = max;
 	min = min;
 }

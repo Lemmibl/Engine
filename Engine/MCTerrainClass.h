@@ -4,6 +4,9 @@
 #include "SimplexNoise.h"
 #include <stdlib.h> //srand
 #include <time.h>
+#include <vector>
+
+using std::vector;
 
 class MCTerrainClass
 {
@@ -14,15 +17,16 @@ private:
 	int worldSize;
 	int worldSizeMargin;
 	int x,y,z, idx;
-	MarchingCubeVertex *marchingCubeVertices2;
+	MarchingCubeVertex *marchingCubeVertices;
 	SimplexNoise *noise;
 	int worldArraySize;
 	int *marchingCubesFluxArray;
-	//float[][][] marchingCubesFluxArray;
+	
+	vector<vector<vector<float>>> densityArray3D;
 public:
 	MCTerrainClass(void);
 
-	MCTerrainClass
+	void Initialize
 		(
 		int sizeX,
 		int sizeY,
@@ -42,9 +46,24 @@ public:
 
 	void Noise3D();
 
+	MarchingCubeVertex* &getMarchingCubeVertices()
+	{
+		return marchingCubeVertices;
+	}
+
+	vector<vector<vector<float>>> const &getDensityArray3D() const
+{
+    return densityArray3D;
+}
+
+	float GetHighestPositionOfCoordinate(int x, int z);
+
+
+	//float* getDensityArray(){;}
+
 private:
 	void CreateMCVerts();
 
-	
+
 
 };

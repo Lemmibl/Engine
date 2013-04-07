@@ -484,7 +484,7 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 	}
 
 	metaBalls = new MetaballsClass();
-	marchingCubes = new MarchingCubesClass(-40.0f, -40.0f, -40.0f, 40.0f, 40.0f, 40.0f, 1.5f, 1.5f, 1.5f);
+	marchingCubes = new MarchingCubesClass(0.0f, 0.0f, 0.0f, 60.0f, 60.0f, 60.0f, 1.5f, 1.5f, 1.5f);
 	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
 
 	marchingCubes->GetTerrain().Noise3D();

@@ -380,7 +380,10 @@ const int MarchingCubesClass::edgeTable[256] = {
 			}
 		}
 
-		this->Terrain = new MCTerrainClass(sizeX,sizeY,sizeZ,this->marchingCubeVertices);
+		this->Terrain = new MCTerrainClass();
+
+		Terrain->Initialize(sizeX,sizeY,sizeZ,this->marchingCubeVertices);
+
 		Terrain->Noise3D();
 		//this->Tree = new TreeClass(sizeX,sizeY,sizeZ,this->marchingCubeVertices);
 	}
@@ -609,18 +612,18 @@ const int MarchingCubesClass::edgeTable[256] = {
 								indices[indexCounter] = vertexCounter;
 
 								vertices[vertexCounter].position = XMFLOAT3	
-								(	
+									(	
 									this->verts[this->triTable[lookup][j]].posX,
 									this->verts[this->triTable[lookup][j]].posY,
 									this->verts[this->triTable[lookup][j]].posZ		
-								);
+									);
 
 								vertices[vertexCounter].normal = XMFLOAT3	
-								(	
+									(	
 									this->verts[this->triTable[lookup][j]].normalX, 
 									this->verts[this->triTable[lookup][j]].normalY, 
 									this->verts[this->triTable[lookup][j]].normalZ	
-								);
+									);
 
 								vertexCounter++;
 								indexCounter++;
@@ -776,6 +779,10 @@ const int MarchingCubesClass::edgeTable[256] = {
 			}
 		}
 
-		this->Terrain = new MCTerrainClass(sizeX,sizeY,sizeZ,this->marchingCubeVertices);
+		this->Terrain = new MCTerrainClass();
+		this->Terrain->Initialize(sizeX,sizeY,sizeZ,this->marchingCubeVertices);
 		Terrain->Noise3D();
+		Terrain->GetHighestPositionOfCoordinate(10,20);
 	}
+
+

@@ -89,6 +89,7 @@ public:
 
 	void Reset();
 
+
 	void SetWireframe(bool s)
 	{
 		this->wireframe = s;
@@ -103,6 +104,8 @@ public:
 	{
 		return *Terrain;
 	}
+
+
 
 
 //private:
