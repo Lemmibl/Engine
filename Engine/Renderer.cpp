@@ -6,6 +6,11 @@
 /*
 Inför terrain rendering / många texturer:
 http://www.gamedev.net/topic/612977-dynamic-updating-of-structuredbuffer-in-dx11/ < DEN HÄR
+http://gamedev.stackexchange.com/questions/14507/loading-a-texture2d-array-in-directx11
+http://msdn.microsoft.com/en-us/library/ff476486(VS.85).aspx
+http://stackoverflow.com/questions/6347950/programmatically-creating-directx-11-textures-pros-and-cons-of-the-three-differ
+http://irrlicht.sourceforge.net/forum/viewtopic.php?t=21236
+http://gamedev.stackexchange.com/questions/14873/loading-a-sub-resource-for-a-texture-array
 
 http://stackoverflow.com/questions/35950/i-dont-understand-stdtr1unordered-map
 Spara material ID i normal alpha channel
