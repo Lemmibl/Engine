@@ -23,25 +23,24 @@ http://www.gamedev.net/page/resources/_/technical/graphics-programming-and-theor
 http://www.iquilezles.org/www/articles/ssao/ssao.htm
 
 Inför gräsquads:
+http://gamedev.stackexchange.com/questions/5038/shadow-mapping-and-transparent-quads
+http://www.gamedev.net/topic/362393-shadow-map-alpha-testing-question-solved/
+http://www.gamedev.net/topic/551160-directx-shadow-map-example-has-no-alpha/
+http://gamedev.stackexchange.com/questions/22507/what-is-the-alphatocoverage-blend-state-useful-for
+http://blogs.msdn.com/b/shawnhar/archive/2009/02/18/depth-sorting-alpha-blended-objects.aspx
+
+
 http://www.geeks3d.com/20100831/shader-library-noise-and-pseudo-random-number-generator-in-glsl/
-
 http://ogldev.atspace.co.uk/www/tutorial27/tutorial27.html
-
 http://zeuxcg.blogspot.se/2007/09/particle-rendering-revisited.html
 http://realtimecollisiondetection.net/blog/?p=91
-
 http://www.flashbang.se/archives/315
-
 http://faculty.ycp.edu/~dbabcock/PastCourses/cs470/labs/lab11.html
 http://faculty.ycp.edu/~dbabcock/PastCourses/cs470/labs/lab13.html
-
 http://www.rastertek.com/dx11tut37.html
-http://blogs.msdn.com/b/shawnhar/archive/2009/02/18/depth-sorting-alpha-blended-objects.aspx
 http://software.intel.com/en-us/articles/rendering-grass-with-instancing-in-directx-10
 http://http.developer.nvidia.com/GPUGems/gpugems_ch07.html
-
 http://developer.amd.com/wordpress/media/2012/10/ShaderX_AnimatedGrass.pdf
-http://gamedev.stackexchange.com/questions/22507/what-is-the-alphatocoverage-blend-state-useful-for
 
 Directional light lens flare:
 http://www.madgamedev.com/post/2010/04/21/Article-Sun-and-Lens-Flare-as-a-Post-Process.aspx
