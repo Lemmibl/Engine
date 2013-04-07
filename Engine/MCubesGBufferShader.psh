@@ -41,15 +41,16 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 	blend_weights = max(blend_weights, 0);
 	blend_weights /= (blend_weights.x + blend_weights.y + blend_weights.z); // Force weights to sum to 1.0 (very important!)  
 
-	float scale = 0.45f;
+	float scale = 0.1f;
 
 	float2 YZCoord = input.WorldPosition.yz * scale;  
-	float2 XZCoord = input.WorldPosition.zx * 0.2f;  
+	float2 XZCoord = input.WorldPosition.zx * scale;  
 	float2 XYCoord = input.WorldPosition.xy * scale;
 
 	float4 XZColor;
+	float dotResult = dot(UpVector, NormalizedWorldNormal);
 
-	if(dot(UpVector, NormalizedWorldNormal) <= 0.0f)
+	if(dotResult <= 0.0f)
 	{
 		XZColor = shaderTextures[2].Sample(samplers[1], XZCoord);
 	}

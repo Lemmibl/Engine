@@ -258,15 +258,15 @@ bool Renderer::InitializeLights(HWND hwnd)
 		pointLights.push_back(new PointLight());
 		pointLights[i]->Position = XMFLOAT3(x, y, z);
 		pointLights[i]->Color = XMFLOAT3(0.1f+i%4, 0.1f+i%2, 1.0f-i%3);
-		pointLights[i]->Radius = 2.0f;
+		pointLights[i]->Radius = 8.0f;
 		pointLights[i]->Intensity = 512.0f; //The lower it gets, the more intense it gets
 
-		x += 5.0f;
+		x += 10.0f;
 
-		if(x >= 12.0f) //Every 10th light gets reseted in x and z plane.
+		if(x >= 30.0f) //Every 10th light gets reseted in x and z plane.
 		{
 			x = -10.0f;
-			z += 5.0f;
+			z += 10.0f;
 		}
 
 		if(i != 0 && i % 100 == 0) //Every 100 pointlights we reset and make another layer that is (y+8) higher up.
@@ -385,7 +385,7 @@ bool Renderer::InitializeModels(HWND hwnd)
 	}
 
 	// Initialize the model object. It really doesn't matter what textures it has because it's only used for point light volume culling.
-	result = sphereModel->Initialize(d3D->GetDevice(), "../Engine/data/skydome.txt", L"../Engine/data/grass.dds", L"../Engine/data/seafloor.dds", L"../Engine/data/dirt.dds");
+	result = sphereModel->Initialize(d3D->GetDevice(), "../Engine/data/skydome.txt", L"../Engine/data/grass.dds", L"../Engine/data/dirt.dds", L"../Engine/data/rock.dds");
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
