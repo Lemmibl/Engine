@@ -31,7 +31,7 @@ bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
 	//Deep Sky Blue = {R:0 G:191 B:255 A:255}
 	//Dark Turquoise = {R:0 G:206 B:209 A:255}
 
-	directionalLightDayColor = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+	directionalLightDayColor = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
 	directionalLightNightColor = XMFLOAT4(0.2f, 0.2f, 0.3f, 1.0f);
 
 	skysphereDawnColor = XMFLOAT4(1.0f, GetColorValueFromRGB(160.0f), GetColorValueFromRGB(122.0f), 1.0f);
@@ -51,12 +51,12 @@ bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
 
 	startAndEndPositions = new XMFLOAT3[12]; //2 positions for the 6 different stages of the day. We store them as such: 0-5 previous positions, 6-11 future positions
 
-	startAndEndPositions[0] = XMFLOAT3(70.0f, 35.0f, 0.0f); //start pos for dawn
-	startAndEndPositions[6] = XMFLOAT3(35.0f, 70.0f, 35.0f); //end pos for dawn
+	startAndEndPositions[0] = XMFLOAT3(150.0f, 0.0f, 0.0f); //start pos for dawn
+	startAndEndPositions[6] = XMFLOAT3(75.0f, 70.0f, 35.0f); //end pos for dawn
 
 	//which leads into...
 
-	startAndEndPositions[1] = XMFLOAT3(35.0f, 70.0f, 35.0f); //start pos for morning
+	startAndEndPositions[1] = XMFLOAT3(75.0f, 70.0f, 35.0f); //start pos for morning
 	startAndEndPositions[7] = XMFLOAT3(35.0f, 90.0f, 70.0f); //end pos for morning
 
 	//which leads into...
@@ -67,12 +67,12 @@ bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
 	//which leads into...
 
 	startAndEndPositions[3] = XMFLOAT3(-35.0f, 90.0f, 70.0f); //start pos for dusk
-	startAndEndPositions[9] = XMFLOAT3(-35.0f, 70.0f, 35.0f); //end pos for dusk
+	startAndEndPositions[9] = XMFLOAT3(-75.0f, 70.0f, 35.0f); //end pos for dusk
 
 	//which leads into...
 
-	startAndEndPositions[4] = XMFLOAT3(-35.0f, 70.0f, 35.0f); //start pos for evening
-	startAndEndPositions[10] = XMFLOAT3(-70.0f, 35.0f, 0.0f); //end pos for evening
+	startAndEndPositions[4] = XMFLOAT3(-75.0f, 70.0f, 35.0f); //start pos for evening
+	startAndEndPositions[10] = XMFLOAT3(-150.0f, 35.0f, 0.0f); //end pos for evening
 
 	//which leads into...
 

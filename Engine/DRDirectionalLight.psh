@@ -196,7 +196,6 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 
 		shadowMultiplier = ShadowContribution(sampleLightScreen, realDistanceToLight);
 		
-
 		/*PCF 16X shadow mapping. */
 
 		//float sum = 0.0f;
