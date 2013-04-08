@@ -66,8 +66,8 @@ public:
 	bool Initialize(HWND hwnd, CameraClass* camera, InputClass* inputManager, D3DClass* d3D, UINT screenWidth, UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear);
 	bool InitializeShaders(HWND hwnd);
 	bool InitializeLights(HWND hwnd);
-	bool InitializeModels(HWND hwnd);
 	bool InitializeEverythingElse(HWND hwnd);
+	bool InitializeModels(HWND hwnd);
 	void Shutdown();
 
 	bool Update(int, int, float, float seconds);

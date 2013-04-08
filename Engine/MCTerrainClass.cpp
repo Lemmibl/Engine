@@ -127,7 +127,7 @@ void MCTerrainClass::Noise3D()
 				idx = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
 
 
-				float r =  + sizeY * 0.5f - y;
+				float r =  + sizeY * 0.2f - y;
 				//r += (noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/260,marchingCubeVertices[idx].posZ/20) + 1.0f) *4.0f;
 				//r += (noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/260,marchingCubeVertices[idx].posZ/20) + 1.0f) *2.0f;
 				//r += (noise->noise3D2(this->marchingCubeVertices[idx].posX/30,marchingCubeVertices[idx].posY/30,marchingCubeVertices[idx].posZ/30) + 1.0f) *2.0f;
@@ -211,15 +211,15 @@ void MCTerrainClass::Noise3D()
 				{min = r;}
 
 				
-
-				if (r<-1)
+/*
+				if (r<0)
 				{
-					r = -1;
+					r = 0;
 				}
 				else if (r>1)
 				{
 					r = 1;
-				}
+				}*/
 				
 				this->marchingCubeVertices[idx].flux = r;
 
@@ -282,7 +282,7 @@ void MCTerrainClass::CreateMCVerts()
 		//bool b2 = this->getMarchingCubeVertices()[idx2].inside;
 		float j1 = this->getMarchingCubeVertices()[idx].flux;
 		float j2 = this->getMarchingCubeVertices()[idx2].flux;
-		j = j1 - j2;
+		j = (j1 + j2)*0.5;
 
-		return i + 1 + j;
+		return i + 1.1f + j;
 	}

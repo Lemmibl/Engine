@@ -100,9 +100,9 @@ public:
 		return *Tree;
 	}
 
-	MCTerrainClass GetTerrain()
+	MCTerrainClass* GetTerrain()
 	{
-		return *Terrain;
+		return Terrain;
 	}
 
 

@@ -9,12 +9,8 @@ struct VertexShaderOutput
 	float4 Position : SV_POSITION;
 	float3 Normal : NORMAL;
 	float2 TexCoord : TEXCOORD0;
-	float4 ViewPosition : TEXCOORD1;
-<<<<<<< HEAD
-	float4 WorldPosition : TEXCOORD2;
-=======
+	float4 WorldPosition : TEXCOORD1;
 	float2 Depth : TEXCOORD2;
->>>>>>> 91be0cb0f9cf37eb45e2bf40feaf4dceacdb8ef6
 	float3x3 TangentToWorld : TEXCOORD3;
 };
 
@@ -63,11 +59,11 @@ PixelShaderOutput GBufferPixelShader(VertexShaderOutput input)
 	output.Color = ((XZColor * blend_weights.y) + (YZColor * blend_weights.x) + (XYColor * blend_weights.z));
 
 	/* Use this instead if you want "pure" texturing -- no blending.
-    *
+	*
 	*	float x = abs(input.TangentToWorld[2].x);
 	*	float y = abs(input.TangentToWorld[2].y);
 	*	float z = abs(input.TangentToWorld[2].z);
-    *	
+	*	
 	*	if(x > y && x > z)
 	*	{
 	*		output.Color = cYZ;
@@ -80,7 +76,7 @@ PixelShaderOutput GBufferPixelShader(VertexShaderOutput input)
 	*	{
 	*		output.Color = cXY;
 	*	} 
-    *
+	*
 	*/
 
 	float3 normalFromMap =				shaderTextures[1].Sample(samplers[0], input.TexCoord);
@@ -101,16 +97,18 @@ PixelShaderOutput GBufferPixelShader(VertexShaderOutput input)
 	normalFromMap = mul(normalFromMap, input.TangentToWorld);	//transform it into world space
 	normalFromMap = normalize(normalFromMap);					//then normalize the result
 
-	output.Normal.xyz = encode(normalFromMap);			//revert the normal output to [0,1] space then assign it to the output normal map's RGB channel
-
-	output.Normal.w = specularAttributes.y; //specular power stored in normal map's alpha channel
-
-<<<<<<< HEAD
-	output.Depth.x = (input.ViewPosition.z / FarZ); //Store depth linearly
+<<<<<<< Updated upstream
+	//output.Normal.xyz = encode(normalFromMap);	//normalFromMap;//		//revert the normal output to [0,1] space then assign it to the output normal map's RGB channel
 =======
+	output.Normal.xyz = encode(normalFromMap);			//revert the normal output to [0,1] space then assign it to the output normal map's RGB channel
+>>>>>>> Stashed changes
+	//output.Normal.xyz = normalize(input.Normal);
+	output.Normal.xyz = encode(NormalizedWorldNormal);
+
+	output.Normal.w = 1.0f;//specularAttributes.y; //specular power stored in normal map's alpha channel
+
 	//output.Depth.x = (input.ViewPosition.z / FarZ); //Store depth linearly. Doesn't quite work with current shadowmapping technique.
-	output.Depth = (input.Depth.x / input.Depth.y); //1.0f - (input.Position.z / input.Position.w);
->>>>>>> 91be0cb0f9cf37eb45e2bf40feaf4dceacdb8ef6
+	output.Depth = (input.Depth.x / input.Depth.y);
 
 	return output;
 }
@@ -157,12 +155,12 @@ float3 bump3 = float3(bumpFetch3.x, bumpFetch3.y, 0);
   
  // Finally, blend the results of the 3 planar projections.  
 blended_color = col1.xyzw * blend_weights.xxxx +  
-                col2.xyzw * blend_weights.yyyy +  
-                col3.xyzw * blend_weights.zzzz;
+				col2.xyzw * blend_weights.yyyy +  
+				col3.xyzw * blend_weights.zzzz;
 
 blended_bump_vec = bump1.xyz * blend_weights.xxx +  
-                   bump2.xyz * blend_weights.yyy +  
-                   bump3.xyz * blend_weights.zzz;  
+				   bump2.xyz * blend_weights.yyy +  
+				   bump3.xyz * blend_weights.zzz;  
 }  
 // Apply bump vector to vertex-interpolated normal vector.  
 float3 N_for_lighting = normalize(N_orig + blended_bump);  

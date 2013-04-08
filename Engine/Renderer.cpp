@@ -121,11 +121,6 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 
 	XMStoreFloat4x4(&baseViewMatrix, camera->GetView());
 
-	result = InitializeModels(hwnd);
-	if(!result)
-	{
-		return false;
-	}
 
 	result = InitializeShaders(hwnd);
 	if(!result)
@@ -140,6 +135,12 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	}
 
 	result = InitializeEverythingElse(hwnd);
+	if(!result)
+	{
+		return false;
+	}
+
+	result = InitializeModels(hwnd);
 	if(!result)
 	{
 		return false;
@@ -372,9 +373,19 @@ bool Renderer::InitializeModels(HWND hwnd)
 
 	std::vector<XMFLOAT4>* tempContainer = new std::vector<XMFLOAT4>();
 
-	for(int i = 0; i < 5000; i++)
+	for(int i = 0; i < 1000; i++)
 	{
-		XMFLOAT4 temp = XMFLOAT4(-50.0f + 100.0f*random(), 0.0f, -50.0f + 100.0f*random(), (i%2));
+		int x,z;
+		float y;
+		x = (2.0f + (rand() % 56))* 1.0f;
+		z = (2.0f + (rand() % 56))* 1.0f;
+		
+		//y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x*2/3,z*2/3) * 1.5f;
+		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x*0.6666666666f,z*0.6666666666f) * 1.5f;
+		//y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x*1.0f,z*1.0f) * 1.5f;
+		
+		//XMFLOAT4 temp = XMFLOAT4(-50.0f + (rand() % 100), 10.0f, -50.0f + (rand() % 100), (i%2));
+		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (i%2));
 		tempContainer->push_back(temp);
 	}
 
@@ -507,7 +518,7 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 	marchingCubes = new MarchingCubesClass(0.0f, 0.0f, 0.0f, 60.0f, 60.0f, 60.0f, 1.5f, 1.5f, 1.5f);
 	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
 
-	marchingCubes->GetTerrain().Noise3D();
+	marchingCubes->GetTerrain()->Noise3D();
 	marchingCubes->CalculateMesh(d3D->GetDevice());
 
 	return true;
@@ -606,7 +617,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 	if(inputManager->WasKeyPressed(DIK_N))
 	{
 		marchingCubes->Reset();
-		marchingCubes->GetTerrain().Noise3D();
+		marchingCubes->GetTerrain()->Noise3D();
 		marchingCubes->CalculateMesh(d3D->GetDevice());
 	}
 
