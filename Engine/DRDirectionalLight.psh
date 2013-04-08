@@ -101,7 +101,7 @@ float ChebyshevUpperBound(float2 moments, float t)
 float ShadowContribution(float2 lightTexCoord, float distanceToLight)  
 {
 	// Read the moments from the variance shadow map.  
-	float2 moments = shaderTextures[2].Sample(pointSampler, lightTexCoord).rg;
+	float2 moments = shaderTextures[2].Sample(linearSampler, lightTexCoord).rg;
 
 	//If surface is fully lit, break early.
 	if(distanceToLight <= moments.x)
@@ -109,7 +109,7 @@ float ShadowContribution(float2 lightTexCoord, float distanceToLight)
 		return 1.0f;
 	}
 
-	if(moments.x == 0.0f && moments.y == 0.0f)
+	if(moments.x == moments.y) //Then something is really wrong, it means both values are probably 0.0f
 	{
 		return 1.0f; //There is no depth.
 	}
@@ -117,7 +117,7 @@ float ShadowContribution(float2 lightTexCoord, float distanceToLight)
 	// Compute the Chebyshev upper bound.
 	float shadowContribution = ChebyshevUpperBound(moments, distanceToLight);
 
-	//shadowContribution = ReduceLightBleeding(shadowContribution, distanceToLight);
+	shadowContribution = ReduceLightBleeding(shadowContribution, distanceToLight);
 
 	return shadowContribution;
 }
@@ -182,7 +182,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	sampleLightScreen.x = ((lightScreenPos.x * 0.5f) + 0.5f);
 	sampleLightScreen.y = ((-lightScreenPos.y * 0.5f) + 0.5f);
 
-	float shadowMultiplier = 2.0f;
+	float shadowMultiplier = 1.0f;
 
 	//We cull a large part of the light and shadow calculations if it's outside of the light frustum.
 	if
@@ -194,14 +194,14 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	{
 		/*Variance shadow mapping. http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html */
 
-		shadowMultiplier = ShadowContribution(sampleLightScreen, realDistanceToLight);
+		shadowMultiplier = ShadowContribution(sampleLightScreen, realDistanceToLight)-0.0001f;
 		
 		/*PCF 16X shadow mapping. */
 
 		//float sum = 0.0f;
 		//float x, y;
 
-		////perform PCF filtering on a 4 x 4 texel neighborhood
+		////perform pcf filtering on a 4 x 4 texel neighborhood
 		//for (y = -1.5f; y <= 1.5f; y += 1.0f)
 		//{
 		//	for (x = -1.5f; x <= 1.5f; x += 1.0f)

@@ -29,6 +29,7 @@ http://developer.download.nvidia.com/SDK/10.5/opengl/src/cascaded_shadow_maps/do
 http://msdn.microsoft.com/en-us/library/windows/desktop/ee416307(v=vs.85).aspx
 http://devblog.drheinous.com/2012/10/cascaded-variance-shadow-maps.html
 http://developer.download.nvidia.com/SDK/9.5/Samples/samples.html#HLSL_SoftShadows
+http://graphics.stanford.edu/~mdfisher/Shadows.html
 
 
 Inför gräsquads:
