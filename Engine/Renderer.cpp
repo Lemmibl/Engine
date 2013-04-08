@@ -22,6 +22,15 @@ Inför SSAO:
 http://www.gamedev.net/page/resources/_/technical/graphics-programming-and-theory/a-simple-and-practical-approach-to-ssao-r2753
 http://www.iquilezles.org/www/articles/ssao/ssao.htm
 
+Inför shadow maps:
+http://gameengineers.blogspot.se/2013/02/no-title-yet.html
+http://lousodrome.net/blog/light/2012/01/23/variance-shadow-maps/
+http://developer.download.nvidia.com/SDK/10.5/opengl/src/cascaded_shadow_maps/doc/cascaded_shadow_maps.pdf
+http://msdn.microsoft.com/en-us/library/windows/desktop/ee416307(v=vs.85).aspx
+http://devblog.drheinous.com/2012/10/cascaded-variance-shadow-maps.html
+http://developer.download.nvidia.com/SDK/9.5/Samples/samples.html#HLSL_SoftShadows
+
+
 Inför gräsquads:
 http://gamedev.stackexchange.com/questions/5038/shadow-mapping-and-transparent-quads
 http://www.gamedev.net/topic/362393-shadow-map-alpha-testing-question-solved/
@@ -334,7 +343,7 @@ bool Renderer::InitializeLights(HWND hwnd)
 	XMStoreFloat3(&dirLight->Direction, direction);
 
 	//XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(((float)D3DX_PI/2.0f), 1.0f, 10.0f, 300.0f)); //Generate perspective light projection matrix and store it as float4x4
-	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(120.0f, 120.0f, 10.0f, 300.0f)); //Generate orthogonal light projection matrix and store it as float4x4
+	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(140.0f, 140.0f, 10.0f, 300.0f)); //Generate orthogonal light projection matrix and store it as float4x4
 
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix and store it as float4x4.
 	#pragma endregion
@@ -466,7 +475,7 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 		return false;
 	}
 
-	result = dayNightCycle->Initialize(100.0f, DUSK);
+	result = dayNightCycle->Initialize(3600.0f*5.0f, DUSK);
 	if(!result)
 	{
 		return false;
@@ -610,7 +619,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 	if(inputManager->IsKeyPressed(DIK_1))
 	{
-		seconds = timeOfDay += frameTime*0.2f;
+		seconds = timeOfDay += frameTime*2.0f;
 	}
 
 	
@@ -623,8 +632,10 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
 
-	XMVECTOR lookAt = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
+	XMVECTOR lookAt = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);//+XMLoadFloat3(&camera->GetPosition());
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
+
+	//XMVECTOR currentLightPos = XMLoadFloat3(&dirLight->Position)+XMLoadFloat3(&camera->GetPosition());
 
 	XMStoreFloat3(&dirLight->Direction, XMVector3Normalize(lookAt - XMLoadFloat3(&dirLight->Position)));
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix
@@ -738,7 +749,8 @@ bool Renderer::Render()
 	context->ClearDepthStencilView(shadowDS, D3D11_CLEAR_DEPTH, 1.0f, 0);
 	context->ClearRenderTargetView(shadowTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 1.0f));
 
-	d3D->SetFrontFaceCullingRasterizer();
+	//d3D->SetFrontFaceCullingRasterizer();
+	d3D->SetNoCullRasterizer();
 
 	// Go through all the models and render them only if they can be seen by the camera view.
 	for(int i =0; i < modelCount; i++)
