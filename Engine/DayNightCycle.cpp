@@ -130,7 +130,7 @@ float DayNightCycle::Update( float elapsedTime, DirLight* directionalLight, Skys
 	{
 		case DAWN:
 			directionalLight->Color = directionalLightDayColor;
-			directionalLight->Intensity = 64.0f;
+			directionalLight->Intensity = 128.0f;
 
 			skysphere->SetCenterColor(skysphereDawnColor);
 			skysphere->SetApexColor(skysphereNightColor);
@@ -141,7 +141,7 @@ float DayNightCycle::Update( float elapsedTime, DirLight* directionalLight, Skys
 
 		case MORNING:
 			directionalLight->Color = directionalLightDayColor;
-			directionalLight->Intensity = 128.0f;
+			directionalLight->Intensity = 64.0f;
 
 			skysphere->SetCenterColor(skysphereDayColor);
 			skysphere->SetApexColor(skysphereDawnColor);
@@ -152,7 +152,7 @@ float DayNightCycle::Update( float elapsedTime, DirLight* directionalLight, Skys
 
 		case DAY:
 			directionalLight->Color = directionalLightDayColor;
-				directionalLight->Intensity = 256.0f;
+				directionalLight->Intensity = 32.0f;
 
 			skysphere->SetCenterColor(skysphereDayColor);
 			skysphere->SetApexColor(skysphereDayColor);
@@ -163,7 +163,7 @@ float DayNightCycle::Update( float elapsedTime, DirLight* directionalLight, Skys
 
 		case DUSK:
 			directionalLight->Color = directionalLightDayColor;
-			directionalLight->Intensity = 128.0f;
+			directionalLight->Intensity = 64.0f;
 
 			skysphere->SetCenterColor(skysphereDuskColor);
 			skysphere->SetApexColor(skysphereDayColor);
@@ -174,7 +174,7 @@ float DayNightCycle::Update( float elapsedTime, DirLight* directionalLight, Skys
 
 		case EVENING:
 			directionalLight->Color = directionalLightNightColor;
-			directionalLight->Intensity = 64.0f;
+			directionalLight->Intensity = 128.0f;
 
 			skysphere->SetCenterColor(skysphereNightColor);
 			skysphere->SetApexColor(skysphereDuskColor);
@@ -185,7 +185,7 @@ float DayNightCycle::Update( float elapsedTime, DirLight* directionalLight, Skys
 
 		case NIGHT:
 			directionalLight->Color = directionalLightNightColor;
-			directionalLight->Intensity = 64.0f;
+			directionalLight->Intensity = 256.0f;
 
 			skysphere->SetCenterColor(skysphereNightColor);
 			skysphere->SetApexColor(skysphereNightColor);

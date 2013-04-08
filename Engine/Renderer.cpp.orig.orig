@@ -376,7 +376,11 @@ bool Renderer::InitializeModels(HWND hwnd)
 <<<<<<< Updated upstream
 	for(int i = 0; i < 5000; i++)
 	{
-		XMFLOAT4 temp = XMFLOAT4(-50.0f + 100.0f*random(), 0.0f, -50.0f + 100.0f*random(), (i%2));
+<<<<<<< Updated upstream
+		XMFLOAT4 temp = XMFLOAT4(-50.0f + 100.0f*random(), 40.0f, -50.0f + 100.0f*random(), (i%2));
+=======
+		XMFLOAT4 temp = XMFLOAT4(-50.0f + (rand() % 100), 40.0f, -50.0f + (rand() % 100), (i%2));
+>>>>>>> Stashed changes
 =======
 	for(int i = 0; i < 1000; i++)
 	{
@@ -495,7 +499,7 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 
 
 	defaultModelMaterial.a = 8.0f;
-	defaultModelMaterial.Ka = 0.4f;
+	defaultModelMaterial.Ka = 0.8f;
 	defaultModelMaterial.Kd = 0.8f;
 	defaultModelMaterial.Ks = 0.7f;
 
@@ -524,7 +528,11 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 	marchingCubes = new MarchingCubesClass(0.0f, 0.0f, 0.0f, 60.0f, 60.0f, 60.0f, 1.5f, 1.5f, 1.5f);
 	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
 
+<<<<<<< Updated upstream
+	marchingCubes->GetTerrain().Noise3D();
+=======
 	marchingCubes->GetTerrain()->Noise3D();
+>>>>>>> Stashed changes
 	marchingCubes->CalculateMesh(d3D->GetDevice());
 
 	return true;
@@ -623,7 +631,11 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 	if(inputManager->WasKeyPressed(DIK_N))
 	{
 		marchingCubes->Reset();
+<<<<<<< Updated upstream
+		marchingCubes->GetTerrain().Noise3D();
+=======
 		marchingCubes->GetTerrain()->Noise3D();
+>>>>>>> Stashed changes
 		marchingCubes->CalculateMesh(d3D->GetDevice());
 	}
 
@@ -776,11 +788,8 @@ bool Renderer::Render()
 		return false;
 	}
 
-	worldMatrix = XMMatrixIdentity(); 
-	worldMatrix = XMMatrixTranspose(worldMatrix);
-
-	//d3D->TurnOnAlphaBlending();
 	d3D->SetNoCullRasterizer();
+	//d3D->TurnOnAlphaBlending();
 	vegetationManager->RenderBuffers(context);
 
 	depthOnlyQuadShader->Render(context, vegetationManager->GetVertexCount(), vegetationManager->GetInstanceCount(),
