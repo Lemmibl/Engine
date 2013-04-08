@@ -101,6 +101,8 @@
     <ClInclude Include="VertexShaderOnly.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="DepthOnlyQuadShader.psh" />
+    <None Include="DepthOnlyQuadShader.vsh" />
     <None Include="DepthOnlyShader.psh" />
     <None Include="BasicVertexShader.vsh" />
     <None Include="DRCompose.psh" />

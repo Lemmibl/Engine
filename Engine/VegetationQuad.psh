@@ -4,7 +4,6 @@
 Texture2D shaderTexture[2];
 SamplerState SampleType;
 
-
 //////////////
 // TYPEDEFS //
 //////////////
@@ -25,7 +24,7 @@ struct PixelShaderOutput
 ////////////////////////////////////////////////////////////////////////////////
 // Pixel Shader
 ////////////////////////////////////////////////////////////////////////////////
-PixelShaderOutput VegetationQuadPixelShader(PixelInputType input) : SV_TARGET
+PixelShaderOutput VegetationQuadPixelShader(PixelInputType input)
 {
 	PixelShaderOutput output;
 

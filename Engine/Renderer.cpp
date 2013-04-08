@@ -74,6 +74,7 @@ Renderer::Renderer()
 	otherModel = 0;
 	skySphere = 0;
 	vegetationManager = 0;
+	depthOnlyQuadShader = 0;
 
 	colorRT = 0;
 	normalRT = 0;
@@ -200,6 +201,19 @@ bool Renderer::InitializeShaders(HWND hwnd)
 	if(!result)
 	{
 		MessageBox(hwnd, L"Depth only shader couldn't be initialized.", L"Error", MB_OK);
+		return false;
+	}
+
+	depthOnlyQuadShader = new DepthOnlyQuadShader();
+	if(!depthOnlyQuadShader)
+	{
+		return false;
+	}
+
+	result = depthOnlyQuadShader->Initialize(d3D->GetDevice(), hwnd);
+	if(!result)
+	{
+		MessageBox(hwnd, L"Depth only quad shader couldn't be initialized.", L"Error", MB_OK);
 		return false;
 	}
 
@@ -744,6 +758,15 @@ bool Renderer::Render()
 	{
 		return false;
 	}
+
+	d3D->SetNoCullRasterizer();
+	//d3D->TurnOnAlphaBlending();
+	vegetationManager->RenderBuffers(context);
+
+	depthOnlyQuadShader->Render(context, vegetationManager->GetVertexCount(), vegetationManager->GetInstanceCount(),
+	 &worldMatrix, &lightView, &lightProj, vegetationManager->GetTextureArray());
+	d3D->TurnOffAlphaBlending();
+
 #pragma endregion
 
 #pragma region GBuffer building stage

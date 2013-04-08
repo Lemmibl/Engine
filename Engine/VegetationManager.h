@@ -30,6 +30,9 @@ public:
 	bool Render(ID3D11DeviceContext* deviceContext, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection);
 	void RenderBuffers(ID3D11DeviceContext*);
 
+	inline int GetVertexCount()		{	return vertexCount;		}
+	inline int GetInstanceCount()	{	return instanceCount;	}
+	inline ID3D11ShaderResourceView** GetTextureArray() {	return textureArray; }
 
 private:
 	ID3D11Buffer *vertexBuffer, *instanceBuffer;

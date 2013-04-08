@@ -163,7 +163,7 @@
       <Filter>Rendering\Non-deferred effects</Filter>
     </ClCompile>
     <ClCompile Include="DepthOnlyQuadShader.cpp">
-      <Filter>Rendering\Deferred stuff</Filter>
+      <Filter>Rendering\Non-deferred effects</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -300,7 +300,7 @@
       <Filter>Rendering\Non-deferred effects</Filter>
     </ClInclude>
     <ClInclude Include="DepthOnlyQuadShader.h">
-      <Filter>Rendering\Deferred stuff</Filter>
+      <Filter>Rendering\Non-deferred effects</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -369,6 +369,12 @@
       <Filter>Rendering\Non-deferred effects</Filter>
     </None>
     <None Include="DepthOnlyShader.vsh">
+      <Filter>Rendering\Non-deferred effects</Filter>
+    </None>
+    <None Include="DepthOnlyQuadShader.vsh">
+      <Filter>Rendering\Non-deferred effects</Filter>
+    </None>
+    <None Include="DepthOnlyQuadShader.psh">
       <Filter>Rendering\Non-deferred effects</Filter>
     </None>
     <None Include="texture.psh">

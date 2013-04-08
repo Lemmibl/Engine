@@ -50,6 +50,7 @@
 #include "fontshaderclass.h"
 #include "DRGBuffer.h"
 #include "MarchingCubeShader.h"
+#include "DepthOnlyQuadShader.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -96,6 +97,7 @@ private:
 
 	VertexShaderOnly* vertexOnlyShader;
 	DepthOnlyShader* depthOnlyShader;
+	DepthOnlyQuadShader* depthOnlyQuadShader;
 	DRCompose* composeShader;
 
 	DRDirLight* dirLightShader;
