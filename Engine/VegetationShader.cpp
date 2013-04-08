@@ -215,7 +215,6 @@ bool VegetationShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 	return true;
 }
 
-
 void VegetationShader::ShutdownShader()
 {
 	// Release the matrix constant buffer.
@@ -254,7 +253,6 @@ void VegetationShader::ShutdownShader()
 	return;
 }
 
-
 void VegetationShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename)
 {
 	char* compileErrors;
@@ -289,7 +287,6 @@ void VegetationShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND h
 
 	return;
 }
-
 
 bool VegetationShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, 
 	XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, ID3D11ShaderResourceView** textures)

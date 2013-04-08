@@ -4,28 +4,55 @@
 #include "controllerclass.h"
 
 #pragma region Properties
-const XMFLOAT3& ControllerClass::GetPosition() const
-{
+XMFLOAT3 ControllerClass::GetPosition() 
+{ 
 	return *position;
 }
-
-const XMFLOAT3& ControllerClass::GetRotation() const
-{
+XMFLOAT3 ControllerClass::GetRotation() 
+{ 
 	return *rotation;
 }
 
-void ControllerClass::SetPosition(XMFLOAT3* positionptr)
+void ControllerClass::SetPosition(XMFLOAT3 position)
 {
-	position = positionptr;
-	externalPosPointer = true;
-	return;
+	*this->position = position;
 }
 
-void ControllerClass::SetRotation(XMFLOAT3* rotationptr)
+void ControllerClass::SetRotation(XMFLOAT3 rotation)
 {
-	rotation = rotationptr;
-	externalRotPointer = true;
-	return;
+	*this->rotation = rotation;
+}
+#pragma endregion
+
+#pragma region Matrix-To-WorldDirection XMFLOAT4X4
+XMVECTOR ControllerClass::MatrixForward(XMFLOAT4X4* matrix)
+{
+	return XMVectorSet(matrix->_31, matrix->_32, matrix->_33, 1.0f);
+}
+
+XMVECTOR ControllerClass::MatrixBackward(XMFLOAT4X4* matrix)
+{
+	return XMVectorSet(-matrix->_31, -matrix->_32, -matrix->_33, 1.0f);
+}
+
+XMVECTOR ControllerClass::MatrixRight(XMFLOAT4X4* matrix)
+{
+	return XMVectorSet(matrix->_11, matrix->_12, matrix->_13, 1.0f);
+}
+
+XMVECTOR ControllerClass::MatrixLeft(XMFLOAT4X4* matrix)
+{
+	return XMVectorSet(-matrix->_11, -matrix->_12, -matrix->_13, 1.0f);
+}
+
+XMVECTOR ControllerClass::MatrixUp(XMFLOAT4X4* matrix)
+{
+	return XMVectorSet(matrix->_21, matrix->_22, matrix->_23, 1.0f);
+}
+
+XMVECTOR ControllerClass::MatrixDown(XMFLOAT4X4* matrix)
+{
+	return XMVectorSet(-matrix->_21, -matrix->_22, -matrix->_23, 1.0f);
 }
 #pragma endregion
 
@@ -34,9 +61,6 @@ ControllerClass::ControllerClass()
 	frameTime = 0.0f;
 	moveSpeed  = 0.0f;
 	rotationSpeed = 0.0f;
-	externalRotPointer = externalPosPointer = false;
-
-	//movementThisUpdate = rotationThisUpdate = XMFLOAT3(0.0f, 0.0f, 0.0f);
 
 	rotation = new XMFLOAT3(0.0f, 0.0f, 0.0f);
 	position = new XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -48,22 +72,17 @@ ControllerClass::ControllerClass(const ControllerClass& other)
 
 ControllerClass::~ControllerClass()
 {
-	if(!externalRotPointer)
-		delete rotation;
-
-	if(!externalPosPointer)
-		delete position;
-
+	delete rotation;
+	delete position;
 	rotation = 0;
 	position = 0;
+
 	inputManager = 0;
-	camera = 0;
 }
 
-bool ControllerClass::Initialize(InputClass* input, CameraClass *extCam, float movespeed, float turnspeed)
+bool ControllerClass::Initialize(InputClass* input, float movespeed, float turnspeed)
 {
 	inputManager = input;
-	camera = extCam;
 	moveSpeed = movespeed;
 	rotationSpeed = turnspeed;
 
@@ -73,7 +92,7 @@ bool ControllerClass::Initialize(InputClass* input, CameraClass *extCam, float m
 	return true;
 }
 
-void ControllerClass::Update(float frameTime)
+void ControllerClass::Update(float frameTime, XMFLOAT4X4* cameraMatrix)
 {
 	float movementValue;
 
@@ -114,25 +133,43 @@ void ControllerClass::Update(float frameTime)
 
 	//Move the controller with WASD, LCtrl and Space.
 	if(inputManager->IsKeyPressed(DIK_W))
-		movementThisUpdate += (camera->ForwardVector()*movementValue);
+		movementThisUpdate += movementValue*MatrixForward(cameraMatrix);
 	if(inputManager->IsKeyPressed(DIK_S))
-		movementThisUpdate -= (camera->ForwardVector()*movementValue);
+		movementThisUpdate += movementValue*MatrixBackward(cameraMatrix);
 
 	if(inputManager->IsKeyPressed(DIK_A))
-		movementThisUpdate -= (camera->RightVector()*movementValue);
+		movementThisUpdate += movementValue*MatrixLeft(cameraMatrix);
 	if(inputManager->IsKeyPressed(DIK_D))
-		movementThisUpdate += (camera->RightVector()*movementValue);
+		movementThisUpdate += movementValue*MatrixRight(cameraMatrix);
 
 	if(inputManager->IsKeyPressed(DIK_SPACE))
-		movementThisUpdate += (camera->UpVector()*movementValue);
+		movementThisUpdate += movementValue*MatrixUp(cameraMatrix);
 	if(inputManager->IsKeyPressed(DIK_LCONTROL))
-		movementThisUpdate -= (camera->UpVector()*movementValue);
+		movementThisUpdate += movementValue*MatrixDown(cameraMatrix);
 
 	tempPos = XMLoadFloat3(position);
 	tempRot = XMLoadFloat3(rotation);
 
 	tempPos += movementThisUpdate;
 	tempRot += rotationThisUpdate;
+
+	float X = XMVectorGetX(tempRot);
+	float Y = XMVectorGetY(tempRot);
+
+	if(X >= 89.0f) //We make sure the X rotation doesn't stray off the good path, lest it give in to temptation and sin.
+	{
+		tempRot = XMVectorSetX(tempRot, 89.0f);
+	}
+	else if(X <= -89.0f)
+	{
+		tempRot = XMVectorSetX(tempRot, -89.0f);
+	}
+
+	if(Y >= 360.0f || Y <= -360.0f) //We clamp Y rotation to a decent, goodhearted value that heeds the word of god.
+	{
+		tempRot = XMVectorSetY(tempRot, 0.0f);
+	}
+
 
 	XMStoreFloat3(position, tempPos);
 	XMStoreFloat3(rotation, tempRot);

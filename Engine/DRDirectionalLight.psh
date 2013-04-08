@@ -109,6 +109,11 @@ float ShadowContribution(float2 lightTexCoord, float distanceToLight)
 		return 1.0f;
 	}
 
+	if(moments.x == 0.0f)
+	{
+		return 0.0f; //There is no depth.
+	}
+
 	// Compute the Chebyshev upper bound.
 	float shadowContribution = ChebyshevUpperBound(moments, distanceToLight);
 
@@ -133,27 +138,30 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	float depth = shaderTextures[1].Sample(pointSampler, input.TexCoord);
 
 	//Skip as early as possible if this pixel isn't supposed to be lit.
-	if(0 >= depth) 
+	if(0.0f >= depth) 
 	{
-		//0, 0, 0, 0
+		//0, 0, 0, 0 at this point
 		return finalAmbienceProduct;
 	}
 
 	finalAmbienceProduct += Ka * AmbientColor;
+
 	float4 encodedNormal = shaderTextures[0].Sample(linearSampler, input.TexCoord);
 	float3 normal = normalize(Decode(encodedNormal.xyz));
-	
+
+	//Surface-to-light vector
+	float3 lightVector = (-LightDirection);
+
+	//Calculate diffuse intensity, the usual
+	float NdL = max(0.0f, dot(normal, lightVector));
+
 	//Adjust value
 	input.ScreenPosition /= input.ScreenPosition.w;
 	
 	//Reconstructing position
 	float4 position;
 	position.xy = input.ScreenPosition.xy;
-
-	//Add camera depth
 	position.z = depth;
-
-	//Set .w to 1.0f for later matrix multiplications
 	position.w = 1.0f;
 
 	//Extract pixel world position as seen from camera POV.
@@ -165,11 +173,10 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//Extract pixel position as seen from light POV for shadow map extraction.
 	float4 lightScreenPos = mul(position, LightViewProjection);
 
-	//Adjust value again.
+	//Adjust this value too.
 	lightScreenPos /= lightScreenPos.w;
 
-	//Depth as seen from camera POV.
-	float realDistanceToLight = lightScreenPos.z - 0.000002f;
+	float realDistanceToLight = lightScreenPos.z - 0.0002f;
 
 	float2 sampleLightScreen;
 	sampleLightScreen.x = ((lightScreenPos.x * 0.5f) + 0.5f);
@@ -182,6 +189,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	(		
 		!(	sampleLightScreen.x >= 1 || sampleLightScreen.x	< 0	|| 
 			sampleLightScreen.y >= 1 || sampleLightScreen.y	< 0	)
+		&& NdL > 0.0f
 	)
 	{
 		/*Variance shadow mapping. http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html */
@@ -190,34 +198,30 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		
 
 		/*PCF 16X shadow mapping. */
+
 		//float sum = 0.0f;
 		//float x, y;
 
-		//perform PCF filtering on a 4 x 4 texel neighborhood
+		////perform PCF filtering on a 4 x 4 texel neighborhood
 		//for (y = -1.5f; y <= 1.5f; y += 1.0f)
 		//{
 		//	for (x = -1.5f; x <= 1.5f; x += 1.0f)
 		//	{
-		//		sum += shaderTextures[2].SampleCmpLevelZero(cmpSampler, sampleLightScreen + GetShadowTexOffset(x,y), realDistanceToLight);
+		//		sum += shaderTextures[2].SampleCmpLevelZero(cmpSampler, sampleLightScreen + GetShadowTexOffset(x,y), realDistanceToLight).x;
 		//	}
 		//}
 
 		//shadowMultiplier = (sum / 16.0f);
 
+
 		/*Normal shadow mapping. Produces more artifacts. Nasty.*/
 
-		//float distanceStoredInDepthMap = shaderTextures[2].Sample(linearSampler, sampleLightScreen);
+		//float distanceStoredInDepthMap = shaderTextures[2].Sample(linearSampler, sampleLightScreen).x;
 
 		//if (realDistanceToLight < 1.0f && realDistanceToLight > distanceStoredInDepthMap)
 		//{
 		//	shadowMultiplier = 0.35f;
 		//}
-		
-		//Surface-to-light vector
-		float3 lightVector = (-LightDirection);
-
-		//Calculate diffuse intensity, the usual
-		float NdL = (max(0, dot(normal, lightVector)));
 
 		//Reflection vector
 		float3 reflectionVector = normalize(-reflect(lightVector, normal));
@@ -234,5 +238,5 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 
 
 	//Storing specular in alpha channel. Applying shadow multiplier to both diffuse product and specular, but not ambient, to make sure it's not completely black in shaded places.
-	return half4(finalAmbienceProduct.rgb + shadowMultiplier * finalDiffuseProduct, shadowMultiplier * finalSpecularProduct);
+	return half4(finalAmbienceProduct.rgb + shadowMultiplier * finalDiffuseProduct, (finalSpecularProduct*shadowMultiplier));
 }

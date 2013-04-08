@@ -30,24 +30,39 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 {
 	PixelShaderOutput output;
 
+	float3 UpVector = float3(0.0f, 1.0f, 0.0f);
+
 	//Create weights for color interpolation based on world-space normal of surface
 	float tighten = 0.3f; 
-	float3 NormalizedWorldNormal = normalize(input.Normal);
+	float3 NormalizedWorldNormal = normalize(input.WorldNormal);
 
 	float3 blend_weights = abs(NormalizedWorldNormal);     
 	blend_weights = (blend_weights - tighten) * 7;  // Tighten up the blending zone
 	blend_weights = max(blend_weights, 0);
 	blend_weights /= (blend_weights.x + blend_weights.y + blend_weights.z); // Force weights to sum to 1.0 (very important!)  
 
-	float scale = 0.6f;
+	float scale = 0.1f;
 
 	float2 YZCoord = input.WorldPosition.yz * scale;  
-	float2 XZCoord = input.WorldPosition.zx * 0.2f;  
+	float2 XZCoord = input.WorldPosition.zx * scale;  
 	float2 XYCoord = input.WorldPosition.xy * scale;
 
+	float4 XZColor;
+	float dotResult = dot(UpVector, NormalizedWorldNormal);
+
+	if(dotResult <= 0.0f)
+	{
+		XZColor = shaderTextures[2].Sample(samplers[1], XZCoord);
+	}
+	else
+	{
+		XZColor = shaderTextures[0].Sample(samplers[1], XZCoord);
+	}
+
 	float4 YZColor = shaderTextures[1].Sample(samplers[1], YZCoord);
-	float4 XZColor = shaderTextures[0].Sample(samplers[1], XZCoord);
 	float4 XYColor = shaderTextures[2].Sample(samplers[1], XYCoord);
+
+	//if(NormalizedWorldNormal
 	
 	output.Color = ((XZColor * blend_weights.y) + (YZColor * blend_weights.x) + (XYColor * blend_weights.z));
 	output.Color.w = 1.0f;
@@ -71,7 +86,7 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 	//	output.Color = (XYColor * blend_weights.z);
 	//} 
 	
-	output.Normal.xyz = NormalizedWorldNormal;//(0.5f * (NormalizedWorldNormal + 1.0f));//normalize(input.Normal);			//revert the normal output to [0,1] space then assign it to the output normal map's RGB channel
+	output.Normal.xyz = (0.5f * (NormalizedWorldNormal + 1.0f));//normalize(input.Normal);			//revert the normal output to [0,1] space then assign it to the output normal map's RGB channel
 	output.Normal.w = 1.0f; //specular power stored in normal map's alpha channel
 
 	output.Depth = (input.Depth.x / input.Depth.y);

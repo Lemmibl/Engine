@@ -123,6 +123,8 @@
     <None Include="skysphere.psh" />
     <None Include="skysphere.vsh" />
     <None Include="standard.vsh" />
+    <None Include="texture.psh" />
+    <None Include="texture.vsh" />
     <None Include="VegetationQuad.psh" />
     <None Include="VegetationQuad.vsh" />
   </ItemGroup>

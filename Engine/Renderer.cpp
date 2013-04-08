@@ -6,6 +6,11 @@
 /*
 Inför terrain rendering / många texturer:
 http://www.gamedev.net/topic/612977-dynamic-updating-of-structuredbuffer-in-dx11/ < DEN HÄR
+http://gamedev.stackexchange.com/questions/14507/loading-a-texture2d-array-in-directx11
+http://msdn.microsoft.com/en-us/library/ff476486(VS.85).aspx
+http://stackoverflow.com/questions/6347950/programmatically-creating-directx-11-textures-pros-and-cons-of-the-three-differ
+http://irrlicht.sourceforge.net/forum/viewtopic.php?t=21236
+http://gamedev.stackexchange.com/questions/14873/loading-a-sub-resource-for-a-texture-array
 
 http://stackoverflow.com/questions/35950/i-dont-understand-stdtr1unordered-map
 Spara material ID i normal alpha channel
@@ -18,25 +23,24 @@ http://www.gamedev.net/page/resources/_/technical/graphics-programming-and-theor
 http://www.iquilezles.org/www/articles/ssao/ssao.htm
 
 Inför gräsquads:
+http://gamedev.stackexchange.com/questions/5038/shadow-mapping-and-transparent-quads
+http://www.gamedev.net/topic/362393-shadow-map-alpha-testing-question-solved/
+http://www.gamedev.net/topic/551160-directx-shadow-map-example-has-no-alpha/
+http://gamedev.stackexchange.com/questions/22507/what-is-the-alphatocoverage-blend-state-useful-for
+http://blogs.msdn.com/b/shawnhar/archive/2009/02/18/depth-sorting-alpha-blended-objects.aspx
+
+
 http://www.geeks3d.com/20100831/shader-library-noise-and-pseudo-random-number-generator-in-glsl/
-
 http://ogldev.atspace.co.uk/www/tutorial27/tutorial27.html
-
 http://zeuxcg.blogspot.se/2007/09/particle-rendering-revisited.html
 http://realtimecollisiondetection.net/blog/?p=91
-
 http://www.flashbang.se/archives/315
-
 http://faculty.ycp.edu/~dbabcock/PastCourses/cs470/labs/lab11.html
 http://faculty.ycp.edu/~dbabcock/PastCourses/cs470/labs/lab13.html
-
 http://www.rastertek.com/dx11tut37.html
-http://blogs.msdn.com/b/shawnhar/archive/2009/02/18/depth-sorting-alpha-blended-objects.aspx
 http://software.intel.com/en-us/articles/rendering-grass-with-instancing-in-directx-10
 http://http.developer.nvidia.com/GPUGems/gpugems_ch07.html
-
 http://developer.amd.com/wordpress/media/2012/10/ShaderX_AnimatedGrass.pdf
-http://gamedev.stackexchange.com/questions/22507/what-is-the-alphatocoverage-blend-state-useful-for
 
 Directional light lens flare:
 http://www.madgamedev.com/post/2010/04/21/Article-Sun-and-Lens-Flare-as-a-Post-Process.aspx
@@ -258,15 +262,15 @@ bool Renderer::InitializeLights(HWND hwnd)
 		pointLights.push_back(new PointLight());
 		pointLights[i]->Position = XMFLOAT3(x, y, z);
 		pointLights[i]->Color = XMFLOAT3(0.1f+i%4, 0.1f+i%2, 1.0f-i%3);
-		pointLights[i]->Radius = 2.0f;
+		pointLights[i]->Radius = 8.0f;
 		pointLights[i]->Intensity = 512.0f; //The lower it gets, the more intense it gets
 
-		x += 5.0f;
+		x += 10.0f;
 
-		if(x >= 12.0f) //Every 10th light gets reseted in x and z plane.
+		if(x >= 30.0f) //Every 10th light gets reseted in x and z plane.
 		{
 			x = -10.0f;
-			z += 5.0f;
+			z += 10.0f;
 		}
 
 		if(i != 0 && i % 100 == 0) //Every 100 pointlights we reset and make another layer that is (y+8) higher up.
@@ -309,7 +313,7 @@ bool Renderer::InitializeLights(HWND hwnd)
 	// Initialize the directional light.
 	dirLight->Color = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
 	dirLight->Intensity = 128.0f;
-	dirLight->Position = XMFLOAT3(1.0f, 120.0f, 1.0f);
+	dirLight->Position = XMFLOAT3(0.0f, 120.0f, 0.0f);
 
 	XMVECTOR direction = XMVector3Normalize(lookAt - XMLoadFloat3(&dirLight->Position));
 	XMStoreFloat3(&dirLight->Direction, direction);
@@ -356,7 +360,7 @@ bool Renderer::InitializeModels(HWND hwnd)
 
 	for(int i = 0; i < 5000; i++)
 	{
-		XMFLOAT4 temp = XMFLOAT4(-50.0f + (rand() % 100), 10.0f, -50.0f + (rand() % 100), (i%2));
+		XMFLOAT4 temp = XMFLOAT4(-50.0f + 100.0f*random(), 40.0f, -50.0f + 100.0f*random(), (i%2));
 		tempContainer->push_back(temp);
 	}
 
@@ -385,7 +389,7 @@ bool Renderer::InitializeModels(HWND hwnd)
 	}
 
 	// Initialize the model object. It really doesn't matter what textures it has because it's only used for point light volume culling.
-	result = sphereModel->Initialize(d3D->GetDevice(), "../Engine/data/skydome.txt", L"../Engine/data/grass.dds", L"../Engine/data/seafloor.dds", L"../Engine/data/dirt.dds");
+	result = sphereModel->Initialize(d3D->GetDevice(), "../Engine/data/skydome.txt", L"../Engine/data/grass.dds", L"../Engine/data/dirt.dds", L"../Engine/data/rock.dds");
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
@@ -430,11 +434,13 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 		return false;
 	}
 
-	result = dayNightCycle->Initialize(100.0f, DAWN);
+	result = dayNightCycle->Initialize(100.0f, DUSK);
 	if(!result)
 	{
 		return false;
 	}
+
+	dayNightCycle->Update(0.0f, dirLight, skySphere);
 
 	// Create the text object.
 	text = new TextClass();
@@ -631,7 +637,6 @@ bool Renderer::Render()
 	ID3D11DepthStencilView* ds;
 
 	// Generate the view matrix based on the camera's position.
-	camera->Update();
 	camPos = camera->GetPosition();
 
 	gbufferRenderTargets[0] = colorRT->RTView;
@@ -765,8 +770,8 @@ bool Renderer::Render()
 	context->ClearDepthStencilView(ds, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	// Move the model to the location it should be rendered at.
-	worldMatrix = XMMatrixTranslation(0.0f, -10.0f, 0.0f);
-	scalingMatrix = XMMatrixScaling(0.2f, 0.2f, 0.2f);
+	worldMatrix = XMMatrixTranslation(0.0f, 0.0f, 0.0f);
+	scalingMatrix = XMMatrixScaling(0.5f, 0.5f, 0.5f);
 	XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(debugRotation.x, debugRotation.y, debugRotation.z);
 
 	worldMatrix = scalingMatrix* rotationMatrix * worldMatrix;
@@ -808,9 +813,6 @@ bool Renderer::Render()
 			{
 				return false;
 			}
-
-			// Since this model was rendered then increase the count for this frame.
-			renderCount++;
 		}
 	}
 
@@ -825,8 +827,6 @@ bool Renderer::Render()
 	d3D->SetNoCullRasterizer();
 	vegetationManager->Render(context, &worldMatrix, &viewMatrix, &projectionMatrix);
 	d3D->TurnOffAlphaBlending();
-
-	renderCount++;
 
 	text->SetRenderCount(renderCount, context);
 #pragma endregion
@@ -855,16 +855,9 @@ bool Renderer::Render()
 
 		sphereModel->Render(context);
 
-		if(!toggleDebugInfo)
-		{
-			result = textureShader->Render(context, sphereModel->GetIndexCount(), &XMLoadFloat4x4(&pointLights[i]->World), &viewMatrix, 
-				&projectionMatrix, sphereModel->GetTexture());
-		}
-		else
-		{
-			result = pointLightShader->Render(context, sphereModel->GetIndexCount(), &viewMatrix, 
-				&projectionMatrix, &invertedViewProjection, pointLights[i], gbufferTextures, camPos);
-		}
+
+		result = pointLightShader->Render(context, sphereModel->GetIndexCount(), &viewMatrix, 
+			&projectionMatrix, &invertedViewProjection, pointLights[i], gbufferTextures, camPos);
 		if(!result)
 		{
 			return false;
@@ -973,7 +966,7 @@ bool Renderer::Render()
 		// Turn the Z buffer back on now that all 2D rendering has completed.
 		d3D->TurnZBufferOn();
 	}
-#pragma endregion
+	#pragma endregion
 
 	// Present the rendered scene to the screen.
 	d3D->EndScene();

@@ -371,5 +371,11 @@
     <None Include="DepthOnlyShader.vsh">
       <Filter>Rendering\Non-deferred effects</Filter>
     </None>
+    <None Include="texture.psh">
+      <Filter>Rendering\Non-deferred effects</Filter>
+    </None>
+    <None Include="texture.vsh">
+      <Filter>Rendering\Non-deferred effects</Filter>
+    </None>
   </ItemGroup>
 </Project>
