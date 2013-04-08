@@ -785,4 +785,9 @@ const int MarchingCubesClass::edgeTable[256] = {
 		Terrain->GetHighestPositionOfCoordinate(10,20);
 	}
 
+	float MarchingCubesClass::GetHeightOfXZpos()
+	{
+		return 0;
+	}
+
 

@@ -374,7 +374,11 @@ bool Renderer::InitializeModels(HWND hwnd)
 	std::vector<XMFLOAT4>* tempContainer = new std::vector<XMFLOAT4>();
 
 <<<<<<< Updated upstream
+<<<<<<< HEAD
+	for(int i = 0; i < 5000; i++)
+=======
 	for(int i = 0; i < 1000; i++)
+>>>>>>> 500d82e59662ca1f7c4cbb208152806eac121dfa
 	{
 		XMFLOAT4 temp = XMFLOAT4(-50.0f + 100.0f*random(), 0.0f, -50.0f + 100.0f*random(), (i%2));
 =======
@@ -391,10 +395,13 @@ bool Renderer::InitializeModels(HWND hwnd)
 		
 		//XMFLOAT4 temp = XMFLOAT4(-50.0f + (rand() % 100), 10.0f, -50.0f + (rand() % 100), (i%2));
 		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (i%2));
->>>>>>> Stashed changes
+<<<<<<< HEAD
+=======
+=======
 	for(int i = 0; i < 5000; i++)
 	{
 		XMFLOAT4 temp = XMFLOAT4(-50.0f + 100.0f*random(), 0.0f, -50.0f + 100.0f*random(), i%2);
+>>>>>>> 500d82e59662ca1f7c4cbb208152806eac121dfa
 >>>>>>> Stashed changes
 		tempContainer->push_back(temp);
 	}

@@ -89,6 +89,7 @@ public:
 
 	void Reset();
 
+	float GetHeightOfXZpos();
 
 	void SetWireframe(bool s)
 	{

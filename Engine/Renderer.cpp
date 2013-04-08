@@ -387,22 +387,17 @@ bool Renderer::InitializeModels(HWND hwnd)
 		return false;
 	}
 
-
 	std::vector<XMFLOAT4>* tempContainer = new std::vector<XMFLOAT4>();
 
 	for(int i = 0; i < 1000; i++)
 	{
 		int x,z;
 		float y;
-		x = (2.0f + (rand() % 56))* 1.0f;
-		z = (2.0f + (rand() % 56))* 1.0f;
+		x = (int)((2.0f + (rand() % 56))* 1.0f);
+		z = (int)((2.0f + (rand() % 56))* 1.0f);
 		
-		//y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x*2/3,z*2/3) * 1.5f;
 		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x*0.6666666666f,z*0.6666666666f) * 1.5f;
-		//y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x*1.0f,z*1.0f) * 1.5f;
-		
-		//XMFLOAT4 temp = XMFLOAT4(-50.0f + (rand() % 100), 10.0f, -50.0f + (rand() % 100), (i%2));
-		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (i%2));
+		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (float)(i%2));
 		tempContainer->push_back(temp);
 	}
 
@@ -626,9 +621,28 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 	
 	if(inputManager->WasKeyPressed(DIK_N))
 	{
+
+		std::vector<XMFLOAT4>* tempContainer = new std::vector<XMFLOAT4>();
+
 		marchingCubes->Reset();
 		marchingCubes->GetTerrain()->Noise3D();
 		marchingCubes->CalculateMesh(d3D->GetDevice());
+
+		
+		for(int i = 0; i < 1000; i++)
+		{
+		int x,z;
+		float y;
+		x = (int)((2.0f + (rand() % 56))* 1.0f);
+		z = (int)((2.0f + (rand() % 56))* 1.0f);
+		
+		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x*0.6666666666f,z*0.6666666666f) * 1.5f;
+
+		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (float)(i%2));
+		tempContainer->push_back(temp);
+	}
+		
+	vegetationManager->SetupQuads(d3D->GetDevice(), tempContainer);
 	}
 
 	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
