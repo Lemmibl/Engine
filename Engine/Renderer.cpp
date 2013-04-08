@@ -134,13 +134,13 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 		return false;
 	}
 
-	result = InitializeEverythingElse(hwnd);
+	result = InitializeModels(hwnd);
 	if(!result)
 	{
 		return false;
 	}
 
-	result = InitializeModels(hwnd);
+	result = InitializeEverythingElse(hwnd);
 	if(!result)
 	{
 		return false;
@@ -346,6 +346,13 @@ bool Renderer::InitializeModels(HWND hwnd)
 {
 	bool result;
 
+	metaBalls = new MetaballsClass();
+	marchingCubes = new MarchingCubesClass(0.0f, 0.0f, 0.0f, 60.0f, 60.0f, 60.0f, 1.5f, 1.5f, 1.5f);
+	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
+
+	marchingCubes->GetTerrain()->Noise3D();
+	marchingCubes->CalculateMesh(d3D->GetDevice());
+
 	skySphere = new Skysphere();
 	if(!skySphere)
 	{
@@ -513,13 +520,6 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 	{
 		return false;
 	}
-
-	metaBalls = new MetaballsClass();
-	marchingCubes = new MarchingCubesClass(0.0f, 0.0f, 0.0f, 60.0f, 60.0f, 60.0f, 1.5f, 1.5f, 1.5f);
-	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
-
-	marchingCubes->GetTerrain()->Noise3D();
-	marchingCubes->CalculateMesh(d3D->GetDevice());
 
 	return true;
 }

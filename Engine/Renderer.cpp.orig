@@ -373,7 +373,8 @@ bool Renderer::InitializeModels(HWND hwnd)
 
 	std::vector<XMFLOAT4>* tempContainer = new std::vector<XMFLOAT4>();
 
-	for(int i = 0; i < 5000; i++)
+<<<<<<< Updated upstream
+	for(int i = 0; i < 1000; i++)
 	{
 		int x,z;
 		float y;
@@ -386,6 +387,11 @@ bool Renderer::InitializeModels(HWND hwnd)
 		
 		//XMFLOAT4 temp = XMFLOAT4(-50.0f + (rand() % 100), 10.0f, -50.0f + (rand() % 100), (i%2));
 		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (i%2));
+=======
+	for(int i = 0; i < 5000; i++)
+	{
+		XMFLOAT4 temp = XMFLOAT4(-50.0f + 100.0f*random(), 0.0f, -50.0f + 100.0f*random(), i%2);
+>>>>>>> Stashed changes
 		tempContainer->push_back(temp);
 	}
 
@@ -489,7 +495,7 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 
 
 	defaultModelMaterial.a = 8.0f;
-	defaultModelMaterial.Ka = 0.8f;
+	defaultModelMaterial.Ka = 0.4f;
 	defaultModelMaterial.Kd = 0.8f;
 	defaultModelMaterial.Ks = 0.7f;
 
@@ -518,7 +524,7 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 	marchingCubes = new MarchingCubesClass(0.0f, 0.0f, 0.0f, 60.0f, 60.0f, 60.0f, 1.5f, 1.5f, 1.5f);
 	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
 
-	marchingCubes->GetTerrain().Noise3D();
+	marchingCubes->GetTerrain()->Noise3D();
 	marchingCubes->CalculateMesh(d3D->GetDevice());
 
 	return true;
@@ -770,8 +776,11 @@ bool Renderer::Render()
 		return false;
 	}
 
-	d3D->SetNoCullRasterizer();
+	worldMatrix = XMMatrixIdentity(); 
+	worldMatrix = XMMatrixTranspose(worldMatrix);
+
 	//d3D->TurnOnAlphaBlending();
+	d3D->SetNoCullRasterizer();
 	vegetationManager->RenderBuffers(context);
 
 	depthOnlyQuadShader->Render(context, vegetationManager->GetVertexCount(), vegetationManager->GetInstanceCount(),

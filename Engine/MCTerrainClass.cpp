@@ -234,13 +234,7 @@ void MCTerrainClass::Noise3D()
 
 				densityArray3D[z][y][x] = r;
 
-				this->marchingCubeVertices[idx].normalX = this->marchingCubeVertices[idx - 1].flux - this->marchingCubeVertices[idx+1].flux;
-				int i = idx + this->sizeY;
-				int j = idx - this->sizeY;
-				this->marchingCubeVertices[idx].normalY = this->marchingCubeVertices[i].flux - this->marchingCubeVertices[j].flux;
-				int k = idx - (this->sizeY * this->sizeZ);
-				int l = idx + (this->sizeY * this->sizeZ);
-				this->marchingCubeVertices[idx].normalZ = this->marchingCubeVertices[k].flux - this->marchingCubeVertices[k].flux;
+				CreateMCVerts();
 			}
 		}
 	}

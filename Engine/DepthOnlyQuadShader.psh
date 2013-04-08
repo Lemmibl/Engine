@@ -24,7 +24,7 @@ float2 ComputeMoments(float depth)
 	float dy = ddy(depth);
 
 	// Compute second moment over the pixel extents.  
-	moments.y += 0.25*(dx*dx + dy*dy);
+	moments += 0.25*(dx*dx + dy*dy);
 
 	return moments;
 };
