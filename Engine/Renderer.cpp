@@ -374,7 +374,7 @@ bool Renderer::InitializeModels(HWND hwnd)
 
 	for(int i = 0; i < 5000; i++)
 	{
-		XMFLOAT4 temp = XMFLOAT4(-50.0f + 100.0f*random(), 40.0f, -50.0f + 100.0f*random(), (i%2));
+		XMFLOAT4 temp = XMFLOAT4(-50.0f + 100.0f*random(), 0.0f, -50.0f + 100.0f*random(), (i%2));
 		tempContainer->push_back(temp);
 	}
 
@@ -478,7 +478,7 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 
 
 	defaultModelMaterial.a = 8.0f;
-	defaultModelMaterial.Ka = 0.8f;
+	defaultModelMaterial.Ka = 0.4f;
 	defaultModelMaterial.Kd = 0.8f;
 	defaultModelMaterial.Ks = 0.7f;
 
@@ -759,8 +759,11 @@ bool Renderer::Render()
 		return false;
 	}
 
-	d3D->SetNoCullRasterizer();
+	worldMatrix = XMMatrixIdentity(); 
+	worldMatrix = XMMatrixTranspose(worldMatrix);
+
 	//d3D->TurnOnAlphaBlending();
+	d3D->SetNoCullRasterizer();
 	vegetationManager->RenderBuffers(context);
 
 	depthOnlyQuadShader->Render(context, vegetationManager->GetVertexCount(), vegetationManager->GetInstanceCount(),
