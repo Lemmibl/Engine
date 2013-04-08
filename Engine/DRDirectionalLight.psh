@@ -63,7 +63,7 @@ float3 Decode(float3 enc)
 float2 GetShadowTexOffset( int u, int v )
 {
 	//This has to mirror shadowmap render target width and height; I'm just really, really lazy.
-	float2 shadowMapSize = float2(2048.0f, 2048.0f);	
+	float2 shadowMapSize = float2(1024.0f, 1024.0f);	
 
 	//Scale and return texture coordinates
 	return float2( u * 1.0f/shadowMapSize.x, v * 1.0f/shadowMapSize.y );
@@ -176,13 +176,13 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//Adjust this value too.
 	lightScreenPos /= lightScreenPos.w;
 
-	float realDistanceToLight = lightScreenPos.z + 0.0002f;
+	float realDistanceToLight = lightScreenPos.z;
 
 	float2 sampleLightScreen;
 	sampleLightScreen.x = ((lightScreenPos.x * 0.5f) + 0.5f);
 	sampleLightScreen.y = ((-lightScreenPos.y * 0.5f) + 0.5f);
 
-	float shadowMultiplier = 1.0f;
+	float shadowMultiplier = 2.0f;
 
 	//We cull a large part of the light and shadow calculations if it's outside of the light frustum.
 	if
