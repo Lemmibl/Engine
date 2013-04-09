@@ -71,6 +71,7 @@
     <ClInclude Include="fpsmeter.h" />
     <ClInclude Include="frustumclass.h" />
     <ClInclude Include="DRGBuffer.h" />
+    <ClInclude Include="Utility.h" />
     <ClInclude Include="VegetationShader.h" />
     <ClInclude Include="MCubesGBufferShader.h" />
     <ClInclude Include="Renderer.h" />

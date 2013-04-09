@@ -302,6 +302,9 @@
     <ClInclude Include="DepthOnlyQuadShader.h">
       <Filter>Rendering\Non-deferred effects</Filter>
     </ClInclude>
+    <ClInclude Include="Utility.h">
+      <Filter>Rendering\Utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="font.psh">

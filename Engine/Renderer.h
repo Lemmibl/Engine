@@ -17,6 +17,7 @@
 
 
 //Utility
+#include "Utility.h"
 #include "structs.h"
 #include "modellistclass.h"
 #include "inputclass.h"
@@ -76,13 +77,7 @@ public:
 	bool RenderScene();
 
 private:
-	inline float random()
-	{
-		float scale=RAND_MAX+1.;
-		float base=rand()/scale;
-		float fine=rand()/scale;
-		return base+fine/scale;
-	}
+
 
 private:
 	D3DClass* d3D;

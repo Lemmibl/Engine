@@ -257,13 +257,12 @@ void MCTerrainClass::CreateMCVerts()
 
 float MCTerrainClass::GetHighestPositionOfCoordinate(int x, int z)
 {
-	int i = 0;
+	unsigned int i = 0;
 	float j = 0;
 	bool tempBool = false;
 	for (i = sizeY; !tempBool; i--)
 	{
 		idx = x + i*this->sizeY + z * this->sizeY * this->sizeZ;
-
 
 		if(this->getMarchingCubeVertices()[idx].inside)
 		{

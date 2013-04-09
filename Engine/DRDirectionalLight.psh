@@ -182,7 +182,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	sampleLightScreen.x = ((lightScreenPos.x * 0.5f) + 0.5f);
 	sampleLightScreen.y = ((-lightScreenPos.y * 0.5f) + 0.5f);
 
-	float shadowMultiplier = 1.0f;
+	float shadowMultiplier = 2.0f;
 
 	//We cull a large part of the light and shadow calculations if it's outside of the light frustum.
 	if
@@ -194,7 +194,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	{
 		/*Variance shadow mapping. http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html */
 
-		shadowMultiplier = ShadowContribution(sampleLightScreen, realDistanceToLight)-0.0001f;
+		shadowMultiplier = ShadowContribution(sampleLightScreen, realDistanceToLight)-0.01f;
 		
 		/*PCF 16X shadow mapping. */
 
