@@ -76,9 +76,6 @@ public:
 	bool RenderScene();
 
 private:
-
-
-private:
 	D3DClass* d3D;
 	CameraClass* camera;
 	InputClass* inputManager;
@@ -135,6 +132,8 @@ private:
 	DayNightCycle* dayNightCycle;
 	MarchingCubesClass* marchingCubes;
 	MCTerrainClass* mcTerrain;
+
+	Utility* utility;
 };
 
 #endif

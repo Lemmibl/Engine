@@ -26,6 +26,7 @@
     <ClCompile Include="fontshaderclass.cpp" />
     <ClCompile Include="fpsmeter.cpp" />
     <ClCompile Include="frustumclass.cpp" />
+    <ClCompile Include="Utility.cpp" />
     <ClCompile Include="VegetationShader.cpp" />
     <ClCompile Include="MCubesGBufferShader.cpp" />
     <ClCompile Include="Renderer.cpp" />

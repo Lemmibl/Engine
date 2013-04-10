@@ -62,7 +62,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	float NdL = max(dot(normal, lightVector), 0);
 
 	//compute diffuse light using NdotL product
-	float3 diffuseLight = (NdL * (LightColor.rgb));
+	float3 diffuseLight = (LightColor.rgb*NdL);
 
 	//surface reflection vector
 	float3 reflectionVector = normalize(reflect(-lightVector, normal));
@@ -74,7 +74,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	float specularLight = pow( saturate( dot(reflectionVector, directionToCamera)), LightPower);
 
 	//scale final value with attenuation, leave specular light unaffected
-	return attenuation * half4(diffuseLight, specularLight);
+	return half4(diffuseLight, specularLight)*attenuation;
 }
 
 /*

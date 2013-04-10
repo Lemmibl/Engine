@@ -98,6 +98,7 @@ Renderer::Renderer()
 	marchingCubes = 0;
 	mcTerrain = 0;
 
+	utility = 0;
 }
 
 
@@ -130,6 +131,7 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	toggleTextureShader = false;
 	returning = false;
 	debugRotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	utility = new Utility();
 
 	XMStoreFloat4x4(&baseViewMatrix, camera->GetView());
 
@@ -395,8 +397,8 @@ bool Renderer::InitializeModels(HWND hwnd)
 	{
 		int x,z;
 		float y;
-		x = (int)((2.0f + (rand() % 56))* 1.0f);
-		z = (int)((2.0f + (rand() % 56))* 1.0f);
+		x = (int)((2.0f + (utility->random() * 56))* 1.0f);
+		z = (int)((2.0f + (utility->random() * 56))* 1.0f);
 		
 		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x*0.6666666666f,z*0.6666666666f) * 1.5f;
 		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (float)(i%2));
@@ -649,7 +651,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
 
-	XMVECTOR lookAt = (camera->ForwardVector()*2.0f)+XMLoadFloat3(&camera->GetPosition());//XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);//(camera->ForwardVector()*30.0f)+XMLoadFloat3(&camera->GetPosition());
+	XMVECTOR lookAt = XMLoadFloat3(&camera->GetPosition());//XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);//(camera->ForwardVector()*30.0f)+XMLoadFloat3(&camera->GetPosition());
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 
 	XMVECTOR currentLightPos = XMLoadFloat3(&dirLight->Position)+XMLoadFloat3(&camera->GetPosition());
@@ -1042,6 +1044,12 @@ bool Renderer::Render()
 
 void Renderer::Shutdown()
 {
+	if(utility)
+	{
+		delete utility;
+		utility = 0;
+	}
+
 	if (text)
 	{
 		text->Shutdown();

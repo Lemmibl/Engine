@@ -1,6 +1,7 @@
 #pragma once
 #include <stdlib.h>
 #include <D3D11.h>
+#include <d3dx9.h>
 
 class Utility
 {
@@ -16,13 +17,50 @@ public:
 		float fine=rand()/scale;
 		return base+fine/scale;
 	}
+	
+	//http://www.gamedev.net/topic/583161-d3d11-creating-a-dynamic-texture/
+	//http://gamedev.stackexchange.com/questions/27690/reading-from-a-staging-2d-texture-array-in-directx10
+	//http://www.gamedev.net/topic/622350-loading-of-3d-textures-from-a-2d-texture/
 
+	/*
+	By using Texture Arrays. When you fill out your D3D11_TEXTURE2D_DESC look at the ArraySize member. 
+	This desc struct is the one that gets passed to ID3D11Device::CreateTexture2D. 
+	Then in your shader you use a 3rd texcoord sampling index which indicates which 2D texture in the array you are referring to.
+	*/
+
+	/*
+	D3D11_TEXTURE2D_DESC sTexDesc;
+	sTexDesc.Width = m_uTextureWidth;
+	sTexDesc.Height = m_uTextureHeight;
+	sTexDesc.MipLevels = 1;
+	sTexDesc.ArraySize = 16;
+	sTexDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	sTexDesc.SampleDesc.Count = 1;
+	sTexDesc.SampleDesc.Quality = 0;
+	sTexDesc.Usage = D3D11_USAGE_IMMUTABLE;
+	sTexDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	sTexDesc.CPUAccessFlags = 0;
+	sTexDesc.MiscFlags = 0;
+
+	D3D11_SUBRESOURCE_DATA *sSubData = new D3D11_SUBRESOURCE_DATA[16];
+	for(int i=0; i<16; i++) {
+	sSubData[i].pSysMem = ubImageStorage;
+	sSubData[i].SysMemPitch = (UINT) (1024 * 4);
+	sSubData[i].SysMemSlicePitch = (UINT) (1024 * 1024 * 4);
+	}
+
+	ID3D11Texture2D* pTexture;
+
+	hr = m_pd3dDevice->CreateTexture2D(&sTexDesc,sSubData,&pTexture);
+
+	delete [] sSubData;
+	*/
 
 	////--------------------------------------------------------------------------------------
 	//// LoadTextureArray loads a texture array and associated view from a series
 	//// of textures on disk.
 	////--------------------------------------------------------------------------------------
-	//inline HRESULT LoadTextureArray( ID3D11Device* pd3dDevice, LPCTSTR* szTextureNames, int iNumTextures,
+	//inline HRESULT LoadTextureArray( ID3D11Device* device, ID3D11DeviceContext* deviceContext, LPCTSTR* szTextureNames, int iNumTextures,
 	//	ID3D11Texture2D** ppTex2D, ID3D11ShaderResourceView** ppSRV )
 	//{
 	//	HRESULT hr = S_OK;
@@ -50,14 +88,14 @@ public:
 	//		loadInfo.Filter = D3DX11_FILTER_NONE;
 	//		loadInfo.MipFilter = D3DX11_FILTER_NONE;
 
-	//		V_RETURN( D3DX10CreateTextureFromFile( pd3dDevice, str, &loadInfo, NULL, &pRes, NULL ) );
+	//		V_RETURN( D3DX11CreateTextureFromFile( device, str, &loadInfo, NULL, &pRes, NULL ) );
 	//		if( pRes )
 	//		{
 	//			ID3D11Texture2D* pTemp;
 	//			pRes->QueryInterface( __uuidof( ID3D11Texture2D ), ( LPVOID* )&pTemp );
 	//			pTemp->GetDesc( &desc );
 
-	//			D3D11_MAPPED_TEXTURE2D mappedTex2D;
+	//			D3D11_MAPPED_SUBRESOURCE mappedTex2D;
 
 	//			if( desc.MipLevels > 4 )
 	//				desc.MipLevels -= 4;
@@ -67,21 +105,21 @@ public:
 	//				desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 	//				desc.CPUAccessFlags = 0;
 	//				desc.ArraySize = iNumTextures;
-	//				V_RETURN( pd3dDevice->CreateTexture2D( &desc, NULL, ppTex2D ) );
+	//				V_RETURN( device->CreateTexture2D( &desc, NULL, ppTex2D ) );
 	//			}
 
 	//			for( UINT iMip = 0; iMip < desc.MipLevels; iMip++ )
 	//			{
-	//				pTemp->Map( iMip, D3D11_MAP_READ, 0, &mappedTex2D );
+	//				deviceContext->Map(*ppTex2D, 0, D3D11_MAP_READ, 0, &mappedTex2D );
 
-	//				pd3dDevice->UpdateSubresource( ( *ppTex2D ),
+	//				device->UpdateSubresource( ( *ppTex2D ),
 	//					D3D11CalcSubresource( iMip, i, desc.MipLevels ),
 	//					NULL,
 	//					mappedTex2D.pData,
 	//					mappedTex2D.RowPitch,
 	//					0 );
 
-	//				pTemp->Unmap( iMip );
+	//				pTemp->Unmap( *ppTex2D );
 	//			}
 
 	//			SAFE_RELEASE( pRes );
@@ -95,11 +133,15 @@ public:
 
 	//	D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc;
 	//	ZeroMemory( &SRVDesc, sizeof( SRVDesc ) );
-	//	SRVDesc.Format = MAKE_SRGB( DXGI_FORMAT_R8G8B8A8_UNORM );
+	//	SRVDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	//	SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
 	//	SRVDesc.Texture2DArray.MipLevels = desc.MipLevels;
 	//	SRVDesc.Texture2DArray.ArraySize = iNumTextures;
-	//	V_RETURN( pd3dDevice->CreateShaderResourceView( *ppTex2D, &SRVDesc, ppSRV ) );
+	//	hr = device->CreateShaderResourceView( *ppTex2D, &SRVDesc, ppSRV ));
+	//	if(!hr)
+	//	{
+	//		
+	//	}
 
 	//	return hr;
 	//}

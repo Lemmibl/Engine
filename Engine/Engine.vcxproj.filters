@@ -162,6 +162,9 @@
     <ClCompile Include="DepthOnlyQuadShader.cpp">
       <Filter>Rendering\Non-deferred effects</Filter>
     </ClCompile>
+    <ClCompile Include="Utility.cpp">
+      <Filter>Rendering\Utility</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inputclass.h">
