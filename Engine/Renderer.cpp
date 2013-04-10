@@ -4,6 +4,10 @@
 #include "Renderer.h"
 
 /*
+Inför cleana upp kod:
+http://gamedev.stackexchange.com/questions/24615/managing-shaders-and-objects-in-directx-11
+https://graphics.stanford.edu/wikis/cs448s-11/FrontPage?action=AttachFile&do=get&target=05-GPU_Arch_I.pdf
+
 Inför terrain rendering / många texturer:
 http://gamedev.stackexchange.com/questions/14507/loading-a-texture2d-array-in-directx11
 http://www.gamedev.net/topic/612977-dynamic-updating-of-structuredbuffer-in-dx11/ < DEN HÄR
@@ -653,7 +657,6 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 	XMVECTOR lookAt = XMLoadFloat3(&camera->GetPosition());//XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);//(camera->ForwardVector()*30.0f)+XMLoadFloat3(&camera->GetPosition());
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
-
 	XMVECTOR currentLightPos = XMLoadFloat3(&dirLight->Position)+XMLoadFloat3(&camera->GetPosition());
 
 	XMStoreFloat3(&dirLight->Direction, XMVector3Normalize(lookAt - currentLightPos));//XMLoadFloat3(&dirLight->Position)
