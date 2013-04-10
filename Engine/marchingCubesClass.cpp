@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 
-/* Both tables are from Paul Borke "Polygonising a scalar field"
+/* Both tables are from Paul Borke's "Polygonising a scalar field"
 
 http://astronomy.swin.edu.au/~pbourke/modelling/polygonise/ 
 

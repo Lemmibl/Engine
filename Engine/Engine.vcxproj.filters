@@ -78,9 +78,6 @@
     <ClCompile Include="marchingCubesClass.cpp">
       <Filter>MarchingCubes</Filter>
     </ClCompile>
-    <ClCompile Include="MarchingCubeShader.cpp">
-      <Filter>MarchingCubes</Filter>
-    </ClCompile>
     <ClCompile Include="Engine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -218,9 +215,6 @@
     <ClInclude Include="metaballsClass.h">
       <Filter>MarchingCubes</Filter>
     </ClInclude>
-    <ClInclude Include="MarchingCubeShader.h">
-      <Filter>MarchingCubes</Filter>
-    </ClInclude>
     <ClInclude Include="TreeClass.h">
       <Filter>MarchingCubes\Tree</Filter>
     </ClInclude>
@@ -340,12 +334,6 @@
     </None>
     <None Include="DRCompose.vsh">
       <Filter>Rendering\Deferred stuff</Filter>
-    </None>
-    <None Include="mcubes.psh">
-      <Filter>MarchingCubes</Filter>
-    </None>
-    <None Include="mcubes.vsh">
-      <Filter>MarchingCubes</Filter>
     </None>
     <None Include="skysphere.psh">
       <Filter>Rendering\Non-deferred effects</Filter>

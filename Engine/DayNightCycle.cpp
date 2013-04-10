@@ -31,6 +31,7 @@ bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
 	//Deep Sky Blue = {R:0 G:191 B:255 A:255}
 	//Dark Turquoise = {R:0 G:206 B:209 A:255}
 
+	//Initialize colors for the different stages of the day.
 	directionalLightDayColor = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
 	directionalLightNightColor = XMFLOAT4(0.2f, 0.2f, 0.3f, 1.0f);
 
@@ -40,43 +41,47 @@ bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
 	skysphereNightColor = XMFLOAT4(0.05f, 0.05f, 0.1f, 1.0f);
 
 	/*
+	Day cycle goes in this order:
+
 	DAWN
 	MORNING
 	DAY
 	DUSK
 	EVENING
 	NIGHT
+
+	then repeats
 	*/
 
-
-	startAndEndPositions = new XMFLOAT3[12]; //2 positions for the 6 different stages of the day. We store them as such: 0-5 previous positions, 6-11 future positions
+	//2 positions for the 6 different stages of the day. We store them as such: 0-5 previous positions, 6-11 future positions
+	startAndEndPositions = new XMFLOAT3[12];
 
 	startAndEndPositions[0] = XMFLOAT3(150.0f, 0.0f, 0.0f); //start pos for dawn
-	startAndEndPositions[6] = XMFLOAT3(75.0f, 70.0f, 35.0f); //end pos for dawn
+	startAndEndPositions[1] = XMFLOAT3(75.0f, 70.0f, 35.0f); //end pos for dawn
 
 	//which leads into...
 
-	startAndEndPositions[1] = XMFLOAT3(75.0f, 70.0f, 35.0f); //start pos for morning
-	startAndEndPositions[7] = XMFLOAT3(35.0f, 90.0f, 70.0f); //end pos for morning
+	startAndEndPositions[2] = XMFLOAT3(75.0f, 70.0f, 35.0f); //start pos for morning
+	startAndEndPositions[3] = XMFLOAT3(35.0f, 90.0f, 70.0f); //end pos for morning
 
 	//which leads into...
 
-	startAndEndPositions[2] = XMFLOAT3(35.0f, 120.0f, 70.0f); //start pos for day
-	startAndEndPositions[8] = XMFLOAT3(-35.0f, 120.0f, 70.0f); //end pos for day
+	startAndEndPositions[4] = XMFLOAT3(35.0f, 120.0f, 70.0f); //start pos for day
+	startAndEndPositions[5] = XMFLOAT3(-35.0f, 120.0f, 70.0f); //end pos for day
 
 	//which leads into...
 
-	startAndEndPositions[3] = XMFLOAT3(-35.0f, 90.0f, 70.0f); //start pos for dusk
-	startAndEndPositions[9] = XMFLOAT3(-75.0f, 70.0f, 35.0f); //end pos for dusk
+	startAndEndPositions[6] = XMFLOAT3(-35.0f, 90.0f, 70.0f); //start pos for dusk
+	startAndEndPositions[7] = XMFLOAT3(-75.0f, 70.0f, 35.0f); //end pos for dusk
 
 	//which leads into...
 
-	startAndEndPositions[4] = XMFLOAT3(-75.0f, 70.0f, 35.0f); //start pos for evening
-	startAndEndPositions[10] = XMFLOAT3(-150.0f, 35.0f, 0.0f); //end pos for evening
+	startAndEndPositions[8] = XMFLOAT3(-75.0f, 70.0f, 35.0f); //start pos for evening
+	startAndEndPositions[9] = XMFLOAT3(-150.0f, 35.0f, 0.0f); //end pos for evening
 
 	//which leads into...
 
-	startAndEndPositions[5] = XMFLOAT3(0.0f, 120.0f, 0.0f); //start pos for night
+	startAndEndPositions[10] = XMFLOAT3(0.0f, 120.0f, 0.0f); //start pos for night
 	startAndEndPositions[11] = XMFLOAT3(0.0f, 120.0f, 0.0f); //end pos for night
 
 	//which ends and repeats; goto start pos for dawn. 
@@ -90,17 +95,17 @@ bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
 
 float DayNightCycle::Update( float elapsedTime, DirLight* directionalLight, Skysphere* skysphere )
 {
-	XMVECTOR oldPosition, futureposition, currentPos, resultPos;
+	XMVECTOR startPosition, endPosition, currentPosition;
 
-	currentPos =  XMLoadFloat3(&directionalLight->Position); //Save current position in XMVECTOR format, needed when calculating sum of each frame's lerping
+	currentPosition =  XMLoadFloat3(&directionalLight->Position); //Save current position in XMVECTOR format, needed when calculating sum of each frame's lerping
 
 	this->elapsedTime += elapsedTime;
 	float lerpAmountThisFrame = clamp((elapsedTime / timePerStage), 0.0f, 1.0f); //Calculate amount we'll be moving by this frame
 
 	timeOfDay += lerpAmountThisFrame; //This is for controlling the skysphere lerping.
 
-	//We do approximate comparison because float X float comparisons could get nasty.
-	if((int)this->elapsedTime >= timePerStage)
+	//See if we should change stage of day
+	if(this->elapsedTime > timePerStage)
 	{
 		//If this has happened, then we switch to next stage of day, because the time has passed
 		if(currentStageOfDay == NIGHT) //If it was night, we've reached the end of the enum list, hence...
@@ -116,10 +121,13 @@ float DayNightCycle::Update( float elapsedTime, DirLight* directionalLight, Skys
 		timeOfDay =  0.0f;
 	}
 
-	oldPosition = XMLoadFloat3(&startAndEndPositions[currentStageOfDay]);
-	futureposition = XMLoadFloat3(&startAndEndPositions[currentStageOfDay+6]);
+	//Extract start and end position of this stage of day so that we can lerp between them as to
+	//create the illusion of the sun moving during the course of the day
+	startPosition = XMLoadFloat3(&startAndEndPositions[currentStageOfDay*2]);
+	endPosition = XMLoadFloat3(&startAndEndPositions[currentStageOfDay*2+1]);
 
 	/* 
+			//TODO?:
 			//Possibly change enums to a struct containing: enum, duration in float, skysphere color 
 			//and directional light color (maybe ambient color?)
 
@@ -135,8 +143,8 @@ float DayNightCycle::Update( float elapsedTime, DirLight* directionalLight, Skys
 			skysphere->SetCenterColor(skysphereDawnColor);
 			skysphere->SetApexColor(skysphereNightColor);
 
-			resultPos = XMVectorLerp(currentPos, futureposition, lerpAmountThisFrame);
-			XMStoreFloat3(&directionalLight->Position, resultPos);
+			currentPosition = XMVectorLerp(currentPosition, endPosition, lerpAmountThisFrame);
+			XMStoreFloat3(&directionalLight->Position, currentPosition);
 			break;
 
 		case MORNING:
@@ -146,8 +154,8 @@ float DayNightCycle::Update( float elapsedTime, DirLight* directionalLight, Skys
 			skysphere->SetCenterColor(skysphereDayColor);
 			skysphere->SetApexColor(skysphereDawnColor);
 
-			resultPos = XMVectorLerp(currentPos, futureposition, lerpAmountThisFrame);
-			XMStoreFloat3(&directionalLight->Position, resultPos);
+			currentPosition = XMVectorLerp(currentPosition, endPosition, lerpAmountThisFrame);
+			XMStoreFloat3(&directionalLight->Position, currentPosition);
 			break;
 
 		case DAY:
@@ -157,8 +165,8 @@ float DayNightCycle::Update( float elapsedTime, DirLight* directionalLight, Skys
 			skysphere->SetCenterColor(skysphereDayColor);
 			skysphere->SetApexColor(skysphereDayColor);
 
-			resultPos = XMVectorLerp(currentPos, futureposition, lerpAmountThisFrame);
-			XMStoreFloat3(&directionalLight->Position, resultPos);
+			currentPosition = XMVectorLerp(currentPosition, endPosition, lerpAmountThisFrame);
+			XMStoreFloat3(&directionalLight->Position, currentPosition);
 			break;
 
 		case DUSK:
@@ -168,8 +176,8 @@ float DayNightCycle::Update( float elapsedTime, DirLight* directionalLight, Skys
 			skysphere->SetCenterColor(skysphereDuskColor);
 			skysphere->SetApexColor(skysphereDayColor);
 
-			resultPos = XMVectorLerp(currentPos, futureposition, lerpAmountThisFrame);
-			XMStoreFloat3(&directionalLight->Position, resultPos);
+			currentPosition = XMVectorLerp(currentPosition, endPosition, lerpAmountThisFrame);
+			XMStoreFloat3(&directionalLight->Position, currentPosition);
 			break;
 
 		case EVENING:
@@ -179,8 +187,8 @@ float DayNightCycle::Update( float elapsedTime, DirLight* directionalLight, Skys
 			skysphere->SetCenterColor(skysphereNightColor);
 			skysphere->SetApexColor(skysphereDuskColor);
 
-			resultPos = XMVectorLerp(currentPos, futureposition, lerpAmountThisFrame);
-			XMStoreFloat3(&directionalLight->Position, resultPos);
+			currentPosition = XMVectorLerp(currentPosition, endPosition, lerpAmountThisFrame);
+			XMStoreFloat3(&directionalLight->Position, currentPosition);
 			break;
 
 		case NIGHT:
@@ -190,8 +198,8 @@ float DayNightCycle::Update( float elapsedTime, DirLight* directionalLight, Skys
 			skysphere->SetCenterColor(skysphereNightColor);
 			skysphere->SetApexColor(skysphereNightColor);
 
-			resultPos = XMVectorLerp(currentPos, futureposition, lerpAmountThisFrame);
-			XMStoreFloat3(&directionalLight->Position, resultPos);
+			currentPosition = XMVectorLerp(currentPosition, endPosition, lerpAmountThisFrame);
+			XMStoreFloat3(&directionalLight->Position, currentPosition);
 			break;
 	}
 

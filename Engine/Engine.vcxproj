@@ -32,7 +32,6 @@
     <ClCompile Include="inputclass.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="marchingCubesClass.cpp" />
-    <ClCompile Include="MarchingCubeShader.cpp" />
     <ClCompile Include="MCTerrainClass.cpp" />
     <ClCompile Include="modelclass.cpp" />
     <ClCompile Include="modellistclass.cpp" />
@@ -78,7 +77,6 @@
     <ClInclude Include="inputclass.h" />
     <ClInclude Include="interfacepointers.h" />
     <ClInclude Include="marchingCubesClass.h" />
-    <ClInclude Include="MarchingCubeShader.h" />
     <ClInclude Include="MCTerrainClass.h" />
     <ClInclude Include="metaballsClass.h" />
     <ClInclude Include="modelclass.h" />
@@ -116,8 +114,6 @@
     <None Include="font.vsh" />
     <None Include="DRGBuffer.psh" />
     <None Include="DRGBuffer.vsh" />
-    <None Include="mcubes.psh" />
-    <None Include="mcubes.vsh" />
     <None Include="DRPointLight.psh" />
     <None Include="DRPointLight.vsh" />
     <None Include="MCubesGBufferShader.psh" />
