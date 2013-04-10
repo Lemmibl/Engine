@@ -194,7 +194,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	{
 		/*Variance shadow mapping. http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html */
 
-		shadowMultiplier = ShadowContribution(sampleLightScreen, realDistanceToLight)-0.01f;
+		shadowMultiplier = ShadowContribution(sampleLightScreen, realDistanceToLight)-0.002f;
 		
 		/*PCF 16X shadow mapping. */
 
@@ -226,7 +226,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		float3 reflectionVector = normalize(reflect(lightVector, normal));
 
 		//Camera-to-surface vector
-		float3 directionToCamera = normalize(position-CameraPosition);
+		float3 directionToCamera = normalize(position - CameraPosition);
 
 		//Calculate diffuse light
 		finalDiffuseProduct += Kd * (NdL * DiffuseColor.rgb);

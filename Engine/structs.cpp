@@ -1,6 +1,5 @@
 #include "structs.h"
 
-
 // == RenderTarget2D ==============================================================================
 
 RenderTarget2D::RenderTarget2D() :  Width(0),

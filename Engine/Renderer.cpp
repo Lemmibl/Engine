@@ -770,6 +770,7 @@ bool Renderer::Render()
 
 	//d3D->SetFrontFaceCullingRasterizer();
 	d3D->SetNoCullRasterizer();
+	//d3D->SetBackFaceCullingRasterizer();
 
 	// Go through all the models and render them only if they can be seen by the camera view.
 	for(int i =0; i < modelCount; i++)
@@ -805,7 +806,7 @@ bool Renderer::Render()
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
 	//d3D->TurnOnAlphaBlending();
-	d3D->SetNoCullRasterizer();
+	//d3D->SetNoCullRasterizer();
 	vegetationManager->RenderBuffers(context);
 
 	depthOnlyQuadShader->Render(context, vegetationManager->GetVertexCount(), vegetationManager->GetInstanceCount(),
