@@ -42,10 +42,10 @@ half2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 		alpha = shaderTexture[1].Sample(SampleType, input.TexCoord).w;
 	}
 
-	if(alpha < 0.1f)
+	if(alpha < 0.15f)
 	{
 		discard;
 	}
 
-	return ComputeMoments(input.Position.z / input.Position.w);
+	return ComputeMoments(input.Position.z / input.Position.w)*0.8f;
 };
