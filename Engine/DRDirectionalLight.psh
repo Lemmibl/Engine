@@ -59,7 +59,6 @@ float3 Decode(float3 enc)
 	return (2.0f * enc.xyz - 1.0f);
 }
 
-
 float2 GetShadowTexOffset( int u, int v )
 {
 	//This has to mirror shadowmap render target width and height; I'm just really, really lazy.
@@ -84,15 +83,15 @@ float ReduceLightBleeding(float p_max, float amount)
 //Calculate shadow contribution using chevyshev's inequality.
 float ChebyshevUpperBound(float2 moments, float t)  
 {
-	float minVariance = 0.00001f; //Scaling value.
+	float minVariance = 0.0001f; //Scaling value.
 
 	// Compute variance.  
 	float variance = moments.y - (moments.x*moments.x);
 	variance = max(variance, minVariance);
 
 	// Compute probabilistic upper bound.  
-	float d = t - moments.x;
-	float p_max = variance / (variance + d*d);
+	float d = (t - moments.x);
+	float p_max = (variance / (variance + d*d));
 
 	return p_max;
 }
@@ -109,7 +108,7 @@ float ShadowContribution(float2 lightTexCoord, float distanceToLight)
 		return 1.0f;
 	}
 
-	if(moments.x == moments.y) //Then something is really wrong, it means both values are probably 0.0f
+	if(moments.x == 0.0f) //Then something is really wrong, it means both values are probably 0.0f
 	{
 		return 1.0f; //There is no depth.
 	}
@@ -129,7 +128,8 @@ float ShadowContribution(float2 lightTexCoord, float distanceToLight)
 
 half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 {
-	//I pre-declare all values so that I can still return the same variables if we break because we're outside of light frustum. It's neater this way.
+	//I pre-declare all values so that I can still return the same variables if we break because we're outside of light frustum. 
+	//It's neater this way.
 	half4 finalAmbienceProduct = half4(0.0f, 0.0f, 0.0f, 0.0f);
 	half3 finalDiffuseProduct = half3(0.0f, 0.0f, 0.0f);
 	float finalSpecularProduct = 0.0f;
@@ -153,7 +153,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	float3 lightVector = (-LightDirection);
 
 	//Calculate diffuse intensity, the usual
-	float NdL = max(0.0f, dot(normal, lightVector));
+	float NdL = max(0.0f, dot(lightVector, normal));
 
 	//Adjust value
 	input.ScreenPosition /= input.ScreenPosition.w;
@@ -187,14 +187,14 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//We cull a large part of the light and shadow calculations if it's outside of the light frustum.
 	if
 	(		
-		!(	sampleLightScreen.x >= 1 || sampleLightScreen.x	< 0	|| 
-			sampleLightScreen.y >= 1 || sampleLightScreen.y	< 0	)
+		!(	sampleLightScreen.x >= 1 || sampleLightScreen.x	<= 0	|| 
+			sampleLightScreen.y >= 1 || sampleLightScreen.y	<= 0	)
 		&& NdL > 0.0f
 	)
 	{
 		/*Variance shadow mapping. http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html */
 
-		shadowMultiplier = ShadowContribution(sampleLightScreen, realDistanceToLight)-0.002f;
+		shadowMultiplier = ShadowContribution(sampleLightScreen, realDistanceToLight);
 		
 		/*PCF 16X shadow mapping. */
 

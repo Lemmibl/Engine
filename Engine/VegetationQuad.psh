@@ -10,6 +10,7 @@ SamplerState SampleType;
 struct PixelInputType
 {
 	float4 Position : SV_POSITION;
+	float4 Normal : NORMAL;
 	float2 TexCoord : TEXCOORD0;
 	int TextureID : TEXCOORD1;
 };
@@ -43,12 +44,12 @@ PixelShaderOutput VegetationQuadPixelShader(PixelInputType input)
 
 	if(tempColor.a >= 0.4f)
 	{
-		tempColor.a = 1.0f;
-		output.Color = tempColor;
+		output.Color.xyz = tempColor.xyz;
+		output.Color.a = 1.0f;
 	}
 	
 	output.Depth = (input.Position.z / input.Position.w);
-	output.Normal = half4(0.0f, 1.0f, 0.0f, 1.0f);
+	output.Normal = input.Normal;
 
 	return output;
 }

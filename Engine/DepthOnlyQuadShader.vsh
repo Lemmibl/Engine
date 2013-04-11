@@ -14,8 +14,8 @@ struct VertexInputType
 
 struct PixelInputType
 {
-    float4 Position : SV_POSITION;
-    float2 TexCoord : TEXCOORD0;
+	float4 Position : SV_POSITION;
+	float2 TexCoord : TEXCOORD0;
 	int TextureID : TEXCOORD1;
 };
 

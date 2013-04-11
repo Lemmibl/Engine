@@ -15,6 +15,7 @@ struct VertexInputType
 struct PixelInputType
 {
 	float4 Position : SV_POSITION;
+	float4 Normal : NORMAL;
 	float2 TexCoord : TEXCOORD0;
 	int TextureID : TEXCOORD1;
 };
@@ -38,6 +39,8 @@ PixelInputType VegetationQuadVertexShader(VertexInputType input)
 	output.Position = mul(input.Position, worldMatrix);
 	output.Position = mul(output.Position, viewMatrix);
 	output.Position = mul(output.Position, projectionMatrix);
+
+	output.Normal = mul(float4(0.0f, 1.0f, 0.0f, 1.0f), worldMatrix);
 	
 	// Store the texture coordinates for the pixel shader.
 	output.TexCoord = input.TexCoord;

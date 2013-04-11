@@ -134,6 +134,8 @@ private:
 	MCTerrainClass* mcTerrain;
 
 	Utility* utility;
+
+	ID3D11ShaderResourceView* things;
 };
 
 #endif

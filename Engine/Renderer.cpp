@@ -18,6 +18,7 @@ http://gamedev.stackexchange.com/questions/14873/loading-a-sub-resource-for-a-te
 
 http://rastergrid.com/blog/2010/01/uniform-buffers-vs-texture-buffers/
 
+http://stackoverflow.com/questions/10623787/directx-11-framebuffer-capture-c-no-win32-or-d3dx < SPARA TEXTURER TIL HDD
 http://stackoverflow.com/questions/35950/i-dont-understand-stdtr1unordered-map
 Spara material ID i normal alpha channel
 
@@ -103,6 +104,7 @@ Renderer::Renderer()
 	mcTerrain = 0;
 
 	utility = 0;
+	things = 0;
 }
 
 
@@ -139,6 +141,20 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 
 	XMStoreFloat4x4(&baseViewMatrix, camera->GetView());
 
+	WCHAR* filenames[4] = 
+	{
+		L"../Engine/data/testTexture.dds",
+		L"../Engine/data/testTexture2.dds",
+		L"../Engine/data/testTexture3.dds",
+		L"../Engine/data/testTexture4.dds"
+	};
+
+	HRESULT hr = utility->Build2DTextureArray(d3D->GetDevice(), d3D->GetDeviceContext(), filenames, 4,  &things);
+	if(FAILED(hr))
+	{
+		MessageBox(hwnd, L"Couldn't initialize texture array.", L"Error", MB_OK);
+		return false;
+	}
 
 	result = InitializeShaders(hwnd);
 	if(!result)
@@ -284,7 +300,7 @@ bool Renderer::InitializeLights(HWND hwnd)
 
 	ambientLight = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
 
-	#pragma region Point light initialization
+#pragma region Point light initialization
 	float x, y, z;
 	x = -10.0f;
 	z = -10.0f;
@@ -317,9 +333,9 @@ bool Renderer::InitializeLights(HWND hwnd)
 		XMMATRIX tempTranslation = XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z);
 		XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale * tempTranslation));
 	}
-	#pragma endregion
+#pragma endregion
 
-	#pragma region Directional light initialization
+#pragma region Directional light initialization
 	// Create the directional light.
 	dirLight = new DirLight();
 	if(!dirLight)
@@ -355,7 +371,7 @@ bool Renderer::InitializeLights(HWND hwnd)
 	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(140.0f, 140.0f, 10.0f, 300.0f)); //Generate orthogonal light projection matrix and store it as float4x4
 
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix and store it as float4x4.
-	#pragma endregion
+#pragma endregion
 
 	return true;
 }
@@ -401,9 +417,9 @@ bool Renderer::InitializeModels(HWND hwnd)
 	{
 		int x,z;
 		float y;
-		x = (int)((2.0f + (utility->random() * 56))* 1.0f);
-		z = (int)((2.0f + (utility->random() * 56))* 1.0f);
-		
+		x = (int)((2.0f + (utility->Random() * 56))* 1.0f);
+		z = (int)((2.0f + (utility->Random() * 56))* 1.0f);
+
 		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x*0.6666666666f,z*0.6666666666f) * 1.5f;
 		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (float)(i%2));
 		tempContainer->push_back(temp);
@@ -626,7 +642,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		seconds = timeOfDay += frameTime*2.0f;
 	}
 
-	
+
 	if(inputManager->WasKeyPressed(DIK_N))
 	{
 
@@ -636,21 +652,23 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		marchingCubes->GetTerrain()->Noise3D();
 		marchingCubes->CalculateMesh(d3D->GetDevice());
 
-		
 		for(int i = 0; i < 1000; i++)
 		{
-		int x,z;
-		float y;
-		x = (int)((2.0f + (rand() % 56))* 1.0f);
-		z = (int)((2.0f + (rand() % 56))* 1.0f);
-		
-		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x*0.6666666666f,z*0.6666666666f) * 1.5f;
+			int x,z;
+			float y;
+			x = (int)((2.0f + (rand() % 56))* 1.0f);
+			z = (int)((2.0f + (rand() % 56))* 1.0f);
 
-		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (float)(i%2));
-		tempContainer->push_back(temp);
-	}
-		
-	vegetationManager->SetupQuads(d3D->GetDevice(), tempContainer);
+			y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x*0.6666666666f,z*0.6666666666f) * 1.5f;
+
+			XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (float)(i%2));
+			tempContainer->push_back(temp);
+		}
+
+		vegetationManager->SetupQuads(d3D->GetDevice(), tempContainer);
+
+		delete tempContainer;
+		tempContainer = 0;
 	}
 
 	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
@@ -805,16 +823,17 @@ bool Renderer::Render()
 		return false;
 	}
 
-	worldMatrix = XMMatrixIdentity(); 
-	worldMatrix = XMMatrixTranspose(worldMatrix);
 
 	//d3D->TurnOnAlphaBlending();
 	//d3D->SetNoCullRasterizer();
+	worldMatrix = XMMatrixIdentity(); 
+	worldMatrix = XMMatrixTranspose(worldMatrix);
 	vegetationManager->RenderBuffers(context);
 
 	depthOnlyQuadShader->Render(context, vegetationManager->GetVertexCount(), vegetationManager->GetInstanceCount(),
-	 &worldMatrix, &lightView, &lightProj, vegetationManager->GetTextureArray());
-	d3D->TurnOffAlphaBlending();
+		&worldMatrix, &lightView, &lightProj, vegetationManager->GetTextureArray());
+	
+	//d3D->TurnOffAlphaBlending();
 
 #pragma endregion
 
@@ -893,7 +912,7 @@ bool Renderer::Render()
 
 	marchingCubes->Render(context);
 	result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
-		&worldMatrix, &viewMatrix, &projectionMatrix, sphereModel->GetTextureArray());
+		&worldMatrix, &viewMatrix, &projectionMatrix, &things);
 
 	d3D->TurnOnAlphaBlending();
 	d3D->SetNoCullRasterizer();
@@ -972,7 +991,7 @@ bool Renderer::Render()
 	d3D->ResetBlendState();
 	ds = d3D->GetDepthStencilView(); //This also resets the depth stencil state to "default".
 	context->ClearDepthStencilView(ds,  D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
-	
+
 	d3D->GetWorldMatrix(worldMatrix);
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
@@ -1038,7 +1057,7 @@ bool Renderer::Render()
 		// Turn the Z buffer back on now that all 2D rendering has completed.
 		d3D->TurnZBufferOn();
 	}
-	#pragma endregion
+#pragma endregion
 
 	// Present the rendered scene to the screen.
 	d3D->EndScene();
@@ -1065,6 +1084,12 @@ void Renderer::Shutdown()
 	{
 		delete frustum;
 		frustum = 0;
+	}
+
+	if(things)
+	{
+		things->Release();
+		things = 0;
 	}
 
 	if(gbufferShader)
@@ -1205,15 +1230,14 @@ void Renderer::Shutdown()
 			delete light;
 			light = 0;
 		}
-
-		if(marchingCubes)
-		{
-			delete marchingCubes;
-			marchingCubes = 0;
-		}
 	}
-
 	pointLights.clear();
+
+	if(marchingCubes)
+	{
+		delete marchingCubes;
+		marchingCubes = 0;
+	}
 
 	if(mcubeShader)
 	{

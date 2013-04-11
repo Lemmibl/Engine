@@ -14,7 +14,7 @@ struct PixelShaderOutput
 	float Depth : SV_TARGET2; //R32
 };
 
-Texture2D shaderTextures[3];
+Texture2DArray shaderTextures;
 
 SamplerState samplers[2];
 
@@ -43,24 +43,24 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 
 	float scale = 0.1f;
 
-	float2 YZCoord = input.WorldPosition.yz * scale;  
-	float2 XZCoord = input.WorldPosition.zx * scale;  
-	float2 XYCoord = input.WorldPosition.xy * scale;
+	float3 YZCoord = float3(input.WorldPosition.yz * scale, 0.0f);  
+	float3 XZCoord = float3(input.WorldPosition.zx * scale, 1.0f);  
+	float3 XYCoord = float3(input.WorldPosition.xy * scale, 2.0f);
 
 	float4 XZColor;
 	float dotResult = dot(UpVector, NormalizedWorldNormal);
 
 	if(dotResult <= 0.0f)
 	{
-		XZColor = shaderTextures[2].Sample(samplers[1], XZCoord);
+		XZColor = shaderTextures.Sample(samplers[1], XZCoord);
 	}
 	else
 	{
-		XZColor = shaderTextures[0].Sample(samplers[1], XZCoord);
+		XZColor = shaderTextures.Sample(samplers[1], XZCoord);
 	}
 
-	float4 YZColor = shaderTextures[1].Sample(samplers[1], YZCoord);
-	float4 XYColor = shaderTextures[2].Sample(samplers[1], XYCoord);
+	float4 YZColor = shaderTextures.Sample(samplers[1], YZCoord);
+	float4 XYColor = shaderTextures.Sample(samplers[1], XYCoord);
 
 	//if(NormalizedWorldNormal
 	

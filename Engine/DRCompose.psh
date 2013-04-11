@@ -14,7 +14,7 @@ half4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 
 		if(depth <= 0) //Skip as early as possible if this pixel isn't supposed to be lit.
 		{
-			return float4(baseColor, 0.0f);
+			return float4(baseColor, 1.0f);
 		}
 
 		//http://www.iquilezles.org/www/articles/ssao/ssao.htm
