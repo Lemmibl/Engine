@@ -116,7 +116,7 @@ float ShadowContribution(float2 lightTexCoord, float distanceToLight)
 	// Compute the Chebyshev upper bound.
 	float shadowContribution = ChebyshevUpperBound(moments, distanceToLight);
 
-	//shadowContribution = ReduceLightBleeding(shadowContribution, distanceToLight);
+	shadowContribution = ReduceLightBleeding(shadowContribution, distanceToLight);
 
 	return shadowContribution;
 }
