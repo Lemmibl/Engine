@@ -11,9 +11,9 @@ struct VertexShaderOutput
 	int TextureID : TEXCOORD1;
 };
 
-float2 ComputeMoments(float depth)  
+half2 ComputeMoments(float depth)  
 { 
-	float2 moments;
+	half2 moments;
 	 
 	// First moment is normal depth.  
 	moments.x = depth;
@@ -29,7 +29,7 @@ float2 ComputeMoments(float depth)
 	return moments;
 };
 
-float2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
+half2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 {
 	float alpha = 0.0f;
 
@@ -42,15 +42,10 @@ float2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 		alpha = shaderTexture[1].Sample(SampleType, input.TexCoord).w;
 	}
 
-	if(alpha <= 0.15f)
+	if(alpha < 0.1f)
 	{
 		discard;
 	}
-
-	/*
-	http://www.gamedev.net/topic/551160-directx-shadow-map-example-has-no-alpha/
-	http://www.gamedev.net/topic/430286-using-alpha-testing-with-shadow-maps/
-	*/
 
 	return ComputeMoments(input.Position.z / input.Position.w);
 };

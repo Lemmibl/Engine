@@ -3,27 +3,25 @@ struct VertexShaderOutput
 	float4 Position : SV_POSITION;
 };
 
-float2 ComputeMoments(float depth)  
+half2 ComputeMoments(float depth)  
 { 
-	float2 moments;
+	half2 moments;
 	 
 	// First moment is normal depth.  
-	moments.x = depth; 
-
-	// Compute second moment over the pixel extents.  
+	moments.x = depth;
 	moments.y = depth*depth;
 
 	// Compute partial derivatives of depth.  
 	float dx = ddx(depth);  
 	float dy = ddy(depth);
 
-	// Add a slight offset. See it as a bias.
+	// Compute second moment over the pixel extents.  
 	moments.y += 0.25*(dx*dx + dy*dy);
 
 	return moments;
 };
 
-float2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
+half2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 {
 	return ComputeMoments(input.Position.z / input.Position.w);
 };

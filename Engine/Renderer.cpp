@@ -540,7 +540,7 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 	colorRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
 	normalRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
 	depthRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
-	shadowRT->Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R32_FLOAT);
+	shadowRT->Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_FLOAT);
 	lightRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
 
 	// Create the frustum object.
@@ -784,10 +784,9 @@ bool Renderer::Render()
 
 #pragma region Early depth pass for shadowmap
 	context->OMSetRenderTargets(1, shadowTarget, shadowDS);
-	d3D->SetShadowViewport();
-
 	context->ClearDepthStencilView(shadowDS, D3D11_CLEAR_DEPTH, 1.0f, 0);
 	context->ClearRenderTargetView(shadowTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 1.0f));
+	d3D->SetShadowViewport();
 
 	//d3D->SetFrontFaceCullingRasterizer();
 	d3D->SetNoCullRasterizer();
@@ -823,18 +822,12 @@ bool Renderer::Render()
 		return false;
 	}
 
-
-	//d3D->TurnOnAlphaBlending();
-	//d3D->SetNoCullRasterizer();
 	worldMatrix = XMMatrixIdentity(); 
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 	vegetationManager->RenderBuffers(context);
 
 	depthOnlyQuadShader->Render(context, vegetationManager->GetVertexCount(), vegetationManager->GetInstanceCount(),
 		&worldMatrix, &lightView, &lightProj, vegetationManager->GetTextureArray());
-	
-	//d3D->TurnOffAlphaBlending();
-
 #pragma endregion
 
 #pragma region GBuffer building stage

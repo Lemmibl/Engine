@@ -83,7 +83,7 @@ float ReduceLightBleeding(float p_max, float amount)
 //Calculate shadow contribution using chevyshev's inequality.
 float ChebyshevUpperBound(float2 moments, float t)  
 {
-	float minVariance = 0.0001f; //Scaling value.
+	float minVariance = 0.005f; //Scaling value.
 
 	// Compute variance.  
 	float variance = moments.y - (moments.x*moments.x);
@@ -100,15 +100,15 @@ float ChebyshevUpperBound(float2 moments, float t)
 float ShadowContribution(float2 lightTexCoord, float distanceToLight)  
 {
 	// Read the moments from the variance shadow map.  
-	float2 moments = shaderTextures[2].Sample(linearSampler, lightTexCoord).rg;
+	float2 moments = shaderTextures[2].Sample(pointSampler, lightTexCoord);
 
 	//If surface is fully lit, break early.
-	if(distanceToLight <= moments.x)
+	if(distanceToLight < moments.x)
 	{
 		return 1.0f;
 	}
 
-	if(moments.x == 0.0f) //Then something is really wrong, it means both values are probably 0.0f
+	if(moments.y == moments.x) //Then something is really wrong, it means both values are probably 0.0f
 	{
 		return 1.0f; //There is no depth.
 	}
@@ -116,7 +116,7 @@ float ShadowContribution(float2 lightTexCoord, float distanceToLight)
 	// Compute the Chebyshev upper bound.
 	float shadowContribution = ChebyshevUpperBound(moments, distanceToLight);
 
-	shadowContribution = ReduceLightBleeding(shadowContribution, distanceToLight);
+	//shadowContribution = ReduceLightBleeding(shadowContribution, distanceToLight);
 
 	return shadowContribution;
 }
@@ -187,8 +187,8 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//We cull a large part of the light and shadow calculations if it's outside of the light frustum.
 	if
 	(		
-		!(	sampleLightScreen.x >= 1 || sampleLightScreen.x	<= 0	|| 
-			sampleLightScreen.y >= 1 || sampleLightScreen.y	<= 0	)
+		!(	sampleLightScreen.x > 1 || sampleLightScreen.x	< 0	|| 
+			sampleLightScreen.y > 1 || sampleLightScreen.y	< 0	)
 		&& NdL > 0.0f
 	)
 	{

@@ -42,7 +42,7 @@ PixelShaderOutput VegetationQuadPixelShader(PixelInputType input)
 		tempColor = shaderTexture[1].Sample(SampleType, input.TexCoord);
 	}
 
-	if(tempColor.a >= 0.4f)
+	if(tempColor.a >= 0.2f)
 	{
 		output.Color.xyz = tempColor.xyz;
 		output.Color.a = 1.0f;
