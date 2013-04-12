@@ -400,28 +400,23 @@ bool Renderer::InitializeModels(HWND hwnd)
 
 	for(int i = 0; i < 5000; i++)
 	{
-		float x,z,y;
+		float x,z,y,k;
 		x = ((2.0f + (utility->Random() * 56.0f))* 1.0f);
 		z = ((2.0f + (utility->Random() * 56.0f))* 1.0f);
 
 		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate((int)x, (int)z);
-
-		float k;
-
-		if(y > 45.0f)
-		{
-			k = 0.0f;
-		}
+		//XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (float)(i%2));
+		if(y < 35.0f)
 		else if(y < 15.0f)
 		{
 			k = 1.0f;
 		}
 		else
 		{
-			k = 2.0f + utility->Random()*6.0f;
+			k = 0.0f;
 		}
-
-		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, k);
+	
+		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (utility->Random()*8.0f)* k);
 		tempContainer->push_back(temp);
 	}
 
@@ -666,19 +661,17 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		marchingCubes->Reset();
 		marchingCubes->GetTerrain()->Noise3D();
 		marchingCubes->CalculateMesh(d3D->GetDevice());
-
+		
 		std::vector<XMFLOAT4>* tempContainer = new std::vector<XMFLOAT4>();
-
+		float x,z,y,k;
 		for(int i = 0; i < 5000; i++)
 		{
 			float x,z,y;
 			x = ((2.0f + (utility->Random() * 56.0f))* 1.0f);
 			z = ((2.0f + (utility->Random() * 56.0f))* 1.0f);
-
 			y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate((int)x, (int)z);
-
+		//XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (float)(i%2));
 			float k;
-
 			if(y > 45.0f)
 			{
 				k = 0.0f;
@@ -691,7 +684,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 			{
 				k = 2.0f + utility->Random()*6.0f;
 			}
-
+	
 			XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, k);
 			tempContainer->push_back(temp);
 		}
