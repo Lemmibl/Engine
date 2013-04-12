@@ -16,7 +16,7 @@ struct PixelShaderOutput
 
 Texture2DArray shaderTextures;
 
-SamplerState samplers[2];
+SamplerState samplers[2]; //0 == linear, 1 = point
 
 //Normal Encoding Function
 half3 encode(float3 n)
@@ -33,7 +33,7 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 	float3 UpVector = float3(0.0f, 1.0f, 0.0f);
 
 	//Create weights for color interpolation based on world-space normal of surface
-	float tighten = 0.3f; 
+	float tighten = 0.45f; 
 	float3 NormalizedWorldNormal = normalize(input.WorldNormal);
 
 	float3 blend_weights = abs(NormalizedWorldNormal);     
@@ -42,25 +42,34 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 	blend_weights /= (blend_weights.x + blend_weights.y + blend_weights.z); // Force weights to sum to 1.0 (very important!)  
 
 	float scale = 0.1f;
-
-	float3 YZCoord = float3(input.WorldPosition.yz * scale, 0.0f);  
-	float3 XZCoord = float3(input.WorldPosition.zx * scale, 1.0f);  
-	float3 XYCoord = float3(input.WorldPosition.xy * scale, 2.0f);
-
-	float4 XZColor;
 	float dotResult = dot(UpVector, NormalizedWorldNormal);
 
-	if(dotResult <= 0.0f)
+	float3 YZCoord;
+	float3 XZCoord;
+	float3 XYCoord;
+
+	if(input.WorldPosition.y <= 45.0f)
 	{
-		XZColor = shaderTextures.Sample(samplers[1], XZCoord);
+		YZCoord = float3(input.WorldPosition.yz * scale, 1.0f);  
+		XZCoord = float3(input.WorldPosition.zx * scale, 1.0f);  
+		XYCoord = float3(input.WorldPosition.xy * scale, 2.0f);
 	}
 	else
 	{
-		XZColor = shaderTextures.Sample(samplers[1], XZCoord);
+		YZCoord = float3(input.WorldPosition.yz * scale, 1.0f);  
+		XZCoord = float3(input.WorldPosition.zx * scale, 4.0f);  
+		XYCoord = float3(input.WorldPosition.xy * scale, 1.0f);
 	}
 
-	float4 YZColor = shaderTextures.Sample(samplers[1], YZCoord);
-	float4 XYColor = shaderTextures.Sample(samplers[1], XYCoord);
+	if(dotResult <= 0.0f) //If surface is facing downwards
+	{
+		YZCoord.z = 2.0f; //Change texture to rock.
+	}
+	
+
+	float4 XZColor = shaderTextures.Sample(samplers[0], XZCoord);
+	float4 YZColor = shaderTextures.Sample(samplers[0], YZCoord);
+	float4 XYColor = shaderTextures.Sample(samplers[0], XYCoord);
 
 	//if(NormalizedWorldNormal
 	

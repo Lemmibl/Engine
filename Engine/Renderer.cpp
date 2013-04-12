@@ -401,10 +401,10 @@ bool Renderer::InitializeModels(HWND hwnd)
 	for(int i = 0; i < 5000; i++)
 	{
 		float x,z,y;
-		x = (float)((2.0f + (utility->Random() * 56))* 1.0f);
-		z = (float)((2.0f + (utility->Random() * 56))* 1.0f);
-		int j;
-		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x,z);
+		x = ((2.0f + (utility->Random() * 56.0f))* 1.0f);
+		z = ((2.0f + (utility->Random() * 56.0f))* 1.0f);
+
+		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate((int)x, (int)z);
 
 		float k;
 
@@ -412,7 +412,7 @@ bool Renderer::InitializeModels(HWND hwnd)
 		{
 			k = 0.0f;
 		}
-		else if(y < 10.0f)
+		else if(y < 15.0f)
 		{
 			k = 1.0f;
 		}
@@ -426,6 +426,10 @@ bool Renderer::InitializeModels(HWND hwnd)
 	}
 
 	vegetationManager->SetupQuads(d3D->GetDevice(), tempContainer);
+
+	delete tempContainer;
+	tempContainer = 0;
+
 
 	// Create the model object.
 	groundModel = new ModelClass;
@@ -659,37 +663,38 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 	if(inputManager->WasKeyPressed(DIK_N))
 	{
 
-		std::vector<XMFLOAT4>* tempContainer = new std::vector<XMFLOAT4>();
-
 		marchingCubes->Reset();
 		marchingCubes->GetTerrain()->Noise3D();
 		marchingCubes->CalculateMesh(d3D->GetDevice());
 
-		float x,z,y;
-		int j;
+		std::vector<XMFLOAT4>* tempContainer = new std::vector<XMFLOAT4>();
 
-		x = (float)((2.0f + (utility->Random() * 56))* 1.0f);
-		z = (float)((2.0f + (utility->Random() * 56))* 1.0f);
-
-		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x,z);
-
-		float k;
-
-		if(y > 30.0f)
+		for(int i = 0; i < 5000; i++)
 		{
-			k = 0.0f;
-		}
-		else if(y < 10.0f)
-		{
-			k = 1.0f;
-		}
-		else
-		{
-			k = 2.0f + utility->Random()*6.0f;
-		}
+			float x,z,y;
+			x = ((2.0f + (utility->Random() * 56.0f))* 1.0f);
+			z = ((2.0f + (utility->Random() * 56.0f))* 1.0f);
 
-		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, k);
-		tempContainer->push_back(temp);
+			y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate((int)x, (int)z);
+
+			float k;
+
+			if(y > 45.0f)
+			{
+				k = 0.0f;
+			}
+			else if(y < 15.0f)
+			{
+				k = 1.0f;
+			}
+			else
+			{
+				k = 2.0f + utility->Random()*6.0f;
+			}
+
+			XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, k);
+			tempContainer->push_back(temp);
+		}
 
 		vegetationManager->SetupQuads(d3D->GetDevice(), tempContainer);
 
