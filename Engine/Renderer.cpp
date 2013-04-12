@@ -405,16 +405,22 @@ bool Renderer::InitializeModels(HWND hwnd)
 		z = (float)((2.0f + (utility->Random() * 56))* 1.0f);
 		int j;
 		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x,z);
-		//XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (float)(i%2));
-		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (utility->Random()*8.0f));
 
+		float k;
+
+		if(y > 45.0f)
+		{
+			k = 0.0f;
+		}
+		else if(y < 10.0f)
 		{
 			k = 1.0f;
 		}
 		else
 		{
-			k = 0.0f;
+			k = 2.0f + utility->Random()*6.0f;
 		}
+
 		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, k);
 		tempContainer->push_back(temp);
 	}
@@ -659,18 +665,31 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		marchingCubes->GetTerrain()->Noise3D();
 		marchingCubes->CalculateMesh(d3D->GetDevice());
 
-			x = (int)((2.0f + (utility->Random() * 56))* 1.0f);
-			z = (int)((2.0f + (utility->Random() * 56))* 1.0f);
+		float x,z,y;
+		int j;
 
-		for(int i = 0; i < 5000; i++)
+		x = (float)((2.0f + (utility->Random() * 56))* 1.0f);
+		z = (float)((2.0f + (utility->Random() * 56))* 1.0f);
+
+		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x,z);
+
+		float k;
+
+		if(y > 30.0f)
 		{
-			float x,z,y;
-			x = ((2.0f + (utility->Random() * 56))* 1.0f);
-			z = ((2.0f + (utility->Random() * 56))* 1.0f);
-
-			XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (utility->Random()*8.0f));
-			tempContainer->push_back(temp);
+			k = 0.0f;
 		}
+		else if(y < 10.0f)
+		{
+			k = 1.0f;
+		}
+		else
+		{
+			k = 2.0f + utility->Random()*6.0f;
+		}
+
+		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, k);
+		tempContainer->push_back(temp);
 
 		vegetationManager->SetupQuads(d3D->GetDevice(), tempContainer);
 
