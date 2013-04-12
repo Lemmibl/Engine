@@ -12,8 +12,11 @@ DayNightCycle::DayNightCycle( const DayNightCycle& )
 
 DayNightCycle::~DayNightCycle()
 {
-	delete [] startAndEndPositions;
-	startAndEndPositions = 0;
+	if(startAndEndPositions)
+	{
+		delete [] startAndEndPositions;
+		startAndEndPositions = 0;
+	}
 }
 
 bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )

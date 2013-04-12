@@ -31,9 +31,6 @@
     <Filter Include="Rendering\Utility">
       <UniqueIdentifier>{51b1641f-d707-479c-a05b-d0c977b80194}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Rendering\Deferred stuff">
-      <UniqueIdentifier>{b603451a-643d-458e-b56e-5f2068c079b2}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Rendering\Shaders">
       <UniqueIdentifier>{c988eb98-9dbe-4027-98f6-52ed36d507b3}</UniqueIdentifier>
     </Filter>
@@ -183,6 +180,9 @@
     <ClCompile Include="DepthOnlyShader.cpp">
       <Filter>Rendering\Shader wrappers\Shadow wrappers</Filter>
     </ClCompile>
+    <ClCompile Include="TextureAndMaterialHandler.cpp">
+      <Filter>Rendering\Utility</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inputclass.h">
@@ -319,6 +319,9 @@
     </ClInclude>
     <ClInclude Include="DepthOnlyQuadShader.h">
       <Filter>Rendering\Shader wrappers\Shadow wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureAndMaterialHandler.h">
+      <Filter>Rendering\Utility</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

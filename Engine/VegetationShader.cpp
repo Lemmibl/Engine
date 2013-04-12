@@ -321,7 +321,7 @@ bool VegetationShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, X
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &matrixBuffer);
 
 	// Set shader texture array resource in the pixel shader.
-	deviceContext->PSSetShaderResources(0, 2, textures);
+	deviceContext->PSSetShaderResources(0, 1, textures);
 
 	return true;
 }

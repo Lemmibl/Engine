@@ -104,7 +104,7 @@ Renderer::Renderer()
 	mcTerrain = 0;
 
 	utility = 0;
-	things = 0;
+	textureAndMaterialHandler = 0;
 }
 
 
@@ -140,21 +140,6 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	utility = new Utility();
 
 	XMStoreFloat4x4(&baseViewMatrix, camera->GetView());
-
-	WCHAR* filenames[4] = 
-	{
-		L"../Engine/data/testTexture.dds",
-		L"../Engine/data/testTexture2.dds",
-		L"../Engine/data/testTexture3.dds",
-		L"../Engine/data/testTexture4.dds"
-	};
-
-	HRESULT hr = utility->Build2DTextureArray(d3D->GetDevice(), d3D->GetDeviceContext(), filenames, 4,  &things);
-	if(FAILED(hr))
-	{
-		MessageBox(hwnd, L"Couldn't initialize texture array.", L"Error", MB_OK);
-		return false;
-	}
 
 	result = InitializeShaders(hwnd);
 	if(!result)
@@ -405,7 +390,7 @@ bool Renderer::InitializeModels(HWND hwnd)
 		return false;
 	}
 
-	result = vegetationManager->Initialize(d3D->GetDevice(), hwnd, L"../Engine/data/grassQuad.dds", L"../Engine/data/leafbranch.dds");
+	result = vegetationManager->Initialize(d3D->GetDevice(), hwnd, L"../Engine/data/Vegetation/grassQuad.dds", L"../Engine/data/Vegetation/leafbranch.dds");
 	if(!result)
 	{
 		return false;
@@ -421,7 +406,8 @@ bool Renderer::InitializeModels(HWND hwnd)
 		z = (int)((2.0f + (utility->Random() * 56))* 1.0f);
 
 		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x*0.6666666666f, z*0.6666666666f) * 1.5f;
-		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (float)(i%2));
+		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (utility->Random()*8.0f));
+
 		tempContainer->push_back(temp);
 	}
 
@@ -488,6 +474,18 @@ bool Renderer::InitializeModels(HWND hwnd)
 bool Renderer::InitializeEverythingElse( HWND hwnd )
 {
 	bool result;
+
+	textureAndMaterialHandler = new TextureAndMaterialHandler();
+	if(!textureAndMaterialHandler)
+	{
+		return false;
+	}
+
+	result = textureAndMaterialHandler->Initialize(d3D->GetDevice(), d3D->GetDeviceContext());
+	if(!result)
+	{
+		return false;
+	}
 
 	dayNightCycle = new DayNightCycle();
 	if(!dayNightCycle)
@@ -656,12 +654,12 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		{
 			int x,z;
 			float y;
-			x = (int)((2.0f + (rand() % 56))* 1.0f);
-			z = (int)((2.0f + (rand() % 56))* 1.0f);
+			x = (int)((2.0f + (utility->Random() * 56))* 1.0f);
+			z = (int)((2.0f + (utility->Random() * 56))* 1.0f);
 
 			y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x*0.6666666666f,z*0.6666666666f) * 1.5f;
 
-			XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (float)(i%2));
+			XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (utility->Random()*8.0f));
 			tempContainer->push_back(temp);
 		}
 
@@ -827,7 +825,7 @@ bool Renderer::Render()
 	vegetationManager->RenderBuffers(context);
 
 	depthOnlyQuadShader->Render(context, vegetationManager->GetVertexCount(), vegetationManager->GetInstanceCount(),
-		&worldMatrix, &lightView, &lightProj, vegetationManager->GetTextureArray());
+		&worldMatrix, &lightView, &lightProj, textureAndMaterialHandler->GetVegetationTextures());
 #pragma endregion
 
 #pragma region GBuffer building stage
@@ -905,11 +903,11 @@ bool Renderer::Render()
 
 	marchingCubes->Render(context);
 	result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
-		&worldMatrix, &viewMatrix, &projectionMatrix, &things);
+		&worldMatrix, &viewMatrix, &projectionMatrix, textureAndMaterialHandler->GetTerrainTextures());//TODO
 
 	d3D->TurnOnAlphaBlending();
 	d3D->SetNoCullRasterizer();
-	vegetationManager->Render(context, &worldMatrix, &viewMatrix, &projectionMatrix);
+	vegetationManager->Render(context, &worldMatrix, &viewMatrix, &projectionMatrix, textureAndMaterialHandler->GetVegetationTextures());
 	d3D->TurnOffAlphaBlending();
 
 	text->SetRenderCount(renderCount, context);
@@ -1079,10 +1077,10 @@ void Renderer::Shutdown()
 		frustum = 0;
 	}
 
-	if(things)
+	if(textureAndMaterialHandler)
 	{
-		things->Release();
-		things = 0;
+		delete textureAndMaterialHandler;
+		textureAndMaterialHandler = 0;
 	}
 
 	if(gbufferShader)

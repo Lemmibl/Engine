@@ -1,8 +1,8 @@
 /////////////
 // GLOBALS //
 /////////////
-Texture2D shaderTexture[2];
-SamplerState SampleType;
+Texture2DArray shaderTexture;
+SamplerState linearSampler;
 
 //////////////
 // TYPEDEFS //
@@ -32,17 +32,11 @@ PixelShaderOutput VegetationQuadPixelShader(PixelInputType input)
 	output.Color = half4(0.0f, 0.0f, 0.0f, 0.0f);
 	half4 tempColor = output.Color;
 
-	//TODO: 3D textures.....
-	if(input.TextureID == 0)
-	{
-		tempColor = shaderTexture[0].Sample(SampleType, input.TexCoord);
-	}
-	else
-	{
-		tempColor = shaderTexture[1].Sample(SampleType, input.TexCoord);
-	}
+	float3 samplingCoords = float3(input.TexCoord, input.TextureID); //Add textureID to Z channel so that we can sample dynamically
 
-	if(tempColor.a >= 0.2f)
+	tempColor = shaderTexture.Sample(linearSampler, samplingCoords); //No branching, cuz texture array. Yay.
+
+	if(tempColor.a >= 0.05f)
 	{
 		output.Color.xyz = tempColor.xyz;
 		output.Color.a = 1.0f;

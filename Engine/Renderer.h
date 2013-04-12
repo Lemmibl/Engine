@@ -29,6 +29,7 @@
 #include "renderToTextureClass.h"
 #include "DayNightCycle.h"
 #include "VegetationManager.h"
+#include "TextureAndMaterialHandler.h"
 
 //Objects
 #include "modelclass.h"
@@ -134,8 +135,7 @@ private:
 	MCTerrainClass* mcTerrain;
 
 	Utility* utility;
-
-	ID3D11ShaderResourceView* things;
+	TextureAndMaterialHandler* textureAndMaterialHandler;
 };
 
 #endif
