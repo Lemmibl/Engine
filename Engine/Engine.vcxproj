@@ -27,7 +27,9 @@
     <ClCompile Include="fpsmeter.cpp" />
     <ClCompile Include="frustumclass.cpp" />
     <ClCompile Include="TextureAndMaterialHandler.cpp" />
+    <ClCompile Include="LSystemBranch.cpp" />
     <ClCompile Include="Utility.cpp" />
+    <ClCompile Include="LSystemClass.cpp" />
     <ClCompile Include="VegetationShader.cpp" />
     <ClCompile Include="MCubesGBufferShader.cpp" />
     <ClCompile Include="Renderer.cpp" />
@@ -73,7 +75,9 @@
     <ClInclude Include="frustumclass.h" />
     <ClInclude Include="DRGBuffer.h" />
     <ClInclude Include="TextureAndMaterialHandler.h" />
+    <ClInclude Include="LSystemBranch.h" />
     <ClInclude Include="Utility.h" />
+    <ClInclude Include="LSystemClass.h" />
     <ClInclude Include="VegetationShader.h" />
     <ClInclude Include="MCubesGBufferShader.h" />
     <ClInclude Include="Renderer.h" />

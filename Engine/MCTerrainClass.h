@@ -17,12 +17,20 @@ private:
 	int worldSize;
 	int worldSizeMargin;
 	int x,y,z, idx;
-	MarchingCubeVertex *marchingCubeVertices;
-	SimplexNoise *noise;
 	int worldArraySize;
 	int *marchingCubesFluxArray;
 	
+	float densityToBeInside;
+	float maxDensity, minDensity, densityRangeUpper,densityRangeLower;
+
+	
+	MarchingCubeVertex *marchingCubeVertices;
+	SimplexNoise *noise;
+
 	vector<vector<vector<float>>> densityArray3D;
+	float* densityArray1D;
+
+
 public:
 	MCTerrainClass(void);
 
@@ -50,20 +58,42 @@ public:
 	{
 		return marchingCubeVertices;
 	}
+	
+	float GetDensityRangeUpper()
+	{
+		return densityRangeUpper;
+	}
+
+	float GetDensityRangeLower()
+	{
+		return densityRangeLower;
+	}
+
+	float* &getDensetyArray1D()
+	{
+		return densityArray1D;
+	}
 
 	vector<vector<vector<float>>> const &getDensityArray3D() const
 {
     return densityArray3D;
 }
 
+	
+	
 	float GetHighestPositionOfCoordinate(int x, int z);
+	
+	float GetHighestPositionOfCoordinateBruteforce(float x, float z);
+
+	
+
 
 
 	//float* getDensityArray(){;}
 
 private:
 	void CreateMCVerts();
-
+	
 
 
 };

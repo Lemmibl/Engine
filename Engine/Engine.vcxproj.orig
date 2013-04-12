@@ -26,13 +26,17 @@
     <ClCompile Include="fontshaderclass.cpp" />
     <ClCompile Include="fpsmeter.cpp" />
     <ClCompile Include="frustumclass.cpp" />
+<<<<<<< Updated upstream
+    <ClCompile Include="Utility.cpp" />
+=======
+    <ClCompile Include="LSystemClass.cpp" />
+>>>>>>> Stashed changes
     <ClCompile Include="VegetationShader.cpp" />
     <ClCompile Include="MCubesGBufferShader.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="inputclass.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="marchingCubesClass.cpp" />
-    <ClCompile Include="MarchingCubeShader.cpp" />
     <ClCompile Include="MCTerrainClass.cpp" />
     <ClCompile Include="modelclass.cpp" />
     <ClCompile Include="modellistclass.cpp" />
@@ -71,13 +75,14 @@
     <ClInclude Include="fpsmeter.h" />
     <ClInclude Include="frustumclass.h" />
     <ClInclude Include="DRGBuffer.h" />
+    <ClInclude Include="Utility.h" />
+    <ClInclude Include="LSystemClass.h" />
     <ClInclude Include="VegetationShader.h" />
     <ClInclude Include="MCubesGBufferShader.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="inputclass.h" />
     <ClInclude Include="interfacepointers.h" />
     <ClInclude Include="marchingCubesClass.h" />
-    <ClInclude Include="MarchingCubeShader.h" />
     <ClInclude Include="MCTerrainClass.h" />
     <ClInclude Include="metaballsClass.h" />
     <ClInclude Include="modelclass.h" />
@@ -101,6 +106,8 @@
     <ClInclude Include="VertexShaderOnly.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="DepthOnlyQuadShader.psh" />
+    <None Include="DepthOnlyQuadShader.vsh" />
     <None Include="DepthOnlyShader.psh" />
     <None Include="BasicVertexShader.vsh" />
     <None Include="DRCompose.psh" />
@@ -113,8 +120,6 @@
     <None Include="font.vsh" />
     <None Include="DRGBuffer.psh" />
     <None Include="DRGBuffer.vsh" />
-    <None Include="mcubes.psh" />
-    <None Include="mcubes.vsh" />
     <None Include="DRPointLight.psh" />
     <None Include="DRPointLight.vsh" />
     <None Include="MCubesGBufferShader.psh" />
@@ -123,12 +128,8 @@
     <None Include="skysphere.psh" />
     <None Include="skysphere.vsh" />
     <None Include="standard.vsh" />
-<<<<<<< Updated upstream
-=======
     <None Include="texture.psh" />
     <None Include="texture.vsh" />
-    <None Include="VegetationQuad.gsh" />
->>>>>>> Stashed changes
     <None Include="VegetationQuad.psh" />
     <None Include="VegetationQuad.vsh" />
   </ItemGroup>

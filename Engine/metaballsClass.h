@@ -60,13 +60,13 @@ public:
 		MarchingCubeVertex v;
 		float diff;
 
-		diff = (this->isoValue - v1.flux) / (v2.flux - v1.flux);
+		diff = (this->isoValue - v1.density) / (v2.density - v1.density);
 
 		// Finds where on the line our point is possitioned
 		v.posX = v1.posX + (v2.posX - v1.posX) * diff;
 		v.posY = v1.posY + (v2.posY - v1.posY) * diff;
 		v.posZ = v1.posZ + (v2.posZ - v1.posZ) * diff;
-		v.flux = (v1.flux + v2.flux) * 0.5f;
+		v.density = (v1.density + v2.density) * 0.5f;
 
 		// calculates the average normal for each point
 		v.normalX = v1.normalX + (v2.normalX - v1.normalX) * diff;
@@ -76,11 +76,11 @@ public:
 		return v;
 	}
 
-	/* henter ut flux-verdi for et gitt punkt i gridden */
+	/* henter ut density-verdi for et gitt punkt i gridden */
 	// ???
 	inline float Get_vertex_value(MarchingCubeVertex v)
 	{
-		float flux = 0.0;
+		float density = 0.0;
 
 		for (i = 0; i < numberOfMetapoints; i++)
 		{
@@ -90,13 +90,13 @@ public:
 			lengthZ = metapoints[i].posZ - v.posZ;
 		
 			// calculates the power the points are affected by.
-			flux += fabs(metapoints[i].power) * metapoints[i].power / (
+			density += fabs(metapoints[i].power) * metapoints[i].power / (
 						lengthX * lengthX + 
 						lengthY * lengthY +
 						lengthZ * lengthZ + 1);
 		}
 
-		return flux;
+		return density;
 	}
 };
 #endif

@@ -4,14 +4,21 @@
 #include "Renderer.h"
 
 /*
+Inför cleana upp kod:
+http://gamedev.stackexchange.com/questions/24615/managing-shaders-and-objects-in-directx-11
+https://graphics.stanford.edu/wikis/cs448s-11/FrontPage?action=AttachFile&do=get&target=05-GPU_Arch_I.pdf
+
 Inför terrain rendering / många texturer:
-http://www.gamedev.net/topic/612977-dynamic-updating-of-structuredbuffer-in-dx11/ < DEN HÄR
 http://gamedev.stackexchange.com/questions/14507/loading-a-texture2d-array-in-directx11
+http://www.gamedev.net/topic/612977-dynamic-updating-of-structuredbuffer-in-dx11/ < DEN HÄR
 http://msdn.microsoft.com/en-us/library/ff476486(VS.85).aspx
 http://stackoverflow.com/questions/6347950/programmatically-creating-directx-11-textures-pros-and-cons-of-the-three-differ
 http://irrlicht.sourceforge.net/forum/viewtopic.php?t=21236
 http://gamedev.stackexchange.com/questions/14873/loading-a-sub-resource-for-a-texture-array
 
+http://rastergrid.com/blog/2010/01/uniform-buffers-vs-texture-buffers/
+
+http://stackoverflow.com/questions/10623787/directx-11-framebuffer-capture-c-no-win32-or-d3dx < SPARA TEXTURER TIL HDD
 http://stackoverflow.com/questions/35950/i-dont-understand-stdtr1unordered-map
 Spara material ID i normal alpha channel
 
@@ -21,6 +28,16 @@ http://stackoverflow.com/questions/4120108/how-to-save-backbuffer-to-file-in-dir
 Inför SSAO:
 http://www.gamedev.net/page/resources/_/technical/graphics-programming-and-theory/a-simple-and-practical-approach-to-ssao-r2753
 http://www.iquilezles.org/www/articles/ssao/ssao.htm
+
+Inför shadow maps:
+http://gameengineers.blogspot.se/2013/02/no-title-yet.html
+http://lousodrome.net/blog/light/2012/01/23/variance-shadow-maps/
+http://developer.download.nvidia.com/SDK/10.5/opengl/src/cascaded_shadow_maps/doc/cascaded_shadow_maps.pdf
+http://msdn.microsoft.com/en-us/library/windows/desktop/ee416307(v=vs.85).aspx
+http://devblog.drheinous.com/2012/10/cascaded-variance-shadow-maps.html
+http://developer.download.nvidia.com/SDK/9.5/Samples/samples.html#HLSL_SoftShadows
+http://graphics.stanford.edu/~mdfisher/Shadows.html
+
 
 Inför gräsquads:
 http://gamedev.stackexchange.com/questions/5038/shadow-mapping-and-transparent-quads
@@ -86,6 +103,8 @@ Renderer::Renderer()
 	marchingCubes = 0;
 	mcTerrain = 0;
 
+	utility = 0;
+	things = 0;
 }
 
 
@@ -118,9 +137,24 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	toggleTextureShader = false;
 	returning = false;
 	debugRotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	utility = new Utility();
 
 	XMStoreFloat4x4(&baseViewMatrix, camera->GetView());
 
+	WCHAR* filenames[4] = 
+	{
+		L"../Engine/data/testTexture.dds",
+		L"../Engine/data/testTexture2.dds",
+		L"../Engine/data/testTexture3.dds",
+		L"../Engine/data/testTexture4.dds"
+	};
+
+	HRESULT hr = utility->Build2DTextureArray(d3D->GetDevice(), d3D->GetDeviceContext(), filenames, 4,  &things);
+	if(FAILED(hr))
+	{
+		MessageBox(hwnd, L"Couldn't initialize texture array.", L"Error", MB_OK);
+		return false;
+	}
 
 	result = InitializeShaders(hwnd);
 	if(!result)
@@ -134,13 +168,13 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 		return false;
 	}
 
-	result = InitializeEverythingElse(hwnd);
+	result = InitializeModels(hwnd);
 	if(!result)
 	{
 		return false;
 	}
 
-	result = InitializeModels(hwnd);
+	result = InitializeEverythingElse(hwnd);
 	if(!result)
 	{
 		return false;
@@ -266,7 +300,7 @@ bool Renderer::InitializeLights(HWND hwnd)
 
 	ambientLight = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
 
-	#pragma region Point light initialization
+#pragma region Point light initialization
 	float x, y, z;
 	x = -10.0f;
 	z = -10.0f;
@@ -299,9 +333,9 @@ bool Renderer::InitializeLights(HWND hwnd)
 		XMMATRIX tempTranslation = XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z);
 		XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale * tempTranslation));
 	}
-	#pragma endregion
+#pragma endregion
 
-	#pragma region Directional light initialization
+#pragma region Directional light initialization
 	// Create the directional light.
 	dirLight = new DirLight();
 	if(!dirLight)
@@ -334,10 +368,10 @@ bool Renderer::InitializeLights(HWND hwnd)
 	XMStoreFloat3(&dirLight->Direction, direction);
 
 	//XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(((float)D3DX_PI/2.0f), 1.0f, 10.0f, 300.0f)); //Generate perspective light projection matrix and store it as float4x4
-	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(120.0f, 120.0f, 10.0f, 300.0f)); //Generate orthogonal light projection matrix and store it as float4x4
+	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(140.0f, 140.0f, 10.0f, 300.0f)); //Generate orthogonal light projection matrix and store it as float4x4
 
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix and store it as float4x4.
-	#pragma endregion
+#pragma endregion
 
 	return true;
 }
@@ -345,6 +379,13 @@ bool Renderer::InitializeLights(HWND hwnd)
 bool Renderer::InitializeModels(HWND hwnd)
 {
 	bool result;
+
+	metaBalls = new MetaballsClass();
+	marchingCubes = new MarchingCubesClass(0.0f, 0.0f, 0.0f, 60.0f, 60.0f, 60.0f, 1.0f, 1.0f, 1.0f);
+	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
+
+	marchingCubes->GetTerrain()->Noise3D();
+	marchingCubes->CalculateMesh(d3D->GetDevice());
 
 	skySphere = new Skysphere();
 	if(!skySphere)
@@ -370,31 +411,35 @@ bool Renderer::InitializeModels(HWND hwnd)
 		return false;
 	}
 
-
 	std::vector<XMFLOAT4>* tempContainer = new std::vector<XMFLOAT4>();
 
-<<<<<<< Updated upstream
-	for(int i = 0; i < 1000; i++)
-	{
-		XMFLOAT4 temp = XMFLOAT4(-50.0f + 100.0f*random(), 0.0f, -50.0f + 100.0f*random(), (i%2));
-=======
-	for(int i = 0; i < 1000; i++)
-	{
-		int x,z;
-		float y;
-		x = (2.0f + (rand() % 56))* 1.0f;
-		z = (2.0f + (rand() % 56))* 1.0f;
-		
-		//y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x*2/3,z*2/3) * 1.5f;
-		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x*0.6666666666f,z*0.6666666666f) * 1.5f;
-		//y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x*1.0f,z*1.0f) * 1.5f;
-		
-		//XMFLOAT4 temp = XMFLOAT4(-50.0f + (rand() % 100), 10.0f, -50.0f + (rand() % 100), (i%2));
-		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (i%2));
->>>>>>> Stashed changes
 	for(int i = 0; i < 5000; i++)
 	{
-		XMFLOAT4 temp = XMFLOAT4(-50.0f + 100.0f*random(), 0.0f, -50.0f + 100.0f*random(), i%2);
+<<<<<<< Updated upstream
+		int x,z;
+		float y;
+		x = (int)((2.0f + (utility->Random() * 56))* 1.0f);
+		z = (int)((2.0f + (utility->Random() * 56))* 1.0f);
+
+		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x*0.6666666666f, z*0.6666666666f) * 1.5f;
+		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (float)(i%2));
+=======
+		float x,z,y;
+		x = (float)((2.0f + (utility->random() * 56))* 1.0f);
+		z = (float)((2.0f + (utility->random() * 56))* 1.0f);
+		int j;
+		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x,z);
+		//XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (float)(i%2));
+		float k = 0;
+		if(y < 30)
+		{
+			k = 1.0f;
+		}
+		else
+		{
+			k = 0.0f;
+		}
+		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, k);
 >>>>>>> Stashed changes
 		tempContainer->push_back(temp);
 	}
@@ -469,7 +514,7 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 		return false;
 	}
 
-	result = dayNightCycle->Initialize(100.0f, DUSK);
+	result = dayNightCycle->Initialize(3600.0f*5.0f, DUSK);
 	if(!result)
 	{
 		return false;
@@ -514,8 +559,9 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 	colorRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
 	normalRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
 	depthRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
-	shadowRT->Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R32_FLOAT);
+	shadowRT->Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_FLOAT);
 	lightRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
+
 
 	// Create the frustum object.
 	frustum = new FrustumClass;
@@ -523,13 +569,6 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 	{
 		return false;
 	}
-
-	metaBalls = new MetaballsClass();
-	marchingCubes = new MarchingCubesClass(0.0f, 0.0f, 0.0f, 60.0f, 60.0f, 60.0f, 1.5f, 1.5f, 1.5f);
-	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
-
-	marchingCubes->GetTerrain()->Noise3D();
-	marchingCubes->CalculateMesh(d3D->GetDevice());
 
 	return true;
 }
@@ -620,24 +659,60 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 	if(inputManager->IsKeyPressed(DIK_1))
 	{
-		seconds = timeOfDay += frameTime*0.2f;
+		seconds = timeOfDay += frameTime*2.0f;
 	}
 
-	
+
 	if(inputManager->WasKeyPressed(DIK_N))
 	{
+
+		std::vector<XMFLOAT4>* tempContainer = new std::vector<XMFLOAT4>();
+
 		marchingCubes->Reset();
 		marchingCubes->GetTerrain()->Noise3D();
 		marchingCubes->CalculateMesh(d3D->GetDevice());
+
+<<<<<<< Updated upstream
+		for(int i = 0; i < 1000; i++)
+		{
+			int x,z;
+			float y;
+			x = (int)((2.0f + (rand() % 56))* 1.0f);
+			z = (int)((2.0f + (rand() % 56))* 1.0f);
+
+			y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x*0.6666666666f,z*0.6666666666f) * 1.5f;
+
+=======
+
+		for(int i = 0; i < 5000; i++)
+		{
+			float x,z,y;
+			x = ((2.0f + (utility->random() * 56))* 1.0f);
+			z = ((2.0f + (utility->random() * 56))* 1.0f);
+
+			y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x,z);
+>>>>>>> Stashed changes
+			XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (float)(i%2));
+			tempContainer->push_back(temp);
+		}
+
+		vegetationManager->SetupQuads(d3D->GetDevice(), tempContainer);
+<<<<<<< Updated upstream
+
+		delete tempContainer;
+		tempContainer = 0;
+=======
+>>>>>>> Stashed changes
 	}
 
 	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
 
-	XMVECTOR lookAt = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
+	XMVECTOR lookAt = XMLoadFloat3(&camera->GetPosition());//XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);//(camera->ForwardVector()*30.0f)+XMLoadFloat3(&camera->GetPosition());
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
+	XMVECTOR currentLightPos = XMLoadFloat3(&dirLight->Position)+XMLoadFloat3(&camera->GetPosition());
 
-	XMStoreFloat3(&dirLight->Direction, XMVector3Normalize(lookAt - XMLoadFloat3(&dirLight->Position)));
-	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix
+	XMStoreFloat3(&dirLight->Direction, XMVector3Normalize(lookAt - currentLightPos));//XMLoadFloat3(&dirLight->Position)
+	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(currentLightPos, lookAt, up)); //Generate light view matrix
 
 	return true;
 }
@@ -743,12 +818,13 @@ bool Renderer::Render()
 
 #pragma region Early depth pass for shadowmap
 	context->OMSetRenderTargets(1, shadowTarget, shadowDS);
-	d3D->SetShadowViewport();
-
 	context->ClearDepthStencilView(shadowDS, D3D11_CLEAR_DEPTH, 1.0f, 0);
 	context->ClearRenderTargetView(shadowTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 1.0f));
+	d3D->SetShadowViewport();
 
-	d3D->SetFrontFaceCullingRasterizer();
+	//d3D->SetFrontFaceCullingRasterizer();
+	d3D->SetNoCullRasterizer();
+	//d3D->SetBackFaceCullingRasterizer();
 
 	// Go through all the models and render them only if they can be seen by the camera view.
 	for(int i =0; i < modelCount; i++)
@@ -782,15 +858,15 @@ bool Renderer::Render()
 
 	worldMatrix = XMMatrixIdentity(); 
 	worldMatrix = XMMatrixTranspose(worldMatrix);
-
-	//d3D->TurnOnAlphaBlending();
-	d3D->SetNoCullRasterizer();
 	vegetationManager->RenderBuffers(context);
 
 	depthOnlyQuadShader->Render(context, vegetationManager->GetVertexCount(), vegetationManager->GetInstanceCount(),
-	 &worldMatrix, &lightView, &lightProj, vegetationManager->GetTextureArray());
+		&worldMatrix, &lightView, &lightProj, vegetationManager->GetTextureArray());
+<<<<<<< Updated upstream
+=======
 	d3D->TurnOffAlphaBlending();
 
+>>>>>>> Stashed changes
 #pragma endregion
 
 #pragma region GBuffer building stage
@@ -868,7 +944,7 @@ bool Renderer::Render()
 
 	marchingCubes->Render(context);
 	result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
-		&worldMatrix, &viewMatrix, &projectionMatrix, sphereModel->GetTextureArray());
+		&worldMatrix, &viewMatrix, &projectionMatrix, &things);
 
 	d3D->TurnOnAlphaBlending();
 	d3D->SetNoCullRasterizer();
@@ -947,7 +1023,7 @@ bool Renderer::Render()
 	d3D->ResetBlendState();
 	ds = d3D->GetDepthStencilView(); //This also resets the depth stencil state to "default".
 	context->ClearDepthStencilView(ds,  D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
-	
+
 	d3D->GetWorldMatrix(worldMatrix);
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
@@ -1013,7 +1089,7 @@ bool Renderer::Render()
 		// Turn the Z buffer back on now that all 2D rendering has completed.
 		d3D->TurnZBufferOn();
 	}
-	#pragma endregion
+#pragma endregion
 
 	// Present the rendered scene to the screen.
 	d3D->EndScene();
@@ -1023,6 +1099,12 @@ bool Renderer::Render()
 
 void Renderer::Shutdown()
 {
+	if(utility)
+	{
+		delete utility;
+		utility = 0;
+	}
+
 	if (text)
 	{
 		text->Shutdown();
@@ -1034,6 +1116,12 @@ void Renderer::Shutdown()
 	{
 		delete frustum;
 		frustum = 0;
+	}
+
+	if(things)
+	{
+		things->Release();
+		things = 0;
 	}
 
 	if(gbufferShader)
@@ -1174,15 +1262,14 @@ void Renderer::Shutdown()
 			delete light;
 			light = 0;
 		}
-
-		if(marchingCubes)
-		{
-			delete marchingCubes;
-			marchingCubes = 0;
-		}
 	}
-
 	pointLights.clear();
+
+	if(marchingCubes)
+	{
+		delete marchingCubes;
+		marchingCubes = 0;
+	}
 
 	if(mcubeShader)
 	{

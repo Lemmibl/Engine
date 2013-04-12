@@ -34,8 +34,29 @@
     <Filter Include="Rendering\Deferred stuff">
       <UniqueIdentifier>{b603451a-643d-458e-b56e-5f2068c079b2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Rendering\Non-deferred effects">
-      <UniqueIdentifier>{be3b0400-d2c8-4af6-85ed-054686215f54}</UniqueIdentifier>
+    <Filter Include="Rendering\Shaders">
+      <UniqueIdentifier>{c988eb98-9dbe-4027-98f6-52ed36d507b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shaders\Deferred shaders">
+      <UniqueIdentifier>{fe40bf5b-39f7-41d7-aeff-f0a0fd22fc40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shaders\Post processing">
+      <UniqueIdentifier>{7db10dd1-0844-486b-ba74-d03515d9937d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shaders\Shadows">
+      <UniqueIdentifier>{982aa4dd-306e-43c4-8177-eb502d76c349}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shader wrappers">
+      <UniqueIdentifier>{b33f9602-a7b9-4936-8105-946fd4861c06}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shader wrappers\Deferred wrappers">
+      <UniqueIdentifier>{5ac0f754-049f-49a5-82ac-169368588c74}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shader wrappers\Shadow wrappers">
+      <UniqueIdentifier>{3f445f77-340f-4232-a086-b17e57272dfa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LSystem">
+      <UniqueIdentifier>{50127e89-a31b-4d3b-b08f-60b7def5c1e7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -69,16 +90,7 @@
     <ClCompile Include="controllerclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DRGBuffer.cpp">
-      <Filter>Rendering\Deferred stuff</Filter>
-    </ClCompile>
-    <ClCompile Include="DRPointLight.cpp">
-      <Filter>Rendering\Deferred stuff</Filter>
-    </ClCompile>
     <ClCompile Include="marchingCubesClass.cpp">
-      <Filter>MarchingCubes</Filter>
-    </ClCompile>
-    <ClCompile Include="MarchingCubeShader.cpp">
       <Filter>MarchingCubes</Filter>
     </ClCompile>
     <ClCompile Include="Engine.cpp">
@@ -101,9 +113,6 @@
     </ClCompile>
     <ClCompile Include="bitmapclass.cpp">
       <Filter>Rendering\Utility</Filter>
-    </ClCompile>
-    <ClCompile Include="DRDirectionalLight.cpp">
-      <Filter>Rendering\Deferred stuff</Filter>
     </ClCompile>
     <ClCompile Include="debugwindowclass.cpp">
       <Filter>Rendering\Utility</Filter>
@@ -132,17 +141,11 @@
     <ClCompile Include="SkySphere.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="DRCompose.cpp">
-      <Filter>Rendering\Deferred stuff</Filter>
-    </ClCompile>
     <ClCompile Include="DayNightCycle.cpp">
       <Filter>Rendering\Utility</Filter>
     </ClCompile>
     <ClCompile Include="structs.cpp">
       <Filter>Rendering\Utility</Filter>
-    </ClCompile>
-    <ClCompile Include="MCubesGBufferShader.cpp">
-      <Filter>Rendering\Deferred stuff</Filter>
     </ClCompile>
     <ClCompile Include="textclass.cpp">
       <Filter>Rendering\Utility</Filter>
@@ -150,20 +153,44 @@
     <ClCompile Include="VegetationManager.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="DepthOnlyShader.cpp">
-      <Filter>Rendering\Non-deferred effects</Filter>
-    </ClCompile>
-    <ClCompile Include="VertexShaderOnly.cpp">
-      <Filter>Rendering\Non-deferred effects</Filter>
+    <ClCompile Include="Utility.cpp">
+      <Filter>Rendering\Utility</Filter>
     </ClCompile>
     <ClCompile Include="SkysphereShader.cpp">
-      <Filter>Rendering\Non-deferred effects</Filter>
+      <Filter>Rendering\Shader wrappers</Filter>
     </ClCompile>
     <ClCompile Include="VegetationShader.cpp">
-      <Filter>Rendering\Non-deferred effects</Filter>
+      <Filter>Rendering\Shader wrappers</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexShaderOnly.cpp">
+      <Filter>Rendering\Shader wrappers</Filter>
+    </ClCompile>
+    <ClCompile Include="DRCompose.cpp">
+      <Filter>Rendering\Shader wrappers\Deferred wrappers</Filter>
+    </ClCompile>
+    <ClCompile Include="DRDirectionalLight.cpp">
+      <Filter>Rendering\Shader wrappers\Deferred wrappers</Filter>
+    </ClCompile>
+    <ClCompile Include="DRGBuffer.cpp">
+      <Filter>Rendering\Shader wrappers\Deferred wrappers</Filter>
+    </ClCompile>
+    <ClCompile Include="DRPointLight.cpp">
+      <Filter>Rendering\Shader wrappers\Deferred wrappers</Filter>
+    </ClCompile>
+    <ClCompile Include="MCubesGBufferShader.cpp">
+      <Filter>Rendering\Shader wrappers\Deferred wrappers</Filter>
     </ClCompile>
     <ClCompile Include="DepthOnlyQuadShader.cpp">
-      <Filter>Rendering\Non-deferred effects</Filter>
+      <Filter>Rendering\Shader wrappers\Shadow wrappers</Filter>
+    </ClCompile>
+    <ClCompile Include="DepthOnlyShader.cpp">
+      <Filter>Rendering\Shader wrappers\Shadow wrappers</Filter>
+    </ClCompile>
+    <ClCompile Include="LSystemClass.cpp">
+      <Filter>LSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="LSystemBranch.cpp">
+      <Filter>LSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -203,12 +230,6 @@
     <ClInclude Include="interfacepointers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DRGBuffer.h">
-      <Filter>Rendering\Deferred stuff</Filter>
-    </ClInclude>
-    <ClInclude Include="DRPointLight.h">
-      <Filter>Rendering\Deferred stuff</Filter>
-    </ClInclude>
     <ClInclude Include="customStructs.h">
       <Filter>MarchingCubes</Filter>
     </ClInclude>
@@ -216,9 +237,6 @@
       <Filter>MarchingCubes</Filter>
     </ClInclude>
     <ClInclude Include="metaballsClass.h">
-      <Filter>MarchingCubes</Filter>
-    </ClInclude>
-    <ClInclude Include="MarchingCubeShader.h">
       <Filter>MarchingCubes</Filter>
     </ClInclude>
     <ClInclude Include="TreeClass.h">
@@ -266,14 +284,8 @@
     <ClInclude Include="Engine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DRDirectionalLight.h">
-      <Filter>Rendering\Deferred stuff</Filter>
-    </ClInclude>
     <ClInclude Include="SkySphere.h">
       <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="DRCompose.h">
-      <Filter>Rendering\Deferred stuff</Filter>
     </ClInclude>
     <ClInclude Include="DayNightCycle.h">
       <Filter>Rendering\Utility</Filter>
@@ -281,108 +293,127 @@
     <ClInclude Include="structs.h">
       <Filter>Rendering\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="MCubesGBufferShader.h">
-      <Filter>Rendering\Deferred stuff</Filter>
-    </ClInclude>
     <ClInclude Include="VegetationManager.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="DepthOnlyShader.h">
-      <Filter>Rendering\Non-deferred effects</Filter>
+    <ClInclude Include="Utility.h">
+      <Filter>Rendering\Utility</Filter>
     </ClInclude>
     <ClInclude Include="VertexShaderOnly.h">
-      <Filter>Rendering\Non-deferred effects</Filter>
+      <Filter>Rendering\Shader wrappers</Filter>
     </ClInclude>
     <ClInclude Include="SkysphereShader.h">
-      <Filter>Rendering\Non-deferred effects</Filter>
+      <Filter>Rendering\Shader wrappers</Filter>
     </ClInclude>
     <ClInclude Include="VegetationShader.h">
-      <Filter>Rendering\Non-deferred effects</Filter>
+      <Filter>Rendering\Shader wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="MCubesGBufferShader.h">
+      <Filter>Rendering\Shader wrappers\Deferred wrappers</Filter>
+    </ClInclude>
+<<<<<<< Updated upstream
+    <ClInclude Include="DRCompose.h">
+      <Filter>Rendering\Shader wrappers\Deferred wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="DRDirectionalLight.h">
+      <Filter>Rendering\Shader wrappers\Deferred wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="DRGBuffer.h">
+      <Filter>Rendering\Shader wrappers\Deferred wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="DRPointLight.h">
+      <Filter>Rendering\Shader wrappers\Deferred wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="DepthOnlyShader.h">
+      <Filter>Rendering\Shader wrappers\Shadow wrappers</Filter>
     </ClInclude>
     <ClInclude Include="DepthOnlyQuadShader.h">
-      <Filter>Rendering\Non-deferred effects</Filter>
+      <Filter>Rendering\Shader wrappers\Shadow wrappers</Filter>
+=======
+    <ClInclude Include="LSystemClass.h">
+      <Filter>LSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility.h">
+      <Filter>Rendering\Utility</Filter>
+>>>>>>> Stashed changes
+    </ClInclude>
+    <ClInclude Include="LSystemBranch.h">
+      <Filter>LSystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="font.psh">
-      <Filter>Rendering\Non-deferred effects</Filter>
-    </None>
-    <None Include="font.vsh">
-      <Filter>Rendering\Non-deferred effects</Filter>
-    </None>
-    <None Include="standard.vsh">
-      <Filter>Rendering\Non-deferred effects</Filter>
-    </None>
-    <None Include="DRDirectionalLight.psh">
-      <Filter>Rendering\Deferred stuff</Filter>
-    </None>
-    <None Include="DRDirectionalLight.vsh">
-      <Filter>Rendering\Deferred stuff</Filter>
-    </None>
     <None Include="shader-error.txt" />
-    <None Include="DRGBuffer.psh">
-      <Filter>Rendering\Deferred stuff</Filter>
-    </None>
-    <None Include="DRGBuffer.vsh">
-      <Filter>Rendering\Deferred stuff</Filter>
-    </None>
-    <None Include="DRPointLight.psh">
-      <Filter>Rendering\Deferred stuff</Filter>
-    </None>
-    <None Include="DRPointLight.vsh">
-      <Filter>Rendering\Deferred stuff</Filter>
-    </None>
     <None Include="DRCompose.psh">
-      <Filter>Rendering\Deferred stuff</Filter>
-    </None>
-    <None Include="DRCompose.vsh">
-      <Filter>Rendering\Deferred stuff</Filter>
-    </None>
-    <None Include="mcubes.psh">
-      <Filter>MarchingCubes</Filter>
-    </None>
-    <None Include="mcubes.vsh">
-      <Filter>MarchingCubes</Filter>
-    </None>
-    <None Include="skysphere.psh">
-      <Filter>Rendering\Non-deferred effects</Filter>
-    </None>
-    <None Include="skysphere.vsh">
-      <Filter>Rendering\Non-deferred effects</Filter>
+      <Filter>Rendering\Shaders\Deferred shaders</Filter>
     </None>
     <None Include="MCubesGBufferShader.vsh">
-      <Filter>Rendering\Deferred stuff</Filter>
+      <Filter>Rendering\Shaders\Deferred shaders</Filter>
+    </None>
+    <None Include="DRCompose.vsh">
+      <Filter>Rendering\Shaders\Deferred shaders</Filter>
+    </None>
+    <None Include="DRDirectionalLight.psh">
+      <Filter>Rendering\Shaders\Deferred shaders</Filter>
+    </None>
+    <None Include="DRDirectionalLight.vsh">
+      <Filter>Rendering\Shaders\Deferred shaders</Filter>
+    </None>
+    <None Include="DRGBuffer.psh">
+      <Filter>Rendering\Shaders\Deferred shaders</Filter>
+    </None>
+    <None Include="DRGBuffer.vsh">
+      <Filter>Rendering\Shaders\Deferred shaders</Filter>
+    </None>
+    <None Include="DRPointLight.psh">
+      <Filter>Rendering\Shaders\Deferred shaders</Filter>
+    </None>
+    <None Include="DRPointLight.vsh">
+      <Filter>Rendering\Shaders\Deferred shaders</Filter>
     </None>
     <None Include="MCubesGBufferShader.psh">
-      <Filter>Rendering\Deferred stuff</Filter>
+      <Filter>Rendering\Shaders\Deferred shaders</Filter>
+    </None>
+    <None Include="font.psh">
+      <Filter>Rendering\Shaders</Filter>
+    </None>
+    <None Include="skysphere.vsh">
+      <Filter>Rendering\Shaders</Filter>
+    </None>
+    <None Include="font.vsh">
+      <Filter>Rendering\Shaders</Filter>
+    </None>
+    <None Include="skysphere.psh">
+      <Filter>Rendering\Shaders</Filter>
     </None>
     <None Include="BasicVertexShader.vsh">
-      <Filter>Rendering\Non-deferred effects</Filter>
+      <Filter>Rendering\Shaders</Filter>
+    </None>
+    <None Include="texture.psh">
+      <Filter>Rendering\Shaders</Filter>
     </None>
     <None Include="VegetationQuad.vsh">
-      <Filter>Rendering\Non-deferred effects</Filter>
-    </None>
-    <None Include="VegetationQuad.psh">
-      <Filter>Rendering\Non-deferred effects</Filter>
-    </None>
-    <None Include="DepthOnlyShader.psh">
-      <Filter>Rendering\Non-deferred effects</Filter>
-    </None>
-    <None Include="DepthOnlyShader.vsh">
-      <Filter>Rendering\Non-deferred effects</Filter>
-    </None>
-<<<<<<< Updated upstream
-    <None Include="texture.psh">
-      <Filter>Rendering\Non-deferred effects</Filter>
+      <Filter>Rendering\Shaders</Filter>
     </None>
     <None Include="texture.vsh">
-=======
-    <None Include="DepthOnlyQuadShader.vsh">
-      <Filter>Rendering\Non-deferred effects</Filter>
+      <Filter>Rendering\Shaders</Filter>
+    </None>
+    <None Include="VegetationQuad.psh">
+      <Filter>Rendering\Shaders</Filter>
     </None>
     <None Include="DepthOnlyQuadShader.psh">
->>>>>>> Stashed changes
-      <Filter>Rendering\Non-deferred effects</Filter>
+      <Filter>Rendering\Shaders\Shadows</Filter>
+    </None>
+    <None Include="DepthOnlyShader.vsh">
+      <Filter>Rendering\Shaders\Shadows</Filter>
+    </None>
+    <None Include="DepthOnlyQuadShader.vsh">
+      <Filter>Rendering\Shaders\Shadows</Filter>
+    </None>
+    <None Include="DepthOnlyShader.psh">
+      <Filter>Rendering\Shaders\Shadows</Filter>
+    </None>
+    <None Include="standard.vsh">
+      <Filter>Rendering\Shaders</Filter>
     </None>
   </ItemGroup>
 </Project>
