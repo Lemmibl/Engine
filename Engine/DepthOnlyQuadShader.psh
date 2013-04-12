@@ -47,5 +47,5 @@ half2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 		discard;
 	}
 
-	return ComputeMoments(input.Position.z / input.Position.w)*0.8f;
+	return ComputeMoments(input.Position.z / input.Position.w)-(1.0f-alpha);
 };

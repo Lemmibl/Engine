@@ -420,7 +420,7 @@ bool Renderer::InitializeModels(HWND hwnd)
 		x = (int)((2.0f + (utility->Random() * 56))* 1.0f);
 		z = (int)((2.0f + (utility->Random() * 56))* 1.0f);
 
-		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x*0.6666666666f,z*0.6666666666f) * 1.5f;
+		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x*0.6666666666f, z*0.6666666666f) * 1.5f;
 		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (float)(i%2));
 		tempContainer->push_back(temp);
 	}
