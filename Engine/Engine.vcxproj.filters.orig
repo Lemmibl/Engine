@@ -37,6 +37,9 @@
     <Filter Include="Rendering\Non-deferred effects">
       <UniqueIdentifier>{be3b0400-d2c8-4af6-85ed-054686215f54}</UniqueIdentifier>
     </Filter>
+    <Filter Include="LSystem">
+      <UniqueIdentifier>{50127e89-a31b-4d3b-b08f-60b7def5c1e7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -76,9 +79,6 @@
       <Filter>Rendering\Deferred stuff</Filter>
     </ClCompile>
     <ClCompile Include="marchingCubesClass.cpp">
-      <Filter>MarchingCubes</Filter>
-    </ClCompile>
-    <ClCompile Include="MarchingCubeShader.cpp">
       <Filter>MarchingCubes</Filter>
     </ClCompile>
     <ClCompile Include="Engine.cpp">
@@ -165,6 +165,14 @@
     <ClCompile Include="DepthOnlyQuadShader.cpp">
       <Filter>Rendering\Non-deferred effects</Filter>
     </ClCompile>
+<<<<<<< Updated upstream
+    <ClCompile Include="Utility.cpp">
+      <Filter>Rendering\Utility</Filter>
+=======
+    <ClCompile Include="LSystemClass.cpp">
+      <Filter>LSystem</Filter>
+>>>>>>> Stashed changes
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inputclass.h">
@@ -216,9 +224,6 @@
       <Filter>MarchingCubes</Filter>
     </ClInclude>
     <ClInclude Include="metaballsClass.h">
-      <Filter>MarchingCubes</Filter>
-    </ClInclude>
-    <ClInclude Include="MarchingCubeShader.h">
       <Filter>MarchingCubes</Filter>
     </ClInclude>
     <ClInclude Include="TreeClass.h">
@@ -302,6 +307,12 @@
     <ClInclude Include="DepthOnlyQuadShader.h">
       <Filter>Rendering\Non-deferred effects</Filter>
     </ClInclude>
+    <ClInclude Include="LSystemClass.h">
+      <Filter>LSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility.h">
+      <Filter>Rendering\Utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="font.psh">
@@ -338,12 +349,6 @@
     <None Include="DRCompose.vsh">
       <Filter>Rendering\Deferred stuff</Filter>
     </None>
-    <None Include="mcubes.psh">
-      <Filter>MarchingCubes</Filter>
-    </None>
-    <None Include="mcubes.vsh">
-      <Filter>MarchingCubes</Filter>
-    </None>
     <None Include="skysphere.psh">
       <Filter>Rendering\Non-deferred effects</Filter>
     </None>
@@ -371,17 +376,16 @@
     <None Include="DepthOnlyShader.vsh">
       <Filter>Rendering\Non-deferred effects</Filter>
     </None>
-<<<<<<< Updated upstream
-    <None Include="texture.psh">
-      <Filter>Rendering\Non-deferred effects</Filter>
-    </None>
-    <None Include="texture.vsh">
-=======
     <None Include="DepthOnlyQuadShader.vsh">
       <Filter>Rendering\Non-deferred effects</Filter>
     </None>
     <None Include="DepthOnlyQuadShader.psh">
->>>>>>> Stashed changes
+      <Filter>Rendering\Non-deferred effects</Filter>
+    </None>
+    <None Include="texture.psh">
+      <Filter>Rendering\Non-deferred effects</Filter>
+    </None>
+    <None Include="texture.vsh">
       <Filter>Rendering\Non-deferred effects</Filter>
     </None>
   </ItemGroup>

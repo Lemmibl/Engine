@@ -9,11 +9,10 @@ MCTerrainClass::MCTerrainClass(void)
 
 MCTerrainClass::~MCTerrainClass(void)
 {
-	// //	delete marchingCubeVertices; 
-	// //	marchingCubeVertices = 0;
 
-	//	noise->~SimplexNoise();
-	//	delete noise;
+	noise->~SimplexNoise();
+	delete noise;
+	noise = 0;
 }
 
 void MCTerrainClass::Initialize
@@ -31,7 +30,8 @@ void MCTerrainClass::Initialize
 	this->marchingCubeVertices = marchingCubeVertices;
 	static const int a = sizeX;
 
-	marchingCubesFluxArray = new int[sizeX*sizeY*sizeZ];
+	densityToBeInside = 0.2f;
+	densityArray1D = new float[sizeX*sizeY*sizeZ];
 
 	densityArray3D.resize(sizeZ);
 	for (int i = 0; i < sizeZ; ++i)
@@ -60,8 +60,8 @@ void MCTerrainClass::MCHeightMap()
 
 	for(int i = 0; i < worldArraySize; i++)
 	{
-		float r = noise->noise2D(this->marchingCubeVertices[i].posX,marchingCubeVertices[i].posZ);
-		worldArray[i] = r;
+		float density = noise->noise2D(this->marchingCubeVertices[i].posX,marchingCubeVertices[i].posZ);
+		worldArray[i] = density;
 	}
 
 	int i = -2;
@@ -82,11 +82,11 @@ void MCTerrainClass::MCHeightMap()
 
 
 
-				this->marchingCubeVertices[idx].flux = 100.0f;
+				this->marchingCubeVertices[idx].density = 100.0f;
 
 
 
-				if (this->marchingCubeVertices[idx].flux > 0.1f)
+				if (this->marchingCubeVertices[idx].density > 0.1f)
 				{
 					this->marchingCubeVertices[idx].inside = true;
 				}
@@ -96,9 +96,9 @@ void MCTerrainClass::MCHeightMap()
 				}
 
 
-				this->marchingCubeVertices[idx].normalX = this->marchingCubeVertices[idx - 1].flux - this->marchingCubeVertices[idx+1].flux;
-				this->marchingCubeVertices[idx].normalY = this->marchingCubeVertices[idx - this->sizeY].flux - this->marchingCubeVertices[idx + this->sizeY].flux;
-				this->marchingCubeVertices[idx].normalZ = this->marchingCubeVertices[idx - (this->sizeY * this->sizeZ)].flux - this->marchingCubeVertices[idx + (this->sizeY * this->sizeZ)].flux;
+				this->marchingCubeVertices[idx].normalX = this->marchingCubeVertices[idx - 1].density - this->marchingCubeVertices[idx+1].density;
+				this->marchingCubeVertices[idx].normalY = this->marchingCubeVertices[idx - this->sizeY].density - this->marchingCubeVertices[idx + this->sizeY].density;
+				this->marchingCubeVertices[idx].normalZ = this->marchingCubeVertices[idx - (this->sizeY * this->sizeZ)].density - this->marchingCubeVertices[idx + (this->sizeY * this->sizeZ)].density;
 
 			}
 		}
@@ -114,10 +114,9 @@ void MCTerrainClass::MCHeightMap()
 
 void MCTerrainClass::Noise3D()
 {
-	float max, min;
-	max = 0;
-	min = 1;
-
+	maxDensity = -511.0f;
+	minDensity = 511.0f;
+	float density;
 	for (z = 1; z < (this->sizeZ -1); z++)
 	{
 		for (y = 1; y < (this->sizeY -1); y++)
@@ -127,34 +126,34 @@ void MCTerrainClass::Noise3D()
 				idx = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
 
 
-				float r =  + sizeY * 0.2f - y;
-				//r += (noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/260,marchingCubeVertices[idx].posZ/20) + 1.0f) *4.0f;
-				//r += (noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/260,marchingCubeVertices[idx].posZ/20) + 1.0f) *2.0f;
-				//r += (noise->noise3D2(this->marchingCubeVertices[idx].posX/30,marchingCubeVertices[idx].posY/30,marchingCubeVertices[idx].posZ/30) + 1.0f) *2.0f;
-				//r += (noise->noise3D2(this->marchingCubeVertices[idx].posX/120,marchingCubeVertices[idx].posY/20,marchingCubeVertices[idx].posZ/120) + 1.0f) *5.0f;
-				//r -= (noise->noise3D2(this->marchingCubeVertices[idx].posX/320,marchingCubeVertices[idx].posY/20,marchingCubeVertices[idx].posZ/320) + 1.0f) *10.0f;
+				density =  + sizeY * 0.4f - y;
+				//density += (noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/260,marchingCubeVertices[idx].posZ/20) + 1.0f) *4.0f;
+				//density += (noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/260,marchingCubeVertices[idx].posZ/20) + 1.0f) *2.0f;
+				//density += (noise->noise3D2(this->marchingCubeVertices[idx].posX/30,marchingCubeVertices[idx].posY/30,marchingCubeVertices[idx].posZ/30) + 1.0f) *2.0f;
+				//density += (noise->noise3D2(this->marchingCubeVertices[idx].posX/120,marchingCubeVertices[idx].posY/20,marchingCubeVertices[idx].posZ/120) + 1.0f) *5.0f;
+				//density -= (noise->noise3D2(this->marchingCubeVertices[idx].posX/320,marchingCubeVertices[idx].posY/20,marchingCubeVertices[idx].posZ/320) + 1.0f) *10.0f;
 				/**shelves
 
 				////***
 				//***terraces
-				r += (noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/260,marchingCubeVertices[idx].posZ/20) + 1.0f) *2.0f;
-				r += (noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/260,marchingCubeVertices[idx].posZ/20) + 1.0f) *5.0f;
-				r += (noise->noise3D2(this->marchingCubeVertices[idx].posX/30,marchingCubeVertices[idx].posY/130,marchingCubeVertices[idx].posZ/30) + 1.0f) *5.0f;
-				r += (noise->noise3D2(this->marchingCubeVertices[idx].posX/30,marchingCubeVertices[idx].posY/230,marchingCubeVertices[idx].posZ/30) + 1.0f) *5.0f;
-				r -= (noise->noise3D2(this->marchingCubeVertices[idx].posX/30,marchingCubeVertices[idx].posY/30,marchingCubeVertices[idx].posZ/300) + 1.0f) *10.0f;
+				density += (noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/260,marchingCubeVertices[idx].posZ/20) + 1.0f) *2.0f;
+				density += (noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/260,marchingCubeVertices[idx].posZ/20) + 1.0f) *5.0f;
+				density += (noise->noise3D2(this->marchingCubeVertices[idx].posX/30,marchingCubeVertices[idx].posY/130,marchingCubeVertices[idx].posZ/30) + 1.0f) *5.0f;
+				density += (noise->noise3D2(this->marchingCubeVertices[idx].posX/30,marchingCubeVertices[idx].posY/230,marchingCubeVertices[idx].posZ/30) + 1.0f) *5.0f;
+				density -= (noise->noise3D2(this->marchingCubeVertices[idx].posX/30,marchingCubeVertices[idx].posY/30,marchingCubeVertices[idx].posZ/300) + 1.0f) *10.0f;
 				//***/
 
 
 
-				r += (noise->noise3D2(this->marchingCubeVertices[idx].posX/80,marchingCubeVertices[idx].posY/20,marchingCubeVertices[idx].posZ/80) + 1.0f) *2.0f;
-				r += (noise->noise3D2(this->marchingCubeVertices[idx].posX/80,marchingCubeVertices[idx].posY/20,marchingCubeVertices[idx].posZ/80) + 1.0f) *2.0f;
-				r += (noise->noise3D2(this->marchingCubeVertices[idx].posX/120,marchingCubeVertices[idx].posY/20,marchingCubeVertices[idx].posZ/120) + 1.0f) *5.0f;
-				r += (noise->noise3D2(this->marchingCubeVertices[idx].posX/30,marchingCubeVertices[idx].posY/30,marchingCubeVertices[idx].posZ/300) + 1.0f) *5.0f;
+				density += (noise->noise3D2(this->marchingCubeVertices[idx].posX/80,marchingCubeVertices[idx].posY/20,marchingCubeVertices[idx].posZ/80) + 1.0f) *2.0f;
+				density += (noise->noise3D2(this->marchingCubeVertices[idx].posX/80,marchingCubeVertices[idx].posY/20,marchingCubeVertices[idx].posZ/80) + 1.0f) *2.0f;
+				density += (noise->noise3D2(this->marchingCubeVertices[idx].posX/120,marchingCubeVertices[idx].posY/20,marchingCubeVertices[idx].posZ/120) + 1.0f) *5.0f;
+				density += (noise->noise3D2(this->marchingCubeVertices[idx].posX/30,marchingCubeVertices[idx].posY/30,marchingCubeVertices[idx].posZ/300) + 1.0f) *5.0f;
 				//Hardfloor
 
 				//if(y < 5)
 				//{
-				//	r += 40.0f;
+				//	density += 40.0f;
 				//}
 
 				///Toplvl
@@ -162,70 +161,112 @@ void MCTerrainClass::Noise3D()
 				/*
 				if(y > 10)
 				{
-				r -= 7.0f;
+				density -= 7.0f;
 				}
 				if(y > 15)
 				{
-				r -= 7.0f;
+				density -= 7.0f;
 				}
 				if(y > 20)
 				{
-				r -= 7.0f;
+				density -= 7.0f;
 				}
 				if(y > 25)
 				{
-				r -= 7.0f;
+				density -= 7.0f;
 				}
 				*/
 
-				//r -= (noise->noise3D2(this->marchingCubeVertices[idx].posX/230,marchingCubeVertices[idx].posY/30,marchingCubeVertices[idx].posZ/30) + 1.0f) *5.0f;
-				//r += (noise->noise3D2(this->marchingCubeVertices[idx].posX/120,marchingCubeVertices[idx].posY/20,marchingCubeVertices[idx].posZ/120) + 1.0f) *5.0f;
-				//r += (noise->noise3D2(this->marchingCubeVertices[idx].posX/15,marchingCubeVertices[idx].posY/15,marchingCubeVertices[idx].posZ/15) + 1.0f) *0.5f;
-				//r += 4 * (noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/260,marchingCubeVertices[idx].posZ/20) + 1.0f) *0.25f;
-				//r += 4 * (noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/260,marchingCubeVertices[idx].posZ/20) + 1.0f) *0.25f;
-				//r += 4 * (noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/260,marchingCubeVertices[idx].posZ/20) + 1.0f) *0.25f;
-				//r += 4 * (noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/260,marchingCubeVertices[idx].posZ/20) + 1.0f) *0.25f;
-				//r -= 10 * (noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/20,marchingCubeVertices[idx].posZ/20) + 1.0f) *0.25f;
-				//r -= 3 * (noise->noise3D2(this->marchingCubeVertices[idx].posX/30,marchingCubeVertices[idx].posY/30,marchingCubeVertices[idx].posZ/30) + 1.0f) *0.5f;
-				//r -= 3 * (noise->noise3D2(this->marchingCubeVertices[idx].posX/30,marchingCubeVertices[idx].posY/30,marchingCubeVertices[idx].posZ/30) + 1.0f) *0.5f;
-				//r += 8 * (noise->noise3D2(this->marchingCubeVertices[idx].posX/120,marchingCubeVertices[idx].posY/20,marchingCubeVertices[idx].posZ/120) + 1.0f) *0.5f;
-				//r += 2 * (noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/180,marchingCubeVertices[idx].posZ/20) + 1.0f) *0.5f;
-				//r += 2 * (noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/140,marchingCubeVertices[idx].posZ/20) + 1.0f) *1.0f;
-				//r -= 1 * (noise->noise3D2(this->marchingCubeVertices[idx].posX/10,marchingCubeVertices[idx].posY/10,marchingCubeVertices[idx].posZ/10) + 1.0f) *0.5f;
-				//r -= 2 * (noise->noise3D2(this->marchingCubeVertices[idx].posX/10,marchingCubeVertices[idx].posY/10,marchingCubeVertices[idx].posZ/10) + 1.0f) *0.5f;
-				//r -= 2 * (noise->noise3D2(this->marchingCubeVertices[idx].posX/10,marchingCubeVertices[idx].posY/10,marchingCubeVertices[idx].posZ/10) + 1.0f) *0.5f;
-				//r -= (noise->noise3D2(this->marchingCubeVertices[idx].posX/5,marchingCubeVertices[idx].posY/5,marchingCubeVertices[idx].posZ/5) + 1.0f) *0.5f;
-				//r += (noise->noise3D2(this->marchingCubeVertices[idx].posX,marchingCubeVertices[idx].posY,marchingCubeVertices[idx].posZ) + 0.0f) *0.5f;
-				//r += (noise->noise3D2(this->marchingCubeVertices[idx].posX,marchingCubeVertices[idx].posY,marchingCubeVertices[idx].posZ) - 0.3f) *0.5f;
+				//density -= (noise->noise3D2(this->marchingCubeVertices[idx].posX/230,marchingCubeVertices[idx].posY/30,marchingCubeVertices[idx].posZ/30) + 1.0f) *5.0f;
+				//density += (noise->noise3D2(this->marchingCubeVertices[idx].posX/120,marchingCubeVertices[idx].posY/20,marchingCubeVertices[idx].posZ/120) + 1.0f) *5.0f;
+				//density += (noise->noise3D2(this->marchingCubeVertices[idx].posX/15,marchingCubeVertices[idx].posY/15,marchingCubeVertices[idx].posZ/15) + 1.0f) *0.5f;
+				//density += 4 * (noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/260,marchingCubeVertices[idx].posZ/20) + 1.0f) *0.25f;
+				//density += 4 * (noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/260,marchingCubeVertices[idx].posZ/20) + 1.0f) *0.25f;
+				//density += 4 * (noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/260,marchingCubeVertices[idx].posZ/20) + 1.0f) *0.25f;
+				//density += 4 * (noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/260,marchingCubeVertices[idx].posZ/20) + 1.0f) *0.25f;
+				//density -= 10 * (noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/20,marchingCubeVertices[idx].posZ/20) + 1.0f) *0.25f;
+				//density -= 3 * (noise->noise3D2(this->marchingCubeVertices[idx].posX/30,marchingCubeVertices[idx].posY/30,marchingCubeVertices[idx].posZ/30) + 1.0f) *0.5f;
+				//density -= 3 * (noise->noise3D2(this->marchingCubeVertices[idx].posX/30,marchingCubeVertices[idx].posY/30,marchingCubeVertices[idx].posZ/30) + 1.0f) *0.5f;
+				//density += 8 * (noise->noise3D2(this->marchingCubeVertices[idx].posX/120,marchingCubeVertices[idx].posY/20,marchingCubeVertices[idx].posZ/120) + 1.0f) *0.5f;
+				//density += 2 * (noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/180,marchingCubeVertices[idx].posZ/20) + 1.0f) *0.5f;
+				//density += 2 * (noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/140,marchingCubeVertices[idx].posZ/20) + 1.0f) *1.0f;
+				//density -= 1 * (noise->noise3D2(this->marchingCubeVertices[idx].posX/10,marchingCubeVertices[idx].posY/10,marchingCubeVertices[idx].posZ/10) + 1.0f) *0.5f;
+				//density -= 2 * (noise->noise3D2(this->marchingCubeVertices[idx].posX/10,marchingCubeVertices[idx].posY/10,marchingCubeVertices[idx].posZ/10) + 1.0f) *0.5f;
+				//density -= 2 * (noise->noise3D2(this->marchingCubeVertices[idx].posX/10,marchingCubeVertices[idx].posY/10,marchingCubeVertices[idx].posZ/10) + 1.0f) *0.5f;
+				//density -= (noise->noise3D2(this->marchingCubeVertices[idx].posX/5,marchingCubeVertices[idx].posY/5,marchingCubeVertices[idx].posZ/5) + 1.0f) *0.5f;
+				//density += (noise->noise3D2(this->marchingCubeVertices[idx].posX,marchingCubeVertices[idx].posY,marchingCubeVertices[idx].posZ) + 0.0f) *0.5f;
+				//density += (noise->noise3D2(this->marchingCubeVertices[idx].posX,marchingCubeVertices[idx].posY,marchingCubeVertices[idx].posZ) - 0.3f) *0.5f;
 
 
-				//r = (noise->noise3D2(this->marchingCubeVertices[idx].posX,marchingCubeVertices[idx].posY,marchingCubeVertices[idx].posZ) + 1.0f) *0.5f;
+				//density = (noise->noise3D2(this->marchingCubeVertices[idx].posX,marchingCubeVertices[idx].posY,marchingCubeVertices[idx].posZ) + 1.0f) *0.5f;
 
 				/*if(r<0)
-				{r = 0.0f;}*/
+				{density = 0.0f;}*/
 
 
-				//r *= 1000 *3;
-
-				if(max < r)
-				{max = r;}
-				if(min > r)
-				{min = r;}
+				//density *= 1000 *3;
 
 
-				/*
-				if (r<0)
+
+				if (density<-2)
 				{
-				r = 0;
+				density = -2;
 				}
-				else if (r>1)
+				else if (density>2)
 				{
-				r = 1;
-				}*/
+				density = 2;
+				}
 
-				this->marchingCubeVertices[idx].flux = r;
+				this->marchingCubeVertices[idx].density = density;
 
-				if (r > 0.2f)
+				if (maxDensity < density)
+				{
+					maxDensity = density;
+				}
+				else if (minDensity > density)
+				{
+					minDensity = density;
+				}
+
+
+
+
+			}
+		}
+	}
+	maxDensity = maxDensity;
+	minDensity =  minDensity;
+	
+	densityRangeUpper = maxDensity - densityToBeInside;
+	if (densityRangeUpper != 0)
+	{
+		densityRangeUpper = 1 / densityRangeUpper;
+	}
+	densityRangeLower = densityToBeInside - minDensity;
+	if (densityRangeUpper != 0)
+	{
+		densityRangeLower = 1 / densityRangeLower;
+	}
+
+	for (z = 1; z < (this->sizeZ -1); z++)
+	{
+		for (y = 1; y < (this->sizeY -1); y++)
+		{
+			for (x = 1; x < (this->sizeX -1); x++)
+			{
+				idx = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
+
+				
+				if (this->marchingCubeVertices[idx].density > densityToBeInside)
+				{
+					this->marchingCubeVertices[idx].density = (this->marchingCubeVertices[idx].density ) * densityRangeUpper;
+				}
+				if (this->marchingCubeVertices[idx].density < densityToBeInside)
+				{
+					this->marchingCubeVertices[idx].density = (this->marchingCubeVertices[idx].density ) * densityRangeLower;
+				}
+
+				if (marchingCubeVertices[idx].density > densityToBeInside)
 				{
 					this->marchingCubeVertices[idx].inside = true;
 				}
@@ -234,31 +275,30 @@ void MCTerrainClass::Noise3D()
 					this->marchingCubeVertices[idx].inside = false;
 				}
 
-				densityArray3D[z][y][x] = r;
+				this->densityArray1D[idx] = this->marchingCubeVertices[idx].density;
+				densityArray3D[z][y][x] = this->marchingCubeVertices[idx].density;
 
 
 				CreateMCVerts();
-
 			}
 		}
 	}
-	max = max;
-	min = min;
 }
 
 
 void MCTerrainClass::CreateMCVerts()
 {
-	
-				this->marchingCubeVertices[idx].normalX = this->marchingCubeVertices[idx - 1].flux - this->marchingCubeVertices[idx+1].flux;
-				this->marchingCubeVertices[idx].normalY = this->marchingCubeVertices[idx - this->sizeY].flux - this->marchingCubeVertices[idx + this->sizeY].flux;
-				this->marchingCubeVertices[idx].normalZ = this->marchingCubeVertices[idx - (this->sizeY * this->sizeZ)].flux - this->marchingCubeVertices[idx + (this->sizeY * this->sizeZ)].flux;
+
+	this->marchingCubeVertices[idx].normalX = this->marchingCubeVertices[idx - 1].density/2 - this->marchingCubeVertices[idx+1].density;
+	this->marchingCubeVertices[idx].normalY = this->marchingCubeVertices[idx - this->sizeY].density - this->marchingCubeVertices[idx + this->sizeY].density;
+	this->marchingCubeVertices[idx].normalZ = this->marchingCubeVertices[idx - (this->sizeY * this->sizeZ)].density - this->marchingCubeVertices[idx + (this->sizeY * this->sizeZ)].density;
 }
 
 float MCTerrainClass::GetHighestPositionOfCoordinate(int x, int z)
 {
-	unsigned int i = 0;
-	float j = 0;
+
+
+	float j,i = 0;
 	bool tempBool = false;
 	for (i = sizeY; !tempBool; i--)
 	{
@@ -267,8 +307,7 @@ float MCTerrainClass::GetHighestPositionOfCoordinate(int x, int z)
 		if(this->getMarchingCubeVertices()[idx].inside)
 		{
 			tempBool = true;
-		}
-
+		} 
 	}
 
 	int idx = x + (i+1)*this->sizeY + z * this->sizeY * this->sizeZ;
@@ -276,9 +315,55 @@ float MCTerrainClass::GetHighestPositionOfCoordinate(int x, int z)
 
 	//bool b1 = this->getMarchingCubeVertices()[idx].inside;
 	//bool b2 = this->getMarchingCubeVertices()[idx2].inside;
-	float j1 = this->getMarchingCubeVertices()[idx].flux;
-	float j2 = this->getMarchingCubeVertices()[idx2].flux;
-	j = (j1 + j2)*0.5f;
+	float j1 = this->getMarchingCubeVertices()[idx].density;
+	float j2 = this->getMarchingCubeVertices()[idx2].density;
+	j = (j1 + j2)*.50f;
 
-	return i + 1.1f + j;
+
+	//j = 0;
+	return (i + 1.0f + j);
+}
+
+float MCTerrainClass::GetHighestPositionOfCoordinateBruteforce(float x, float z)
+{
+	float j,i = 0;
+	bool tempBool = false;
+	for (i = sizeY; !tempBool; i--)
+	{
+		idx = x + i*this->sizeY + z * this->sizeY * this->sizeZ;
+		if(this->getMarchingCubeVertices()[idx].inside)
+		{
+			tempBool = true;
+		} 
+	}
+
+	float decimalX = x - int(x);
+	float decimalY = y - int(x);
+	float totalDensity = 0;
+	float densityX = 0;
+	float densityZ = 0;
+	float densityXZ = 0;
+
+	int idx = x + (i+1)*this->sizeY + z * this->sizeY * this->sizeZ;
+	int idx2 = x + (i+2)*this->sizeY + z * this->sizeY * this->sizeZ;
+	int idxX1 = (x +1) + (i+1)*this->sizeY + z * this->sizeY * this->sizeZ;
+	int idxZ1 = x + (i+1)*this->sizeY + (z + 1) * this->sizeY * this->sizeZ;
+	int idxXZ = (x +1) + (i+1)*this->sizeY + (z + 1) * this->sizeY * this->sizeZ;
+
+	//bool b1 = this->getMarchingCubeVertices()[idx].inside;
+	//bool b2 = this->getMarchingCubeVertices()[idx2].inside;
+	float j1 = this->getMarchingCubeVertices()[idx].density;
+	float j2 = this->getMarchingCubeVertices()[idx2].density;
+	
+	densityX = (this->getMarchingCubeVertices()[idx].density + this->getMarchingCubeVertices()[idxX1].density);
+	densityZ = (this->getMarchingCubeVertices()[idx].density + this->getMarchingCubeVertices()[idxZ1].density);
+	densityXZ = (this->getMarchingCubeVertices()[idx].density + this->getMarchingCubeVertices()[idxXZ].density);
+
+
+
+	j = (j1 + j2)*.50f;
+
+
+	//j = 0;
+	return (i + 1.0f + j);
 }

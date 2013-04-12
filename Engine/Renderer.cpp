@@ -381,7 +381,7 @@ bool Renderer::InitializeModels(HWND hwnd)
 	bool result;
 
 	metaBalls = new MetaballsClass();
-	marchingCubes = new MarchingCubesClass(0.0f, 0.0f, 0.0f, 60.0f, 60.0f, 60.0f, 1.5f, 1.5f, 1.5f);
+	marchingCubes = new MarchingCubesClass(0.0f, 0.0f, 0.0f, 60.0f, 60.0f, 60.0f, 1.0f, 1.0f, 1.0f);
 	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
 
 	marchingCubes->GetTerrain()->Noise3D();
@@ -413,15 +413,24 @@ bool Renderer::InitializeModels(HWND hwnd)
 
 	std::vector<XMFLOAT4>* tempContainer = new std::vector<XMFLOAT4>();
 
-	for(int i = 0; i < 1000; i++)
+	for(int i = 0; i < 5000; i++)
 	{
-		int x,z;
-		float y;
-		x = (int)((2.0f + (utility->Random() * 56))* 1.0f);
-		z = (int)((2.0f + (utility->Random() * 56))* 1.0f);
-
-		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x*0.6666666666f, z*0.6666666666f) * 1.5f;
-		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (float)(i%2));
+		float x,z,y;
+		x = (float)((2.0f + (utility->random() * 56))* 1.0f);
+		z = (float)((2.0f + (utility->random() * 56))* 1.0f);
+		int j;
+		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x,z);
+		//XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (float)(i%2));
+		float k = 0;
+		if(y < 30)
+		{
+			k = 1.0f;
+		}
+		else
+		{
+			k = 0.0f;
+		}
+		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, k);
 		tempContainer->push_back(temp);
 	}
 
@@ -543,6 +552,7 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 	shadowRT->Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_FLOAT);
 	lightRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
 
+
 	// Create the frustum object.
 	frustum = new FrustumClass;
 	if(!frustum)
@@ -652,15 +662,14 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		marchingCubes->GetTerrain()->Noise3D();
 		marchingCubes->CalculateMesh(d3D->GetDevice());
 
-		for(int i = 0; i < 1000; i++)
+
+		for(int i = 0; i < 5000; i++)
 		{
-			int x,z;
-			float y;
-			x = (int)((2.0f + (rand() % 56))* 1.0f);
-			z = (int)((2.0f + (rand() % 56))* 1.0f);
+			float x,z,y;
+			x = ((2.0f + (utility->random() * 56))* 1.0f);
+			z = ((2.0f + (utility->random() * 56))* 1.0f);
 
-			y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x*0.6666666666f,z*0.6666666666f) * 1.5f;
-
+			y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x,z);
 			XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (float)(i%2));
 			tempContainer->push_back(temp);
 		}

@@ -55,6 +55,9 @@
     <Filter Include="Rendering\Shader wrappers\Shadow wrappers">
       <UniqueIdentifier>{3f445f77-340f-4232-a086-b17e57272dfa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="LSystem">
+      <UniqueIdentifier>{50127e89-a31b-4d3b-b08f-60b7def5c1e7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -183,6 +186,12 @@
     <ClCompile Include="DepthOnlyShader.cpp">
       <Filter>Rendering\Shader wrappers\Shadow wrappers</Filter>
     </ClCompile>
+    <ClCompile Include="LSystemClass.cpp">
+      <Filter>LSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="LSystemBranch.cpp">
+      <Filter>LSystem</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inputclass.h">
@@ -305,11 +314,17 @@
     <ClInclude Include="DRCompose.h">
       <Filter>Rendering\Shader wrappers\Deferred wrappers</Filter>
     </ClInclude>
+    <ClInclude Include="LSystemClass.h">
+      <Filter>LSystem</Filter>
+    </ClInclude>
     <ClInclude Include="DRDirectionalLight.h">
       <Filter>Rendering\Shader wrappers\Deferred wrappers</Filter>
     </ClInclude>
     <ClInclude Include="DRGBuffer.h">
       <Filter>Rendering\Shader wrappers\Deferred wrappers</Filter>
+      </ClInclude>
+    <ClInclude Include="LSystemBranch.h">
+      <Filter>LSystem</Filter>
     </ClInclude>
     <ClInclude Include="DRPointLight.h">
       <Filter>Rendering\Shader wrappers\Deferred wrappers</Filter>

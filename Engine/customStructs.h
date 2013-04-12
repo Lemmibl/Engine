@@ -15,7 +15,7 @@ struct MarchingCubeVertex
 	float normalY;
 	float normalZ;
 
-	float flux;
+	float density;
 
 	bool inside;
 };

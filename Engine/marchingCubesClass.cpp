@@ -368,7 +368,7 @@ const int MarchingCubesClass::edgeTable[256] = {
 					this->marchingCubeVertices[idx].posX = this->startX + this->stepX * x;
 					this->marchingCubeVertices[idx].posY = this->startY + this->stepY * y;
 					this->marchingCubeVertices[idx].posZ = this->startZ + this->stepZ * z;
-					this->marchingCubeVertices[idx].flux = 0.0;
+					this->marchingCubeVertices[idx].density = 0.0;
 					this->marchingCubeVertices[idx].inside = false;
 					this->marchingCubeVertices[idx].normalX = 0.0;
 					this->marchingCubeVertices[idx].normalY = 0.0;
@@ -404,12 +404,12 @@ const int MarchingCubesClass::edgeTable[256] = {
 				{
 					idx = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
 
-					//this->marchingCubeVertices[idx].flux = this->mb->Get_vertex_value(this->marchingCubeVertices[idx]);
+					//this->marchingCubeVertices[idx].density = this->mb->Get_vertex_value(this->marchingCubeVertices[idx]);
 					Ground(idx);
 					LSystemTree(idx);
 
 
-					if (this->marchingCubeVertices[idx].flux > this->metaballsIsoValue)
+					if (this->marchingCubeVertices[idx].density > this->metaballsIsoValue)
 					{
 						this->marchingCubeVertices[idx].inside = true;
 					}
@@ -418,9 +418,9 @@ const int MarchingCubesClass::edgeTable[256] = {
 						this->marchingCubeVertices[idx].inside = false;
 					}
 
-					this->marchingCubeVertices[idx].normalX = this->marchingCubeVertices[idx - 1].flux - this->marchingCubeVertices[idx+1].flux;
-					this->marchingCubeVertices[idx].normalY = this->marchingCubeVertices[idx - this->sizeY].flux - this->marchingCubeVertices[idx + this->sizeY].flux;
-					this->marchingCubeVertices[idx].normalZ = this->marchingCubeVertices[idx - (this->sizeY * this->sizeZ)].flux - this->marchingCubeVertices[idx + (this->sizeY * this->sizeZ)].flux; 
+					this->marchingCubeVertices[idx].normalX = this->marchingCubeVertices[idx - 1].density - this->marchingCubeVertices[idx+1].density;
+					this->marchingCubeVertices[idx].normalY = this->marchingCubeVertices[idx - this->sizeY].density - this->marchingCubeVertices[idx + this->sizeY].density;
+					this->marchingCubeVertices[idx].normalZ = this->marchingCubeVertices[idx - (this->sizeY * this->sizeZ)].density - this->marchingCubeVertices[idx + (this->sizeY * this->sizeZ)].density; 
 				}
 			}
 		}
@@ -442,11 +442,11 @@ const int MarchingCubesClass::edgeTable[256] = {
 						sqrt((0 - this->marchingCubeVertices[idx].posZ) * (0 - this->marchingCubeVertices[idx].posZ)) < 2)
 					{
 
-						this->marchingCubeVertices[idx].flux = 1.5f;
+						this->marchingCubeVertices[idx].density = 1.5f;
 					}
 
 
-					if (this->marchingCubeVertices[idx].flux > 1.1f)
+					if (this->marchingCubeVertices[idx].density > 1.1f)
 					{
 						this->marchingCubeVertices[idx].inside = true;
 					}
@@ -455,9 +455,9 @@ const int MarchingCubesClass::edgeTable[256] = {
 						this->marchingCubeVertices[idx].inside = false;
 					}
 
-					this->marchingCubeVertices[idx].normalX = this->marchingCubeVertices[idx - 1].flux - this->marchingCubeVertices[idx+1].flux;
-					this->marchingCubeVertices[idx].normalY = this->marchingCubeVertices[idx - this->sizeY].flux - this->marchingCubeVertices[idx + this->sizeY].flux;
-					this->marchingCubeVertices[idx].normalZ = this->marchingCubeVertices[idx - (this->sizeY * this->sizeZ)].flux - this->marchingCubeVertices[idx + (this->sizeY * this->sizeZ)].flux; 
+					this->marchingCubeVertices[idx].normalX = this->marchingCubeVertices[idx - 1].density - this->marchingCubeVertices[idx+1].density;
+					this->marchingCubeVertices[idx].normalY = this->marchingCubeVertices[idx - this->sizeY].density - this->marchingCubeVertices[idx + this->sizeY].density;
+					this->marchingCubeVertices[idx].normalZ = this->marchingCubeVertices[idx - (this->sizeY * this->sizeZ)].density - this->marchingCubeVertices[idx + (this->sizeY * this->sizeZ)].density; 
 				}
 			}
 		}
@@ -471,7 +471,7 @@ const int MarchingCubesClass::edgeTable[256] = {
 			sqrt((0 - this->marchingCubeVertices[idx].posZ) * (0 - this->marchingCubeVertices[idx].posZ)) < 2)
 		{
 
-			this->marchingCubeVertices[vertexID].flux = 1.5f;
+			this->marchingCubeVertices[vertexID].density = 1.5f;
 		}
 	}
 
@@ -481,7 +481,7 @@ const int MarchingCubesClass::edgeTable[256] = {
 		if(this->marchingCubeVertices[vertexID].posY < -18)
 		{
 
-			this->marchingCubeVertices[vertexID].flux = 0.5f;
+			this->marchingCubeVertices[vertexID].density = 0.5f;
 		}
 	}
 
@@ -750,6 +750,9 @@ const int MarchingCubesClass::edgeTable[256] = {
 		vertexCount = (this->sizeX * this->sizeY * this->sizeZ);
 		indexCount = vertexCount;
 
+		delete marchingCubeVertices;
+		marchingCubeVertices = 0;
+
 		this->marchingCubeVertices = new MarchingCubeVertex[vertexCount];
 
 
@@ -767,7 +770,7 @@ const int MarchingCubesClass::edgeTable[256] = {
 					this->marchingCubeVertices[idx].posX = this->startX + this->stepX * x;
 					this->marchingCubeVertices[idx].posY = this->startY + this->stepY * y;
 					this->marchingCubeVertices[idx].posZ = this->startZ + this->stepZ * z;
-					this->marchingCubeVertices[idx].flux = 0.0;
+					this->marchingCubeVertices[idx].density = 0.0;
 					this->marchingCubeVertices[idx].inside = false;
 					this->marchingCubeVertices[idx].normalX = 0.0;
 					this->marchingCubeVertices[idx].normalY = 0.0;
@@ -778,11 +781,12 @@ const int MarchingCubesClass::edgeTable[256] = {
 				}
 			}
 		}
-
+		delete this->Terrain;
+		this->Terrain = 0;
+		
 		this->Terrain = new MCTerrainClass();
 		this->Terrain->Initialize(sizeX,sizeY,sizeZ,this->marchingCubeVertices);
 		Terrain->Noise3D();
-		Terrain->GetHighestPositionOfCoordinate(10,20);
 	}
 
 	float MarchingCubesClass::GetHeightOfXZpos()

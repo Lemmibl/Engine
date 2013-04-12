@@ -69,9 +69,9 @@ void TreeClass::CalculateLine(XMVECTOR* a, XMVECTOR* b, float size)
 						sqrt((XMVectorGetZ(currentPosOnTheLine) - this->marchingCubeVertices2[idx].posZ) * (XMVectorGetZ(currentPosOnTheLine) - this->marchingCubeVertices2[idx].posZ)) < size)
 					{
 
-						this->marchingCubeVertices2[idx].flux = 0.5f;
+						this->marchingCubeVertices2[idx].density = 0.5f;
 					}
-					if (this->marchingCubeVertices2[idx].flux > 0.02f)
+					if (this->marchingCubeVertices2[idx].density > 0.02f)
 					{
 						this->marchingCubeVertices2[idx].inside = true;
 					}
@@ -80,9 +80,9 @@ void TreeClass::CalculateLine(XMVECTOR* a, XMVECTOR* b, float size)
 						this->marchingCubeVertices2[idx].inside = false;
 					}
 
-					this->marchingCubeVertices2[idx].normalX = this->marchingCubeVertices2[idx - 1].flux - this->marchingCubeVertices2[idx+1].flux;
-					this->marchingCubeVertices2[idx].normalY = this->marchingCubeVertices2[idx - this->sizeY].flux - this->marchingCubeVertices2[idx + this->sizeY].flux;
-					this->marchingCubeVertices2[idx].normalZ = this->marchingCubeVertices2[idx - (this->sizeY * this->sizeZ)].flux - this->marchingCubeVertices2[idx + (this->sizeY * this->sizeZ)].flux; 
+					this->marchingCubeVertices2[idx].normalX = this->marchingCubeVertices2[idx - 1].density - this->marchingCubeVertices2[idx+1].density;
+					this->marchingCubeVertices2[idx].normalY = this->marchingCubeVertices2[idx - this->sizeY].density - this->marchingCubeVertices2[idx + this->sizeY].density;
+					this->marchingCubeVertices2[idx].normalZ = this->marchingCubeVertices2[idx - (this->sizeY * this->sizeZ)].density - this->marchingCubeVertices2[idx + (this->sizeY * this->sizeZ)].density; 
 				}
 			}
 		}
