@@ -7,6 +7,7 @@
 void CameraClass::SetPosition(XMFLOAT3 externalPos)
 {
 	position = externalPos;
+	controller->SetPosition(externalPos);
 
 	return;
 }
@@ -14,6 +15,7 @@ void CameraClass::SetPosition(XMFLOAT3 externalPos)
 void CameraClass::SetRotation(XMFLOAT3 externalRot) //lol
 {
 	rotation = externalRot;
+	controller->SetRotation(externalRot);
 
 	return;
 }
