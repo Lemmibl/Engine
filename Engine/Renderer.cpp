@@ -416,8 +416,8 @@ bool Renderer::InitializeModels(HWND hwnd)
 	for(int i = 0; i < 5000; i++)
 	{
 		float x,z,y;
-		x = (float)((2.0f + (utility->random() * 56))* 1.0f);
-		z = (float)((2.0f + (utility->random() * 56))* 1.0f);
+		x = (float)((2.0f + (utility->Random() * 56))* 1.0f);
+		z = (float)((2.0f + (utility->Random() * 56))* 1.0f);
 		int j;
 		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x,z);
 		//XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (float)(i%2));
@@ -666,8 +666,8 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		for(int i = 0; i < 5000; i++)
 		{
 			float x,z,y;
-			x = ((2.0f + (utility->random() * 56))* 1.0f);
-			z = ((2.0f + (utility->random() * 56))* 1.0f);
+			x = ((2.0f + (utility->Random() * 56))* 1.0f);
+			z = ((2.0f + (utility->Random() * 56))* 1.0f);
 
 			y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x,z);
 			XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (float)(i%2));
