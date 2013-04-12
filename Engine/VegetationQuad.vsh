@@ -27,7 +27,7 @@ PixelInputType VegetationQuadVertexShader(VertexInputType input)
 {
 	PixelInputType output;
 	
-	output.TextureID = (int)input.InstancePosition.w; //We've hidden texture ID in instanceposition alpha channel to save a register slot
+	output.TextureID = (int)input.InstancePosition.w+0.3f; //We've hidden texture ID in instanceposition alpha channel to save a register slot
 
 	// Change the position vector to be 4 units for proper matrix calculations.
 	input.Position.w = 1.0f;

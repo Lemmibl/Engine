@@ -36,7 +36,7 @@ PixelShaderOutput VegetationQuadPixelShader(PixelInputType input)
 
 	tempColor = shaderTexture.Sample(linearSampler, samplingCoords); //No branching, cuz texture array. Yay.
 
-	if(tempColor.a >= 0.05f)
+	if(tempColor.a >= 0.2f)
 	{
 		output.Color.xyz = tempColor.xyz;
 		output.Color.a = 1.0f;

@@ -420,7 +420,7 @@ bool Renderer::InitializeModels(HWND hwnd)
 			k = 2.0f + utility->Random()*6.0f;
 		}
 	
-		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (utility->Random()*8.0f)* k);
+		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, k);
 		tempContainer->push_back(temp);
 	}
 

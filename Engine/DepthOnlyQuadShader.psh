@@ -37,7 +37,7 @@ half2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 
 	alpha = shaderTexture.Sample(SampleType, samplingCoords).w;
 
-	if(alpha < 0.15f)
+	if(alpha < 0.2f)
 	{
 		discard;
 	}
