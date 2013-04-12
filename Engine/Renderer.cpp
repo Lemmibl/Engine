@@ -658,19 +658,27 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		marchingCubes->Reset();
 		marchingCubes->GetTerrain()->Noise3D();
 		marchingCubes->CalculateMesh(d3D->GetDevice());
-
-		float x = (float)((2.0f + (utility->Random() * 56))* 1.0f);
-		float z = (float)((2.0f + (utility->Random() * 56))* 1.0f);
-
-		for(int i = 0; i < 5000; i++)
+		
+	for(int i = 0; i < 5000; i++)
+	{
+		float x,z,y,k;
+		x = (float)((2.0f + (utility->Random() * 56))* 1.0f);
+		z = (float)((2.0f + (utility->Random() * 56))* 1.0f);
+		int j;
+		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate(x,z);
+		//XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (float)(i%2));
+		if(y < 35.0f)
 		{
-			float x,z,y;
-			x = ((2.0f + (utility->Random() * 56))* 1.0f);
-			z = ((2.0f + (utility->Random() * 56))* 1.0f);
-
-			XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (utility->Random()*8.0f));
-			tempContainer->push_back(temp);
+			k = 1.0f;
 		}
+		else
+		{
+			k = 0.0f;
+		}
+	
+		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, (utility->Random()*8.0f)* k);
+		tempContainer->push_back(temp);
+	}
 
 		vegetationManager->SetupQuads(d3D->GetDevice(), tempContainer);
 
