@@ -706,10 +706,10 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 	// Create an alpha enabled blend state description.
 	blendStateDescription.RenderTarget[0].BlendEnable = TRUE;
 	blendStateDescription.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-	blendStateDescription.RenderTarget[0].DestBlend = D3D11_BLEND_SRC_COLOR;
+	blendStateDescription.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
 	blendStateDescription.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
 	blendStateDescription.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-	blendStateDescription.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+	blendStateDescription.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
 	blendStateDescription.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	blendStateDescription.RenderTarget[0].RenderTargetWriteMask = 0x0F;
 	blendStateDescription.AlphaToCoverageEnable = true;
@@ -731,6 +731,27 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 	{
 		return false;
 	}
+
+	//To create an alpha enabled blend state description change BlendEnable to TRUE and DestBlend to D3D11_BLEND_INV_SRC_ALPHA. 
+	//The other settings are set to their default values which can be looked up in the Windows DirectX Graphics Documentation. 
+	// Create an alpha enabled blend state description.
+	blendStateDescription.RenderTarget[0].BlendEnable = TRUE;
+	blendStateDescription.RenderTarget[0].SrcBlend = D3D11_BLEND_ZERO;
+	blendStateDescription.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_COLOR;
+	blendStateDescription.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	blendStateDescription.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ZERO;
+	blendStateDescription.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+	blendStateDescription.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	blendStateDescription.RenderTarget[0].RenderTargetWriteMask = 0x0F;
+	blendStateDescription.AlphaToCoverageEnable = true;
+
+	// Create the blend state using the description.
+	result = device->CreateBlendState(&blendStateDescription, &shadowBlendState); //Enable
+	if(FAILED(result))
+	{
+		return false;
+	}
+
 
 	blendStateDescription.AlphaToCoverageEnable = false;
 	blendStateDescription.IndependentBlendEnable = false;
@@ -1162,6 +1183,21 @@ void D3DClass::TurnOnAlphaBlending()
 	deviceContext->OMSetBlendState(alphaEnableBlendingState, blendFactor, 0xffffffff);
 
 	return;
+}
+
+void D3DClass::TurnOnShadowBlendState()
+{
+	float blendFactor[4];
+
+
+	// Setup the blend factor.
+	blendFactor[0] = 1.0f;
+	blendFactor[1] = 1.0f;
+	blendFactor[2] = 1.0f;
+	blendFactor[3] = 1.0f;
+
+	// Turn on the alpha blending.
+	deviceContext->OMSetBlendState(shadowBlendState, blendFactor, 0xffffffff);
 }
 
 void D3DClass::TurnOffAlphaBlending()

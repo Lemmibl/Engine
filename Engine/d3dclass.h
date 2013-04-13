@@ -63,6 +63,7 @@ public:
 	void TurnOnLightBlending();
 	void ResetBlendState();
 	void TurnOffColorBlending();
+	void TurnOnShadowBlendState();
 
 	void SetBackFaceCullingRasterizer();
 	void SetFrontFaceCullingRasterizer();
@@ -115,6 +116,7 @@ private:
 	XMFLOAT4X4 projectionMatrix, worldMatrix, orthoMatrix;
 
 	ID3D11BlendState* alphaEnableBlendingState;
+	ID3D11BlendState* shadowBlendState;
 	ID3D11BlendState* alphaDisableBlendingState;
 	ID3D11BlendState* lightAddBlendState;
 	ID3D11BlendState* colorDisabledBlendState;

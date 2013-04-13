@@ -353,7 +353,7 @@ bool Renderer::InitializeLights(HWND hwnd)
 	XMStoreFloat3(&dirLight->Direction, direction);
 
 	//XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(((float)D3DX_PI/2.0f), 1.0f, 10.0f, 300.0f)); //Generate perspective light projection matrix and store it as float4x4
-	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(140.0f, 140.0f, 10.0f, 300.0f)); //Generate orthogonal light projection matrix and store it as float4x4
+	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(140.0f, 140.0f, 10.0f, 250.0f)); //Generate orthogonal light projection matrix and store it as float4x4
 
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix and store it as float4x4.
 #pragma endregion
@@ -510,7 +510,7 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 		return false;
 	}
 
-	result = dayNightCycle->Initialize(3600.0f*5.0f, DUSK);
+	result = dayNightCycle->Initialize(3600.0f*5.0f, DAWN);
 	if(!result)
 	{
 		return false;
@@ -700,9 +700,9 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
 
-	XMVECTOR lookAt = XMLoadFloat3(&camera->GetPosition());//XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);//(camera->ForwardVector()*30.0f)+XMLoadFloat3(&camera->GetPosition());
+	XMVECTOR lookAt = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);//XMLoadFloat3(&camera->GetPosition());//(camera->ForwardVector()*30.0f)+XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
-	XMVECTOR currentLightPos = XMLoadFloat3(&dirLight->Position)+XMLoadFloat3(&camera->GetPosition());
+	XMVECTOR currentLightPos = XMLoadFloat3(&dirLight->Position);//XMLoadFloat3(&camera->GetPosition())-(camera->ForwardVector()*30.0f);//+XMLoadFloat3(&camera->GetPosition())//XMLoadFloat3(&dirLight->Position)+
 
 	XMStoreFloat3(&dirLight->Direction, XMVector3Normalize(lookAt - currentLightPos));//XMLoadFloat3(&dirLight->Position)
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(currentLightPos, lookAt, up)); //Generate light view matrix
@@ -812,12 +812,10 @@ bool Renderer::Render()
 #pragma region Early depth pass for shadowmap
 	context->OMSetRenderTargets(1, shadowTarget, shadowDS);
 	context->ClearDepthStencilView(shadowDS, D3D11_CLEAR_DEPTH, 1.0f, 0);
-	context->ClearRenderTargetView(shadowTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 1.0f));
+	context->ClearRenderTargetView(shadowTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 	d3D->SetShadowViewport();
-
-	//d3D->SetFrontFaceCullingRasterizer();
+	
 	d3D->SetNoCullRasterizer();
-	//d3D->SetBackFaceCullingRasterizer();
 
 	worldMatrix = XMMatrixIdentity(); 
 	worldMatrix = XMMatrixTranspose(worldMatrix);
@@ -829,12 +827,15 @@ bool Renderer::Render()
 		return false;
 	}
 
-	worldMatrix = XMMatrixIdentity(); 
-	worldMatrix = XMMatrixTranspose(worldMatrix);
+
+	d3D->TurnOnShadowBlendState();
+	d3D->SetFrontFaceCullingRasterizer();
 	vegetationManager->RenderBuffers(context);
 
 	depthOnlyQuadShader->Render(context, vegetationManager->GetVertexCount(), vegetationManager->GetInstanceCount(),
 		&worldMatrix, &lightView, &lightProj, textureAndMaterialHandler->GetVegetationTextures());
+
+	d3D->ResetBlendState();
 
 #pragma endregion
 
@@ -868,45 +869,6 @@ bool Renderer::Render()
 
 	worldMatrix = scalingMatrix* rotationMatrix * worldMatrix;
 	worldMatrix = XMMatrixTranspose(worldMatrix);
-
-	groundModel->Render(context);
-
-	gbufferShader->Render(context, groundModel->GetIndexCount(), &worldMatrix, &viewMatrix, &projectionMatrix, 
-		groundModel->GetTextureArray(), screenFar);
-
-	renderCount++;
-
-	// Go through all the models and render them only if they can be seen by the camera view.
-	for(int i =0; i < modelCount; i++)
-	{
-		// Get the position and color of the sphere model at this index.
-		modelList->GetData(i, positionX, positionY, positionZ, color);
-
-		// Set the radius of the sphere to 1.0 since this is already known.
-		radius = 1.0f;
-
-		// Check if the sphere model is in the view frustum.
-		renderModel = frustum->CheckSphere(positionX, positionY, positionZ, radius);
-
-		// If it can be seen then render it, if not skip this model and check the next sphere.
-		if(renderModel)
-		{
-			// Move the model to the location it should be rendered at.
-			worldMatrix = XMMatrixTranslation(positionX, positionY, positionZ); 
-			worldMatrix = XMMatrixTranspose(worldMatrix);
-
-			// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
-			otherModel->Render(context);
-
-			// Render the model using the gbuffer shader.
-			result = gbufferShader->Render(context, otherModel->GetIndexCount(), &worldMatrix, &viewMatrix, 
-				&projectionMatrix, otherModel->GetTextureArray(), screenFar);
-			if(!result)
-			{
-				return false;
-			}
-		}
-	}
 
 	worldMatrix = XMMatrixIdentity(); 
 	worldMatrix = XMMatrixTranspose(worldMatrix);
