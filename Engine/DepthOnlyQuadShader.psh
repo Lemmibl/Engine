@@ -36,10 +36,10 @@ half2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 
 	alpha = shaderTexture.Sample(SampleType, samplingCoords).w;
 
-	if(alpha < 0.5f)
+	if(alpha < 0.3f)
 	{
 		discard;
 	}
 
-	return ComputeMoments(input.TexCoord.z); //I store depth in texcoord.z. I pack everything into a float4 to save space.
+	return ComputeMoments(input.TexCoord.z)+0.3f; //I store depth in texcoord.z. I pack everything into a float4 to save space.
 };

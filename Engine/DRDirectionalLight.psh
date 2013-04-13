@@ -62,7 +62,7 @@ float3 Decode(float3 enc)
 float2 GetShadowTexOffset( int u, int v )
 {
 	//This has to mirror shadowmap render target width and height; I'm just really, really lazy.
-	float2 shadowMapSize = float2(1024.0f, 1024.0f);	
+	float2 shadowMapSize = float2(2048.0f, 2048.0f);	
 
 	//Scale and return texture coordinates
 	return float2( u * 1.0f/shadowMapSize.x, v * 1.0f/shadowMapSize.y );
@@ -111,7 +111,7 @@ float ShadowContribution(float2 lightTexCoord, float distanceToLight)
 	// Compute the Chebyshev upper bound.
 	float shadowContribution = ChebyshevUpperBound(moments, distanceToLight);
 
-	//shadowContribution = ReduceLightBleeding(shadowContribution, distanceToLight);
+	shadowContribution = ReduceLightBleeding(shadowContribution, distanceToLight);
 
 	return shadowContribution;
 }
