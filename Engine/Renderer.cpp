@@ -829,7 +829,6 @@ bool Renderer::Render()
 
 
 	d3D->TurnOnShadowBlendState();
-	d3D->SetFrontFaceCullingRasterizer();
 	vegetationManager->RenderBuffers(context);
 
 	depthOnlyQuadShader->Render(context, vegetationManager->GetVertexCount(), vegetationManager->GetInstanceCount(),

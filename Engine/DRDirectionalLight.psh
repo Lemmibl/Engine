@@ -142,6 +142,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	finalAmbienceProduct += Ka * AmbientColor;
 
 	float4 encodedNormal = shaderTextures[0].Sample(linearSampler, input.TexCoord);
+	float recieveShadows = encodedNormal.w;
 	float3 normal = normalize(Decode(encodedNormal.xyz));
 
 	//Surface-to-light vector
@@ -230,6 +231,12 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		finalSpecularProduct += Ks * pow( saturate( dot(reflectionVector, directionToCamera)), a);
 	}
 
-	//Storing specular in alpha channel. Applying shadow multiplier to both diffuse product and specular, but not ambient, to make sure it's not completely black in shaded places.
-	return shadowMultiplier*half4(finalAmbienceProduct.rgb + (finalDiffuseProduct), (finalSpecularProduct));
+	if(recieveShadows >= 1.0f)
+	{
+		return half4(finalAmbienceProduct.rgb + (finalDiffuseProduct), (finalSpecularProduct));
+	}
+	else //Don't shade if it shouldn't recieve any shadows
+	{
+		return shadowMultiplier*half4(finalAmbienceProduct.rgb + (finalDiffuseProduct), (finalSpecularProduct));
+	}
 }
