@@ -7,8 +7,7 @@ SamplerState SampleType;
 struct VertexShaderOutput
 {
 	float4 Position : SV_POSITION;
-	float2 TexCoord : TEXCOORD0;
-	int TextureID : TEXCOORD1;
+	float4 TexCoord : TEXCOORD0;
 };
 
 half2 ComputeMoments(float depth)  
@@ -19,12 +18,12 @@ half2 ComputeMoments(float depth)
 	moments.x = depth;
 	moments.y = depth*depth;
 
-	// Compute partial derivatives of depth.  
-	float dx = ddx(depth);  
-	float dy = ddy(depth);
+	//// Compute partial derivatives of depth.  
+	//float dx = ddx(depth);  
+	//float dy = ddy(depth);
 
-	// Compute second moment over the pixel extents.  
-	moments.y += 0.25*(dx*dx + dy*dy);
+	//// Compute second moment over the pixel extents.  
+	//moments.y += 0.25*(dx*dx + dy*dy);
 
 	return moments;
 };
@@ -33,7 +32,7 @@ half2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 {
 	float alpha = 0.0f;
 
-	float3 samplingCoords = float3(input.TexCoord, input.TextureID); //Add textureID to Z channel so that we can sample dynamically
+	float3 samplingCoords = float3(input.TexCoord.xy, input.TexCoord.w); //Add textureID to Z channel so that we can sample dynamically
 
 	alpha = shaderTexture.Sample(SampleType, samplingCoords).w;
 
@@ -42,5 +41,5 @@ half2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 		discard;
 	}
 
-	return max(ComputeMoments(input.Position.z / input.Position.w)-0.1f, 0.0f);
+	return max(ComputeMoments(input.TexCoord.z)-0.1f, 0.0001f); //I store depth in texcoord.z. I pack everything into a float4 to save space.
 };

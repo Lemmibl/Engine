@@ -819,26 +819,6 @@ bool Renderer::Render()
 	d3D->SetNoCullRasterizer();
 	//d3D->SetBackFaceCullingRasterizer();
 
-	// Go through all the models and render them only if they can be seen by the camera view.
-	for(int i =0; i < modelCount; i++)
-	{
-		// Get the position and color of the sphere model at this index.
-		modelList->GetData(i, positionX, positionY, positionZ, color);
-
-		// Move the model to the location it should be rendered at.
-		worldMatrix = XMMatrixTranslation(positionX, positionY, positionZ);	
-		worldMatrix = XMMatrixTranspose(worldMatrix);
-
-		// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
-		otherModel->Render(context);
-
-		result = depthOnlyShader->Render(context, otherModel->GetIndexCount(), &worldMatrix, &lightView, &lightProj);
-		if(!result)
-		{
-			return false;
-		}
-	}
-
 	worldMatrix = XMMatrixIdentity(); 
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 	marchingCubes->Render(context);
@@ -879,53 +859,6 @@ bool Renderer::Render()
 	d3D->TurnZBufferOn();
 
 	context->ClearDepthStencilView(ds, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-	// Move the model to the location it should be rendered at.
-	worldMatrix = XMMatrixTranslation(0.0f, 0.0f, 0.0f);
-	scalingMatrix = XMMatrixScaling(0.5f, 0.5f, 0.5f);
-	XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(debugRotation.x, debugRotation.y, debugRotation.z);
-
-	worldMatrix = scalingMatrix* rotationMatrix * worldMatrix;
-	worldMatrix = XMMatrixTranspose(worldMatrix);
-
-	groundModel->Render(context);
-
-	gbufferShader->Render(context, groundModel->GetIndexCount(), &worldMatrix, &viewMatrix, &projectionMatrix, 
-		groundModel->GetTextureArray(), screenFar);
-
-	renderCount++;
-
-	// Go through all the models and render them only if they can be seen by the camera view.
-	for(int i =0; i < modelCount; i++)
-	{
-		// Get the position and color of the sphere model at this index.
-		modelList->GetData(i, positionX, positionY, positionZ, color);
-
-		// Set the radius of the sphere to 1.0 since this is already known.
-		radius = 1.0f;
-
-		// Check if the sphere model is in the view frustum.
-		renderModel = frustum->CheckSphere(positionX, positionY, positionZ, radius);
-
-		// If it can be seen then render it, if not skip this model and check the next sphere.
-		if(renderModel)
-		{
-			// Move the model to the location it should be rendered at.
-			worldMatrix = XMMatrixTranslation(positionX, positionY, positionZ); 
-			worldMatrix = XMMatrixTranspose(worldMatrix);
-
-			// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
-			otherModel->Render(context);
-
-			// Render the model using the gbuffer shader.
-			result = gbufferShader->Render(context, otherModel->GetIndexCount(), &worldMatrix, &viewMatrix, 
-				&projectionMatrix, otherModel->GetTextureArray(), screenFar);
-			if(!result)
-			{
-				return false;
-			}
-		}
-	}
 
 	worldMatrix = XMMatrixIdentity(); 
 	worldMatrix = XMMatrixTranspose(worldMatrix);
