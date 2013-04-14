@@ -14,8 +14,7 @@ struct PixelShaderOutput
 };
 
 Texture2DArray shaderTextures;
-
-SamplerState samplers[2]; //0 == linear, 1 = point
+SamplerState textureSampler;
 
 //Normal Encoding Function
 half3 encode(float3 n)
@@ -62,15 +61,12 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 
 	if(dotResult <= 0.0f) //If surface is facing downwards
 	{
-		YZCoord.z = 2.0f; //Change texture to rock.
+		XZCoord.z = 2.0f; //Then change surface texture to rock.
 	}
-	
 
-	float4 XZColor = shaderTextures.Sample(samplers[0], XZCoord);
-	float4 YZColor = shaderTextures.Sample(samplers[0], YZCoord);
-	float4 XYColor = shaderTextures.Sample(samplers[0], XYCoord);
-
-	//if(NormalizedWorldNormal
+	float4 XZColor = shaderTextures.Sample(textureSampler, XZCoord);
+	float4 YZColor = shaderTextures.Sample(textureSampler, YZCoord);
+	float4 XYColor = shaderTextures.Sample(textureSampler, XYCoord);
 	
 	output.Color = ((XZColor * blend_weights.y) + (YZColor * blend_weights.x) + (XYColor * blend_weights.z));
 	output.Color.w = 1.0f;

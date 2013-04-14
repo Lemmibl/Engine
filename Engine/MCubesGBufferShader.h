@@ -45,5 +45,5 @@ private:
 
 	ID3D11Buffer* matrixBuffer;
 
-	ID3D11SamplerState* samplers[2];
+	ID3D11SamplerState* sampler;
 };

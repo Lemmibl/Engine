@@ -119,7 +119,7 @@ bool GaussianBlur::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFi
 	}
 
 	// Compile the pixel shader code.
-	result = D3DX11CompileFromFile(psFilenameX, NULL, NULL, "BlurXPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
+	result = D3DX11CompileFromFile(psFilenameX, NULL, NULL, "PSBlurX", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
 		&pixelShaderBufferX, &errorMessage, NULL);
 	if(FAILED(result))
 	{
@@ -138,7 +138,7 @@ bool GaussianBlur::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFi
 	}
 
 	// Compile the pixel shader code.
-	result = D3DX11CompileFromFile(psFilenameY, NULL, NULL, "BlurYPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
+	result = D3DX11CompileFromFile(psFilenameY, NULL, NULL, "PSBlurY", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
 		&pixelShaderBufferY, &errorMessage, NULL);
 	if(FAILED(result))
 	{
@@ -217,7 +217,7 @@ bool GaussianBlur::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFi
 	pixelShaderBufferY = 0;
 
 	// Create a texture sampler state description.
-	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;

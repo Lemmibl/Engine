@@ -81,6 +81,7 @@ Renderer::Renderer()
 	vertexOnlyShader = 0;
 	depthOnlyShader = 0;
 	composeShader = 0;
+	gaussianBlurShader = 0;
 
 	dirLightShader = 0;
 	dirLight = 0;
@@ -142,34 +143,38 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 
 	XMStoreFloat4x4(&baseViewMatrix, camera->GetView());
 
-	result = InitializeShaders(hwnd);
+	ID3D11Device* device = d3D->GetDevice();
+
+	result = InitializeShaders(hwnd, device);
 	if(!result)
 	{
 		return false;
 	}
 
-	result = InitializeLights(hwnd);
+	result = InitializeLights(hwnd, device);
 	if(!result)
 	{
 		return false;
 	}
 
-	result = InitializeModels(hwnd);
+	result = InitializeModels(hwnd, device);
 	if(!result)
 	{
 		return false;
 	}
 
-	result = InitializeEverythingElse(hwnd);
+	result = InitializeEverythingElse(hwnd, device);
 	if(!result)
 	{
 		return false;
 	}
+
+	device = 0;
 
 	return true;
 }
 
-bool Renderer::InitializeShaders(HWND hwnd)
+bool Renderer::InitializeShaders(HWND hwnd, ID3D11Device* device)
 {
 	bool result;
 
@@ -179,7 +184,7 @@ bool Renderer::InitializeShaders(HWND hwnd)
 		return false;
 	}
 
-	result = gbufferShader->Initialize(d3D->GetDevice(), hwnd);
+	result = gbufferShader->Initialize(device, hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"GBuffer shader couldn't be initialized.", L"Error", MB_OK);
@@ -192,7 +197,7 @@ bool Renderer::InitializeShaders(HWND hwnd)
 		return false;
 	}
 
-	result = pointLightShader->Initialize(d3D->GetDevice(), hwnd);
+	result = pointLightShader->Initialize(device, hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Pointlight shader couldn't be initialized.", L"Error", MB_OK);
@@ -205,7 +210,7 @@ bool Renderer::InitializeShaders(HWND hwnd)
 		return false;
 	}
 
-	result = vertexOnlyShader->Initialize(d3D->GetDevice(), hwnd);
+	result = vertexOnlyShader->Initialize(device, hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Vertex only shader couldn't be initialized.", L"Error", MB_OK);
@@ -218,7 +223,7 @@ bool Renderer::InitializeShaders(HWND hwnd)
 		return false;
 	}
 
-	result = depthOnlyShader->Initialize(d3D->GetDevice(), hwnd);
+	result = depthOnlyShader->Initialize(device, hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Depth only shader couldn't be initialized.", L"Error", MB_OK);
@@ -231,7 +236,7 @@ bool Renderer::InitializeShaders(HWND hwnd)
 		return false;
 	}
 
-	result = depthOnlyQuadShader->Initialize(d3D->GetDevice(), hwnd);
+	result = depthOnlyQuadShader->Initialize(device, hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Depth only quad shader couldn't be initialized.", L"Error", MB_OK);
@@ -244,12 +249,22 @@ bool Renderer::InitializeShaders(HWND hwnd)
 		return false;
 	}
 
-	result = composeShader->Initialize(d3D->GetDevice(), hwnd);
+	result = composeShader->Initialize(device, hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Compose shader couldn't be initialized.", L"Error", MB_OK);
 		return false;
 	}
+
+	gaussianBlurShader = new GaussianBlur();
+	if(!gaussianBlurShader)
+	{
+		return false;
+	}
+
+	result = gaussianBlurShader->Initialize(device, hwnd);
+
+
 
 	textureShader = new TextureShaderClass();
 	if(!textureShader)
@@ -257,7 +272,7 @@ bool Renderer::InitializeShaders(HWND hwnd)
 		return false;
 	}
 
-	result = textureShader->Initialize(d3D->GetDevice(), hwnd);
+	result = textureShader->Initialize(device, hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Texture shader couldn't be initialized.", L"Error", MB_OK);
@@ -270,7 +285,7 @@ bool Renderer::InitializeShaders(HWND hwnd)
 		return false;
 	}
 
-	result = mcubeShader->Initialize(d3D->GetDevice(), hwnd);
+	result = mcubeShader->Initialize(device, hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Marching cubes gbuffer shader couldn't be initialized.", L"Error", MB_OK);
@@ -280,7 +295,7 @@ bool Renderer::InitializeShaders(HWND hwnd)
 	return true;
 }
 
-bool Renderer::InitializeLights(HWND hwnd)
+bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 {
 	bool result;
 
@@ -335,7 +350,7 @@ bool Renderer::InitializeLights(HWND hwnd)
 		return false;
 	}
 
-	result = dirLightShader->Initialize(d3D->GetDevice(), hwnd);
+	result = dirLightShader->Initialize(device, hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Dir light shader couldn't be initialized.", L"Error", MB_OK);
@@ -362,7 +377,7 @@ bool Renderer::InitializeLights(HWND hwnd)
 	return true;
 }
 
-bool Renderer::InitializeModels(HWND hwnd)
+bool Renderer::InitializeModels(HWND hwnd,  ID3D11Device* device)
 {
 	bool result;
 
@@ -371,7 +386,7 @@ bool Renderer::InitializeModels(HWND hwnd)
 	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
 
 	marchingCubes->GetTerrain()->Noise3D();
-	marchingCubes->CalculateMesh(d3D->GetDevice());
+	marchingCubes->CalculateMesh(device);
 
 	skySphere = new Skysphere();
 	if(!skySphere)
@@ -379,7 +394,7 @@ bool Renderer::InitializeModels(HWND hwnd)
 		return false;
 	}
 
-	result = skySphere->Initialize(d3D->GetDevice(), hwnd);
+	result = skySphere->Initialize(device, hwnd);
 	if(!result)
 	{
 		return false;
@@ -391,7 +406,7 @@ bool Renderer::InitializeModels(HWND hwnd)
 		return false;
 	}
 
-	result = vegetationManager->Initialize(d3D->GetDevice(), hwnd, L"../Engine/data/Vegetation/grassQuad.dds", L"../Engine/data/Vegetation/leafbranch.dds");
+	result = vegetationManager->Initialize(device, hwnd, L"../Engine/data/Vegetation/grassQuad.dds", L"../Engine/data/Vegetation/leafbranch.dds");
 	if(!result)
 	{
 		return false;
@@ -425,7 +440,7 @@ bool Renderer::InitializeModels(HWND hwnd)
 		tempContainer->push_back(temp);
 	}
 
-	vegetationManager->SetupQuads(d3D->GetDevice(), tempContainer);
+	vegetationManager->SetupQuads(device, tempContainer);
 
 	delete tempContainer;
 	tempContainer = 0;
@@ -439,7 +454,7 @@ bool Renderer::InitializeModels(HWND hwnd)
 	}
 
 	// Initialize the model object.
-	result = groundModel->Initialize(d3D->GetDevice(), "../Engine/data/ground.txt", L"../Engine/data/grass.dds", L"../Engine/data/ground_normal.dds", L"../Engine/data/ground_specular.dds");
+	result = groundModel->Initialize(device, "../Engine/data/ground.txt", L"../Engine/data/grass.dds", L"../Engine/data/ground_normal.dds", L"../Engine/data/ground_specular.dds");
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
@@ -454,7 +469,7 @@ bool Renderer::InitializeModels(HWND hwnd)
 	}
 
 	// Initialize the model object. It really doesn't matter what textures it has because it's only used for point light volume culling.
-	result = sphereModel->Initialize(d3D->GetDevice(), "../Engine/data/skydome.txt", L"../Engine/data/grass.dds", L"../Engine/data/dirt.dds", L"../Engine/data/rock.dds");
+	result = sphereModel->Initialize(device, "../Engine/data/skydome.txt", L"../Engine/data/grass.dds", L"../Engine/data/dirt.dds", L"../Engine/data/rock.dds");
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
@@ -467,7 +482,7 @@ bool Renderer::InitializeModels(HWND hwnd)
 		return false;
 	}
 
-	result = otherModel->Initialize(d3D->GetDevice(), "../Engine/data/cube.txt", L"../Engine/data/stone02.dds", L"../Engine/data/bump02.dds", L"../Engine/data/stone_specmap.dds");
+	result = otherModel->Initialize(device, "../Engine/data/cube.txt", L"../Engine/data/stone02.dds", L"../Engine/data/bump02.dds", L"../Engine/data/stone_specmap.dds");
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
@@ -489,7 +504,7 @@ bool Renderer::InitializeModels(HWND hwnd)
 	return true;
 }
 
-bool Renderer::InitializeEverythingElse( HWND hwnd )
+bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 {
 	bool result;
 
@@ -499,7 +514,7 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 		return false;
 	}
 
-	result = textureAndMaterialHandler->Initialize(d3D->GetDevice(), d3D->GetDeviceContext());
+	result = textureAndMaterialHandler->Initialize(device, d3D->GetDeviceContext());
 	if(!result)
 	{
 		return false;
@@ -527,7 +542,7 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 	}
 
 	// Initialize the text object.
-	result = text->Initialize(d3D->GetDevice(), d3D->GetDeviceContext(), hwnd, screenWidth, screenHeight);
+	result = text->Initialize(device, d3D->GetDeviceContext(), hwnd, screenWidth, screenHeight);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the text object. Look in graphicsclass.", L"Error", MB_OK);
@@ -536,7 +551,7 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 
 	for(int i = 0; i < 5; i++)
 	{
-		debugWindows[i].Initialize(d3D->GetDevice(), screenWidth, screenHeight, 200, 200);
+		debugWindows[i].Initialize(device, screenWidth, screenHeight, 200, 200);
 	}
 
 
@@ -545,7 +560,7 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 	defaultModelMaterial.Kd = 0.8f;
 	defaultModelMaterial.Ks = 0.7f;
 
-	fullScreenQuad.Initialize(d3D->GetDevice(), screenWidth, screenHeight, screenWidth, screenHeight);
+	fullScreenQuad.Initialize(device, screenWidth, screenHeight, screenWidth, screenHeight);
 
 	colorRT = new RenderTarget2D();
 	normalRT = new RenderTarget2D();
@@ -554,12 +569,12 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 	lightRT = new RenderTarget2D();
 	gaussianBlurPingPongRT = new RenderTarget2D();
 
-	colorRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
-	normalRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
-	depthRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
-	lightRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
-	shadowRT->Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_UNORM);
-	gaussianBlurPingPongRT->Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_UNORM); //Needs to be identical to shadowRT
+	colorRT->Initialize(device, screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
+	normalRT->Initialize(device, screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
+	depthRT->Initialize(device, screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
+	lightRT->Initialize(device, screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
+	shadowRT->Initialize(device, shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_UNORM);
+	gaussianBlurPingPongRT->Initialize(device, shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_UNORM); //Needs to be identical to shadowRT
 
 
 	// Create the frustum object.
@@ -731,10 +746,12 @@ bool Renderer::Render()
 	ID3D11RenderTargetView* gbufferRenderTargets[3] = { NULL, NULL, NULL }; //render targets for GBuffer pass
 	ID3D11RenderTargetView* lightTarget[1] = { NULL };
 	ID3D11RenderTargetView* shadowTarget[1] = { NULL };
+	ID3D11RenderTargetView* gaussianBlurPingPongRTView[1] = { NULL };
 
 	ID3D11ShaderResourceView* gbufferTextures[3] = { NULL, NULL, NULL };
 	ID3D11ShaderResourceView* dirLightTextures[3] = { NULL, NULL, NULL };
 	ID3D11ShaderResourceView* finalTextures[3] = { NULL, NULL, NULL };
+	ID3D11ShaderResourceView* gaussianBlurTexture[1] = { NULL };
 
 	ID3D11ShaderResourceView* lightMap = NULL;
 
@@ -754,6 +771,9 @@ bool Renderer::Render()
 	//For shadow pre-gbuffer pass
 	shadowTarget[0] = shadowRT->RTView;
 
+	//Name should be pretty self-explanatory
+	gaussianBlurPingPongRTView[0] = gaussianBlurPingPongRT->RTView;
+
 	//For GBuffer pass
 	gbufferTextures[0] = colorRT->SRView; 
 	gbufferTextures[1] = normalRT->SRView;
@@ -768,6 +788,8 @@ bool Renderer::Render()
 	finalTextures[0] = colorRT->SRView;
 	finalTextures[1] = lightRT->SRView;
 	finalTextures[2] = depthRT->SRView;
+
+	gaussianBlurTexture[0] = gaussianBlurPingPongRT->SRView;
 
 	// Get the number of models that will be rendered.
 	modelCount = modelList->GetModelCount();
@@ -842,6 +864,23 @@ bool Renderer::Render()
 	d3D->ResetBlendState();
 
 #pragma endregion
+
+	//Blur shadow map texture horizontally
+	context->OMSetRenderTargets(1, gaussianBlurPingPongRTView, shadowDS);
+	context->ClearRenderTargetView(gaussianBlurPingPongRTView[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
+	context->ClearDepthStencilView(shadowDS, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	fullScreenQuad.Render(context, 0, 0);
+	gaussianBlurShader->RenderBlurX(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &dirLightTextures[2]);
+
+	//Blur shadow map texture vertically
+	context->OMSetRenderTargets(1, shadowTarget, shadowDS);
+	context->ClearDepthStencilView(shadowDS, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	fullScreenQuad.Render(context, 0, 0);
+	gaussianBlurShader->RenderBlurX(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &gaussianBlurTexture[0]);
+
+	dirLightTextures[2] = shadowRT->SRView;
 
 #pragma region GBuffer building stage
 	d3D->SetDefaultViewport();
@@ -1103,6 +1142,13 @@ void Renderer::Shutdown()
 		composeShader->Shutdown();
 		delete composeShader;
 		composeShader = 0;
+	}
+
+	if(gaussianBlurShader)
+	{
+		gaussianBlurShader->Shutdown();
+		delete gaussianBlurShader;
+		gaussianBlurShader = 0;
 	}
 
 	if(colorRT)

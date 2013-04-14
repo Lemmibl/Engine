@@ -52,6 +52,7 @@
 #include "fontshaderclass.h"
 #include "DRGBuffer.h"
 #include "DepthOnlyQuadShader.h"
+#include "GaussianBlur.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -65,10 +66,10 @@ public:
 	~Renderer();
 
 	bool Initialize(HWND hwnd, CameraClass* camera, InputClass* inputManager, D3DClass* d3D, UINT screenWidth, UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear);
-	bool InitializeShaders(HWND hwnd);
-	bool InitializeLights(HWND hwnd);
-	bool InitializeEverythingElse(HWND hwnd);
-	bool InitializeModels(HWND hwnd);
+	bool InitializeShaders(HWND hwnd, ID3D11Device* device);
+	bool InitializeLights(HWND hwnd, ID3D11Device* device);
+	bool InitializeEverythingElse(HWND hwnd, ID3D11Device* device);
+	bool InitializeModels(HWND hwnd, ID3D11Device* device);
 	void Shutdown();
 
 	bool Update(int, int, float, float seconds);
@@ -91,6 +92,7 @@ private:
 	DepthOnlyShader* depthOnlyShader;
 	DepthOnlyQuadShader* depthOnlyQuadShader;
 	DRCompose* composeShader;
+	GaussianBlur* gaussianBlurShader;
 
 	DRDirLight* dirLightShader;
 	DirLight* dirLight;

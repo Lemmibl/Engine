@@ -98,7 +98,7 @@ float ChebyshevUpperBound(float2 moments, float t)
 float ShadowContribution(float2 lightTexCoord, float distanceToLight)  
 {
 	// Read the moments from the variance shadow map.  
-	float2 moments = shaderTextures[2].Sample(pointSampler, lightTexCoord);
+	float2 moments = shaderTextures[2].Sample(linearSampler, lightTexCoord);
 
 	//If surface is fully lit, break early.
 	if(distanceToLight <= moments.x)
@@ -128,7 +128,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	float finalSpecularProduct = 0.0f;
 
 	//Sample camera depth
-	float depth = shaderTextures[1].Sample(pointSampler, input.TexCoord);
+	float depth = shaderTextures[1].Sample(linearSampler, input.TexCoord);
 
 	finalAmbienceProduct += Ka * AmbientColor;
 
