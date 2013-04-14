@@ -924,11 +924,11 @@ bool Renderer::Render()
 	text->SetRenderCount(renderCount, context);
 #pragma endregion
 
+#pragma region Point light stage
 	context->OMSetRenderTargets(1, lightTarget, ds);
 	context->ClearRenderTargetView(lightTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 	context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-#pragma region Point light stage
 	//Phase one, draw sphere with vertex-only shader.
 	d3D->TurnOnLightBlending();
 
@@ -953,6 +953,7 @@ bool Renderer::Render()
 		{
 			return false;
 		}
+
 		context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
 	}
 #pragma endregion
