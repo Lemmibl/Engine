@@ -303,24 +303,24 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 
 #pragma region Point light initialization
 	float x, y, z;
-	x = -10.0f;
-	z = -10.0f;
+	x = 0.0f;
+	z = 0.0f;
 	y = 10.0f;
 
-	for(int i = 0; i < 20; i++)
+	for(int i = 0; i < 200; i++)
 	{
 		pointLights.push_back(new PointLight());
 		pointLights[i]->Position = XMFLOAT3(x, y, z);
 		pointLights[i]->Color = XMFLOAT3(0.1f+i%4, 0.1f+i%2, 1.0f-i%3);
-		pointLights[i]->Radius = 8.0f;
+		pointLights[i]->Radius = 1.0f;
 		pointLights[i]->Intensity = 512.0f; //The lower it gets, the more intense it gets
 
-		x += 10.0f;
+		x += 5.0f;
 
-		if(x >= 30.0f) //Every 10th light gets reseted in x and z plane.
+		if(x >= 50.0f) //Every 10th light gets reseted in x and z plane.
 		{
-			x = -10.0f;
-			z += 10.0f;
+			x = 0.0f;
+			z += 5.0f;
 		}
 
 		if(i != 0 && i % 100 == 0) //Every 100 pointlights we reset and make another layer that is (y+8) higher up.
@@ -556,9 +556,9 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 
 
 	defaultModelMaterial.a = 4096.0f;
-	defaultModelMaterial.Ka = 1.0f;
-	defaultModelMaterial.Kd = 0.8f;
-	defaultModelMaterial.Ks = 0.7f;
+	defaultModelMaterial.Ka = 0.1f;
+	defaultModelMaterial.Kd = 1.0f;
+	defaultModelMaterial.Ks = 1.0f;
 
 	fullScreenQuad.Initialize(device, screenWidth, screenHeight, screenWidth, screenHeight);
 
@@ -865,22 +865,26 @@ bool Renderer::Render()
 
 #pragma endregion
 
-	//Blur shadow map texture horizontally
+#pragma region Shadow map blur stage
+	//Change render target to prepare for ping-ponging
 	context->OMSetRenderTargets(1, gaussianBlurPingPongRTView, shadowDS);
 	context->ClearRenderTargetView(gaussianBlurPingPongRTView[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 	context->ClearDepthStencilView(shadowDS, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
+	//Blur shadow map texture horizontally
 	fullScreenQuad.Render(context, 0, 0);
 	gaussianBlurShader->RenderBlurX(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &dirLightTextures[2]);
 
-	//Blur shadow map texture vertically
+	//Change render target back to our shadow map to render the second blur and get the final result
 	context->OMSetRenderTargets(1, shadowTarget, shadowDS);
 	context->ClearDepthStencilView(shadowDS, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
+	//Blur shadow map texture vertically
 	fullScreenQuad.Render(context, 0, 0);
 	gaussianBlurShader->RenderBlurY(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &gaussianBlurTexture[0]);
 
-	dirLightTextures[2] = shadowRT->SRView;
+	/*dirLightTextures[2] = shadowRT->SRView;*/
+#pragma endregion
 
 #pragma region GBuffer building stage
 	d3D->SetDefaultViewport();
