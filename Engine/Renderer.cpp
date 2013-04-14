@@ -556,7 +556,7 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 
 
 	defaultModelMaterial.a = 4096.0f;
-	defaultModelMaterial.Ka = 0.1f;
+	defaultModelMaterial.Ka = 0.3f;
 	defaultModelMaterial.Kd = 1.0f;
 	defaultModelMaterial.Ks = 1.0f;
 
@@ -940,21 +940,19 @@ bool Renderer::Render()
 		d3D->SetNoCullRasterizer();
 
 		sphereModel->Render(context);
-
 		result = vertexOnlyShader->Render(context, sphereModel->GetIndexCount(), &worldViewProj);
 
 		//Phase two, draw sphere with light algorithm
 		d3D->SetLightStencilMethod1Phase2();
 		d3D->SetFrontFaceCullingRasterizer();
 
-		sphereModel->Render(context);
+		//sphereModel->Render(context);
 
 		result = pointLightShader->Render(context, sphereModel->GetIndexCount(), &worldViewProj, &invertedViewProjection, pointLights[i], gbufferTextures, camPos);
 		if(!result)
 		{
 			return false;
 		}
-
 		context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
 	}
 #pragma endregion
@@ -981,7 +979,7 @@ bool Renderer::Render()
 	d3D->SetBackBufferRenderTarget();
 	context->ClearDepthStencilView(ds,  D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	fullScreenQuad.Render(context, 0, 0);
+	//fullScreenQuad.Render(context, 0, 0);
 
 	composeShader->Render(context, fullScreenQuad.GetIndexCount(), &worldMatrix, &baseView, 
 		&orthoMatrix, finalTextures);

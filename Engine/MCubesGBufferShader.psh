@@ -59,8 +59,11 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 		XYCoord = float3(input.WorldPosition.xy * scale, 1.0f);
 	}
 
+	output.Normal.w = 1.2f; //This is the "Should this pixel recieve shadows" value. 0 means no.
+
 	if(dotResult <= 0.0f) //If surface is facing downwards
 	{
+		output.Normal.w = 0.0f; //Then it shouldn't be shadowed.
 		XZCoord.z = 2.0f; //Then change surface texture to rock.
 	}
 
@@ -91,8 +94,6 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 	//} 
 	
 	output.Normal.xyz = (0.5f * (NormalizedWorldNormal + 1.0f)); //revert the normal output to [0,1] space then assign it to the output normal map's RGB channel
-	output.Normal.w = 1.2f; //This is the "Should this pixel recieve shadows" value. 0 means yes.
-
 	output.Depth = (input.Depth.x / input.Depth.y);
 
 	return output;
