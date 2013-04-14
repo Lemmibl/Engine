@@ -878,7 +878,7 @@ bool Renderer::Render()
 	context->ClearDepthStencilView(shadowDS, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	fullScreenQuad.Render(context, 0, 0);
-	gaussianBlurShader->RenderBlurX(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &gaussianBlurTexture[0]);
+	gaussianBlurShader->RenderBlurY(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &gaussianBlurTexture[0]);
 
 	dirLightTextures[2] = shadowRT->SRView;
 
