@@ -285,11 +285,11 @@ void VegetationManager::Shutdown()
 	}
 }
 
-bool VegetationManager::Render(ID3D11DeviceContext* deviceContext, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, ID3D11ShaderResourceView** textures)
+bool VegetationManager::Render(ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textures)
 {
 	RenderBuffers(deviceContext);
 
-	if(!vegetationShader->Render(deviceContext, vertexCount, instanceCount, world, view, projection, textures))
+	if(!vegetationShader->Render(deviceContext, vertexCount, instanceCount, worldViewProjection, textures))
 	{
 		return false;
 	}

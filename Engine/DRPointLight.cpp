@@ -50,13 +50,13 @@ void DRPointLight::Shutdown()
 	return;
 }
 
-bool DRPointLight::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* view, XMMATRIX* proj, XMMATRIX* invViewProj, 
+bool DRPointLight::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* WorldViewProjection, XMMATRIX* invViewProj, 
 	PointLight* pointLight, ID3D11ShaderResourceView** textureArray, XMFLOAT3 cameraPosition)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, view, proj, invViewProj, pointLight, textureArray, cameraPosition);
+	result = SetShaderParameters(deviceContext, WorldViewProjection, invViewProj, pointLight, textureArray, cameraPosition);
 	if(!result)
 	{
 		return false;
@@ -327,7 +327,7 @@ void DRPointLight::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd,
 	return;
 }
 
-bool DRPointLight::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* view, XMMATRIX* proj, XMMATRIX* invViewProj, 
+bool DRPointLight::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* WorldViewProjection, XMMATRIX* invViewProj, 
 	PointLight* pointLight, ID3D11ShaderResourceView** textureArray, XMFLOAT3 cameraPosition)
 {		
 	HRESULT result;
@@ -349,9 +349,7 @@ bool DRPointLight::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMAT
 	dataPtr = (VertexMatrixBufferType*)mappedResource.pData;
 
 	// Copy the matrices into the constant buffer.
-	dataPtr->World = XMLoadFloat4x4(&pointLight->World);
-	dataPtr->View = *view;
-	dataPtr->Projection = *proj;
+	dataPtr->WorldViewProjection = *WorldViewProjection;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(vertexMatrixBuffer, 0);

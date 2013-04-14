@@ -13,11 +13,9 @@ struct VertexShaderInput
 
 struct VertexShaderOutput
 {
-		float4 Position : SV_POSITION;
-		float2 TexCoord : TEXCOORD0;
-		float4 ViewPosition : TEXCOORD1;
-		float4 ScreenPosition : TEXCOORD2;
-		float4 WorldPosition : TEXCOORD3;
+	float4 Position : SV_POSITION;
+	float2 TexCoord : TEXCOORD0;
+	float4 ScreenPosition : TEXCOORD1;
 };
 
 //TODO Make a LightDirection + CameraPosition cbuffer that gets sent to vertexbuffer.
@@ -26,9 +24,9 @@ VertexShaderOutput LightVertexShader(VertexShaderInput input)
 {
 		VertexShaderOutput output;
 
-		output.WorldPosition =		mul(input.Position, World);
-		output.ViewPosition =		mul(output.WorldPosition, View);
-		output.Position =			mul(output.ViewPosition, Projection);
+		output.Position =		mul(input.Position, World);
+		output.Position =		mul(output.Position, View);
+		output.Position =		mul(output.Position, Projection);
 
 		output.ScreenPosition = output.Position;
 

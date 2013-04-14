@@ -107,10 +107,11 @@ private:
 	//Add a bunch of models and init, destruct and render them.
 
 	RenderTarget2D* colorRT; // render target for storing color. 8R 8G 8B 8A. stores specular intensity in alpha value.
-	RenderTarget2D* depthRT; // render target for storing depth. it's a 32bit deep single float
-	RenderTarget2D* normalRT; //render target for storing normals. 10R 10G 10B 2A. stores specular power in alpha value.
-	RenderTarget2D* lightRT; // light map
-	RenderTarget2D* shadowRT;
+	RenderTarget2D* depthRT; // render target for storing depth. it's a R16 G16 because we use variance shadowmapping
+	RenderTarget2D* normalRT; //render target for storing normals. 8R 8G 8B 8A. stores specular power in alpha value.
+	RenderTarget2D* lightRT; // light rendertarget
+	RenderTarget2D* shadowRT; //Shadow map
+	RenderTarget2D* gaussianBlurPingPongRT; //Yep. To be used when blurring shadow map
 
 	TextureShaderClass* textureShader;
 	DebugWindowClass debugWindows[5];

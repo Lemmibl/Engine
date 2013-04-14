@@ -44,9 +44,7 @@ struct VertexShaderOutput
 {
 	float4 Position : SV_POSITION;
 	float2 TexCoord : TEXCOORD0;
-	float4 ViewPosition : TEXCOORD1;
-	float4 ScreenPosition : TEXCOORD2;
-	float4 WorldPosition : TEXCOORD3;
+	float4 ScreenPosition : TEXCOORD1;
 };
 
 /////////////////////////////////////////////
@@ -123,7 +121,7 @@ float ShadowContribution(float2 lightTexCoord, float distanceToLight)
 
 half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 {
-	//I pre-declare all values so that I can still return the same variables if we break because we're outside of light frustum. 
+	//I pre-declare all values so that I can still return the same variables if we break before light calculations. 
 	//It's neater this way.
 	half4 finalAmbienceProduct = half4(0.0f, 0.0f, 0.0f, 0.0f);
 	half3 finalDiffuseProduct = half3(0.0f, 0.0f, 0.0f);
@@ -131,13 +129,6 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 
 	//Sample camera depth
 	float depth = shaderTextures[1].Sample(pointSampler, input.TexCoord);
-
-	//Skip as early as possible if this pixel isn't supposed to be lit.
-	if(0.0f >= depth) 
-	{
-		//0, 0, 0, 0 at this point
-		return finalAmbienceProduct;
-	}
 
 	finalAmbienceProduct += Ka * AmbientColor;
 
@@ -172,7 +163,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//Adjust this value too.
 	lightScreenPos /= lightScreenPos.w;
 
-	float realDistanceToLight = lightScreenPos.z;
+	float realDistanceToLight = lightScreenPos.z-0.00001f;
 
 	float2 sampleLightScreen;
 	sampleLightScreen.x = ((lightScreenPos.x * 0.5f) + 0.5f);
@@ -231,12 +222,15 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		finalSpecularProduct += Ks * pow( saturate( dot(reflectionVector, directionToCamera)), a);
 	}
 
-	if(recieveShadows >= 1.0f)
+	//Essentially I save a float in the normal render target's .w channel that decides if the object should be shaded or not.
+	//I do this because of how the vegatation quads are built -- they each consist of three different quads, and they all shade eachother.
+	//This results in the quads looking really ass and they start flickering when the light moves and shit. Bad.
+	if(recieveShadows >= 0.5f)
+	{
+		return half4(finalAmbienceProduct.rgb + (shadowMultiplier*finalDiffuseProduct), (shadowMultiplier*finalSpecularProduct));
+	}
+	else //Don't shade if it shouldn't recieve any shadows. This also includes the empty space where nothing exists, seeing as we clear the normal rendertarget alpha channel to 0.0f in gbuffer stage.
 	{
 		return half4(finalAmbienceProduct.rgb + (finalDiffuseProduct), (finalSpecularProduct));
-	}
-	else //Don't shade if it shouldn't recieve any shadows
-	{
-		return shadowMultiplier*half4(finalAmbienceProduct.rgb + (finalDiffuseProduct), (finalSpecularProduct));
 	}
 }

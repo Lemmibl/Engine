@@ -98,6 +98,7 @@ Renderer::Renderer()
 	depthRT = 0;
 	shadowRT = 0;
 	lightRT = 0;
+	gaussianBlurPingPongRT = 0;
 
 	mcubeShader = 0;
 	marchingCubes = 0;
@@ -283,7 +284,7 @@ bool Renderer::InitializeLights(HWND hwnd)
 {
 	bool result;
 
-	ambientLight = XMFLOAT4(0.1f, 0.1f, 0.1f, 0.0f);
+	ambientLight = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
 
 #pragma region Point light initialization
 	float x, y, z;
@@ -406,7 +407,7 @@ bool Renderer::InitializeModels(HWND hwnd)
 		z = ((2.0f + (utility->Random() * 56.0f))* 1.0f);
 
 		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate((int)x, (int)z);
-		
+
 		if(y > 45.0f)
 		{
 			k = 0.0f;
@@ -419,7 +420,7 @@ bool Renderer::InitializeModels(HWND hwnd)
 		{
 			k = 2.0f + utility->Random()*6.0f;
 		}
-	
+
 		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, k);
 		tempContainer->push_back(temp);
 	}
@@ -539,8 +540,8 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 	}
 
 
-	defaultModelMaterial.a = 8.0f;
-	defaultModelMaterial.Ka = 0.4f;
+	defaultModelMaterial.a = 4096.0f;
+	defaultModelMaterial.Ka = 1.0f;
 	defaultModelMaterial.Kd = 0.8f;
 	defaultModelMaterial.Ks = 0.7f;
 
@@ -551,12 +552,14 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 	depthRT = new RenderTarget2D();
 	shadowRT = new RenderTarget2D();
 	lightRT = new RenderTarget2D();
+	gaussianBlurPingPongRT = new RenderTarget2D();
 
 	colorRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
 	normalRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
 	depthRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
-	shadowRT->Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_FLOAT);
 	lightRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
+	shadowRT->Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_UNORM);
+	gaussianBlurPingPongRT->Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_UNORM); //Needs to be identical to shadowRT
 
 
 	// Create the frustum object.
@@ -665,7 +668,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		marchingCubes->Reset();
 		marchingCubes->GetTerrain()->Noise3D();
 		marchingCubes->CalculateMesh(d3D->GetDevice());
-		
+
 		std::vector<XMFLOAT4>* tempContainer = new std::vector<XMFLOAT4>();
 		float x,z,y,k;
 		for(int i = 0; i < 5000; i++)
@@ -687,7 +690,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 			{
 				k = 2.0f + utility->Random()*6.0f;
 			}
-	
+
 			XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, k);
 			tempContainer->push_back(temp);
 		}
@@ -719,12 +722,11 @@ bool Renderer::Render()
 	ID3D11DeviceContext* context;
 	context = d3D->GetDeviceContext();
 
-	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, scalingMatrix, viewProjection, 
-		invertedViewProjection, invertedView, lightView, lightProj, lightViewProj, baseView;
-	float positionX, positionY, positionZ, radius;
-	XMFLOAT4 color;
+	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, scalingMatrix, viewProjection, invertedViewProjection, invertedView, 
+	lightView, lightProj, lightViewProj, baseView, worldBaseViewOrthoProj, identityWorldViewProj, lightWorldViewProj, untransposedViewProj;
+
 	XMFLOAT3 camPos;
-	bool result, renderModel;
+	bool result;
 	int modelCount, renderCount;
 	ID3D11RenderTargetView* gbufferRenderTargets[3] = { NULL, NULL, NULL }; //render targets for GBuffer pass
 	ID3D11RenderTargetView* lightTarget[1] = { NULL };
@@ -737,7 +739,7 @@ bool Renderer::Render()
 	ID3D11ShaderResourceView* lightMap = NULL;
 
 	ID3D11DepthStencilView* shadowDS = d3D->GetShadowmapDSV();
-	ID3D11DepthStencilView* ds;
+	ID3D11DepthStencilView* ds; //We set it later on when we need it. Calling d3D->GetDepthStencilView() also calls a reset on DS settings to default, hence we wait with calling it.
 
 	// Generate the view matrix based on the camera's position.
 	camPos = camera->GetPosition();
@@ -775,6 +777,14 @@ bool Renderer::Render()
 #pragma endregion
 
 #pragma region Matrix preparations
+	//XMMATRIX shadowScaleBiasMatrix = new XMMATRIX
+	//	(
+	//	0.5f, 0.0f, 0.0f, 0.5f,
+	//	0.0f, 0.5f, 0.0f, 0.5f,
+	//	0.0f, 0.0f, 0.5f, 0.5f,
+	//	0.0f, 0.0f, 0.0f, 1.0f
+	//	);
+
 	// Get the world, view, projection, and ortho matrices from the camera and Direct3D objects.
 	d3D->GetWorldMatrix(worldMatrix);
 	d3D->GetOrthoMatrix(orthoMatrix);
@@ -788,25 +798,23 @@ bool Renderer::Render()
 
 	XMVECTOR nullVec;
 	lightViewProj = XMMatrixMultiply(lightView, lightProj);
-
 	viewProjection = XMMatrixMultiply(viewMatrix, projectionMatrix);
 
 	invertedView = XMMatrixInverse(&nullVec, viewMatrix);
 	invertedViewProjection = XMMatrixInverse(&nullVec, viewProjection);
 
+	identityWorldViewProj = ((worldMatrix*viewMatrix ) * projectionMatrix);
+	lightWorldViewProj = worldMatrix*lightViewProj;
+
+	lightWorldViewProj =		XMMatrixTranspose(lightWorldViewProj);
+	identityWorldViewProj =		XMMatrixTranspose(identityWorldViewProj);
 	worldMatrix =				XMMatrixTranspose(worldMatrix);
-	viewMatrix =				XMMatrixTranspose(viewMatrix);
-	projectionMatrix =			XMMatrixTranspose(projectionMatrix);
-
-	lightView =					XMMatrixTranspose(lightView);
-	lightProj =					XMMatrixTranspose(lightProj);
-
-	lightViewProj =				XMMatrixTranspose(lightViewProj);
-
 	viewProjection =			XMMatrixTranspose(viewProjection);
+	lightViewProj =				XMMatrixTranspose(lightViewProj);
 	invertedViewProjection =	XMMatrixTranspose(invertedViewProjection);
 	baseView =					XMMatrixTranspose(XMLoadFloat4x4(&baseViewMatrix));
-	invertedView =				XMMatrixTranspose(invertedView);
+
+	worldBaseViewOrthoProj = ((baseView * worldMatrix)* orthoMatrix); //Do it post-transpose
 #pragma endregion
 
 #pragma region Early depth pass for shadowmap
@@ -814,25 +822,22 @@ bool Renderer::Render()
 	context->ClearDepthStencilView(shadowDS, D3D11_CLEAR_DEPTH, 1.0f, 0);
 	context->ClearRenderTargetView(shadowTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 	d3D->SetShadowViewport();
-	
+
 	d3D->SetNoCullRasterizer();
 
-	worldMatrix = XMMatrixIdentity(); 
-	worldMatrix = XMMatrixTranspose(worldMatrix);
 	marchingCubes->Render(context);
 
-	result = depthOnlyShader->Render(context, marchingCubes->GetIndexCount(), &worldMatrix, &lightView, &lightProj);
+	result = depthOnlyShader->Render(context, marchingCubes->GetIndexCount(), &lightWorldViewProj);
 	if(!result)
 	{
 		return false;
 	}
 
-
 	d3D->TurnOnShadowBlendState();
 	vegetationManager->RenderBuffers(context);
 
 	depthOnlyQuadShader->Render(context, vegetationManager->GetVertexCount(), vegetationManager->GetInstanceCount(),
-		&worldMatrix, &lightView, &lightProj, textureAndMaterialHandler->GetVegetationTextures());
+		&lightWorldViewProj, textureAndMaterialHandler->GetVegetationTextures());
 
 	d3D->ResetBlendState();
 
@@ -861,24 +866,16 @@ bool Renderer::Render()
 
 	context->ClearDepthStencilView(ds, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	// Move the model to the location it should be rendered at.
-	worldMatrix = XMMatrixTranslation(0.0f, 0.0f, 0.0f);
-	scalingMatrix = XMMatrixScaling(0.5f, 0.5f, 0.5f);
-	XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(debugRotation.x, debugRotation.y, debugRotation.z);
-
-	worldMatrix = scalingMatrix* rotationMatrix * worldMatrix;
-	worldMatrix = XMMatrixTranspose(worldMatrix);
-
 	worldMatrix = XMMatrixIdentity(); 
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
 	marchingCubes->Render(context);
 	result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
-		&worldMatrix, &viewMatrix, &projectionMatrix, textureAndMaterialHandler->GetTerrainTextures());//TODO
+		&worldMatrix, &identityWorldViewProj, textureAndMaterialHandler->GetTerrainTextures());//TODO
 
 	d3D->TurnOnAlphaBlending();
 	d3D->SetNoCullRasterizer();
-	vegetationManager->Render(context, &worldMatrix, &viewMatrix, &projectionMatrix, textureAndMaterialHandler->GetVegetationTextures());
+	vegetationManager->Render(context, &identityWorldViewProj, textureAndMaterialHandler->GetVegetationTextures());
 	d3D->TurnOffAlphaBlending();
 
 	text->SetRenderCount(renderCount, context);
@@ -894,13 +891,14 @@ bool Renderer::Render()
 
 	for(unsigned int i = 0; i < pointLights.size(); i++)
 	{	
+		XMMATRIX worldViewProj = viewProjection * (XMLoadFloat4x4(&pointLights[i]->World));
+
 		d3D->SetLightStencilMethod1Phase1();
 		d3D->SetNoCullRasterizer();
 
 		sphereModel->Render(context);
 
-		result = vertexOnlyShader->Render(context, sphereModel->GetIndexCount(), &XMLoadFloat4x4(&pointLights[i]->World), &viewMatrix, 
-			&projectionMatrix);
+		result = vertexOnlyShader->Render(context, sphereModel->GetIndexCount(), &worldViewProj);
 
 		//Phase two, draw sphere with light algorithm
 		d3D->SetLightStencilMethod1Phase2();
@@ -908,9 +906,7 @@ bool Renderer::Render()
 
 		sphereModel->Render(context);
 
-
-		result = pointLightShader->Render(context, sphereModel->GetIndexCount(), &viewMatrix, 
-			&projectionMatrix, &invertedViewProjection, pointLights[i], gbufferTextures, camPos);
+		result = pointLightShader->Render(context, sphereModel->GetIndexCount(), &worldViewProj, &invertedViewProjection, pointLights[i], gbufferTextures, camPos);
 		if(!result)
 		{
 			return false;
@@ -968,7 +964,7 @@ bool Renderer::Render()
 			}
 
 			result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[i].GetIndexCount(), 
-				&worldMatrix, &baseView, &orthoMatrix, gbufferTextures[i]);
+				&worldBaseViewOrthoProj, gbufferTextures[i]);
 			if(!result)
 			{
 				return false;
@@ -982,7 +978,7 @@ bool Renderer::Render()
 		}
 
 		result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[3].GetIndexCount(), 
-			&worldMatrix, &baseView, &orthoMatrix, lightRT->SRView);
+			&worldBaseViewOrthoProj, lightRT->SRView);
 		if(!result)
 		{
 			return false;
@@ -995,7 +991,7 @@ bool Renderer::Render()
 		}
 
 		result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[4].GetIndexCount(), 
-			&worldMatrix, &baseView, &orthoMatrix, shadowRT->SRView);
+			&worldBaseViewOrthoProj, shadowRT->SRView);
 		if(!result)
 		{
 			return false;
@@ -1137,6 +1133,12 @@ void Renderer::Shutdown()
 	{
 		delete shadowRT;
 		shadowRT = 0;
+	}
+
+	if(gaussianBlurPingPongRT)
+	{
+		delete gaussianBlurPingPongRT;
+		gaussianBlurPingPongRT  = 0;
 	}
 
 	if(modelList)

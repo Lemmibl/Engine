@@ -26,6 +26,7 @@
     <ClCompile Include="fontshaderclass.cpp" />
     <ClCompile Include="fpsmeter.cpp" />
     <ClCompile Include="frustumclass.cpp" />
+    <ClCompile Include="GaussianBlur.cpp" />
     <ClCompile Include="TextureAndMaterialHandler.cpp" />
     <ClCompile Include="LSystemBranch.cpp" />
     <ClCompile Include="Utility.cpp" />
@@ -74,6 +75,7 @@
     <ClInclude Include="fpsmeter.h" />
     <ClInclude Include="frustumclass.h" />
     <ClInclude Include="DRGBuffer.h" />
+    <ClInclude Include="GaussianBlur.h" />
     <ClInclude Include="TextureAndMaterialHandler.h" />
     <ClInclude Include="LSystemBranch.h" />
     <ClInclude Include="Utility.h" />
@@ -123,6 +125,8 @@
     <None Include="DRGBuffer.vsh" />
     <None Include="DRPointLight.psh" />
     <None Include="DRPointLight.vsh" />
+    <None Include="gaussianBlurX.psh" />
+    <None Include="gaussianBlurY.psh" />
     <None Include="MCubesGBufferShader.psh" />
     <None Include="MCubesGBufferShader.vsh" />
     <None Include="shader-error.txt" />

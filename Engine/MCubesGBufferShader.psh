@@ -1,10 +1,9 @@
 struct VertexShaderOutput
 {
 	float4 Position : SV_POSITION;
-	float3 Normal : NORMAL;
+	float3 WorldNormal : NORMAL;
 	float4 WorldPosition : TEXCOORD0;
 	float2 Depth : TEXCOORD1;
-	float3 WorldNormal : TEXCOORD2;
 };
 
 struct PixelShaderOutput
@@ -95,8 +94,8 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 	//	output.Color = (XYColor * blend_weights.z);
 	//} 
 	
-	output.Normal.xyz = (0.5f * (NormalizedWorldNormal + 1.0f));//normalize(input.Normal);			//revert the normal output to [0,1] space then assign it to the output normal map's RGB channel
-	output.Normal.w = 0.0f; //This is the "Should this pixel recieve shadows" value. 0 means yes.
+	output.Normal.xyz = (0.5f * (NormalizedWorldNormal + 1.0f)); //revert the normal output to [0,1] space then assign it to the output normal map's RGB channel
+	output.Normal.w = 1.2f; //This is the "Should this pixel recieve shadows" value. 0 means yes.
 
 	output.Depth = (input.Depth.x / input.Depth.y);
 

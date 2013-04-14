@@ -136,6 +136,9 @@
     <ClCompile Include="TreeClass.cpp">
       <Filter>Procedural generation</Filter>
     </ClCompile>
+    <ClCompile Include="GaussianBlur.cpp">
+      <Filter>Rendering\Shader wrappers\Post processing</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cpumeter.h">
@@ -282,6 +285,9 @@
     <ClInclude Include="TreeClass.h">
       <Filter>Procedural generation</Filter>
     </ClInclude>
+    <ClInclude Include="GaussianBlur.h">
+      <Filter>Rendering\Shader wrappers\Post processing</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader-error.txt" />
@@ -357,6 +363,12 @@
     <None Include="VegetationQuad.psh">
       <Filter>Rendering\Shaders</Filter>
     </None>
+    <None Include="gaussianBlurX.psh">
+      <Filter>Rendering\Shaders\Post processing</Filter>
+    </None>
+    <None Include="gaussianBlurY.psh">
+      <Filter>Rendering\Shaders\Post processing</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Rendering">
@@ -391,6 +403,12 @@
     </Filter>
     <Filter Include="Rendering\Rendering utility">
       <UniqueIdentifier>{33fc996b-8b8b-41b1-b4cd-4d51729dcf3a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shader wrappers\Post processing">
+      <UniqueIdentifier>{ea2d2fbd-617c-455c-a898-27414fc8c13a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shaders\Post processing">
+      <UniqueIdentifier>{3ab2fc9c-1038-40dc-843a-659e9cad2ad3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

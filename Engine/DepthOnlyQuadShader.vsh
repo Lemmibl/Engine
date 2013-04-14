@@ -1,8 +1,6 @@
 cbuffer MatrixBufferType
 {
-	float4x4 worldMatrix;
-	float4x4 viewMatrix;
-	float4x4 projectionMatrix;
+	float4x4 WorldViewProjection;
 }
 
 struct VertexInputType
@@ -31,9 +29,7 @@ PixelInputType DepthOnlyVertexShader(VertexInputType input)
 	input.Position.xyz += input.InstancePosition.xyz;
 
 	// Calculate the position of the vertex against the world, view, and projection matrices.
-	output.Position = mul(input.Position, worldMatrix);
-	output.Position = mul(output.Position, viewMatrix);
-	output.Position = mul(output.Position, projectionMatrix);
+	output.Position = mul(input.Position, WorldViewProjection);
 
 	output.TexCoord.xy = input.TexCoord;
 	output.TexCoord.z = output.Position.z / output.Position.w; //Store depth in texcoord. I pack everything into a float4 to save space.

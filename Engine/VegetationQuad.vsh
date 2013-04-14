@@ -1,8 +1,6 @@
 cbuffer MatrixBufferType
 {
-	float4x4 worldMatrix;
-	float4x4 viewMatrix;
-	float4x4 projectionMatrix;
+	float4x4 worldViewProjection;
 }
 
 struct VertexInputType
@@ -34,9 +32,7 @@ PixelInputType VegetationQuadVertexShader(VertexInputType input)
 	input.Position.xyz += input.InstancePosition.xyz;
 
 	// Calculate the position of the vertex against the world, view, and projection matrices.
-	output.Position = mul(input.Position, worldMatrix);
-	output.Position = mul(output.Position, viewMatrix);
-	output.Position = mul(output.Position, projectionMatrix);
+	output.Position = mul(input.Position, worldViewProjection);
 
 	// Store the texture coordinates for the pixel shader.
 	output.TexCoord.xy = input.TexCoord;
