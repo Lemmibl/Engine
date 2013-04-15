@@ -311,16 +311,16 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 	{
 		pointLights.push_back(new PointLight());
 		pointLights[i]->Position = XMFLOAT3(x, y, z);
-		pointLights[i]->Color = XMFLOAT3(0.1f+i%4, 0.1f+i%2, 1.0f-i%3);
+		pointLights[i]->Color = XMFLOAT3(utility->Random(), utility->Random(), utility->Random());
 		pointLights[i]->Radius = 1.0f;
 		pointLights[i]->Intensity = 512.0f; //The lower it gets, the more intense it gets
 
-		x += 5.0f;
+		x += 6.0f;
 
-		if(x >= 50.0f) //Every 10th light gets reseted in x and z plane.
+		if(x > 61.0f) //Every 10th light gets reseted in x and z plane.
 		{
 			x = 0.0f;
-			z += 5.0f;
+			z += 6.0f;
 		}
 
 		if(i != 0 && i % 100 == 0) //Every 100 pointlights we reset and make another layer that is (y+8) higher up.
@@ -416,7 +416,7 @@ bool Renderer::InitializeModels(HWND hwnd,  ID3D11Device* device)
 
 	float x,z,y,k;
 
-	for(int i = 0; i < 5000; i++)
+	for(int i = 0; i < 1000; i++)
 	{
 		x = ((2.0f + (utility->Random() * 56.0f))* 1.0f);
 		z = ((2.0f + (utility->Random() * 56.0f))* 1.0f);
@@ -526,7 +526,7 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	result = dayNightCycle->Initialize(3600.0f*5.0f, DAWN);
+	result = dayNightCycle->Initialize(360.0f*6.0f, DAWN);
 	if(!result)
 	{
 		return false;
@@ -686,7 +686,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 		std::vector<XMFLOAT4>* tempContainer = new std::vector<XMFLOAT4>();
 		float x,z,y,k;
-		for(int i = 0; i < 5000; i++)
+		for(int i = 0; i < 1000; i++)
 		{
 
 			x = ((2.0f + (utility->Random() * 56.0f))* 1.0f);
@@ -718,11 +718,11 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
 
-	XMVECTOR lookAt = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);//XMLoadFloat3(&camera->GetPosition());//(camera->ForwardVector()*30.0f)+XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//
+	XMVECTOR lookAt = XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//(camera->ForwardVector()*30.0f)+XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
-	XMVECTOR currentLightPos = XMLoadFloat3(&dirLight->Position);//XMLoadFloat3(&camera->GetPosition())-(camera->ForwardVector()*30.0f);//+XMLoadFloat3(&camera->GetPosition())//XMLoadFloat3(&dirLight->Position)+
+	XMVECTOR currentLightPos = XMLoadFloat3(&dirLight->Position)+XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition())-(camera->ForwardVector()*30.0f);//+XMLoadFloat3(&camera->GetPosition())//XMLoadFloat3(&dirLight->Position)+
 
-	XMStoreFloat3(&dirLight->Direction, XMVector3Normalize(lookAt - currentLightPos));//XMLoadFloat3(&dirLight->Position)
+	XMStoreFloat3(&dirLight->Direction, XMVector3Normalize((lookAt - currentLightPos)));//XMLoadFloat3(&dirLight->Position)
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(currentLightPos, lookAt, up)); //Generate light view matrix
 
 	return true;
