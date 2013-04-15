@@ -227,7 +227,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//This results in the quads looking really ass and they start flickering when the light moves and shit. Bad.
 	if(recieveShadows >= 0.5f)
 	{
-		return half4(finalAmbienceProduct.rgb + (shadowMultiplier*finalDiffuseProduct), (shadowMultiplier*finalSpecularProduct));
+		return half4(finalAmbienceProduct.rgb + (finalDiffuseProduct), (finalSpecularProduct)) * shadowMultiplier;
 	}
 	else //Don't shade if it shouldn't recieve any shadows. This also includes the empty space where nothing exists, seeing as we clear the normal rendertarget alpha channel to 0.0f in gbuffer stage.
 	{
