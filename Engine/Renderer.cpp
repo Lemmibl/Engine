@@ -362,7 +362,7 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 
 	// Initialize the directional light.
 	dirLight->Color = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
-	dirLight->Intensity = 128.0f;
+	dirLight->Intensity = 1.0f;
 	dirLight->Position = XMFLOAT3(0.0f, 120.0f, 0.0f);
 
 	XMVECTOR direction = XMVector3Normalize(lookAt - XMLoadFloat3(&dirLight->Position));
@@ -433,7 +433,7 @@ bool Renderer::InitializeModels(HWND hwnd,  ID3D11Device* device)
 		}
 		else
 		{
-			k = 2.0f + utility->Random()*6.0f;
+			k = 1.0f + utility->Random()*7.0f;
 		}
 
 		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, k);
@@ -526,7 +526,7 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	result = dayNightCycle->Initialize(360.0f*5.0f, DAWN);
+	result = dayNightCycle->Initialize(3600.0f/6, DAWN);
 	if(!result)
 	{
 		return false;
@@ -718,7 +718,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
 
-	XMVECTOR lookAt = XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//(camera->ForwardVector()*30.0f)+XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//
+	XMVECTOR lookAt = XMLoadFloat3(&camera->GetPosition())+(camera->ForwardVector()*5.0f);//XMLoadFloat3(&camera->GetPosition());//(camera->ForwardVector()*30.0f)+XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 	XMVECTOR currentLightPos = XMLoadFloat3(&dirLight->Position)+XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition())-(camera->ForwardVector()*30.0f);//+XMLoadFloat3(&camera->GetPosition())//XMLoadFloat3(&dirLight->Position)+
 
