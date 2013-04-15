@@ -40,8 +40,8 @@ private:
 		XMFLOAT4 LightPosition;
 		XMFLOAT3 LightColor;
 		float LightRadius;
-		float LightPower;
 		XMFLOAT3 CameraPosition;
+		float LightPower;
 	};
 
 

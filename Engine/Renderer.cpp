@@ -312,7 +312,7 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 		pointLights.push_back(new PointLight());
 		pointLights[i]->Position = XMFLOAT3(x, y, z);
 		pointLights[i]->Color = XMFLOAT3(utility->Random(), utility->Random(), utility->Random());
-		pointLights[i]->Radius = 1.0f;
+		pointLights[i]->Radius = 5.0f;
 		pointLights[i]->Intensity = 512.0f; //The lower it gets, the more intense it gets
 
 		x += 6.0f;

@@ -3,8 +3,8 @@ cbuffer LightBufferType
 	float4 LightPosition;
 	float3 LightColor;
 	float LightRadius;
-	float LightPower;
 	float3 CameraPosition;
+	float LightPower;
 }
 
 cbuffer PixelMatrixBufferType
@@ -51,12 +51,12 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	adjustedLightPos.y -= 1.0f; //Need to adjust light position so that origin is at the center of the sphere...
 
 	//surface-to-light vector
-	float3 lightVector =  normalize(position-adjustedLightPos);
+	float3 lightVector =  normalize(adjustedLightPos-position);
 
 	//saturate( 1.0f - (length(lightVector) / LightRadius) );
 
 	float d = distance(position, adjustedLightPos);
-	float attenuation = (LightRadius / (d*d+0.1f)); //Slight offset to dampen the light
+	float attenuation = (LightRadius / (d*d)); //Slight offset to dampen the light
 
 	//calculate NdotL product
 	float NdL = max(dot(normal, lightVector), 0);
