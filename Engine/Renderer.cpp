@@ -63,6 +63,11 @@ Directional light lens flare:
 http://www.madgamedev.com/post/2010/04/21/Article-Sun-and-Lens-Flare-as-a-Post-Process.aspx
 http://stackoverflow.com/questions/14161727/hlsl-drawing-a-centered-circle
 if cross product (cameraDirection, lightDirection) == 0 then they're both facing the same way? I think.
+
+
+TODO: http://forum.beyond3d.com/archive/index.php/t-45628.html
+
+
 */
 
 Renderer::Renderer()
