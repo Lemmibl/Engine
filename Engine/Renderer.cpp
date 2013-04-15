@@ -369,7 +369,7 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 	XMStoreFloat3(&dirLight->Direction, direction);
 
 	//XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(((float)D3DX_PI/2.0f), 1.0f, 10.0f, 300.0f)); //Generate perspective light projection matrix and store it as float4x4
-	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(140.0f, 140.0f, 10.0f, 250.0f)); //Generate orthogonal light projection matrix and store it as float4x4
+	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(120.0f, 120.0f, 10.0f, 200.0f)); //Generate orthogonal light projection matrix and store it as float4x4
 
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix and store it as float4x4.
 #pragma endregion
@@ -526,7 +526,7 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	result = dayNightCycle->Initialize(360.0f*6.0f, DAWN);
+	result = dayNightCycle->Initialize(360.0f*5.0f, DAWN);
 	if(!result)
 	{
 		return false;
@@ -882,8 +882,6 @@ bool Renderer::Render()
 	//Blur shadow map texture vertically
 	fullScreenQuad.Render(context, 0, 0);
 	gaussianBlurShader->RenderBlurY(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &gaussianBlurTexture[0]);
-
-	/*dirLightTextures[2] = shadowRT->SRView;*/
 #pragma endregion
 
 #pragma region GBuffer building stage
@@ -899,10 +897,10 @@ bool Renderer::Render()
 	d3D->SetNoCullRasterizer();
 	d3D->TurnZBufferOff();
 
-	worldMatrix = XMMatrixTranslation(camPos.x, camPos.y, camPos.z);
+	worldMatrix = (XMMatrixTranslation(camPos.x, camPos.y, camPos.z)*viewMatrix)*projectionMatrix;
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
-	skySphere->Render(context, &worldMatrix, &viewMatrix, &projectionMatrix, timeOfDay);
+	skySphere->Render(context, &worldMatrix, timeOfDay);
 
 	d3D->SetBackFaceCullingRasterizer();
 	d3D->TurnZBufferOn();

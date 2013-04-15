@@ -130,6 +130,11 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//Sample camera depth
 	float depth = shaderTextures[1].Sample(linearSampler, input.TexCoord);
 
+	if(depth <= 0.001f)
+	{
+		return finalAmbienceProduct; //0 0 0 0. We break really early for optimization + sky sphere
+	}
+
 	finalAmbienceProduct += Ka * AmbientColor;
 
 	float4 encodedNormal = shaderTextures[0].Sample(linearSampler, input.TexCoord);
@@ -227,7 +232,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//This results in the quads looking really ass and they start flickering when the light moves and shit. Bad.
 	if(recieveShadows >= 0.5f)
 	{
-		return half4(finalAmbienceProduct.rgb + (finalDiffuseProduct), (finalSpecularProduct)) * shadowMultiplier;
+		return half4(finalAmbienceProduct.rgb + (finalDiffuseProduct * shadowMultiplier), (finalSpecularProduct * shadowMultiplier));
 	}
 	else //Don't shade if it shouldn't recieve any shadows. This also includes the empty space where nothing exists, seeing as we clear the normal rendertarget alpha channel to 0.0f in gbuffer stage.
 	{
