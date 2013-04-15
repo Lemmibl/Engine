@@ -135,7 +135,8 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	this->screenNear = screenNear;
 	this->d3D = d3D;
 	this->camera = camera;
-	timeOfDay = timer = 0.0f;
+	timeOfDay = 0.0f;
+	timer = 10.0f;
 	toggleTextureShader = false;
 	returning = false;
 	debugRotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -307,7 +308,7 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 	z = 0.0f;
 	y = 10.0f;
 
-	for(int i = 0; i < 200; i++)
+	for(int i = 0; i < 20; i++)
 	{
 		pointLights.push_back(new PointLight());
 		pointLights[i]->Position = XMFLOAT3(x, y, z);
@@ -369,7 +370,7 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 	XMStoreFloat3(&dirLight->Direction, direction);
 
 	//XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(((float)D3DX_PI/2.0f), 1.0f, 10.0f, 300.0f)); //Generate perspective light projection matrix and store it as float4x4
-	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(140.0f, 140.0f, 10.0f, 250.0f)); //Generate orthogonal light projection matrix and store it as float4x4
+	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(140.0f, 140.0f, 30.0f, 250.0f)); //Generate orthogonal light projection matrix and store it as float4x4
 
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix and store it as float4x4.
 #pragma endregion
@@ -377,7 +378,7 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 	return true;
 }
 
-bool Renderer::InitializeModels(HWND hwnd,  ID3D11Device* device)
+bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 {
 	bool result;
 
@@ -416,7 +417,7 @@ bool Renderer::InitializeModels(HWND hwnd,  ID3D11Device* device)
 
 	float x,z,y,k;
 
-	for(int i = 0; i < 5000; i++)
+	for(int i = 0; i < 1000; i++)
 	{
 		x = ((2.0f + (utility->Random() * 56.0f))* 1.0f);
 		z = ((2.0f + (utility->Random() * 56.0f))* 1.0f);
@@ -526,7 +527,7 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	result = dayNightCycle->Initialize(3600.0f*5.0f, DAWN);
+	result = dayNightCycle->Initialize(360.0f*5.0f, DAWN);
 	if(!result)
 	{
 		return false;
@@ -648,9 +649,6 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 	if(inputManager->IsKeyPressed(DIK_F))
 	{
-		//dirLight->Position.x -= frameTime*0.02f;
-		//dirLight->Position.z -= frameTime*0.02f;
-
 		for(int i = 0; i < (int)pointLights.size(); i++)
 		{
 			pointLights[i]->Position.y -= frameTime*0.006f;
@@ -686,7 +684,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 		std::vector<XMFLOAT4>* tempContainer = new std::vector<XMFLOAT4>();
 		float x,z,y,k;
-		for(int i = 0; i < 5000; i++)
+		for(int i = 0; i < 1000; i++)
 		{
 
 			x = ((2.0f + (utility->Random() * 56.0f))* 1.0f);
@@ -868,12 +866,14 @@ bool Renderer::Render()
 #pragma region Shadow map blur stage
 	//Change render target to prepare for ping-ponging
 	context->OMSetRenderTargets(1, gaussianBlurPingPongRTView, shadowDS);
-	context->ClearRenderTargetView(gaussianBlurPingPongRTView[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
+	context->ClearRenderTargetView(gaussianBlurPingPongRTView[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 1.0f));
 	context->ClearDepthStencilView(shadowDS, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	//Blur shadow map texture horizontally
 	fullScreenQuad.Render(context, 0, 0);
-	gaussianBlurShader->RenderBlurX(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &dirLightTextures[2]);
+	gaussianBlurShader->RenderBlurY(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &dirLightTextures[2]);
+
+	gaussianBlurTexture[0] = gaussianBlurPingPongRT->SRView;
 
 	//Change render target back to our shadow map to render the second blur and get the final result
 	context->OMSetRenderTargets(1, shadowTarget, shadowDS);
@@ -881,9 +881,9 @@ bool Renderer::Render()
 
 	//Blur shadow map texture vertically
 	fullScreenQuad.Render(context, 0, 0);
-	gaussianBlurShader->RenderBlurY(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &gaussianBlurTexture[0]);
+	gaussianBlurShader->RenderBlurX(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &gaussianBlurTexture[0]);
 
-	/*dirLightTextures[2] = shadowRT->SRView;*/
+	dirLightTextures[2] = shadowRT->SRView;
 #pragma endregion
 
 #pragma region GBuffer building stage

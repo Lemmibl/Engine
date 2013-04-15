@@ -93,7 +93,7 @@ float ChebyshevUpperBound(float2 moments, float t)
 
 	return p_max;
 }
- 
+
 
 float ShadowContribution(float2 lightTexCoord, float distanceToLight)  
 {
@@ -109,7 +109,7 @@ float ShadowContribution(float2 lightTexCoord, float distanceToLight)
 	// Compute the Chebyshev upper bound.
 	float shadowContribution = ChebyshevUpperBound(moments, distanceToLight);
 
-	shadowContribution = ReduceLightBleeding(shadowContribution, distanceToLight);
+	//shadowContribution = ReduceLightBleeding(shadowContribution, distanceToLight);
 
 	return shadowContribution;
 }
@@ -163,7 +163,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//Adjust this value too.
 	lightScreenPos /= lightScreenPos.w;
 
-	float realDistanceToLight = lightScreenPos.z-0.00001f;
+	float realDistanceToLight = lightScreenPos.z;
 
 	float2 sampleLightScreen;
 	sampleLightScreen.x = ((lightScreenPos.x * 0.5f) + 0.5f);
@@ -225,7 +225,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//Essentially I save a float in the normal render target's .w channel that decides if the object should be shaded or not.
 	//I do this because of how the vegatation quads are built -- they each consist of three different quads, and they all shade eachother.
 	//This results in the quads looking really ass and they start flickering when the light moves and shit. Bad.
-	if(recieveShadows >= 0.5f)
+	if(recieveShadows >= 0.9f)
 	{
 		return half4(finalAmbienceProduct.rgb + (shadowMultiplier*finalDiffuseProduct), (shadowMultiplier*finalSpecularProduct));
 	}

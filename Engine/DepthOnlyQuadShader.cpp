@@ -320,8 +320,8 @@ bool DepthOnlyQuadShader::SetShaderParameters(ID3D11DeviceContext* deviceContext
 	// Finanly set the constant buffer in the vertex shader with the updated values.
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &matrixBuffer);
 
-	// Set shader texture array resource in the pixel shader.
-	deviceContext->PSSetShaderResources(0, 1, textures);
+	//// Set shader texture array resource in the pixel shader.
+	//deviceContext->PSSetShaderResources(0, 1, textures);
 
 	return true;
 }
@@ -336,8 +336,8 @@ void DepthOnlyQuadShader::RenderShader(ID3D11DeviceContext* deviceContext, int v
 	deviceContext->VSSetShader(vertexShader, NULL, 0);
 	deviceContext->PSSetShader(pixelShader, NULL, 0);
 
-	// Set the sampler state in the pixel shader.
-	deviceContext->PSSetSamplers(0, 1, &samplerState);
+	//// Set the sampler state in the pixel shader.
+	//deviceContext->PSSetSamplers(0, 1, &samplerState);
 
 	// Render the stuff.
 	deviceContext->DrawInstanced(vertexCount, instanceCount, 0, 0);

@@ -59,7 +59,7 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 		XYCoord = float3(input.WorldPosition.xy * scale, 1.0f);
 	}
 
-	output.Normal.w = 1.2f; //This is the "Should this pixel recieve shadows" value. 0 means no.
+	output.Normal.w = 10.0f; //This is the "Should this pixel recieve shadows" value. 0 means no.
 
 	if(dotResult <= 0.0f) //If surface is facing downwards
 	{
