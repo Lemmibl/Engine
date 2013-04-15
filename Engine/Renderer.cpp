@@ -299,7 +299,7 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 {
 	bool result;
 
-	ambientLight = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+	ambientLight = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
 
 #pragma region Point light initialization
 	float x, y, z;
@@ -363,7 +363,7 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 	// Initialize the directional light.
 	dirLight->Color = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
 	dirLight->Intensity = 1.0f;
-	dirLight->Position = XMFLOAT3(0.0f, 120.0f, 0.0f);
+	dirLight->Position = XMFLOAT3(150.0f, 0.0f, 0.0f);
 
 	XMVECTOR direction = XMVector3Normalize(lookAt - XMLoadFloat3(&dirLight->Position));
 	XMStoreFloat3(&dirLight->Direction, direction);
@@ -642,7 +642,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		{
 			pointLights[i]->Position.y += frameTime*0.006f;
 
-			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale*XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z)));
+			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale*XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y-0.5f, pointLights[i]->Position.z)));
 		}
 	}
 
@@ -655,7 +655,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		{
 			pointLights[i]->Position.y -= frameTime*0.006f;
 
-			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale*XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z)));
+			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale*XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y-0.5f, pointLights[i]->Position.z)));
 		}
 	}
 

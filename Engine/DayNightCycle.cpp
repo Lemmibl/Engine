@@ -84,8 +84,8 @@ bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
 
 	//which leads into...
 
-	startAndEndPositions[10] = XMFLOAT3(0.0f, 120.0f, 0.0f); //start pos for night
-	startAndEndPositions[11] = XMFLOAT3(0.0f, 120.0f, 0.0f); //end pos for night
+	startAndEndPositions[10] = XMFLOAT3(-150.0f, 120.0f, 0.0f); //start pos for night
+	startAndEndPositions[11] = XMFLOAT3(150.0f, 120.0f, 0.0f); //end pos for night
 
 	//which ends and repeats; goto start pos for dawn. 
 
