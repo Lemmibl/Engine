@@ -13,6 +13,11 @@ struct MaterialStruct
 	float a;
 };
 
+struct PixelData
+{
+	short x, y, z, w;
+};
+
 struct Grads
 {
 	int x;

@@ -84,6 +84,132 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	return true;
 }
 
+HRESULT TextureAndMaterialHandler::Build1DTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
+	MaterialStruct materialData, int textureWidth )
+{
+	//float *texArray = new float[textureWidth]();
+
+	//for (int i = 0; i < (textureWidth * textureHeight); i += 4)
+	//{
+	//	texArray[i]		= pixelData->at(i).x;
+	//	texArray[i+1]	= pixelData->at(i).y;
+	//	texArray[i+2]	= pixelData->at(i).z;
+	//	texArray[i+3]	= pixelData->at(i).w;
+	//}
+
+	//pixelData = 0;
+
+	//D3D11_TEXTURE2D_DESC texDesc;
+	//texDesc.Width              = textureWidth;
+	//texDesc.Height             = textureHeight;
+	//texDesc.MipLevels          = 1;
+	//texDesc.ArraySize          = 1;
+	//texDesc.Format             = DXGI_FORMAT_R8G8B8A8_UNORM;
+	//texDesc.SampleDesc.Count   = 1;
+	//texDesc.SampleDesc.Quality = 0;
+	//texDesc.Usage              = D3D11_USAGE_DEFAULT;
+	//texDesc.BindFlags          = D3D11_BIND_SHADER_RESOURCE;
+	//texDesc.CPUAccessFlags     = 0;
+	//texDesc.MiscFlags          = 0;
+
+	//D3D11_SUBRESOURCE_DATA texInitializeData;
+	//ZeroMemory(&texInitializeData, sizeof(D3D11_SUBRESOURCE_DATA));
+	//texInitializeData.pSysMem = texArray;
+
+	//device->CreateTexture2D(&texDesc, &texInitializeData, &texture);
+
+	//D3D11_SHADER_RESOURCE_VIEW_DESC viewDesc;
+	//viewDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	//viewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	//viewDesc.Texture2DArray.MostDetailedMip = 0;
+	//viewDesc.Texture2DArray.MipLevels = 1;
+	//viewDesc.Texture2DArray.FirstArraySlice = 0;
+	//viewDesc.Texture2DArray.ArraySize = 1;
+
+	//device->CreateShaderResourceView(texture, &viewDesc, &textureSRV);
+
+	//return S_OK;
+}
+
+HRESULT TextureAndMaterialHandler::Build1DTextureArray( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
+	vector<MaterialStruct>* materials, int materialCount )
+{
+
+	return S_OK;
+}
+
+HRESULT TextureAndMaterialHandler::Build2DTextureProgrammatically( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
+	PixelData* pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView* textureSRV )
+{
+	HRESULT hResult;
+	ID3D11Texture2D* texture;
+	D3D11_TEXTURE2D_DESC texDesc;
+	D3D11_SUBRESOURCE_DATA texInitializeData;
+	D3D11_SHADER_RESOURCE_VIEW_DESC viewDesc;
+
+
+	//http://stackoverflow.com/questions/14802205/creating-texture-programmatically-directx
+	int *texArray = new int[4 * textureWidth * textureHeight]();
+
+	for (int i = 0; i < (textureWidth * textureHeight); i += 4)
+	{
+		texArray[i	]	= pixelData[i].x;
+		texArray[i+1]	= pixelData[i].y;
+		texArray[i+2]	= pixelData[i].z;
+		texArray[i+3]	= pixelData[i].w;
+	}
+
+	delete [] pixelData;
+	pixelData = 0;
+
+	texDesc.Width              = textureWidth;
+	texDesc.Height             = textureHeight;
+	texDesc.MipLevels          = 1;
+	texDesc.ArraySize          = 1;
+	texDesc.Format             = DXGI_FORMAT_R8G8B8A8_UNORM;
+	texDesc.SampleDesc.Count   = 1;
+	texDesc.SampleDesc.Quality = 0;
+	texDesc.Usage              = D3D11_USAGE_DEFAULT;
+	texDesc.BindFlags          = D3D11_BIND_SHADER_RESOURCE;
+	texDesc.CPUAccessFlags     = 0;
+	texDesc.MiscFlags          = 0;
+
+
+	ZeroMemory(&texInitializeData, sizeof(D3D11_SUBRESOURCE_DATA));
+	texInitializeData.pSysMem = texArray;
+
+
+	hResult = device->CreateTexture2D(&texDesc, &texInitializeData, &texture);
+	if(FAILED(hResult))
+	{
+		return hResult;
+	}
+
+	viewDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	viewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	viewDesc.Texture2DArray.MostDetailedMip = 0;
+	viewDesc.Texture2DArray.MipLevels = 1;
+	viewDesc.Texture2DArray.FirstArraySlice = 0;
+	viewDesc.Texture2DArray.ArraySize = 1;
+
+	hResult = device->CreateShaderResourceView(texture, &viewDesc, &textureSRV);
+	if(FAILED(hResult))
+	{
+		return hResult;
+	}
+
+	pixelData = 0;
+
+	texture->Release();
+	texture = 0;
+
+	delete [] texArray;
+	texArray = 0;
+
+	return S_OK;
+}
+
+
 HRESULT TextureAndMaterialHandler::Build2DTextureArray(ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
 	WCHAR** filenames, int textureCount, ID3D11ShaderResourceView** textureArraySRV, int texWidth, int texHeight)
 {
@@ -105,13 +231,12 @@ HRESULT TextureAndMaterialHandler::Build2DTextureArray(ID3D11Device* device, ID3
 		loadInfo.MipLevels = 1;
 		loadInfo.Usage = D3D11_USAGE_STAGING;
 		loadInfo.BindFlags = 0;
-		loadInfo.CpuAccessFlags = D3D10_CPU_ACCESS_WRITE | D3D10_CPU_ACCESS_READ;
+		loadInfo.CpuAccessFlags = D3D11_CPU_ACCESS_WRITE | D3D11_CPU_ACCESS_READ;
 		loadInfo.MiscFlags = 0;
 		loadInfo.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		loadInfo.Filter = D3DX11_FILTER_NONE;
 		loadInfo.MipFilter = D3DX11_FILTER_NONE;
 		loadInfo.pSrcInfo  = 0;
-
 
 		hResult = D3DX11CreateTextureFromFile(device, filenames[i],
 				&loadInfo, 0, (ID3D11Resource**)&srcTex[i], &hResult);
@@ -212,12 +337,5 @@ HRESULT TextureAndMaterialHandler::Build2DTextureArray(ID3D11Device* device, ID3
 		srcTex[i] = 0;
 	}
 
-
 	return S_OK;
 };
-
-HRESULT TextureAndMaterialHandler::Build1DTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext )
-{
-
-	return S_OK;
-}

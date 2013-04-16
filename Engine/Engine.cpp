@@ -25,7 +25,6 @@ Engine::~Engine()
 {
 }
 
-
 bool Engine::Initialize()
 {
 	bool result;
@@ -223,7 +222,6 @@ void Engine::Run()
 {
 	MSG msg;
 	bool done, result;
-
 
 	// Initialize the message structure.
 	ZeroMemory(&msg, sizeof(MSG));

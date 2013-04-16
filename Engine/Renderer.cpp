@@ -305,7 +305,7 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 {
 	bool result;
 
-	ambientLight = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+	ambientLight = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
 
 #pragma region Point light initialization
 	float x, y, z;
@@ -313,12 +313,12 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 	z = 0.0f;
 	y = 10.0f;
 
-	for(int i = 0; i < 20; i++)
+	for(int i = 0; i < 100; i++)
 	{
 		pointLights.push_back(new PointLight());
 		pointLights[i]->Position = XMFLOAT3(x, y, z);
 		pointLights[i]->Color = XMFLOAT3(utility->Random(), utility->Random(), utility->Random());
-		pointLights[i]->Radius = 5.0f;
+		pointLights[i]->Radius = 2.0f;
 		pointLights[i]->Intensity = 512.0f; //The lower it gets, the more intense it gets
 
 		x += 6.0f;
@@ -535,13 +535,13 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	result = dayNightCycle->Initialize(86400.0f/6, DAWN);
+	result = dayNightCycle->Initialize(86400.0f/6, DAY);
 	if(!result)
 	{
 		return false;
 	}
 
-	dayNightCycle->Update(0.0f, dirLight, skySphere);
+	dayNightCycle->Update(50.0f, dirLight, skySphere);
 
 	// Create the text object.
 	text = new TextClass();
@@ -582,8 +582,8 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 	normalRT->Initialize(device, screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
 	depthRT->Initialize(device, screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
 	lightRT->Initialize(device, screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
-	shadowRT->Initialize(device, shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_UNORM);
-	gaussianBlurPingPongRT->Initialize(device, shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_UNORM); //Needs to be identical to shadowRT
+	shadowRT->Initialize(device, shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_FLOAT);
+	gaussianBlurPingPongRT->Initialize(device, shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_FLOAT); //Needs to be identical to shadowRT
 
 
 	// Create the frustum object.
@@ -986,7 +986,7 @@ bool Renderer::Render()
 	d3D->SetBackBufferRenderTarget();
 	context->ClearDepthStencilView(ds,  D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	//fullScreenQuad.Render(context, 0, 0);
+	fullScreenQuad.Render(context, 0, 0);
 
 	composeShader->Render(context, fullScreenQuad.GetIndexCount(), &worldMatrix, &baseView, 
 		&orthoMatrix, finalTextures);

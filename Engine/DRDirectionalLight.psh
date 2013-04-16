@@ -34,7 +34,7 @@ cbuffer LightBuffer
 //SamplerState samplers[2];
 
 SamplerState linearSampler : register(s0);
-SamplerState pointSampler : register(s1);
+SamplerState anisotropicSampler : register(s1);
 SamplerComparisonState cmpSampler : register(s2);
 
 Texture2D shaderTextures[3]; // 0 = normal, 1 = standard depth, 2 = shadowmap depth.
@@ -97,7 +97,7 @@ float ChebyshevUpperBound(float2 moments, float t)
 float ShadowContribution(float2 lightTexCoord, float distanceToLight)  
 {
 	// Read the moments from the variance shadow map.  
-	float2 moments = shaderTextures[2].Sample(pointSampler, lightTexCoord);
+	float2 moments = shaderTextures[2].Sample(anisotropicSampler, lightTexCoord);
 
 	//If surface is fully lit, break early.
 	if(distanceToLight <= moments.x)
@@ -231,7 +231,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//Essentially I save a float in the normal render target's .w channel that decides if the object should be shaded or not.
 	//I do this because of how the vegatation quads are built -- they each consist of three different quads, and they all shade eachother.
 	//This results in the quads looking really ass and they start flickering when the light moves and shit. Bad.
-	if(recieveShadows >= 0.9f)
+	if(recieveShadows >= 0.5f)
 	{
 		return LightIntensity*half4(finalAmbienceProduct.rgb + (finalDiffuseProduct * shadowMultiplier), (finalSpecularProduct * shadowMultiplier));
 	}

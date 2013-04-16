@@ -1,8 +1,8 @@
 /////////////
 // GLOBALS //
 /////////////
-Texture2DArray shaderTexture;
-SamplerState SampleType;
+//Texture2DArray shaderTexture;
+//SamplerState SampleType;
 
 struct VertexShaderOutput
 {
@@ -30,16 +30,25 @@ half2 ComputeMoments(float depth)
 
 half2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 {
-	float alpha = 0.0f;
+	//float alpha = 0.0f;
 
-	float3 samplingCoords = float3(input.TexCoord.xy, input.TexCoord.w); //Add textureID to Z channel so that we can sample dynamically
+	//float3 samplingCoords = float3(input.TexCoord.xy, input.TexCoord.w); //Add textureID to Z channel so that we can sample dynamically
 
+<<<<<<< HEAD
+	//alpha = shaderTexture.Sample(SampleType, samplingCoords).w;
+
+	//if(alpha < 0.1f)
+	//{
+	//	discard;
+	//}
+=======
 	alpha = shaderTexture.Sample(SampleType, samplingCoords).a;
 
 	if(alpha < 0.7f)
 	{
 		discard;
 	}
+>>>>>>> 8e34eda49be7d738786905a560f6da9dbce9e8c3
 
-	return ComputeMoments(input.TexCoord.z)+0.5f; //I store depth in texcoord.z. I pack everything into a float4 to save space.
+	return ComputeMoments(input.TexCoord.z); //I store depth in texcoord.z. I pack everything into a float4 to save space.
 };
