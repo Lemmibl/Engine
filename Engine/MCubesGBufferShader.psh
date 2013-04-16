@@ -1,10 +1,9 @@
 struct VertexShaderOutput
 {
 	float4 Position : SV_POSITION;
-	float3 Normal : NORMAL;
+	float3 WorldNormal : NORMAL;
 	float4 WorldPosition : TEXCOORD0;
 	float2 Depth : TEXCOORD1;
-	float3 WorldNormal : TEXCOORD2;
 };
 
 struct PixelShaderOutput
@@ -15,8 +14,7 @@ struct PixelShaderOutput
 };
 
 Texture2DArray shaderTextures;
-
-SamplerState samplers[2]; //0 == linear, 1 = point
+SamplerState textureSampler;
 
 //Normal Encoding Function
 half3 encode(float3 n)
@@ -61,17 +59,17 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 		XYCoord = float3(input.WorldPosition.xy * scale, 1.0f);
 	}
 
+	output.Normal.w = 10.0f; //This is the "Should this pixel recieve shadows" value. 0 means no.
+
 	if(dotResult <= 0.0f) //If surface is facing downwards
 	{
-		YZCoord.z = 2.0f; //Change texture to rock.
+		output.Normal.w = 0.0f; //Then it shouldn't be shadowed.
+		XZCoord.z = 2.0f; //Then change surface texture to rock.
 	}
-	
 
-	float4 XZColor = shaderTextures.Sample(samplers[0], XZCoord);
-	float4 YZColor = shaderTextures.Sample(samplers[0], YZCoord);
-	float4 XYColor = shaderTextures.Sample(samplers[0], XYCoord);
-
-	//if(NormalizedWorldNormal
+	float4 XZColor = shaderTextures.Sample(textureSampler, XZCoord);
+	float4 YZColor = shaderTextures.Sample(textureSampler, YZCoord);
+	float4 XYColor = shaderTextures.Sample(textureSampler, XYCoord);
 	
 	output.Color = ((XZColor * blend_weights.y) + (YZColor * blend_weights.x) + (XYColor * blend_weights.z));
 	output.Color.w = 1.0f;
@@ -95,9 +93,7 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 	//	output.Color = (XYColor * blend_weights.z);
 	//} 
 	
-	output.Normal.xyz = (0.5f * (NormalizedWorldNormal + 1.0f));//normalize(input.Normal);			//revert the normal output to [0,1] space then assign it to the output normal map's RGB channel
-	output.Normal.w = 1.0f; //specular power stored in normal map's alpha channel
-
+	output.Normal.xyz = (0.5f * (NormalizedWorldNormal + 1.0f)); //revert the normal output to [0,1] space then assign it to the output normal map's RGB channel
 	output.Depth = (input.Depth.x / input.Depth.y);
 
 	return output;

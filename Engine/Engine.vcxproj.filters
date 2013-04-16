@@ -136,6 +136,9 @@
     <ClCompile Include="LSystemClass.cpp">
       <Filter>Procedural generation\LSystem</Filter>
     </ClCompile>
+    <ClCompile Include="GaussianBlur.cpp">
+      <Filter>Rendering\Shader wrappers\Post processing</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cpumeter.h">
@@ -282,6 +285,9 @@
     <ClInclude Include="LSystemBranch.h">
       <Filter>Procedural generation\LSystem</Filter>
     </ClInclude>
+    <ClInclude Include="GaussianBlur.h">
+      <Filter>Rendering\Shader wrappers\Post processing</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader-error.txt" />
@@ -357,6 +363,12 @@
     <None Include="VegetationQuad.psh">
       <Filter>Rendering\Shaders</Filter>
     </None>
+    <None Include="gaussianBlurX.psh">
+      <Filter>Rendering\Shaders\Post processing</Filter>
+    </None>
+    <None Include="gaussianBlurY.psh">
+      <Filter>Rendering\Shaders\Post processing</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Rendering">
@@ -394,9 +406,15 @@
     </Filter>
     <Filter Include="Procedural generation\Noise">
       <UniqueIdentifier>{4c131b98-83f6-4745-8390-4b7d567fe47d}</UniqueIdentifier>
+      </Filter>
+    <Filter Include="Rendering\Shader wrappers\Post processing">
+      <UniqueIdentifier>{ea2d2fbd-617c-455c-a898-27414fc8c13a}</UniqueIdentifier>
     </Filter>
     <Filter Include="Procedural generation\MC">
       <UniqueIdentifier>{12a28744-5ce8-4b0e-8813-557be086ce68}</UniqueIdentifier>
+      </Filter>
+    <Filter Include="Rendering\Shaders\Post processing">
+      <UniqueIdentifier>{3ab2fc9c-1038-40dc-843a-659e9cad2ad3}</UniqueIdentifier>
     </Filter>
     <Filter Include="Procedural generation\LSystem">
       <UniqueIdentifier>{d7a6d75b-5b8d-4413-9b4b-adcd086ff366}</UniqueIdentifier>

@@ -10,9 +10,7 @@ SamplerState linearSampler;
 struct PixelInputType
 {
 	float4 Position : SV_POSITION;
-	float4 Normal : NORMAL;
-	float2 TexCoord : TEXCOORD0;
-	int TextureID : TEXCOORD1;
+	float4 TexCoord : TEXCOORD0;
 };
 
 struct PixelShaderOutput
@@ -32,18 +30,22 @@ PixelShaderOutput VegetationQuadPixelShader(PixelInputType input)
 	output.Color = half4(0.0f, 0.0f, 0.0f, 0.0f);
 	half4 tempColor = output.Color;
 
-	float3 samplingCoords = float3(input.TexCoord, input.TextureID); //Add textureID to Z channel so that we can sample dynamically
+	float3 samplingCoords = float3(input.TexCoord.xy, input.TexCoord.w); //Add textureID from TexCoord.w to Z channel so that we can sample dynamically
 
-	tempColor = shaderTexture.Sample(linearSampler, samplingCoords); //No branching, cuz texture array. Yay.
+	tempColor = shaderTexture.Sample(linearSampler, samplingCoords); //No branching cuz texture array. Yay.
 
-	if(tempColor.a >= 0.05f)
+	if(tempColor.a >= 0.2f)
 	{
 		output.Color.xyz = tempColor.xyz;
 		output.Color.a = 1.0f;
 	}
 	
-	output.Depth = (input.Position.z / input.Position.w);
-	output.Normal = input.Normal;
+	output.Depth = (input.TexCoord.z); //We stored postProj.zw in TexCoord.zw to save one register slot of space.
+
+	output.Normal = (0.5f * float4(0.0f, 1.0f, 0.0f, 1.0f) + 1.0f);
+
+	//This is the "Should this pixel recieve shadows" value. >= 1.0f means yes.
+	output.Normal.w = 0.0f;
 
 	return output;
 }

@@ -45,7 +45,7 @@ private:
 
 	XMFLOAT3* startAndEndPositions;
 
-	float timeOfDay;
+	float timeOfDay, shouldLightMove;
 
 	//Should light colors / skysphere colors be kept here?
 	//Moonshine: 217 206 190

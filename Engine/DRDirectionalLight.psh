@@ -4,10 +4,9 @@
 
 cbuffer PositionalBuffer //Whatever, idk what else to name it
 {
-	float3 LightDirection;
-	float3 LightPosition;
-	float3 CameraPosition;
-	float3 Padding;
+	float4 LightDirection;
+	float4 LightPosition;
+	float4 CameraPosition;
 };
 
 cbuffer PixelMatrixBuffer
@@ -44,9 +43,7 @@ struct VertexShaderOutput
 {
 	float4 Position : SV_POSITION;
 	float2 TexCoord : TEXCOORD0;
-	float4 ViewPosition : TEXCOORD1;
-	float4 ScreenPosition : TEXCOORD2;
-	float4 WorldPosition : TEXCOORD3;
+	float4 ScreenPosition : TEXCOORD1;
 };
 
 /////////////////////////////////////////////
@@ -62,7 +59,7 @@ float3 Decode(float3 enc)
 float2 GetShadowTexOffset( int u, int v )
 {
 	//This has to mirror shadowmap render target width and height; I'm just really, really lazy.
-	float2 shadowMapSize = float2(1024.0f, 1024.0f);	
+	float2 shadowMapSize = float2(2048.0f, 2048.0f);	
 
 	//Scale and return texture coordinates
 	return float2( u * 1.0f/shadowMapSize.x, v * 1.0f/shadowMapSize.y );
@@ -95,7 +92,7 @@ float ChebyshevUpperBound(float2 moments, float t)
 
 	return p_max;
 }
- 
+
 
 float ShadowContribution(float2 lightTexCoord, float distanceToLight)  
 {
@@ -103,14 +100,9 @@ float ShadowContribution(float2 lightTexCoord, float distanceToLight)
 	float2 moments = shaderTextures[2].Sample(pointSampler, lightTexCoord);
 
 	//If surface is fully lit, break early.
-	if(distanceToLight < moments.x)
+	if(distanceToLight <= moments.x)
 	{
 		return 1.0f;
-	}
-
-	if(moments.y == moments.x) //Then something is really wrong, it means both values are probably 0.0f
-	{
-		return 1.0f; //There is no depth.
 	}
 
 	// Compute the Chebyshev upper bound.
@@ -128,32 +120,33 @@ float ShadowContribution(float2 lightTexCoord, float distanceToLight)
 
 half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 {
-	//I pre-declare all values so that I can still return the same variables if we break because we're outside of light frustum. 
+	//I pre-declare all values so that I can still return the same variables if we break before light calculations. 
 	//It's neater this way.
 	half4 finalAmbienceProduct = half4(0.0f, 0.0f, 0.0f, 0.0f);
 	half3 finalDiffuseProduct = half3(0.0f, 0.0f, 0.0f);
 	float finalSpecularProduct = 0.0f;
 
-	//Sample camera depth
-	float depth = shaderTextures[1].Sample(pointSampler, input.TexCoord);
+	float LightIntensity = LightPosition.w;
 
-	//Skip as early as possible if this pixel isn't supposed to be lit.
-	if(0.0f >= depth) 
+	//Sample camera depth
+	float depth = shaderTextures[1].Sample(linearSampler, input.TexCoord);
+
+	if(depth <= 0.001f)
 	{
-		//0, 0, 0, 0 at this point
-		return finalAmbienceProduct;
+		return finalAmbienceProduct; //0 0 0 0. We break really early for optimization + sky sphere
 	}
 
 	finalAmbienceProduct += Ka * AmbientColor;
 
 	float4 encodedNormal = shaderTextures[0].Sample(linearSampler, input.TexCoord);
+	float recieveShadows = encodedNormal.w;
 	float3 normal = normalize(Decode(encodedNormal.xyz));
 
 	//Surface-to-light vector
 	float3 lightVector = (-LightDirection);
 
 	//Calculate diffuse intensity, the usual
-	float NdL = max(0.0f, dot(lightVector, normal));
+	float NdL = dot(lightVector, normal);
 
 	//Adjust value
 	input.ScreenPosition /= input.ScreenPosition.w;
@@ -195,7 +188,6 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		/*Variance shadow mapping. http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html */
 
 		shadowMultiplier = ShadowContribution(sampleLightScreen, realDistanceToLight);
-		shadowMultiplier = clamp(shadowMultiplier, 0.0f, 1.0f);
 		
 		/*PCF 16X shadow mapping. */
 
@@ -236,6 +228,15 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		finalSpecularProduct += Ks * pow( saturate( dot(reflectionVector, directionToCamera)), a);
 	}
 
-	//Storing specular in alpha channel. Applying shadow multiplier to both diffuse product and specular, but not ambient, to make sure it's not completely black in shaded places.
-	return half4(finalAmbienceProduct.rgb + (shadowMultiplier * finalDiffuseProduct), (shadowMultiplier * finalSpecularProduct));
+	//Essentially I save a float in the normal render target's .w channel that decides if the object should be shaded or not.
+	//I do this because of how the vegatation quads are built -- they each consist of three different quads, and they all shade eachother.
+	//This results in the quads looking really ass and they start flickering when the light moves and shit. Bad.
+	if(recieveShadows >= 0.9f)
+	{
+		return LightIntensity*half4(finalAmbienceProduct.rgb + (finalDiffuseProduct * shadowMultiplier), (finalSpecularProduct * shadowMultiplier));
+	}
+	else //Don't shade if it shouldn't recieve any shadows. This also includes the empty space where nothing exists, seeing as we clear the normal rendertarget alpha channel to 0.0f in gbuffer stage.
+	{
+		return LightIntensity*half4(finalAmbienceProduct.rgb + finalDiffuseProduct, finalSpecularProduct);
+	}
 }

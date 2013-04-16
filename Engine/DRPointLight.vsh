@@ -1,8 +1,6 @@
 cbuffer MatrixVertexBuffer
 {
-	float4x4 World;
-	float4x4 View;
-	float4x4 Projection;
+	float4x4 WorldViewProjection;
 };
 
 struct VertexShaderInput
@@ -20,9 +18,7 @@ VertexShaderOutput LightVertexShader(VertexShaderInput input)
 {
 	VertexShaderOutput output;
 
-	output.Position = mul(input.Position, World);
-	output.Position = mul(output.Position, View);
-	output.Position = mul(output.Position, Projection);
+	output.Position = mul(input.Position, WorldViewProjection);
 
 	output.ScreenPosition = output.Position;
 

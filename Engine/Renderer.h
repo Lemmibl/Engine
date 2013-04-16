@@ -53,6 +53,7 @@
 #include "fontshaderclass.h"
 #include "DRGBuffer.h"
 #include "DepthOnlyQuadShader.h"
+#include "GaussianBlur.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -66,10 +67,10 @@ public:
 	~Renderer();
 
 	bool Initialize(HWND hwnd, CameraClass* camera, InputClass* inputManager, D3DClass* d3D, UINT screenWidth, UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear);
-	bool InitializeShaders(HWND hwnd);
-	bool InitializeLights(HWND hwnd);
-	bool InitializeEverythingElse(HWND hwnd);
-	bool InitializeModels(HWND hwnd);
+	bool InitializeShaders(HWND hwnd, ID3D11Device* device);
+	bool InitializeLights(HWND hwnd, ID3D11Device* device);
+	bool InitializeEverythingElse(HWND hwnd, ID3D11Device* device);
+	bool InitializeModels(HWND hwnd, ID3D11Device* device);
 	void Shutdown();
 
 	bool Update(int, int, float, float seconds);
@@ -92,6 +93,7 @@ private:
 	DepthOnlyShader* depthOnlyShader;
 	DepthOnlyQuadShader* depthOnlyQuadShader;
 	DRCompose* composeShader;
+	GaussianBlur* gaussianBlurShader;
 
 	DRDirLight* dirLightShader;
 	DirLight* dirLight;
@@ -108,10 +110,11 @@ private:
 	//Add a bunch of models and init, destruct and render them.
 
 	RenderTarget2D* colorRT; // render target for storing color. 8R 8G 8B 8A. stores specular intensity in alpha value.
-	RenderTarget2D* depthRT; // render target for storing depth. it's a 32bit deep single float
-	RenderTarget2D* normalRT; //render target for storing normals. 10R 10G 10B 2A. stores specular power in alpha value.
-	RenderTarget2D* lightRT; // light map
-	RenderTarget2D* shadowRT;
+	RenderTarget2D* depthRT; // render target for storing depth. it's a R16 G16 because we use variance shadowmapping
+	RenderTarget2D* normalRT; //render target for storing normals. 8R 8G 8B 8A. stores specular power in alpha value.
+	RenderTarget2D* lightRT; // light rendertarget
+	RenderTarget2D* shadowRT; //Shadow map
+	RenderTarget2D* gaussianBlurPingPongRT; //Yep. To be used when blurring shadow map
 
 	TextureShaderClass* textureShader;
 	DebugWindowClass debugWindows[5];

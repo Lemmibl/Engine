@@ -48,14 +48,13 @@ void SkysphereShader::Shutdown()
 }
 
 
-bool SkysphereShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, XMMATRIX* viewMatrix, 
-	XMMATRIX* projectionMatrix, XMFLOAT4 apexColor, XMFLOAT4 centerColor, XMFLOAT4 antapexColor, float time)
+bool SkysphereShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldViewProjection, XMFLOAT4 apexColor, XMFLOAT4 centerColor, XMFLOAT4 antapexColor, float time)
 {
 	bool result;
 
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, apexColor, centerColor, antapexColor, time);
+	result = SetShaderParameters(deviceContext, worldViewProjection, apexColor, centerColor, antapexColor, time);
 	if(!result)
 	{
 		return false;
@@ -296,8 +295,7 @@ void SkysphereShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hw
 }
 
 
-bool SkysphereShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, XMMATRIX* viewMatrix,
-	XMMATRIX* projectionMatrix, XMFLOAT4 apexColor, XMFLOAT4 centerColor, XMFLOAT4 antapexColor, float time)
+bool SkysphereShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, XMFLOAT4 apexColor, XMFLOAT4 centerColor, XMFLOAT4 antapexColor, float time)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -317,9 +315,7 @@ bool SkysphereShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XM
 	dataPtr = (MatrixBufferType*)mappedResource.pData;
 
 	// Copy the matrices into the constant buffer.
-	dataPtr->World =		*worldMatrix;
-	dataPtr->View =			*viewMatrix;
-	dataPtr->Projection =	*projectionMatrix;
+	dataPtr->WorldViewProjection =		*worldViewProjection;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(matrixBuffer, 0);

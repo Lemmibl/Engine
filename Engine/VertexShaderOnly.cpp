@@ -46,14 +46,13 @@ void VertexShaderOnly::Shutdown()
 }
 
 
-bool VertexShaderOnly::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, 
-	XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix)
+bool VertexShaderOnly::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldViewProjection)
 {
 	bool result;
 
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix);
+	result = SetShaderParameters(deviceContext, worldViewProjection);
 	if(!result)
 	{
 		return false;
@@ -214,8 +213,7 @@ void VertexShaderOnly::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND h
 }
 
 
-bool VertexShaderOnly::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, 
-	XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix)
+bool VertexShaderOnly::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -233,9 +231,7 @@ bool VertexShaderOnly::SetShaderParameters(ID3D11DeviceContext* deviceContext, X
 	dataPtr = (MatrixBufferType*)mappedResource.pData;
 
 	// Copy the matrices into the constant buffer.
-	dataPtr->world = *worldMatrix;
-	dataPtr->view = *viewMatrix;
-	dataPtr->projection = *projectionMatrix;
+	dataPtr->WorldViewProjection = *worldViewProjection;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(matrixBuffer, 0);

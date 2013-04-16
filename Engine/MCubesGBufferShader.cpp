@@ -6,8 +6,7 @@ MCubesGBufferShader::MCubesGBufferShader()
 	pixelShader = 0;
 	layout = 0;
 	matrixBuffer = 0;
-	samplers[0] = 0;
-	samplers[1] = 0;
+	sampler = 0;
 }
 
 
@@ -43,14 +42,13 @@ void MCubesGBufferShader::Shutdown()
 	return;
 }
 
-bool MCubesGBufferShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, XMMATRIX* viewMatrix, 
-	XMMATRIX* projectionMatrix, ID3D11ShaderResourceView** textures)
+bool MCubesGBufferShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textures)
 {
 	bool result;
 
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, textures);
+	result = SetShaderParameters(deviceContext, worldMatrix, worldViewProjection, textures);
 	if(!result)
 	{
 		return false;
@@ -186,7 +184,7 @@ bool MCubesGBufferShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 	}
 
 	// Create a texture sampler state description.
-	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -201,29 +199,7 @@ bool MCubesGBufferShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
 	// Create the texture sampler state.
-	result = device->CreateSamplerState(&samplerDesc, &samplers[0]);
-	if(FAILED(result))
-	{
-		return false;
-	}
-
-	// Create a texture sampler state description.
-	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.MipLODBias = 0.0f;
-	samplerDesc.MaxAnisotropy = 1;
-	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	samplerDesc.BorderColor[0] = 0;
-	samplerDesc.BorderColor[1] = 0;
-	samplerDesc.BorderColor[2] = 0;
-	samplerDesc.BorderColor[3] = 0;
-	samplerDesc.MinLOD = 1;
-	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-	// Create the texture sampler state.
-	result = device->CreateSamplerState(&samplerDesc, &samplers[1]);
+	result = device->CreateSamplerState(&samplerDesc, &sampler);
 	if(FAILED(result))
 	{
 		return false;
@@ -237,15 +213,10 @@ void MCubesGBufferShader::ShutdownShader()
 
 
 	// Release the sampler state.
-	if(samplers[0])
+	if(sampler)
 	{
-		samplers[0]->Release();
-		samplers[0] = 0;
-	}
-	if(samplers[1])
-	{
-		samplers[1]->Release();
-		samplers[1] = 0;
+		sampler->Release();
+		sampler = 0;
 	}
 
 	// Release the matrix constant buffer.
@@ -315,7 +286,7 @@ void MCubesGBufferShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWN
 }
 
 bool MCubesGBufferShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, 
-	XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, ID3D11ShaderResourceView** textures)
+	XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textures)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -334,8 +305,7 @@ bool MCubesGBufferShader::SetShaderParameters(ID3D11DeviceContext* deviceContext
 
 	// Copy the matrices into the constant buffer.
 	dataPtr->World = *worldMatrix;
-	dataPtr->View = *viewMatrix;
-	dataPtr->Projection = *projectionMatrix;
+	dataPtr->WorldViewProjection = *worldViewProjection;
 
 	// Unlock the matrix constant buffer.
 	deviceContext->Unmap(matrixBuffer, 0);
@@ -362,7 +332,7 @@ void MCubesGBufferShader::RenderShader(ID3D11DeviceContext* deviceContext, int i
 	deviceContext->PSSetShader(pixelShader, NULL, 0);
 
 	// Set the sampler state in the pixel shader.
-	deviceContext->PSSetSamplers(0, 2, samplers);
+	deviceContext->PSSetSamplers(0, 1, &sampler);
 
 	// Render the triangles.
 	deviceContext->DrawIndexed(indexCount, 0, 0);

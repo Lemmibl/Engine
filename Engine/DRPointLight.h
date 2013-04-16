@@ -27,9 +27,7 @@ private:
 
 	struct VertexMatrixBufferType
 	{
-		XMMATRIX World;
-		XMMATRIX View;
-		XMMATRIX Projection;
+		XMMATRIX WorldViewProjection;
 	};
 
 	struct PixelMatrixBufferType
@@ -42,8 +40,8 @@ private:
 		XMFLOAT4 LightPosition;
 		XMFLOAT3 LightColor;
 		float LightRadius;
-		float LightPower;
 		XMFLOAT3 CameraPosition;
+		float LightPower;
 	};
 
 
@@ -55,14 +53,14 @@ public:
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
 	//This class takes a normal map and a depthmap and should be rendering to the light map.
-	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* view, XMMATRIX* proj, XMMATRIX* inverseViewProjection, 
+	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* WorldViewProjection, XMMATRIX* inverseViewProjection, 
 		PointLight* pointLight, ID3D11ShaderResourceView** textureArray, XMFLOAT3 cameraPosition);
 
 private:
 	bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
 	void ShutdownShader();
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
-	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* view, XMMATRIX* proj, XMMATRIX* inverseViewProjection, 
+	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* WorldViewProjection, XMMATRIX* inverseViewProjection, 
 		PointLight* pointLight, ID3D11ShaderResourceView** textureArray, XMFLOAT3 cameraPosition);
 
 	void RenderShader(ID3D11DeviceContext*, int);

@@ -1,0 +1,33 @@
+#ifndef SEPARABLE_BLUR_KERNEL_SIZE
+#define SEPARABLE_BLUR_KERNEL_SIZE 5
+#endif
+
+static const int BLUR_KERNEL_BEGIN = SEPARABLE_BLUR_KERNEL_SIZE / -2; 
+static const int BLUR_KERNEL_END = SEPARABLE_BLUR_KERNEL_SIZE / 2 + 1;
+static const float FLOAT_BLUR_KERNEL_SIZE = (float)SEPARABLE_BLUR_KERNEL_SIZE;
+
+struct PixelInputType
+{
+	float4      Position	    : SV_Position;		//Position
+	float2      TexCoord	    : TEXCOORD0;		//Texture coordinate
+};
+
+Texture2D shadowTexture;
+SamplerState shadowSampler;
+
+//--------------------------------------------------------------------------------------
+// Pixel shader that performs horizontal blurring as part of a two-pass gaussian blur
+//--------------------------------------------------------------------------------------
+half2 PSBlurX(PixelInputType input) : SV_Target0
+{	
+	float2 blurredValue=0;
+	
+	[unroll]for ( int x = BLUR_KERNEL_BEGIN; x < BLUR_KERNEL_END; x++ ) 
+	{
+		blurredValue += shadowTexture.Sample( shadowSampler,  input.TexCoord.xy, int2( x,0 ) );
+	}
+	
+	blurredValue /= FLOAT_BLUR_KERNEL_SIZE;
+	
+	return blurredValue;  
+}
