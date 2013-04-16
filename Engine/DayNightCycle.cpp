@@ -42,7 +42,7 @@ bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
 	skysphereDawnColor = XMFLOAT4(1.0f, GetColorValueFromRGB(160.0f), GetColorValueFromRGB(122.0f), 1.0f);
 	skysphereDayColor = XMFLOAT4(GetColorValueFromRGB(100.0f), GetColorValueFromRGB(149.0f), GetColorValueFromRGB(237.0f), 1.0f);
 	skysphereDuskColor = XMFLOAT4(0.0f, GetColorValueFromRGB(206.0f), GetColorValueFromRGB(209.0f), 1.0f);
-	skysphereNightColor = XMFLOAT4(0.05f, 0.05f, 0.1f, 1.0f);
+	skysphereNightColor = XMFLOAT4(0.1f, 0.1f, 0.25f, 1.0f);
 
 	/*
 	Day cycle goes in this order:
@@ -61,32 +61,32 @@ bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
 	startAndEndPositions = new XMFLOAT3[12];
 
 	startAndEndPositions[0] = XMFLOAT3(150.0f, 0.0f, 0.0f); //start pos for dawn
-	startAndEndPositions[1] = XMFLOAT3(75.0f, 70.0f, 35.0f); //end pos for dawn
+	startAndEndPositions[1] = XMFLOAT3(75.0f, 35.0f, 35.0f); //end pos for dawn
 
 	//which leads into...
 
-	startAndEndPositions[2] = XMFLOAT3(75.0f, 70.0f, 35.0f); //start pos for morning
-	startAndEndPositions[3] = XMFLOAT3(35.0f, 90.0f, 70.0f); //end pos for morning
+	startAndEndPositions[2] = XMFLOAT3(75.0f, 35.0f, 35.0f); //start pos for morning
+	startAndEndPositions[3] = XMFLOAT3(35.0f, 70.0f, 70.0f); //end pos for morning
 
 	//which leads into...
 
-	startAndEndPositions[4] = XMFLOAT3(35.0f, 120.0f, 70.0f); //start pos for day
-	startAndEndPositions[5] = XMFLOAT3(-35.0f, 120.0f, 70.0f); //end pos for day
+	startAndEndPositions[4] = XMFLOAT3(35.0f, 70.0f, 70.0f); //start pos for day
+	startAndEndPositions[5] = XMFLOAT3(-35.0f, 70.0f, 70.0f); //end pos for day
 
 	//which leads into...
 
-	startAndEndPositions[6] = XMFLOAT3(-35.0f, 90.0f, 70.0f); //start pos for dusk
-	startAndEndPositions[7] = XMFLOAT3(-75.0f, 70.0f, 35.0f); //end pos for dusk
+	startAndEndPositions[6] = XMFLOAT3(-35.0f, 70.0f, 70.0f); //start pos for dusk
+	startAndEndPositions[7] = XMFLOAT3(-75.0f, 35.0f, 35.0f); //end pos for dusk
 
 	//which leads into...
 
-	startAndEndPositions[8] = XMFLOAT3(-75.0f, 70.0f, 35.0f); //start pos for evening
-	startAndEndPositions[9] = XMFLOAT3(-150.0f, 35.0f, 0.0f); //end pos for evening
+	startAndEndPositions[8] = XMFLOAT3(-75.0f, 35.0f, 35.0f); //start pos for evening
+	startAndEndPositions[9] = XMFLOAT3(-150.0f, 0.0f, 0.0f); //end pos for evening
 
 	//which leads into...
 
-	startAndEndPositions[10] = XMFLOAT3(0.0f, 120.0f, 0.0f); //start pos for night
-	startAndEndPositions[11] = XMFLOAT3(0.0f, 120.0f, 0.0f); //end pos for night
+	startAndEndPositions[10] = XMFLOAT3(-150.0f, 120.0f, 0.0f); //start pos for night
+	startAndEndPositions[11] = XMFLOAT3(150.0f, 120.0f, 0.0f); //end pos for night
 
 	//which ends and repeats; goto start pos for dawn. 
 
@@ -143,7 +143,7 @@ float DayNightCycle::Update( float elapsedTime, DirLight* directionalLight, Skys
 	{
 		case DAWN:
 			directionalLight->Color = directionalLightDayColor;
-			directionalLight->Intensity = 128.0f;
+			directionalLight->Intensity = 0.7f;
 
 			skysphere->SetCenterColor(skysphereDawnColor);
 			skysphere->SetApexColor(skysphereNightColor);
@@ -159,7 +159,7 @@ float DayNightCycle::Update( float elapsedTime, DirLight* directionalLight, Skys
 
 		case MORNING:
 			directionalLight->Color = directionalLightDayColor;
-			directionalLight->Intensity = 64.0f;
+			directionalLight->Intensity = 0.85f;
 
 			skysphere->SetCenterColor(skysphereDayColor);
 			skysphere->SetApexColor(skysphereDawnColor);
@@ -175,7 +175,7 @@ float DayNightCycle::Update( float elapsedTime, DirLight* directionalLight, Skys
 
 		case DAY:
 			directionalLight->Color = directionalLightDayColor;
-				directionalLight->Intensity = 32.0f;
+				directionalLight->Intensity = 1.0f;
 
 			skysphere->SetCenterColor(skysphereDayColor);
 			skysphere->SetApexColor(skysphereDayColor);
@@ -191,7 +191,7 @@ float DayNightCycle::Update( float elapsedTime, DirLight* directionalLight, Skys
 
 		case DUSK:
 			directionalLight->Color = directionalLightDayColor;
-			directionalLight->Intensity = 64.0f;
+			directionalLight->Intensity = 0.85f;
 
 			skysphere->SetCenterColor(skysphereDuskColor);
 			skysphere->SetApexColor(skysphereDayColor);
@@ -207,7 +207,7 @@ float DayNightCycle::Update( float elapsedTime, DirLight* directionalLight, Skys
 
 		case EVENING:
 			directionalLight->Color = directionalLightNightColor;
-			directionalLight->Intensity = 128.0f;
+			directionalLight->Intensity = 0.7f;
 
 			skysphere->SetCenterColor(skysphereNightColor);
 			skysphere->SetApexColor(skysphereDuskColor);
@@ -223,7 +223,7 @@ float DayNightCycle::Update( float elapsedTime, DirLight* directionalLight, Skys
 
 		case NIGHT:
 			directionalLight->Color = directionalLightNightColor;
-			directionalLight->Intensity = 256.0f;
+			directionalLight->Intensity = 1.0f;
 
 			skysphere->SetCenterColor(skysphereNightColor);
 			skysphere->SetApexColor(skysphereNightColor);

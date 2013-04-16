@@ -10,7 +10,7 @@ half2 ComputeMoments(float depth)
 	 
 	// First moment is normal depth.  
 	moments.x = depth;
-	moments.y = depth*depth;
+	moments.y = 0;//depth*depth;
 
 	// Compute partial derivatives of depth.  
 	float dx = ddx(depth);  

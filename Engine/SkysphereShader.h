@@ -25,9 +25,7 @@ class SkysphereShader
 private:
 	struct MatrixBufferType
 	{
-		XMMATRIX World;
-		XMMATRIX View;
-		XMMATRIX Projection;
+		XMMATRIX WorldViewProjection;
 	};
 
 	struct GradientBufferType
@@ -50,7 +48,7 @@ public:
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
-	bool Render(ID3D11DeviceContext* context, int indexCount, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, 
+	bool Render(ID3D11DeviceContext* context, int indexCount, XMMATRIX* worldViewProjection, 
 	XMFLOAT4 ApexColor, XMFLOAT4 CenterColor, XMFLOAT4 AntapexColor, float time);
 
 private:
@@ -58,7 +56,7 @@ private:
 	void ShutdownShader();
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
 
-	bool SetShaderParameters(ID3D11DeviceContext* context, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, 
+	bool SetShaderParameters(ID3D11DeviceContext* context, XMMATRIX* worldViewProjection, 
 		XMFLOAT4 ApexColor, XMFLOAT4 CenterColor, XMFLOAT4 AntapexColor, float time);
 	void RenderShader(ID3D11DeviceContext*, int);
 

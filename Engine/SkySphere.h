@@ -42,7 +42,7 @@ public:
 
 	bool Initialize(ID3D11Device* device, HWND hwnd);
 	void Shutdown();
-	void Render(ID3D11DeviceContext* context, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, float time);
+	void Render(ID3D11DeviceContext* context, XMMATRIX* worldViewProjection, float time);
 
 	int GetIndexCount();
 

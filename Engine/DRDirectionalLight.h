@@ -36,15 +36,13 @@ private:
 		XMMATRIX World;
 		XMMATRIX View;
 		XMMATRIX Projection;
-		XMFLOAT3 CameraPosition;
 	};
 
 	struct PositionalBuffer
 	{
-		XMFLOAT3 LightDirection;
-		XMFLOAT3 LightPosition;
-		XMFLOAT3 CameraPosition;
-		XMFLOAT3 Padding;
+		XMFLOAT4 LightDirection;
+		XMFLOAT4 LightPosition;
+		XMFLOAT4 CameraPosition;
 	};
 
 	struct LightBuffer

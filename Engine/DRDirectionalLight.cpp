@@ -439,7 +439,6 @@ bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATR
 	dataPtr1->World = *world;
 	dataPtr1->Projection = *projection;
 	dataPtr1->View = *view;
-	dataPtr1->CameraPosition = cameraPosition;
 
 	deviceContext->Unmap(vertexMatrixBuffer, 0);
 
@@ -460,9 +459,9 @@ bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATR
 	// Get a pointer to the data in the constant buffer.
 	dataPtr2 = (PositionalBuffer*)mappedResource.pData;
 
-	dataPtr2->LightDirection = dirLight->Direction;
-	dataPtr2->LightPosition = dirLight->Position;
-	dataPtr2->CameraPosition = cameraPosition;
+	dataPtr2->LightDirection = XMFLOAT4(dirLight->Direction.x, dirLight->Direction.y, dirLight->Direction.z, 1.0f);
+	dataPtr2->LightPosition = XMFLOAT4(dirLight->Position.x, dirLight->Position.y, dirLight->Position.z, dirLight->Intensity);
+	dataPtr2->CameraPosition = XMFLOAT4(cameraPosition.x, cameraPosition.y, cameraPosition.z, 1.0f);
 
 	deviceContext->Unmap(positionalBuffer, 0);
 

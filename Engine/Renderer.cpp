@@ -63,6 +63,11 @@ Directional light lens flare:
 http://www.madgamedev.com/post/2010/04/21/Article-Sun-and-Lens-Flare-as-a-Post-Process.aspx
 http://stackoverflow.com/questions/14161727/hlsl-drawing-a-centered-circle
 if cross product (cameraDirection, lightDirection) == 0 then they're both facing the same way? I think.
+
+
+TODO: http://forum.beyond3d.com/archive/index.php/t-45628.html
+
+
 */
 
 Renderer::Renderer()
@@ -300,7 +305,7 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 {
 	bool result;
 
-	ambientLight = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+	ambientLight = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
 
 #pragma region Point light initialization
 	float x, y, z;
@@ -312,16 +317,16 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 	{
 		pointLights.push_back(new PointLight());
 		pointLights[i]->Position = XMFLOAT3(x, y, z);
-		pointLights[i]->Color = XMFLOAT3(0.1f+i%4, 0.1f+i%2, 1.0f-i%3);
-		pointLights[i]->Radius = 1.0f;
+		pointLights[i]->Color = XMFLOAT3(utility->Random(), utility->Random(), utility->Random());
+		pointLights[i]->Radius = 5.0f;
 		pointLights[i]->Intensity = 512.0f; //The lower it gets, the more intense it gets
 
-		x += 5.0f;
+		x += 6.0f;
 
-		if(x >= 50.0f) //Every 10th light gets reseted in x and z plane.
+		if(x > 61.0f) //Every 10th light gets reseted in x and z plane.
 		{
 			x = 0.0f;
-			z += 5.0f;
+			z += 6.0f;
 		}
 
 		if(i != 0 && i % 100 == 0) //Every 100 pointlights we reset and make another layer that is (y+8) higher up.
@@ -363,14 +368,14 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 
 	// Initialize the directional light.
 	dirLight->Color = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
-	dirLight->Intensity = 128.0f;
-	dirLight->Position = XMFLOAT3(0.0f, 120.0f, 0.0f);
+	dirLight->Intensity = 1.0f;
+	dirLight->Position = XMFLOAT3(150.0f, 0.0f, 0.0f);
 
 	XMVECTOR direction = XMVector3Normalize(lookAt - XMLoadFloat3(&dirLight->Position));
 	XMStoreFloat3(&dirLight->Direction, direction);
 
 	//XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(((float)D3DX_PI/2.0f), 1.0f, 10.0f, 300.0f)); //Generate perspective light projection matrix and store it as float4x4
-	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(140.0f, 140.0f, 30.0f, 250.0f)); //Generate orthogonal light projection matrix and store it as float4x4
+	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(120.0f, 120.0f, 10.0f, 200.0f)); //Generate orthogonal light projection matrix and store it as float4x4
 
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix and store it as float4x4.
 #pragma endregion
@@ -434,7 +439,7 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 		}
 		else
 		{
-			k = 2.0f + utility->Random()*6.0f;
+			k = 1.0f + utility->Random()*7.0f;
 		}
 
 		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, k);
@@ -527,7 +532,7 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	result = dayNightCycle->Initialize(360.0f*5.0f, DAWN);
+	result = dayNightCycle->Initialize(86400.0f/6, DAWN);
 	if(!result)
 	{
 		return false;
@@ -643,7 +648,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		{
 			pointLights[i]->Position.y += frameTime*0.006f;
 
-			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale*XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z)));
+			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale*XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y-0.5f, pointLights[i]->Position.z)));
 		}
 	}
 
@@ -653,7 +658,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		{
 			pointLights[i]->Position.y -= frameTime*0.006f;
 
-			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale*XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z)));
+			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale*XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y-0.5f, pointLights[i]->Position.z)));
 		}
 	}
 
@@ -716,11 +721,11 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
 
-	XMVECTOR lookAt = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);//XMLoadFloat3(&camera->GetPosition());//(camera->ForwardVector()*30.0f)+XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//
+	XMVECTOR lookAt = XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//(camera->ForwardVector()*30.0f)+XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
-	XMVECTOR currentLightPos = XMLoadFloat3(&dirLight->Position);//XMLoadFloat3(&camera->GetPosition())-(camera->ForwardVector()*30.0f);//+XMLoadFloat3(&camera->GetPosition())//XMLoadFloat3(&dirLight->Position)+
+	XMVECTOR currentLightPos = XMLoadFloat3(&dirLight->Position)+XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition())-(camera->ForwardVector()*30.0f);//+XMLoadFloat3(&camera->GetPosition())//XMLoadFloat3(&dirLight->Position)+
 
-	XMStoreFloat3(&dirLight->Direction, XMVector3Normalize(lookAt - currentLightPos));//XMLoadFloat3(&dirLight->Position)
+	XMStoreFloat3(&dirLight->Direction, XMVector3Normalize((lookAt - currentLightPos)));//XMLoadFloat3(&dirLight->Position)
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(currentLightPos, lookAt, up)); //Generate light view matrix
 
 	return true;
@@ -882,8 +887,6 @@ bool Renderer::Render()
 	//Blur shadow map texture vertically
 	fullScreenQuad.Render(context, 0, 0);
 	gaussianBlurShader->RenderBlurX(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &gaussianBlurTexture[0]);
-
-	dirLightTextures[2] = shadowRT->SRView;
 #pragma endregion
 
 #pragma region GBuffer building stage
@@ -899,10 +902,10 @@ bool Renderer::Render()
 	d3D->SetNoCullRasterizer();
 	d3D->TurnZBufferOff();
 
-	worldMatrix = XMMatrixTranslation(camPos.x, camPos.y, camPos.z);
+	worldMatrix = (XMMatrixTranslation(camPos.x, camPos.y, camPos.z)*viewMatrix)*projectionMatrix;
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
-	skySphere->Render(context, &worldMatrix, &viewMatrix, &projectionMatrix, timeOfDay);
+	skySphere->Render(context, &worldMatrix, timeOfDay);
 
 	d3D->SetBackFaceCullingRasterizer();
 	d3D->TurnZBufferOn();
