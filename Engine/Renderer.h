@@ -40,6 +40,7 @@
 #include "SkySphere.h"
 #include "marchingCubesClass.h"
 #include "MCTerrainClass.h"
+#include "LSystemClass.h"
 
 //Shaders
 #include "MCubesGBufferShader.h"
@@ -133,6 +134,8 @@ private:
 	DayNightCycle* dayNightCycle;
 	MarchingCubesClass* marchingCubes;
 	MCTerrainClass* mcTerrain;
+
+	LSystemClass* lSystem;
 
 	Utility* utility;
 	TextureAndMaterialHandler* textureAndMaterialHandler;

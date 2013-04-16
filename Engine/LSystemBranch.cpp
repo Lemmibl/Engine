@@ -42,40 +42,45 @@ void LSystemBranch::InitializeFirst
 	this->minDeviation = minDeviation;
 	this->SplitPointPercent = SplitPointPercent;
 	this->chanceToSplit = chanceToSplit;
-	CalculateAngle(angle);
+	this->angle = angle;
 
 	this->itterationsDone = 0;
+	BranchList = new list<LSystemBranch*>;
+	BranchList->push_back(this);
+	BranchOff();
 }
 
 void LSystemBranch::Initialize(LSystemBranch* parrent, unsigned short ID)
 {
 	this->parrent = parrent;
-	this->ID = ID;
-	positionStart = parrent->positionEnd;
+	this->BranchList = parrent->BranchList;
+	this->ID = BranchList->size();
+	this->positionStart = parrent->positionEnd;
 
-	lengthFallof  = parrent->lengthFallof;
-	length = parrent->length * lengthFallof;
-	widthFallof = parrent->widthFallof;
-	width = parrent->width * widthFallof;
-
-
-	maxBranches = parrent->maxBranches;
-	maxBranchesPerSplit = parrent->maxBranchesPerSplit;
+	this->lengthFallof  = parrent->lengthFallof;
+	this->length = parrent->length * lengthFallof;
+	this->widthFallof = parrent->widthFallof;
+	this->width = parrent->width * widthFallof;
 
 
-	maxDeviation = parrent->maxDeviation;
-	minDeviation = parrent->minDeviation;
-	SplitPointPercent = parrent->SplitPointPercent;
-	chanceToSplit = parrent->chanceToSplit;
+	this->maxBranches = parrent->maxBranches;
+	this->maxBranchesPerSplit = parrent->maxBranchesPerSplit;
 
-	CalculateAngle(parrent->angle);
 
-	itterationsDone = parrent->itterationsDone +1;
+	this->maxDeviation = parrent->maxDeviation;
+	this->minDeviation = parrent->minDeviation;
+	this->SplitPointPercent = parrent->SplitPointPercent;
+	this->chanceToSplit = parrent->chanceToSplit;
+
+	this->CalculateAngle(parrent->angle);
+
+
+	this->itterationsDone = parrent->itterationsDone +1;
 }
 
 void LSystemBranch::CalculateAngle(float angle)
 {
-	if (ID !=0)
+	if (ID != 0)
 	{
 		angle = (minDeviation + (maxDeviation - minDeviation) * random()) * (ID * 2 -3) + parrent->angle;
 	}
@@ -87,18 +92,26 @@ void LSystemBranch::CalculateAngle(float angle)
 
 void LSystemBranch::BranchOff()
 {
-	
-	child = new LSystemBranch();
-	child->Initialize(this,0);
-
-	if(random() < chanceToSplit)
+	if(this->itterationsDone <= this->maxBranches)
 	{
 		child = new LSystemBranch();
-		child->Initialize(this,1);
-	}
+		child->Initialize(this,0);
+		this->BranchList->push_back(child);
+		child->BranchOff();
 		if(random() < chanceToSplit)
-	{
-		child2 = new LSystemBranch();
-		child2->Initialize(this,2);
+		{
+			child2 = new LSystemBranch();
+			child2->Initialize(this,1);
+			this->BranchList->push_back(child2);
+			child2->BranchOff();
+		}
+		if(random() < chanceToSplit)
+		{
+			child3 = new LSystemBranch();
+			child3->Initialize(this,2);
+			this->BranchList->push_back(child3);
+			child3->BranchOff();
+		}
+
 	}
 }

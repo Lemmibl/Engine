@@ -64,7 +64,8 @@ public:
 	LSystemBranch* parrent;
 	LSystemBranch* child;
 	LSystemBranch* child2;
+	LSystemBranch* child3;
 
-	list<LSystemBranch*> BranchList;
+	list<LSystemBranch*>* BranchList;
 };
 

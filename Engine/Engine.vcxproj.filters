@@ -37,23 +37,8 @@
     <ClCompile Include="inputclass.cpp">
       <Filter>General Code\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="LSystemBranch.cpp">
-      <Filter>Procedural generation</Filter>
-    </ClCompile>
-    <ClCompile Include="LSystemClass.cpp">
-      <Filter>Procedural generation</Filter>
-    </ClCompile>
-    <ClCompile Include="marchingCubesClass.cpp">
-      <Filter>Procedural generation</Filter>
-    </ClCompile>
-    <ClCompile Include="MCTerrainClass.cpp">
-      <Filter>Procedural generation</Filter>
-    </ClCompile>
     <ClCompile Include="MCubesGBufferShader.cpp">
       <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
-    </ClCompile>
-    <ClCompile Include="SimplexNoise.cpp">
-      <Filter>Procedural generation</Filter>
     </ClCompile>
     <ClCompile Include="TextureAndMaterialHandler.cpp">
       <Filter>Rendering</Filter>
@@ -133,8 +118,23 @@
     <ClCompile Include="VegetationManager.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="SimplexNoise.cpp">
+      <Filter>Procedural generation\Noise</Filter>
+    </ClCompile>
+    <ClCompile Include="marchingCubesClass.cpp">
+      <Filter>Procedural generation\MC</Filter>
+    </ClCompile>
+    <ClCompile Include="MCTerrainClass.cpp">
+      <Filter>Procedural generation\MC</Filter>
+    </ClCompile>
     <ClCompile Include="TreeClass.cpp">
-      <Filter>Procedural generation</Filter>
+      <Filter>Procedural generation\MC</Filter>
+    </ClCompile>
+    <ClCompile Include="LSystemBranch.cpp">
+      <Filter>Procedural generation\LSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="LSystemClass.cpp">
+      <Filter>Procedural generation\LSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -177,26 +177,8 @@
     <ClInclude Include="interfacepointers.h">
       <Filter>General Code\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="LSystemClass.h">
-      <Filter>Procedural generation</Filter>
-    </ClInclude>
-    <ClInclude Include="LSystemBranch.h">
-      <Filter>Procedural generation</Filter>
-    </ClInclude>
-    <ClInclude Include="marchingCubesClass.h">
-      <Filter>Procedural generation</Filter>
-    </ClInclude>
-    <ClInclude Include="MCTerrainClass.h">
-      <Filter>Procedural generation</Filter>
-    </ClInclude>
     <ClInclude Include="MCubesGBufferShader.h">
       <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
-    </ClInclude>
-    <ClInclude Include="SimplexNoise.h">
-      <Filter>Procedural generation</Filter>
-    </ClInclude>
-    <ClInclude Include="metaballsClass.h">
-      <Filter>Procedural generation</Filter>
     </ClInclude>
     <ClInclude Include="TextureAndMaterialHandler.h">
       <Filter>Rendering</Filter>
@@ -279,8 +261,26 @@
     <ClInclude Include="VegetationManager.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="SimplexNoise.h">
+      <Filter>Procedural generation\Noise</Filter>
+    </ClInclude>
+    <ClInclude Include="metaballsClass.h">
+      <Filter>Procedural generation\MC</Filter>
+    </ClInclude>
+    <ClInclude Include="marchingCubesClass.h">
+      <Filter>Procedural generation\MC</Filter>
+    </ClInclude>
+    <ClInclude Include="MCTerrainClass.h">
+      <Filter>Procedural generation\MC</Filter>
+    </ClInclude>
     <ClInclude Include="TreeClass.h">
-      <Filter>Procedural generation</Filter>
+      <Filter>Procedural generation\MC</Filter>
+    </ClInclude>
+    <ClInclude Include="LSystemClass.h">
+      <Filter>Procedural generation\LSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="LSystemBranch.h">
+      <Filter>Procedural generation\LSystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -391,6 +391,15 @@
     </Filter>
     <Filter Include="Rendering\Rendering utility">
       <UniqueIdentifier>{33fc996b-8b8b-41b1-b4cd-4d51729dcf3a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Procedural generation\Noise">
+      <UniqueIdentifier>{4c131b98-83f6-4745-8390-4b7d567fe47d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Procedural generation\MC">
+      <UniqueIdentifier>{12a28744-5ce8-4b0e-8813-557be086ce68}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Procedural generation\LSystem">
+      <UniqueIdentifier>{d7a6d75b-5b8d-4413-9b4b-adcd086ff366}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

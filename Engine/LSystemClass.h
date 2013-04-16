@@ -12,14 +12,18 @@ public:
 	
 	void initialize();
 	
+public:
+	list<LSystemBranch*>* BranchList;
+
+	
 private:
 	//list<LSystemBranch> BranchList;
 	XMFLOAT2 positionToStart;
 	XMFLOAT2 positionToEnd;
 	float length;
-	float lengthFallof;
+	float lengthFalloff;
 	float width;
-	float widthFallof;
+	float widthFalloff;
 	int itterationsDone;
 	int maxBranches;
 	int maxBranchesPerSplit;
@@ -29,7 +33,6 @@ private:
 	float chanceToSplit;
 	float angle;
 	unsigned short ID;
-	list<LSystemBranch*> BranchList;
 
 	LSystemBranch* trunk;
 	
