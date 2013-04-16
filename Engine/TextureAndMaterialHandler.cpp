@@ -128,7 +128,7 @@ HRESULT TextureAndMaterialHandler::Build1DTexture( ID3D11Device* device, ID3D11D
 
 	//device->CreateShaderResourceView(texture, &viewDesc, &textureSRV);
 
-	//return S_OK;
+	return S_OK;
 }
 
 HRESULT TextureAndMaterialHandler::Build1DTextureArray( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
