@@ -118,12 +118,12 @@ float ShadowContribution(float2 lightTexCoord, float distanceToLight)
 ///////////////MAIN FUNCTION/////////////////
 /////////////////////////////////////////////
 
-half4 LightPixelShader(VertexShaderOutput input) : SV_Target
+float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 {
 	//I pre-declare all values so that I can still return the same variables if we break before light calculations. 
 	//It's neater this way.
-	half4 finalAmbienceProduct = half4(0.0f, 0.0f, 0.0f, 0.0f);
-	half3 finalDiffuseProduct = half3(0.0f, 0.0f, 0.0f);
+	float4 finalAmbienceProduct = float4(0.0f, 0.0f, 0.0f, 0.0f);
+	float3 finalDiffuseProduct = float3(0.0f, 0.0f, 0.0f);
 	float finalSpecularProduct = 0.0f;
 
 	float LightIntensity = LightPosition.w;
@@ -233,10 +233,10 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//This results in the quads looking really ass and they start flickering when the light moves and shit. Bad.
 	if(recieveShadows >= 0.5f)
 	{
-		return LightIntensity*half4(finalAmbienceProduct.rgb + (finalDiffuseProduct * shadowMultiplier), (finalSpecularProduct * shadowMultiplier));
+		return LightIntensity*float4(finalAmbienceProduct.rgb + (finalDiffuseProduct * shadowMultiplier), (finalSpecularProduct * shadowMultiplier));
 	}
 	else //Don't shade if it shouldn't recieve any shadows. This also includes the empty space where nothing exists, seeing as we clear the normal rendertarget alpha channel to 0.0f in gbuffer stage.
 	{
-		return LightIntensity*half4(finalAmbienceProduct.rgb + finalDiffuseProduct, finalSpecularProduct);
+		return LightIntensity*float4(finalAmbienceProduct.rgb + finalDiffuseProduct, finalSpecularProduct);
 	}
 }

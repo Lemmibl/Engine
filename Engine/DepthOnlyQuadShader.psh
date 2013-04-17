@@ -10,9 +10,9 @@ struct VertexShaderOutput
 	float4 TexCoord : TEXCOORD0;
 };
 
-half2 ComputeMoments(float depth)  
+float2 ComputeMoments(float depth)  
 { 
-	half2 moments;
+	float2 moments;
 	 
 	// First moment is normal depth.  
 	moments.x = depth;
@@ -28,7 +28,7 @@ half2 ComputeMoments(float depth)
 	return moments;
 };
 
-half2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
+float2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 {
 	float alpha = 0.0f;
 
