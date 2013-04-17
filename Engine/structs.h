@@ -13,9 +13,10 @@ struct MaterialStruct
 	float roughness;
 };
 
+//We save the pixels in R8G8B8A8. This means that each pixel can have values 1-255.
 struct PixelData
 {
-	float x, y, z, w;
+	UINT8 x, y, z, w;
 };
 
 struct Grads

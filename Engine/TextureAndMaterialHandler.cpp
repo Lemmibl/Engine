@@ -295,7 +295,7 @@ HRESULT TextureAndMaterialHandler::Build1DMaterialTextureArray( ID3D11Device* de
 }
 
 
-
+/*Okay, so this function recieves PixelData, which  is a struct that contains 4 UINT8 (because we use the DXGI_FORMAT_R8G8B8A8_UNORM format*/
 HRESULT TextureAndMaterialHandler::Build2DTextureProgrammatically( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
 	PixelData* pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV )
 {
@@ -306,7 +306,7 @@ HRESULT TextureAndMaterialHandler::Build2DTextureProgrammatically( ID3D11Device*
 	D3D11_SHADER_RESOURCE_VIEW_DESC viewDesc;
 
 	//Create an array big enough to hold the pixel data for this texture
-	float *dataArray = new float[4 * textureWidth * textureHeight * sizeof(float)]();
+	UINT8 *dataArray = new UINT8[4 * textureWidth * textureHeight]();
 
 	int index = 0;
 
@@ -341,7 +341,7 @@ HRESULT TextureAndMaterialHandler::Build2DTextureProgrammatically( ID3D11Device*
 	//Initialize the subresource that will be used to send the pixel data from dataArray to the texture
 	ZeroMemory(&texInitializeData, sizeof(D3D11_SUBRESOURCE_DATA));
 	texInitializeData.pSysMem = dataArray;
-	texInitializeData.SysMemPitch = textureWidth*(sizeof(float)*4);
+	texInitializeData.SysMemPitch = textureWidth*(sizeof(UINT8)*4);
 	//texInitializeData.SysMemSlicePitch = textureWidth*textureHeight*(sizeof(float)*4);
 
 	//Create texture with the description and the subresource that contains all the pixel data

@@ -500,17 +500,18 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 	}
 
 	int textureWidth, textureHeight;
-	textureWidth = 256;
-	textureHeight = 256;
+	textureWidth = 512;
+	textureHeight = 512;
 
 	PixelData* pixelData = new PixelData[textureWidth*textureHeight]();
-
+	
+	//Don't use utility.Random(). We do not want floats.
 	for(int i = 0; i < textureWidth*textureHeight; i++)
 	{
-		pixelData[i].x = (utility->Random());//0;//
-		pixelData[i].y = (utility->Random());
-		pixelData[i].z = (utility->Random());
-		pixelData[i].w = (utility->Random());//Alpha.
+		pixelData[i].x = rand();
+		pixelData[i].y = rand();
+		pixelData[i].z = rand();
+		pixelData[i].w = 1; //Alpha.
 	}
 
 	textureAndMaterialHandler->Build2DTextureProgrammatically(device, d3D->GetDeviceContext(), 
