@@ -341,8 +341,8 @@ HRESULT TextureAndMaterialHandler::Build2DTextureProgrammatically( ID3D11Device*
 	//Initialize the subresource that will be used to send the pixel data from dataArray to the texture
 	ZeroMemory(&texInitializeData, sizeof(D3D11_SUBRESOURCE_DATA));
 	texInitializeData.pSysMem = dataArray;
-	texInitializeData.SysMemPitch = textureWidth*(sizeof(float));
-	texInitializeData.SysMemSlicePitch = textureWidth*textureHeight*(sizeof(float));
+	texInitializeData.SysMemPitch = textureWidth*(sizeof(float)*4);
+	//texInitializeData.SysMemSlicePitch = textureWidth*textureHeight*(sizeof(float)*4);
 
 	//Create texture with the description and the subresource that contains all the pixel data
 	hResult = device->CreateTexture2D(&texDesc, &texInitializeData, &texture);
