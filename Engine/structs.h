@@ -7,15 +7,15 @@
 
 struct MaterialStruct
 {
-	float Ka;
-	float Kd;
-	float Ks;
-	float a;
+	float Kambience;
+	float Kdiffuse;
+	float Kspecular;
+	float roughness;
 };
 
 struct PixelData
 {
-	short x, y, z, w;
+	float x, y, z, w;
 };
 
 struct Grads

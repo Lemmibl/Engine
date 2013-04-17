@@ -9,20 +9,10 @@ http://gamedev.stackexchange.com/questions/24615/managing-shaders-and-objects-in
 https://graphics.stanford.edu/wikis/cs448s-11/FrontPage?action=AttachFile&do=get&target=05-GPU_Arch_I.pdf
 
 Inför terrain rendering / många texturer:
-http://gamedev.stackexchange.com/questions/14507/loading-a-texture2d-array-in-directx11
-http://www.gamedev.net/topic/612977-dynamic-updating-of-structuredbuffer-in-dx11/ < DEN HÄR
-http://msdn.microsoft.com/en-us/library/ff476486(VS.85).aspx
-http://stackoverflow.com/questions/6347950/programmatically-creating-directx-11-textures-pros-and-cons-of-the-three-differ
-http://irrlicht.sourceforge.net/forum/viewtopic.php?t=21236
-http://gamedev.stackexchange.com/questions/14873/loading-a-sub-resource-for-a-texture-array
-
-http://rastergrid.com/blog/2010/01/uniform-buffers-vs-texture-buffers/
-
 http://stackoverflow.com/questions/10623787/directx-11-framebuffer-capture-c-no-win32-or-d3dx < SPARA TEXTURER TIL HDD
-http://stackoverflow.com/questions/35950/i-dont-understand-stdtr1unordered-map
-Spara material ID i normal alpha channel
 
 Inför perlin/simplex noise:
+http://stackoverflow.com/questions/14802205/creating-texture-programmatically-directx
 http://stackoverflow.com/questions/4120108/how-to-save-backbuffer-to-file-in-directx-10
 
 Inför SSAO:
@@ -38,27 +28,6 @@ http://devblog.drheinous.com/2012/10/cascaded-variance-shadow-maps.html
 http://developer.download.nvidia.com/SDK/9.5/Samples/samples.html#HLSL_SoftShadows
 http://graphics.stanford.edu/~mdfisher/Shadows.html
 
-
-Inför gräsquads:
-http://gamedev.stackexchange.com/questions/5038/shadow-mapping-and-transparent-quads
-http://www.gamedev.net/topic/362393-shadow-map-alpha-testing-question-solved/
-http://www.gamedev.net/topic/551160-directx-shadow-map-example-has-no-alpha/
-http://gamedev.stackexchange.com/questions/22507/what-is-the-alphatocoverage-blend-state-useful-for
-http://blogs.msdn.com/b/shawnhar/archive/2009/02/18/depth-sorting-alpha-blended-objects.aspx
-
-
-http://www.geeks3d.com/20100831/shader-library-noise-and-pseudo-random-number-generator-in-glsl/
-http://ogldev.atspace.co.uk/www/tutorial27/tutorial27.html
-http://zeuxcg.blogspot.se/2007/09/particle-rendering-revisited.html
-http://realtimecollisiondetection.net/blog/?p=91
-http://www.flashbang.se/archives/315
-http://faculty.ycp.edu/~dbabcock/PastCourses/cs470/labs/lab11.html
-http://faculty.ycp.edu/~dbabcock/PastCourses/cs470/labs/lab13.html
-http://www.rastertek.com/dx11tut37.html
-http://software.intel.com/en-us/articles/rendering-grass-with-instancing-in-directx-10
-http://http.developer.nvidia.com/GPUGems/gpugems_ch07.html
-http://developer.amd.com/wordpress/media/2012/10/ShaderX_AnimatedGrass.pdf
-
 Directional light lens flare:
 http://www.madgamedev.com/post/2010/04/21/Article-Sun-and-Lens-Flare-as-a-Post-Process.aspx
 http://stackoverflow.com/questions/14161727/hlsl-drawing-a-centered-circle
@@ -70,8 +39,6 @@ http://www.gamedev.net/topic/640968-zfighting-on-ati-perfect-on-nvidia/
 
 Renderer::Renderer()
 {
-	toggleDebugInfo = true;
-
 	d3D = 0;
 	camera  = 0;
 	text = 0;
@@ -110,6 +77,8 @@ Renderer::Renderer()
 
 	utility = 0;
 	textureAndMaterialHandler = 0;
+
+	lSystemSRV = 0;
 }
 
 
@@ -140,7 +109,10 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	this->camera = camera;
 	timeOfDay = 0.0f;
 	timer = 10.0f;
+
 	toggleTextureShader = false;
+	toggleDebugInfo = true;
+
 	returning = false;
 	debugRotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	utility = new Utility();
@@ -311,7 +283,7 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 	z = 0.0f;
 	y = 10.0f;
 
-	for(int i = 0; i < 100; i++)
+	for(int i = 0; i < 10; i++)
 	{
 		pointLights.push_back(new PointLight());
 		pointLights[i]->Position = XMFLOAT3(x, y, z);
@@ -373,7 +345,7 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 	XMStoreFloat3(&dirLight->Direction, direction);
 
 	//XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(((float)D3DX_PI/2.0f), 1.0f, 10.0f, 300.0f)); //Generate perspective light projection matrix and store it as float4x4
-	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(120.0f, 120.0f, 10.0f, 200.0f)); //Generate orthogonal light projection matrix and store it as float4x4
+	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(130.0f, 130.0f, 5.0f, 200.0f)); //Generate orthogonal light projection matrix and store it as float4x4
 
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix and store it as float4x4.
 #pragma endregion
@@ -527,6 +499,23 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
+	int textureWidth, textureHeight;
+	textureWidth = 256;
+	textureHeight = 256;
+
+	PixelData* pixelData = new PixelData[textureWidth*textureHeight]();
+
+	for(int i = 0; i < textureWidth*textureHeight; i++)
+	{
+		pixelData[i].x = 0;//(utility->Random());
+		pixelData[i].y = (utility->Random());
+		pixelData[i].z = (utility->Random());
+		pixelData[i].w = (utility->Random());//Alpha.
+	}
+
+	textureAndMaterialHandler->Build2DTextureProgrammatically(device, d3D->GetDeviceContext(), 
+		pixelData, textureWidth, textureHeight, &lSystemSRV);
+
 	dayNightCycle = new DayNightCycle();
 	if(!dayNightCycle)
 	{
@@ -556,16 +545,16 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	for(int i = 0; i < 5; i++)
+	for(int i = 0; i < 6; i++)
 	{
 		debugWindows[i].Initialize(device, screenWidth, screenHeight, 200, 200);
 	}
 
 
-	defaultModelMaterial.a = 4096.0f;
-	defaultModelMaterial.Ka = 0.3f;
-	defaultModelMaterial.Kd = 1.0f;
-	defaultModelMaterial.Ks = 1.0f;
+	defaultModelMaterial.roughness = 4096.0f;
+	defaultModelMaterial.Kambience = 0.3f;
+	defaultModelMaterial.Kdiffuse = 1.0f;
+	defaultModelMaterial.Kspecular = 1.0f;
 
 	fullScreenQuad.Initialize(device, screenWidth, screenHeight, screenWidth, screenHeight);
 
@@ -633,14 +622,14 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 	if(inputManager->WasKeyPressed(DIK_T))
 	{
-		if(defaultModelMaterial.a <= 512.0f)
-			defaultModelMaterial.a *= 2.0f;
+		if(defaultModelMaterial.roughness <= 512.0f)
+			defaultModelMaterial.roughness *= 2.0f;
 	}
 
 	if(inputManager->WasKeyPressed(DIK_G))
 	{
-		if(defaultModelMaterial.a >= 1.0f)
-			defaultModelMaterial.a *= 0.5f;
+		if(defaultModelMaterial.roughness >= 1.0f)
+			defaultModelMaterial.roughness *= 0.5f;
 	}
 
 	if(inputManager->IsKeyPressed(DIK_R))
@@ -863,7 +852,7 @@ bool Renderer::Render()
 	vegetationManager->RenderBuffers(context);
 
 	depthOnlyQuadShader->Render(context, vegetationManager->GetVertexCount(), vegetationManager->GetInstanceCount(),
-		&lightWorldViewProj, textureAndMaterialHandler->GetVegetationTextures());
+		&lightWorldViewProj, textureAndMaterialHandler->GetVegetationTextureArray());
 
 	d3D->ResetBlendState();
 
@@ -918,11 +907,11 @@ bool Renderer::Render()
 
 	marchingCubes->Render(context);
 	result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
-		&worldMatrix, &identityWorldViewProj, textureAndMaterialHandler->GetTerrainTextures());//TODO
+		&worldMatrix, &identityWorldViewProj, textureAndMaterialHandler->GetTerrainTextureArray());//TODO
 
 	d3D->TurnOnAlphaBlending();
 	d3D->SetNoCullRasterizer();
-	vegetationManager->Render(context, &identityWorldViewProj, textureAndMaterialHandler->GetVegetationTextures());
+	vegetationManager->Render(context, &identityWorldViewProj, textureAndMaterialHandler->GetVegetationTextureArray());
 	d3D->TurnOffAlphaBlending();
 
 	text->SetRenderCount(renderCount, context);
@@ -1043,6 +1032,18 @@ bool Renderer::Render()
 			return false;
 		}
 
+		result = debugWindows[5].Render(d3D->GetDeviceContext(), 400, 200);
+		if(!result)
+		{
+			return false;
+		}
+
+		result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[5].GetIndexCount(), 
+			&worldBaseViewOrthoProj, lSystemSRV);
+		if(!result)
+		{
+			return false;
+		}
 
 		d3D->TurnZBufferOff();
 
@@ -1266,6 +1267,12 @@ void Renderer::Shutdown()
 	{
 		delete dayNightCycle;
 		dayNightCycle = 0;
+	}
+
+	if(lSystemSRV)
+	{
+		lSystemSRV->Release();
+		lSystemSRV = 0;
 	}
 
 	return;

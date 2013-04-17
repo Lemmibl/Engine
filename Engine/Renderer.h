@@ -117,7 +117,7 @@ private:
 	RenderTarget2D* gaussianBlurPingPongRT; //Yep. To be used when blurring shadow map
 
 	TextureShaderClass* textureShader;
-	DebugWindowClass debugWindows[5];
+	DebugWindowClass debugWindows[6];
 	DebugWindowClass fullScreenQuad;
 
 	XMFLOAT4X4 baseViewMatrix;
@@ -142,6 +142,8 @@ private:
 
 	Utility* utility;
 	TextureAndMaterialHandler* textureAndMaterialHandler;
+
+	ID3D11ShaderResourceView* lSystemSRV ;
 };
 
 #endif

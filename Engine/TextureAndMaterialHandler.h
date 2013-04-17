@@ -17,18 +17,19 @@ public:
 
 	bool Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
 
-	ID3D11ShaderResourceView** GetVegetationTextures();
-	ID3D11ShaderResourceView** GetTerrainTextures();
-
-private:
-	HRESULT Build1DTexture(ID3D11Device* device,  ID3D11DeviceContext* deviceContext, 
-		MaterialStruct materialData, int textureWidth);
-
-	HRESULT Build1DTextureArray(ID3D11Device* device, ID3D11DeviceContext* deviceContext, vector<MaterialStruct>* materials,
-		int materialCount);
+	ID3D11ShaderResourceView** GetVegetationTextureArray();
+	ID3D11ShaderResourceView** GetTerrainTextureArray();
+	ID3D11ShaderResourceView** GetMaterialTextureArray();
 
 	HRESULT Build2DTextureProgrammatically( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
-		PixelData* pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView* textureSRV );
+		PixelData* pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV );
+
+private:
+	HRESULT Build1DMaterialTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
+		MaterialStruct materialData, int textureWidth, ID3D11Texture1D**);//, ID3D11ShaderResourceView* textureSRV
+
+	HRESULT Build1DMaterialTextureArray(ID3D11Device* device, ID3D11DeviceContext* deviceContext, vector<MaterialStruct> materials,
+		int materialCount, int textureWidth, ID3D11ShaderResourceView** textureSRV );
 
 	HRESULT Build2DTextureArray(ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
 		WCHAR** filenames, int textureCount, ID3D11ShaderResourceView** textureArray, int texWidth, int texHeight);
@@ -36,5 +37,5 @@ private:
 private:
 	ID3D11ShaderResourceView* vegetationTextures;
 	ID3D11ShaderResourceView* terrainTextures;
-
+	ID3D11ShaderResourceView* materialTextures;
 };
