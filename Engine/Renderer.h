@@ -14,7 +14,8 @@
 #include <time.h>
 #include <windows.h>
 #include <xnamath.h>
-
+#include <ctime>
+#include <sstream>
 
 //Utility
 #include "Utility.h"
@@ -72,6 +73,7 @@ public:
 	bool InitializeEverythingElse(HWND hwnd, ID3D11Device* device);
 	bool InitializeModels(HWND hwnd, ID3D11Device* device);
 	void Shutdown();
+	void CreateRandom2DTexture();
 
 	bool Update(int, int, float, float seconds);
 	bool Render();

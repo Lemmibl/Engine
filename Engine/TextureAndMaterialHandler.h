@@ -16,6 +16,7 @@ public:
 	~TextureAndMaterialHandler();
 
 	bool Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
+	bool SaveLTreeTextureToFile(ID3D11DeviceContext* deviceContext, D3DX11_IMAGE_FILE_FORMAT format, LPCSTR fileName);
 
 	ID3D11ShaderResourceView** GetVegetationTextureArray();
 	ID3D11ShaderResourceView** GetTerrainTextureArray();
@@ -38,4 +39,6 @@ private:
 	ID3D11ShaderResourceView* vegetationTextures;
 	ID3D11ShaderResourceView* terrainTextures;
 	ID3D11ShaderResourceView* materialTextures;
+
+	ID3D11Texture2D* lTreeTexture;
 };

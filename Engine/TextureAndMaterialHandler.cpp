@@ -22,6 +22,7 @@ TextureAndMaterialHandler::TextureAndMaterialHandler()
 	vegetationTextures = 0;
 	terrainTextures = 0;
 	materialTextures = 0;
+	lTreeTexture = 0;
 }
 
 TextureAndMaterialHandler::TextureAndMaterialHandler( const TextureAndMaterialHandler& )
@@ -47,6 +48,12 @@ TextureAndMaterialHandler::~TextureAndMaterialHandler()
 	{
 		 materialTextures->Release();
 		 materialTextures = 0;
+	}
+
+	if(lTreeTexture)
+	{
+		lTreeTexture->Release();
+		lTreeTexture = 0;
 	}
 }
 
@@ -132,6 +139,19 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 
 	return true;
 }
+
+bool TextureAndMaterialHandler::SaveLTreeTextureToFile( ID3D11DeviceContext* deviceContext, D3DX11_IMAGE_FILE_FORMAT format, LPCSTR fileName )
+{
+	HRESULT hResult;
+	hResult = D3DX11SaveTextureToFileA(deviceContext, lTreeTexture, format, fileName);
+	if(FAILED(hResult))
+	{
+		return false;
+	}
+
+	return true;
+}
+
 
 HRESULT TextureAndMaterialHandler::Build1DMaterialTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
 	MaterialStruct materialData, int textureWidth, ID3D11Texture1D** texture)
@@ -303,7 +323,6 @@ HRESULT TextureAndMaterialHandler::Build2DTextureProgrammatically( ID3D11Device*
 	PixelData* pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV )
 {
 	HRESULT hResult;
-	ID3D11Texture2D* texture;
 	D3D11_TEXTURE2D_DESC texDesc;
 	D3D11_SUBRESOURCE_DATA texInitializeData;
 	D3D11_SHADER_RESOURCE_VIEW_DESC viewDesc;
@@ -348,7 +367,7 @@ HRESULT TextureAndMaterialHandler::Build2DTextureProgrammatically( ID3D11Device*
 	//texInitializeData.SysMemSlicePitch = textureWidth*textureHeight*(sizeof(float)*4);
 
 	//Create texture with the description and the subresource that contains all the pixel data
-	hResult = device->CreateTexture2D(&texDesc, &texInitializeData, &texture);
+	hResult = device->CreateTexture2D(&texDesc, &texInitializeData, &lTreeTexture);
 	if(FAILED(hResult))
 	{
 		return hResult;
@@ -363,15 +382,11 @@ HRESULT TextureAndMaterialHandler::Build2DTextureProgrammatically( ID3D11Device*
 	viewDesc.Texture2DArray.ArraySize = 1;
 
 	//Initialize the texture shader resource view and fill it with data
-	hResult = device->CreateShaderResourceView(texture, &viewDesc, textureSRV);
+	hResult = device->CreateShaderResourceView(lTreeTexture, &viewDesc, textureSRV);
 	if(FAILED(hResult))
 	{
 		return hResult;
 	}
-
-	//Clean up everything. We don't need the texture object anymore, because we have the resource view.
-	texture->Release();
-	texture = 0;
 
 	delete [] dataArray;
 	dataArray = 0;

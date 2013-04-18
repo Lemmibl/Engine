@@ -499,23 +499,7 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	int textureWidth, textureHeight;
-	textureWidth = 512;
-	textureHeight = 512;
-
-	PixelData* pixelData = new PixelData[textureWidth*textureHeight]();
-	
-	//Don't use utility.Random(). We do not want floats.
-	for(int i = 0; i < textureWidth*textureHeight; i++)
-	{
-		pixelData[i].x = rand()%255;//%255;
-		pixelData[i].y = rand()%255;//%255;
-		pixelData[i].z = rand()%255;//%255;
-		pixelData[i].w = 1; //Alpha.
-	}
-
-	textureAndMaterialHandler->Build2DTextureProgrammatically(device, d3D->GetDeviceContext(), 
-		pixelData, textureWidth, textureHeight, &lSystemSRV);
+	CreateRandom2DTexture();
 
 	dayNightCycle = new DayNightCycle();
 	if(!dayNightCycle)
@@ -651,6 +635,34 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale*XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y-0.5f, pointLights[i]->Position.z)));
 		}
+	}
+
+	if(inputManager->WasKeyPressed(DIK_O))
+	{
+		CreateRandom2DTexture();
+	}
+
+	if(inputManager->WasKeyPressed(DIK_P))
+	{
+		time_t t = time(0);// get time now
+		struct tm* now = localtime( & t );
+
+		ostringstream convert;
+
+		convert << "SavedTexture_" << now->tm_mon << "-" << now->tm_mday <<  "-" << now->tm_min << "-" << now->tm_sec << ".bmp";
+
+		string testString;
+		LPCSTR lpcString;
+		testString = convert.str();
+
+		lpcString = testString.c_str();
+
+		if(!textureAndMaterialHandler->SaveLTreeTextureToFile(d3D->GetDeviceContext(), D3DX11_IFF_BMP, lpcString))
+		{
+			return false;
+		}
+
+		//delete now;
 	}
 
 	if(inputManager->IsKeyPressed(DIK_C))
@@ -1277,6 +1289,27 @@ void Renderer::Shutdown()
 	}
 
 	return;
+}
+
+void Renderer::CreateRandom2DTexture()
+{
+	int textureWidth, textureHeight;
+	textureWidth = 512;
+	textureHeight = 512;
+
+	PixelData* pixelData = new PixelData[textureWidth*textureHeight]();
+
+	//Don't use utility.Random(). We do not want floats.
+	for(int i = 0; i < textureWidth*textureHeight; i++)
+	{
+		pixelData[i].x = rand()%255;//%255;
+		pixelData[i].y = rand()%255;//%255;
+		pixelData[i].z = rand()%255;//%255;
+		pixelData[i].w = 1; //Alpha.
+	}
+
+	textureAndMaterialHandler->Build2DTextureProgrammatically(d3D->GetDevice(), d3D->GetDeviceContext(), 
+		pixelData, textureWidth, textureHeight, &lSystemSRV);
 }
 
 
