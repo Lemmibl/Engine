@@ -1,6 +1,7 @@
 SamplerState samplers[2]; //0 == linear sampler, 1 == point
 Texture2D shaderTextures[3]; // 0 = color, light = 1, 2 = normal depth
 
+
 struct VertexShaderOutput
 {
 		float4 Position : SV_POSITION;
@@ -10,14 +11,25 @@ struct VertexShaderOutput
 half4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 {
 		float depth = shaderTextures[2].Sample(samplers[1], input.TexCoord);
+		float fogFactor = 0.0f;
 		float3 baseColor = shaderTextures[0].Sample(samplers[0], input.TexCoord).rgb;
+		float FogEnd = 150.0f;
+		float FogStart = 149.0f;
+		half4 FogColor = half4(0.7f, 0.7f, 0.7f, 1.0f);
+
 
 		if(depth <= 0) //Skip as early as possible if this pixel isn't supposed to be lit.
 		{
 			return float4(baseColor, 1.0f);
 		}
 
+		depth = (depth*150.0f);
+
+		fogFactor = saturate((depth - FogStart) / (FogEnd - FogStart));
+
 		//http://www.iquilezles.org/www/articles/ssao/ssao.htm
+		//http://jcoluna.wordpress.com/2012/11/06/xna-adding-fog-in-a-lpp-or-deferred-pipeline/
+		//http://cloneofduty.com/2012/07/30/deferred-rendering-5-foggy-haze/
 
 		//specular intensity is stored in the color map's alpha channel.
 		float4 light = shaderTextures[1].Sample(samplers[0], input.TexCoord);
@@ -25,5 +37,20 @@ half4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		float specularLight = light.a;
 		
 		//Not going to apply specular here, it'll be applied in the final composition stage.
-		return half4(baseColor * (diffuseLight + specularLight), 1.0f);
+		return lerp( half4(baseColor * (diffuseLight + specularLight), 1.0f),  FogColor, fogFactor); // + (fogFactor * FogColor)
 }
+
+/*
+Linear fog adds a linear amount of fog based on the distance you are viewing the object from:
+
+	Linear Fog = (FogEnd - ViewpointDistance) / (FogEnd - FogStart)
+Exponential fog adds exponentially more fog the further away an object is inside the fog:
+
+	Exponential Fog = 1.0 / 2.71828 power (ViewpointDistance * FogDensity)
+Exponential 2 fog adds even more exponential fog than the previous equation giving a very thick fog appearance:
+
+	Exponential Fog 2 = 1.0 / 2.71828 power ((ViewpointDistance * FogDensity) * (ViewpointDistance * FogDensity))
+All three equations produce a fog factor. To apply that fog factor to the model's texture and produce a final pixel color value we use the following equation:
+
+	Fog Color = FogFactor * TextureColor + (1.0 - FogFactor) * FogColor
+*/
