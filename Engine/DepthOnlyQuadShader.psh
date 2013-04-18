@@ -41,5 +41,5 @@ float2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 		discard;
 	}
 
-	return clamp(ComputeMoments(input.TexCoord.z+0.6f), 0.0f, 1.0f); //I store depth in texcoord.z. I pack everything into a float4 to save space.
+	return clamp(ComputeMoments(input.TexCoord.z+0.4f), 0.0f, 1.0f); //I store depth in texcoord.z. I pack everything into a float4 to save space.
 };

@@ -275,7 +275,7 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 {
 	bool result;
 
-	ambientLight = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
+	ambientLight = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f);
 
 #pragma region Point light initialization
 	float x, y, z;
