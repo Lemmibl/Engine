@@ -38,7 +38,8 @@ float4 SkyspherePixelShader(PixelInputType input) : SV_TARGET0
 {
 	float4 fogColor = float4(0.7f, 0.7f, 0.7f, 1.0f);
 	float4 sphereColor = lerp(ApexColor, CenterColor, time);
-	float domeY = PerlinEaseCurve(clamp(0.4f-input.DomePosition.y, 0.0f, 1.0f));
+	float fogMultiplier = PerlinEaseCurve(clamp(0.6f-input.DomePosition.y, 0.0f, 1.0f));
+	//TODO: ... maybe just make an if()elseif()else() to better control the flow ..
 
-	return lerp(sphereColor, fogColor, domeY); //We want to scale so that furthest down on the skysphere is covered in fog
+	return lerp(sphereColor, fogColor, fogMultiplier); //We want to scale so that furthest down on the skysphere is covered in fog
 }
