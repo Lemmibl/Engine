@@ -21,6 +21,7 @@ cbuffer TimeBuffer
 struct PixelInputType
 {
 	float4 Position : SV_POSITION;
+	float4 DomePosition : TEXCOORD0;
 };
 
 //Perlin noise ease curve: 3p² - 2p³
@@ -35,5 +36,9 @@ float PerlinEaseCurve(float value)
 ////////////////////////////////////////////////////////////////////////////////
 float4 SkyspherePixelShader(PixelInputType input) : SV_TARGET0
 {
-	return lerp(ApexColor, CenterColor, time);
+	float4 fogColor = float4(0.7f, 0.7f, 0.7f, 1.0f);
+	float4 sphereColor = lerp(ApexColor, CenterColor, time);
+	float domeY = clamp(0.5f-input.DomePosition.y, 0.0f, 1.0f);
+
+	return lerp(sphereColor, fogColor, domeY); //We want to scale so that furthest down on the skysphere is covered in fog
 }

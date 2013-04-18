@@ -14,7 +14,7 @@ half4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		float fogFactor = 0.0f;
 		float3 baseColor = shaderTextures[0].Sample(samplers[0], input.TexCoord).rgb;
 		float FogEnd = 150.0f;
-		float FogStart = 149.0f;
+		float FogStart = 149.5f;
 		half4 FogColor = half4(0.7f, 0.7f, 0.7f, 1.0f);
 
 
