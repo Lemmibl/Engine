@@ -10,7 +10,7 @@ struct MaterialStruct
 	float Kambience;
 	float Kdiffuse;
 	float Kspecular;
-	float roughness;
+	float smoothness;
 };
 
 //We save the pixels in R8G8B8A8. This means that each pixel can have values 1-255.

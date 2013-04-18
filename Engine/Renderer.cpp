@@ -279,9 +279,9 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 
 #pragma region Point light initialization
 	float x, y, z;
-	x = 0.0f;
-	z = 0.0f;
-	y = 10.0f;
+	x = 2.0f;
+	z = 2.0f;
+	y = 40.0f;
 
 	for(int i = 0; i < 10; i++)
 	{
@@ -293,7 +293,7 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 
 		x += 6.0f;
 
-		if(x > 61.0f) //Every 10th light gets reseted in x and z plane.
+		if(x > 60.0f) //Every 10th light gets reseted in x and z plane.
 		{
 			x = 0.0f;
 			z += 6.0f;
@@ -508,9 +508,9 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 	//Don't use utility.Random(). We do not want floats.
 	for(int i = 0; i < textureWidth*textureHeight; i++)
 	{
-		pixelData[i].x = rand();
-		pixelData[i].y = rand();
-		pixelData[i].z = rand();
+		pixelData[i].x = rand()%255;//%255;
+		pixelData[i].y = rand()%255;//%255;
+		pixelData[i].z = rand()%255;//%255;
 		pixelData[i].w = 1; //Alpha.
 	}
 
@@ -552,7 +552,7 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 	}
 
 
-	defaultModelMaterial.roughness = 4096.0f;
+	defaultModelMaterial.smoothness = 4096.0f;
 	defaultModelMaterial.Kambience = 0.3f;
 	defaultModelMaterial.Kdiffuse = 1.0f;
 	defaultModelMaterial.Kspecular = 1.0f;
@@ -623,14 +623,14 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 	if(inputManager->WasKeyPressed(DIK_T))
 	{
-		if(defaultModelMaterial.roughness <= 512.0f)
-			defaultModelMaterial.roughness *= 2.0f;
+		if(defaultModelMaterial.smoothness < 4096.0f)
+			defaultModelMaterial.smoothness *= 2.0f;
 	}
 
 	if(inputManager->WasKeyPressed(DIK_G))
 	{
-		if(defaultModelMaterial.roughness >= 1.0f)
-			defaultModelMaterial.roughness *= 0.5f;
+		if(defaultModelMaterial.smoothness > 1.0f)
+			defaultModelMaterial.smoothness *= 0.5f;
 	}
 
 	if(inputManager->IsKeyPressed(DIK_R))
@@ -867,7 +867,7 @@ bool Renderer::Render()
 
 	//Blur shadow map texture horizontally
 	fullScreenQuad.Render(context, 0, 0);
-	gaussianBlurShader->RenderBlurY(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &dirLightTextures[2]);
+	gaussianBlurShader->RenderBlurX(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &dirLightTextures[2]);
 
 	gaussianBlurTexture[0] = gaussianBlurPingPongRT->SRView;
 
@@ -877,7 +877,7 @@ bool Renderer::Render()
 
 	//Blur shadow map texture vertically
 	fullScreenQuad.Render(context, 0, 0);
-	gaussianBlurShader->RenderBlurX(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &gaussianBlurTexture[0]);
+	gaussianBlurShader->RenderBlurY(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &gaussianBlurTexture[0]);
 #pragma endregion
 
 #pragma region GBuffer building stage

@@ -96,29 +96,32 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 
 	vector<MaterialStruct> materials;
 
+	//The lower the smoothness the wider/more spread out the specular is.
+	//Meaning the higher the smoothness is the more focused and intense the specular is.
+
 	MaterialStruct grass;
 	grass.Kambience = 0.8f;
 	grass.Kdiffuse = 1.0f;
 	grass.Kspecular = 0.0f;
-	grass.roughness = 256.0f;
+	grass.smoothness = 256.0f;
 
 	MaterialStruct rock;
 	rock.Kambience = 0.5f;
 	rock.Kdiffuse = 0.8f;
 	rock.Kspecular = 0.6f;
-	rock.roughness = 512.0f;
+	rock.smoothness = 256.0f;
 
 	MaterialStruct snow;
 	snow.Kambience = 1.0f;
 	snow.Kdiffuse = 1.0f;
 	snow.Kspecular = 1.0f;
-	snow.roughness = 8.0f;
+	snow.smoothness = 1.0f;
 
 	MaterialStruct dirt;
 	dirt.Kambience = 0.8f;
 	dirt.Kdiffuse = 0.9f;
 	dirt.Kspecular = 0.1f;
-	dirt.roughness = 2.0f;
+	dirt.smoothness = 2.0f;
 
 	materials.push_back(grass);
 	materials.push_back(rock);
@@ -147,7 +150,7 @@ HRESULT TextureAndMaterialHandler::Build1DMaterialTexture( ID3D11Device* device,
 	dataArray[0]	= materialData.Kambience;
 	dataArray[1]	= materialData.Kdiffuse;
 	dataArray[2]	= materialData.Kspecular;
-	dataArray[3]	= materialData.roughness; 
+	dataArray[3]	= materialData.smoothness; 
 
 	//Initialize texture description
 	texDesc.Width				= textureWidth;

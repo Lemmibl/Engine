@@ -509,7 +509,7 @@ bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATR
 	dataPtr4->Ka =	material.Kambience;
 	dataPtr4->Kd =	material.Kdiffuse;
 	dataPtr4->Ks =	material.Kspecular;
-	dataPtr4->a =	material.roughness;
+	dataPtr4->a =	material.smoothness;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(lightBuffer, 0);
