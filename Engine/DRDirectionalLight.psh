@@ -170,7 +170,7 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//Adjust this value too.
 	lightScreenPos /= lightScreenPos.w;
 
-	float realDistanceToLight = lightScreenPos.z;
+	float realDistanceToLight = lightScreenPos.z-0.00001f;
 
 	float2 sampleLightScreen;
 	sampleLightScreen.x = ((lightScreenPos.x * 0.5f) + 0.5f);
@@ -187,7 +187,7 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	)
 	{
 		/*Variance shadow mapping. http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html */
-
+		
 		shadowMultiplier = ShadowContribution(sampleLightScreen, realDistanceToLight);
 		
 		/*PCF 16X shadow mapping. */
