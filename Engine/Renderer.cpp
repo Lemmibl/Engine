@@ -645,11 +645,12 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 	if(inputManager->WasKeyPressed(DIK_P))
 	{
 		time_t t = time(0);// get time now
-		struct tm* now = localtime( & t );
+		struct tm localTimeStruct;
+		localtime_s(&localTimeStruct, & t );
 
 		ostringstream convert;
 
-		convert << "SavedTexture_" << now->tm_mon << "-" << now->tm_mday <<  "-" << now->tm_min << "-" << now->tm_sec << ".bmp";
+		convert << "SavedTexture_" << localTimeStruct.tm_mon << "-" << localTimeStruct.tm_mday <<  "-" << localTimeStruct.tm_min << "-" << localTimeStruct.tm_sec << ".bmp";
 
 		string testString;
 		LPCSTR lpcString;
