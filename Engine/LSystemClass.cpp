@@ -30,9 +30,9 @@ void LSystemClass::initialize()
 
 
 	trunk = new LSystemBranch();
-	//trunk->InitializeFirst(positionToStart,positionToEnd,length,lengthFalloff,width,widthFalloff,maxBranches,maxBranchesPerSplit,maxDeviation,minDeviation,SplitPointPercent,chanceToSplit,angle,BranchList);
-
-	BranchList->push_back(new LSystemBranch());
+	trunk->InitializeFirst(positionToStart,positionToEnd,length,lengthFalloff,width,widthFalloff,maxBranches,maxBranchesPerSplit,maxDeviation,minDeviation,SplitPointPercent,chanceToSplit,angle,BranchList);
+	trunk->ID = 0;
+	BranchList->push_front(new LSystemBranch());
 	
 
 

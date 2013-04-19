@@ -1,160 +1,77 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
-    <Filter Include="MarchingCubes">
-      <UniqueIdentifier>{9c4f1c3c-95b4-4a57-8f47-dc3466f7afd0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="MarchingCubes\Noise">
-      <UniqueIdentifier>{f751dce4-f97f-42f0-a9c6-25096670405c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="MarchingCubes\Tree">
-      <UniqueIdentifier>{73450aa1-e910-4835-b779-f30c95c96f88}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="MarchingCubes\Terrain">
-      <UniqueIdentifier>{ca1718ad-52bd-4afa-85a3-af6d7b6b37a3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Rendering">
-      <UniqueIdentifier>{bd6003bc-64b4-40a3-8165-38137743314d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Rendering\Utility">
-      <UniqueIdentifier>{51b1641f-d707-479c-a05b-d0c977b80194}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Rendering\Deferred stuff">
-      <UniqueIdentifier>{b603451a-643d-458e-b56e-5f2068c079b2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Rendering\Shaders">
-      <UniqueIdentifier>{c988eb98-9dbe-4027-98f6-52ed36d507b3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Rendering\Shaders\Deferred shaders">
-      <UniqueIdentifier>{fe40bf5b-39f7-41d7-aeff-f0a0fd22fc40}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Rendering\Shaders\Post processing">
-      <UniqueIdentifier>{7db10dd1-0844-486b-ba74-d03515d9937d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Rendering\Shaders\Shadows">
-      <UniqueIdentifier>{982aa4dd-306e-43c4-8177-eb502d76c349}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Rendering\Shader wrappers">
-      <UniqueIdentifier>{b33f9602-a7b9-4936-8105-946fd4861c06}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Rendering\Shader wrappers\Deferred wrappers">
-      <UniqueIdentifier>{5ac0f754-049f-49a5-82ac-169368588c74}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Rendering\Shader wrappers\Shadow wrappers">
-      <UniqueIdentifier>{3f445f77-340f-4232-a086-b17e57272dfa}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="LSystem">
-      <UniqueIdentifier>{50127e89-a31b-4d3b-b08f-60b7def5c1e7}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="inputclass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="d3dclass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cameraclass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="soundclass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="fpsmeter.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="controllerclass.cpp">
+      <Filter>General Code\Utility</Filter>
     </ClCompile>
     <ClCompile Include="cpumeter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="timerclass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="frustumclass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="controllerclass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="marchingCubesClass.cpp">
-      <Filter>MarchingCubes</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TreeClass.cpp">
-      <Filter>MarchingCubes\Tree</Filter>
-    </ClCompile>
-    <ClCompile Include="MCTerrainClass.cpp">
-      <Filter>MarchingCubes\Terrain</Filter>
-    </ClCompile>
-    <ClCompile Include="SimplexNoise.cpp">
-      <Filter>MarchingCubes\Noise</Filter>
-    </ClCompile>
-    <ClCompile Include="modelclass.cpp">
-      <Filter>Rendering</Filter>
+      <Filter>General Code\Utility</Filter>
     </ClCompile>
     <ClCompile Include="Renderer.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="bitmapclass.cpp">
-      <Filter>Rendering\Utility</Filter>
+    <ClCompile Include="DepthOnlyQuadShader.cpp">
+      <Filter>Rendering\Shader wrappers\Shadow shader wrappers</Filter>
     </ClCompile>
-    <ClCompile Include="debugwindowclass.cpp">
-      <Filter>Rendering\Utility</Filter>
+    <ClCompile Include="DepthOnlyShader.cpp">
+      <Filter>Rendering\Shader wrappers\Shadow shader wrappers</Filter>
     </ClCompile>
-    <ClCompile Include="fontclass.cpp">
-      <Filter>Rendering\Utility</Filter>
+    <ClCompile Include="DRCompose.cpp">
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClCompile>
-    <ClCompile Include="fontshaderclass.cpp">
-      <Filter>Rendering\Utility</Filter>
+    <ClCompile Include="DRDirectionalLight.cpp">
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClCompile>
-    <ClCompile Include="modellistclass.cpp">
-      <Filter>Rendering\Utility</Filter>
+    <ClCompile Include="DRGBuffer.cpp">
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClCompile>
-    <ClCompile Include="renderToTextureClass.cpp">
-      <Filter>Rendering\Utility</Filter>
+    <ClCompile Include="DRPointLight.cpp">
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClCompile>
-    <ClCompile Include="texturearray.cpp">
-      <Filter>Rendering\Utility</Filter>
+    <ClCompile Include="fpsmeter.cpp">
+      <Filter>General Code\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="textureclass.cpp">
-      <Filter>Rendering\Utility</Filter>
+    <ClCompile Include="frustumclass.cpp">
+      <Filter>General Code\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="textureshaderclass.cpp">
-      <Filter>Rendering\Utility</Filter>
+    <ClCompile Include="inputclass.cpp">
+      <Filter>General Code\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="MCubesGBufferShader.cpp">
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureAndMaterialHandler.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine.cpp">
+      <Filter>General Code</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>General Code</Filter>
     </ClCompile>
     <ClCompile Include="SkySphere.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="DayNightCycle.cpp">
-      <Filter>Rendering\Utility</Filter>
-    </ClCompile>
-    <ClCompile Include="structs.cpp">
-      <Filter>Rendering\Utility</Filter>
-    </ClCompile>
-    <ClCompile Include="textclass.cpp">
-      <Filter>Rendering\Utility</Filter>
-    </ClCompile>
-    <ClCompile Include="VegetationManager.cpp">
-      <Filter>Rendering</Filter>
+    <ClCompile Include="fontshaderclass.cpp">
+      <Filter>Rendering\Shader wrappers</Filter>
     </ClCompile>
     <ClCompile Include="Utility.cpp">
-      <Filter>Rendering\Utility</Filter>
+      <Filter>General Code\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="timerclass.cpp">
+      <Filter>General Code\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="soundclass.cpp">
+      <Filter>General Code\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="cameraclass.cpp">
+      <Filter>General Code</Filter>
+    </ClCompile>
+    <ClCompile Include="d3dclass.cpp">
+      <Filter>General Code</Filter>
+    </ClCompile>
+    <ClCompile Include="DayNightCycle.cpp">
+      <Filter>General Code</Filter>
     </ClCompile>
     <ClCompile Include="SkysphereShader.cpp">
       <Filter>Rendering\Shader wrappers</Filter>
@@ -165,142 +82,139 @@
     <ClCompile Include="VertexShaderOnly.cpp">
       <Filter>Rendering\Shader wrappers</Filter>
     </ClCompile>
-    <ClCompile Include="DRCompose.cpp">
-      <Filter>Rendering\Shader wrappers\Deferred wrappers</Filter>
+    <ClCompile Include="structs.cpp">
+      <Filter>General Code</Filter>
     </ClCompile>
-    <ClCompile Include="DRDirectionalLight.cpp">
-      <Filter>Rendering\Shader wrappers\Deferred wrappers</Filter>
+    <ClCompile Include="textureshaderclass.cpp">
+      <Filter>Rendering\Shader wrappers</Filter>
     </ClCompile>
-    <ClCompile Include="DRGBuffer.cpp">
-      <Filter>Rendering\Shader wrappers\Deferred wrappers</Filter>
+    <ClCompile Include="textclass.cpp">
+      <Filter>Rendering\Rendering utility</Filter>
     </ClCompile>
-    <ClCompile Include="DRPointLight.cpp">
-      <Filter>Rendering\Shader wrappers\Deferred wrappers</Filter>
+    <ClCompile Include="texturearray.cpp">
+      <Filter>Rendering\Rendering utility</Filter>
     </ClCompile>
-    <ClCompile Include="MCubesGBufferShader.cpp">
-      <Filter>Rendering\Shader wrappers\Deferred wrappers</Filter>
+    <ClCompile Include="textureclass.cpp">
+      <Filter>Rendering\Rendering utility</Filter>
     </ClCompile>
-    <ClCompile Include="DepthOnlyQuadShader.cpp">
-      <Filter>Rendering\Shader wrappers\Shadow wrappers</Filter>
+    <ClCompile Include="bitmapclass.cpp">
+      <Filter>Rendering\Rendering utility</Filter>
     </ClCompile>
-    <ClCompile Include="DepthOnlyShader.cpp">
-      <Filter>Rendering\Shader wrappers\Shadow wrappers</Filter>
+    <ClCompile Include="debugwindowclass.cpp">
+      <Filter>Rendering\Rendering utility</Filter>
     </ClCompile>
-    <ClCompile Include="LSystemClass.cpp">
-      <Filter>LSystem</Filter>
+    <ClCompile Include="fontclass.cpp">
+      <Filter>Rendering\Rendering utility</Filter>
+    </ClCompile>
+    <ClCompile Include="modelclass.cpp">
+      <Filter>Rendering\Rendering utility</Filter>
+    </ClCompile>
+    <ClCompile Include="modellistclass.cpp">
+      <Filter>Rendering\Rendering utility</Filter>
+    </ClCompile>
+    <ClCompile Include="renderToTextureClass.cpp">
+      <Filter>Rendering\Rendering utility</Filter>
+    </ClCompile>
+    <ClCompile Include="VegetationManager.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="SimplexNoise.cpp">
+      <Filter>Procedural generation\Noise</Filter>
+    </ClCompile>
+    <ClCompile Include="marchingCubesClass.cpp">
+      <Filter>Procedural generation\MC</Filter>
+    </ClCompile>
+    <ClCompile Include="MCTerrainClass.cpp">
+      <Filter>Procedural generation\MC</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeClass.cpp">
+      <Filter>Procedural generation\MC</Filter>
     </ClCompile>
     <ClCompile Include="LSystemBranch.cpp">
-      <Filter>LSystem</Filter>
+      <Filter>Procedural generation\LSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="LSystemClass.cpp">
+      <Filter>Procedural generation\LSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="GaussianBlur.cpp">
+      <Filter>Rendering\Shader wrappers\Post processing</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="inputclass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="d3dclass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="cameraclass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="fontclass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="textclass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="soundclass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="fpsmeter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="cpumeter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="timerclass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="frustumclass.h">
-      <Filter>Header Files</Filter>
+      <Filter>General Code\Utility</Filter>
     </ClInclude>
     <ClInclude Include="controllerclass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="interfacepointers.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="customStructs.h">
-      <Filter>MarchingCubes</Filter>
-    </ClInclude>
-    <ClInclude Include="marchingCubesClass.h">
-      <Filter>MarchingCubes</Filter>
-    </ClInclude>
-    <ClInclude Include="metaballsClass.h">
-      <Filter>MarchingCubes</Filter>
-    </ClInclude>
-    <ClInclude Include="TreeClass.h">
-      <Filter>MarchingCubes\Tree</Filter>
-    </ClInclude>
-    <ClInclude Include="MCTerrainClass.h">
-      <Filter>MarchingCubes\Terrain</Filter>
-    </ClInclude>
-    <ClInclude Include="SimplexNoise.h">
-      <Filter>MarchingCubes\Noise</Filter>
-    </ClInclude>
-    <ClInclude Include="modelclass.h">
-      <Filter>Rendering</Filter>
+      <Filter>General Code\Utility</Filter>
     </ClInclude>
     <ClInclude Include="Renderer.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="bitmapclass.h">
-      <Filter>Rendering\Utility</Filter>
+    <ClInclude Include="DepthOnlyShader.h">
+      <Filter>Rendering\Shader wrappers\Shadow shader wrappers</Filter>
     </ClInclude>
-    <ClInclude Include="debugwindowclass.h">
-      <Filter>Rendering\Utility</Filter>
+    <ClInclude Include="DepthOnlyQuadShader.h">
+      <Filter>Rendering\Shader wrappers\Shadow shader wrappers</Filter>
     </ClInclude>
-    <ClInclude Include="fontshaderclass.h">
-      <Filter>Rendering\Utility</Filter>
+    <ClInclude Include="DRDirectionalLight.h">
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClInclude>
-    <ClInclude Include="modellistclass.h">
-      <Filter>Rendering\Utility</Filter>
+    <ClInclude Include="DRCompose.h">
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClInclude>
-    <ClInclude Include="renderToTextureClass.h">
-      <Filter>Rendering\Utility</Filter>
+    <ClInclude Include="DRGBuffer.h">
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClInclude>
-    <ClInclude Include="texturearray.h">
-      <Filter>Rendering\Utility</Filter>
+    <ClInclude Include="DRPointLight.h">
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClInclude>
-    <ClInclude Include="textureclass.h">
-      <Filter>Rendering\Utility</Filter>
+    <ClInclude Include="fpsmeter.h">
+      <Filter>General Code\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="textureshaderclass.h">
-      <Filter>Rendering\Utility</Filter>
+    <ClInclude Include="frustumclass.h">
+      <Filter>General Code\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="texturetriarray.h">
-      <Filter>Rendering\Utility</Filter>
+    <ClInclude Include="inputclass.h">
+      <Filter>General Code\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="interfacepointers.h">
+      <Filter>General Code\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="MCubesGBufferShader.h">
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureAndMaterialHandler.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Engine.h">
-      <Filter>Header Files</Filter>
+      <Filter>General Code</Filter>
     </ClInclude>
     <ClInclude Include="SkySphere.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="DayNightCycle.h">
-      <Filter>Rendering\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="structs.h">
-      <Filter>Rendering\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="VegetationManager.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="fontshaderclass.h">
+      <Filter>Rendering\Shader wrappers</Filter>
     </ClInclude>
     <ClInclude Include="Utility.h">
-      <Filter>Rendering\Utility</Filter>
+      <Filter>General Code\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="VertexShaderOnly.h">
-      <Filter>Rendering\Shader wrappers</Filter>
+    <ClInclude Include="timerclass.h">
+      <Filter>General Code\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="soundclass.h">
+      <Filter>General Code\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="cameraclass.h">
+      <Filter>General Code</Filter>
+    </ClInclude>
+    <ClInclude Include="d3dclass.h">
+      <Filter>General Code</Filter>
+    </ClInclude>
+    <ClInclude Include="customStructs.h">
+      <Filter>Procedural generation</Filter>
+    </ClInclude>
+    <ClInclude Include="DayNightCycle.h">
+      <Filter>General Code</Filter>
     </ClInclude>
     <ClInclude Include="SkysphereShader.h">
       <Filter>Rendering\Shader wrappers</Filter>
@@ -308,60 +222,106 @@
     <ClInclude Include="VegetationShader.h">
       <Filter>Rendering\Shader wrappers</Filter>
     </ClInclude>
-    <ClInclude Include="MCubesGBufferShader.h">
-      <Filter>Rendering\Shader wrappers\Deferred wrappers</Filter>
+    <ClInclude Include="VertexShaderOnly.h">
+      <Filter>Rendering\Shader wrappers</Filter>
     </ClInclude>
-<<<<<<< Updated upstream
-    <ClInclude Include="DRCompose.h">
-      <Filter>Rendering\Shader wrappers\Deferred wrappers</Filter>
+    <ClInclude Include="structs.h">
+      <Filter>General Code</Filter>
     </ClInclude>
-    <ClInclude Include="DRDirectionalLight.h">
-      <Filter>Rendering\Shader wrappers\Deferred wrappers</Filter>
+    <ClInclude Include="textureshaderclass.h">
+      <Filter>Rendering\Shader wrappers</Filter>
     </ClInclude>
-    <ClInclude Include="DRGBuffer.h">
-      <Filter>Rendering\Shader wrappers\Deferred wrappers</Filter>
+    <ClInclude Include="texturetriarray.h">
+      <Filter>Rendering\Rendering utility</Filter>
     </ClInclude>
-    <ClInclude Include="DRPointLight.h">
-      <Filter>Rendering\Shader wrappers\Deferred wrappers</Filter>
+    <ClInclude Include="textclass.h">
+      <Filter>Rendering\Rendering utility</Filter>
     </ClInclude>
-    <ClInclude Include="DepthOnlyShader.h">
-      <Filter>Rendering\Shader wrappers\Shadow wrappers</Filter>
+    <ClInclude Include="texturearray.h">
+      <Filter>Rendering\Rendering utility</Filter>
     </ClInclude>
-    <ClInclude Include="DepthOnlyQuadShader.h">
-      <Filter>Rendering\Shader wrappers\Shadow wrappers</Filter>
-=======
+    <ClInclude Include="textureclass.h">
+      <Filter>Rendering\Rendering utility</Filter>
+    </ClInclude>
+    <ClInclude Include="debugwindowclass.h">
+      <Filter>Rendering\Rendering utility</Filter>
+    </ClInclude>
+    <ClInclude Include="bitmapclass.h">
+      <Filter>Rendering\Rendering utility</Filter>
+    </ClInclude>
+    <ClInclude Include="fontclass.h">
+      <Filter>Rendering\Rendering utility</Filter>
+    </ClInclude>
+    <ClInclude Include="modelclass.h">
+      <Filter>Rendering\Rendering utility</Filter>
+    </ClInclude>
+    <ClInclude Include="modellistclass.h">
+      <Filter>Rendering\Rendering utility</Filter>
+    </ClInclude>
+    <ClInclude Include="renderToTextureClass.h">
+      <Filter>Rendering\Rendering utility</Filter>
+    </ClInclude>
+    <ClInclude Include="VegetationManager.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="SimplexNoise.h">
+      <Filter>Procedural generation\Noise</Filter>
+    </ClInclude>
+    <ClInclude Include="metaballsClass.h">
+      <Filter>Procedural generation\MC</Filter>
+    </ClInclude>
+    <ClInclude Include="marchingCubesClass.h">
+      <Filter>Procedural generation\MC</Filter>
+    </ClInclude>
+    <ClInclude Include="MCTerrainClass.h">
+      <Filter>Procedural generation\MC</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeClass.h">
+      <Filter>Procedural generation\MC</Filter>
+    </ClInclude>
     <ClInclude Include="LSystemClass.h">
-      <Filter>LSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Utility.h">
-      <Filter>Rendering\Utility</Filter>
->>>>>>> Stashed changes
+      <Filter>Procedural generation\LSystem</Filter>
     </ClInclude>
     <ClInclude Include="LSystemBranch.h">
-      <Filter>LSystem</Filter>
+      <Filter>Procedural generation\LSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="GaussianBlur.h">
+      <Filter>Rendering\Shader wrappers\Post processing</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader-error.txt" />
-    <None Include="DRCompose.psh">
-      <Filter>Rendering\Shaders\Deferred shaders</Filter>
+    <None Include="DepthOnlyQuadShader.vsh">
+      <Filter>Rendering\Shaders\Shadow shaders</Filter>
     </None>
-    <None Include="MCubesGBufferShader.vsh">
+    <None Include="DepthOnlyQuadShader.psh">
+      <Filter>Rendering\Shaders\Shadow shaders</Filter>
+    </None>
+    <None Include="DepthOnlyShader.psh">
+      <Filter>Rendering\Shaders\Shadow shaders</Filter>
+    </None>
+    <None Include="DepthOnlyShader.vsh">
+      <Filter>Rendering\Shaders\Shadow shaders</Filter>
+    </None>
+    <None Include="BasicVertexShader.vsh">
+      <Filter>Rendering\Shaders</Filter>
+    </None>
+    <None Include="DRCompose.psh">
       <Filter>Rendering\Shaders\Deferred shaders</Filter>
     </None>
     <None Include="DRCompose.vsh">
       <Filter>Rendering\Shaders\Deferred shaders</Filter>
     </None>
-    <None Include="DRDirectionalLight.psh">
-      <Filter>Rendering\Shaders\Deferred shaders</Filter>
-    </None>
     <None Include="DRDirectionalLight.vsh">
       <Filter>Rendering\Shaders\Deferred shaders</Filter>
     </None>
-    <None Include="DRGBuffer.psh">
+    <None Include="DRDirectionalLight.psh">
       <Filter>Rendering\Shaders\Deferred shaders</Filter>
     </None>
     <None Include="DRGBuffer.vsh">
+      <Filter>Rendering\Shaders\Deferred shaders</Filter>
+    </None>
+    <None Include="DRGBuffer.psh">
       <Filter>Rendering\Shaders\Deferred shaders</Filter>
     </None>
     <None Include="DRPointLight.psh">
@@ -370,50 +330,96 @@
     <None Include="DRPointLight.vsh">
       <Filter>Rendering\Shaders\Deferred shaders</Filter>
     </None>
-    <None Include="MCubesGBufferShader.psh">
-      <Filter>Rendering\Shaders\Deferred shaders</Filter>
-    </None>
     <None Include="font.psh">
-      <Filter>Rendering\Shaders</Filter>
-    </None>
-    <None Include="skysphere.vsh">
       <Filter>Rendering\Shaders</Filter>
     </None>
     <None Include="font.vsh">
       <Filter>Rendering\Shaders</Filter>
     </None>
+    <None Include="MCubesGBufferShader.psh">
+      <Filter>Rendering\Shaders\Deferred shaders</Filter>
+    </None>
+    <None Include="MCubesGBufferShader.vsh">
+      <Filter>Rendering\Shaders\Deferred shaders</Filter>
+    </None>
     <None Include="skysphere.psh">
       <Filter>Rendering\Shaders</Filter>
     </None>
-    <None Include="BasicVertexShader.vsh">
+    <None Include="skysphere.vsh">
+      <Filter>Rendering\Shaders</Filter>
+    </None>
+    <None Include="standard.vsh">
       <Filter>Rendering\Shaders</Filter>
     </None>
     <None Include="texture.psh">
       <Filter>Rendering\Shaders</Filter>
     </None>
-    <None Include="VegetationQuad.vsh">
+    <None Include="texture.vsh">
       <Filter>Rendering\Shaders</Filter>
     </None>
-    <None Include="texture.vsh">
+    <None Include="VegetationQuad.vsh">
       <Filter>Rendering\Shaders</Filter>
     </None>
     <None Include="VegetationQuad.psh">
       <Filter>Rendering\Shaders</Filter>
     </None>
-    <None Include="DepthOnlyQuadShader.psh">
-      <Filter>Rendering\Shaders\Shadows</Filter>
+    <None Include="gaussianBlurX.psh">
+      <Filter>Rendering\Shaders\Post processing</Filter>
     </None>
-    <None Include="DepthOnlyShader.vsh">
-      <Filter>Rendering\Shaders\Shadows</Filter>
+    <None Include="gaussianBlurY.psh">
+      <Filter>Rendering\Shaders\Post processing</Filter>
     </None>
-    <None Include="DepthOnlyQuadShader.vsh">
-      <Filter>Rendering\Shaders\Shadows</Filter>
-    </None>
-    <None Include="DepthOnlyShader.psh">
-      <Filter>Rendering\Shaders\Shadows</Filter>
-    </None>
-    <None Include="standard.vsh">
-      <Filter>Rendering\Shaders</Filter>
-    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Rendering">
+      <UniqueIdentifier>{4c5ca187-3851-40bb-8f21-71866bf8ec40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shaders">
+      <UniqueIdentifier>{565642f3-5a3e-4053-825b-b0f780399d7e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shaders\Deferred shaders">
+      <UniqueIdentifier>{477ea58d-2e4d-499d-aa7e-9a8aeb6ef252}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shaders\Shadow shaders">
+      <UniqueIdentifier>{f3909b06-c348-46c2-8a2b-0dbe726ecaa4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shader wrappers">
+      <UniqueIdentifier>{0a8f4398-cd82-4870-8e40-771be4f98bda}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shader wrappers\Deferred rendering wrappers">
+      <UniqueIdentifier>{6073386f-052b-4234-a49f-55f3fb1520e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shader wrappers\Shadow shader wrappers">
+      <UniqueIdentifier>{5fd6b732-1941-43e2-9d4c-1be78126a2d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Procedural generation">
+      <UniqueIdentifier>{6176e1c8-062b-4bea-bebc-18cdf3238207}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="General Code">
+      <UniqueIdentifier>{733ec30b-99a1-4609-a125-079f619223e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="General Code\Utility">
+      <UniqueIdentifier>{04eb2d9a-21f0-4c74-a18b-faa16431e743}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Rendering utility">
+      <UniqueIdentifier>{33fc996b-8b8b-41b1-b4cd-4d51729dcf3a}</UniqueIdentifier>
+    </Filter>
+<<<<<<< HEAD
+    <Filter Include="Procedural generation\Noise">
+      <UniqueIdentifier>{4c131b98-83f6-4745-8390-4b7d567fe47d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Procedural generation\MC">
+      <UniqueIdentifier>{12a28744-5ce8-4b0e-8813-557be086ce68}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Procedural generation\LSystem">
+      <UniqueIdentifier>{d7a6d75b-5b8d-4413-9b4b-adcd086ff366}</UniqueIdentifier>
+=======
+    <Filter Include="Rendering\Shader wrappers\Post processing">
+      <UniqueIdentifier>{ea2d2fbd-617c-455c-a898-27414fc8c13a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shaders\Post processing">
+      <UniqueIdentifier>{3ab2fc9c-1038-40dc-843a-659e9cad2ad3}</UniqueIdentifier>
+>>>>>>> a827c99d10f8c095b0f212aa2a5806f46301b4cd
+    </Filter>
   </ItemGroup>
 </Project>

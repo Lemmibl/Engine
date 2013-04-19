@@ -35,6 +35,7 @@ private:
 	unsigned short ID;
 
 	LSystemBranch* trunk;
+
 	
 };
 

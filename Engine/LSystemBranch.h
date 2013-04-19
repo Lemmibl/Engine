@@ -12,7 +12,12 @@ public:
 	LSystemBranch(void);
 	~LSystemBranch(void);
 
-	void Initialize(LSystemBranch* parrent, unsigned short ID);
+	void Initialize
+		(
+		LSystemBranch* parrent,
+		unsigned short ID,
+		list<LSystemBranch*>* BranchList
+		);
 
 	void InitializeFirst
 		(
@@ -31,10 +36,10 @@ public:
 		float angle,
 		list<LSystemBranch*>* BranchList
 		);
-	
+
 	void CalculateAngle(float angle);
 
-	void BranchOff();
+	void BranchOff(list<LSystemBranch*>* BranchList);
 
 
 
