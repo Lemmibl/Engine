@@ -7,10 +7,16 @@
 
 struct MaterialStruct
 {
-	float Ka;
-	float Kd;
-	float Ks;
-	float a;
+	float Kambience;
+	float Kdiffuse;
+	float Kspecular;
+	float smoothness;
+};
+
+//We save the pixels in R8G8B8A8. This means that each pixel can have values 1-255.
+struct PixelData
+{
+	UINT8 x, y, z, w;
 };
 
 struct Grads

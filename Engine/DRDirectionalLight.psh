@@ -34,7 +34,7 @@ cbuffer LightBuffer
 //SamplerState samplers[2];
 
 SamplerState linearSampler : register(s0);
-SamplerState pointSampler : register(s1);
+SamplerState anisotropicSampler : register(s1);
 SamplerComparisonState cmpSampler : register(s2);
 
 Texture2D shaderTextures[3]; // 0 = normal, 1 = standard depth, 2 = shadowmap depth.
@@ -97,7 +97,7 @@ float ChebyshevUpperBound(float2 moments, float t)
 float ShadowContribution(float2 lightTexCoord, float distanceToLight)  
 {
 	// Read the moments from the variance shadow map.  
-	float2 moments = shaderTextures[2].Sample(pointSampler, lightTexCoord);
+	float2 moments = shaderTextures[2].Sample(anisotropicSampler, lightTexCoord);
 
 	//If surface is fully lit, break early.
 	if(distanceToLight <= moments.x)
@@ -118,18 +118,19 @@ float ShadowContribution(float2 lightTexCoord, float distanceToLight)
 ///////////////MAIN FUNCTION/////////////////
 /////////////////////////////////////////////
 
-half4 LightPixelShader(VertexShaderOutput input) : SV_Target
+float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 {
 	//I pre-declare all values so that I can still return the same variables if we break before light calculations. 
 	//It's neater this way.
-	half4 finalAmbienceProduct = half4(0.0f, 0.0f, 0.0f, 0.0f);
-	half3 finalDiffuseProduct = half3(0.0f, 0.0f, 0.0f);
+	float4 finalAmbienceProduct = float4(0.0f, 0.0f, 0.0f, 0.0f);
+	float3 finalDiffuseProduct = float3(0.0f, 0.0f, 0.0f);
 	float finalSpecularProduct = 0.0f;
+	float recieveShadows = 0.0f;
 
 	float LightIntensity = LightPosition.w;
 
 	//Sample camera depth
-	float depth = shaderTextures[1].Sample(linearSampler, input.TexCoord);
+	float depth = shaderTextures[1].Sample(anisotropicSampler, input.TexCoord);
 
 	if(depth <= 0.001f)
 	{
@@ -138,8 +139,8 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 
 	finalAmbienceProduct += Ka * AmbientColor;
 
-	float4 encodedNormal = shaderTextures[0].Sample(linearSampler, input.TexCoord);
-	float recieveShadows = encodedNormal.w;
+	float4 encodedNormal = shaderTextures[0].Sample(anisotropicSampler, input.TexCoord);
+	recieveShadows += encodedNormal.w;
 	float3 normal = normalize(Decode(encodedNormal.xyz));
 
 	//Surface-to-light vector
@@ -169,7 +170,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//Adjust this value too.
 	lightScreenPos /= lightScreenPos.w;
 
-	float realDistanceToLight = lightScreenPos.z;
+	float realDistanceToLight = lightScreenPos.z-0.00001f;
 
 	float2 sampleLightScreen;
 	sampleLightScreen.x = ((lightScreenPos.x * 0.5f) + 0.5f);
@@ -186,7 +187,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	)
 	{
 		/*Variance shadow mapping. http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html */
-
+		
 		shadowMultiplier = ShadowContribution(sampleLightScreen, realDistanceToLight);
 		
 		/*PCF 16X shadow mapping. */
@@ -231,12 +232,12 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//Essentially I save a float in the normal render target's .w channel that decides if the object should be shaded or not.
 	//I do this because of how the vegatation quads are built -- they each consist of three different quads, and they all shade eachother.
 	//This results in the quads looking really ass and they start flickering when the light moves and shit. Bad.
-	if(recieveShadows >= 0.9f)
+	if(recieveShadows > 0.2f)
 	{
-		return LightIntensity*half4(finalAmbienceProduct.rgb + (finalDiffuseProduct * shadowMultiplier), (finalSpecularProduct * shadowMultiplier));
+		return LightIntensity*float4(finalAmbienceProduct.rgb + (finalDiffuseProduct * shadowMultiplier), (finalSpecularProduct * shadowMultiplier));
 	}
 	else //Don't shade if it shouldn't recieve any shadows. This also includes the empty space where nothing exists, seeing as we clear the normal rendertarget alpha channel to 0.0f in gbuffer stage.
 	{
-		return LightIntensity*half4(finalAmbienceProduct.rgb + finalDiffuseProduct, finalSpecularProduct);
+		return LightIntensity*float4(finalAmbienceProduct.rgb + finalDiffuseProduct, finalSpecularProduct);
 	}
 }

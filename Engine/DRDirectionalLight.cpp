@@ -506,10 +506,10 @@ bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATR
 	// Copy the lighting variables into the constant buffer.
 	dataPtr4->DiffuseColor = dirLight->Color;
 	dataPtr4->AmbienceColor = ambienceColor;
-	dataPtr4->Ka =	material.Ka;
-	dataPtr4->Kd =	material.Kd;
-	dataPtr4->Ks =	material.Ks;
-	dataPtr4->a =	material.a;
+	dataPtr4->Ka =	material.Kambience;
+	dataPtr4->Kd =	material.Kdiffuse;
+	dataPtr4->Ks =	material.Kspecular;
+	dataPtr4->a =	material.smoothness;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(lightBuffer, 0);

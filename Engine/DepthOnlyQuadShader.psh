@@ -10,25 +10,25 @@ struct VertexShaderOutput
 	float4 TexCoord : TEXCOORD0;
 };
 
-half2 ComputeMoments(float depth)  
+float2 ComputeMoments(float depth)  
 { 
-	half2 moments;
+	float2 moments;
 	 
 	// First moment is normal depth.  
 	moments.x = depth;
-	moments.y = 0.0f;//depth*depth;
+	//moments.y = 0.0f;//depth*depth;
 
 	// Compute partial derivatives of depth.  
 	float dx = ddx(depth);  
 	float dy = ddy(depth);
 
 	// Compute second moment over the pixel extents.  
-	moments.y += 0.25*(dx*dx + dy*dy);
+	moments.y = 0.25*(dx*dx + dy*dy);
 
 	return moments;
 };
 
-half2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
+float2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 {
 	float alpha = 0.0f;
 
@@ -36,10 +36,10 @@ half2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 
 	alpha = shaderTexture.Sample(SampleType, samplingCoords).a;
 
-	if(alpha < 0.7f)
+	if(alpha < 0.1f)
 	{
 		discard;
 	}
 
-	return ComputeMoments(input.TexCoord.z); //I store depth in texcoord.z. I pack everything into a float4 to save space.
+	return clamp(ComputeMoments(input.TexCoord.z+0.4f), 0.0f, 1.0f); //I store depth in texcoord.z. I pack everything into a float4 to save space.
 };

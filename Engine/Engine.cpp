@@ -25,7 +25,6 @@ Engine::~Engine()
 {
 }
 
-
 bool Engine::Initialize()
 {
 	bool result;
@@ -34,8 +33,8 @@ bool Engine::Initialize()
 	toggleDebug = true;
 	screenWidth = 0;
 	screenHeight = 0;
-	shadowMapWidth = 1024;
-	shadowMapHeight = 1024;
+	shadowMapWidth = 2048;
+	shadowMapHeight = 2048;
 
 	// Initialize the windows api.
 	InitializeWindows(screenWidth, screenHeight);
@@ -223,7 +222,6 @@ void Engine::Run()
 {
 	MSG msg;
 	bool done, result;
-
 
 	// Initialize the message structure.
 	ZeroMemory(&msg, sizeof(MSG));

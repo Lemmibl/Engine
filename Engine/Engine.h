@@ -15,8 +15,8 @@
 const bool SHOW_CURSOR = true;
 const bool FULL_SCREEN = false;
 const bool VSYNC_ENABLED = false;
-const float SCREEN_FAR = 300.0f;
-const float SCREEN_NEAR = 0.1f;
+const float SCREEN_FAR = 150.0f;
+const float SCREEN_NEAR = 0.5f;
 
 //////////////
 // INCLUDES //
