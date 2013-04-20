@@ -21,6 +21,14 @@ struct PixelShaderOutput
 };
 
 ////////////////////////////////////////////////////////////////////////////////
+// Functions
+////////////////////////////////////////////////////////////////////////////////
+float EncodeMaterialID(float id)
+{
+	return (id / 255.0f);
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // Pixel Shader
 ////////////////////////////////////////////////////////////////////////////////
 PixelShaderOutput VegetationQuadPixelShader(PixelInputType input)
@@ -44,8 +52,8 @@ PixelShaderOutput VegetationQuadPixelShader(PixelInputType input)
 
 	output.Normal = (0.5f * float4(0.0f, 1.0f, 0.0f, 1.0f) + 1.0f);
 
-	//This is our material ID. It'll get multiplied by 255 when read, so this means we have material ID nr. 5(it's 0 based).
-	output.Normal.w = 4.0f / 255.0f;
+	//This is our material ID. Our normal map is R8G8B8A8 so our alpha channel has 8 bits == 255 possible values.
+	output.Normal.w = EncodeMaterialID(4.0f);
 
 	return output;
 }

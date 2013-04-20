@@ -51,12 +51,12 @@ void DRPointLight::Shutdown()
 }
 
 bool DRPointLight::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* WorldViewProjection, XMMATRIX* invViewProj, 
-	PointLight* pointLight, ID3D11ShaderResourceView** textureArray, XMFLOAT3 cameraPosition)
+	PointLight* pointLight, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** materialArray, XMFLOAT3 cameraPosition)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, WorldViewProjection, invViewProj, pointLight, textureArray, cameraPosition);
+	result = SetShaderParameters(deviceContext, WorldViewProjection, invViewProj, pointLight, textureArray, materialArray, cameraPosition);
 	if(!result)
 	{
 		return false;
@@ -328,7 +328,7 @@ void DRPointLight::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd,
 }
 
 bool DRPointLight::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* WorldViewProjection, XMMATRIX* invViewProj, 
-	PointLight* pointLight, ID3D11ShaderResourceView** textureArray, XMFLOAT3 cameraPosition)
+	PointLight* pointLight, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** materialArray, XMFLOAT3 cameraPosition)
 {		
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -409,7 +409,8 @@ bool DRPointLight::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMAT
 	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &pixelMatrixBuffer);
 
 	// Set the array of textures that the shader needs to sample
-	deviceContext->PSSetShaderResources(0, 3, textureArray);
+	deviceContext->PSSetShaderResources(0, 1, materialArray);
+	deviceContext->PSSetShaderResources(1, 3, textureArray);
 
 	return true;
 }

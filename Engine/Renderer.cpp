@@ -283,13 +283,13 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 	z = 2.0f;
 	y = 40.0f;
 
-	for(int i = 0; i < 10; i++)
+	for(int i = 0; i < 50; i++)
 	{
 		pointLights.push_back(new PointLight());
 		pointLights[i]->Position = XMFLOAT3(x, y, z);
 		pointLights[i]->Color = XMFLOAT3(utility->Random(), utility->Random(), utility->Random());
-		pointLights[i]->Radius = 2.0f;
-		pointLights[i]->Intensity = 512.0f; //The lower it gets, the more intense it gets
+		pointLights[i]->Radius = 4.0f; //Used to both scale the actual point light model and is a factor in the attenuation
+		pointLights[i]->Intensity = 3.0f; //Is used to control the attenuation
 
 		x += 6.0f;
 
@@ -939,30 +939,31 @@ bool Renderer::Render()
 	//Phase one, draw sphere with vertex-only shader.
 	d3D->TurnOnLightBlending();
 
-	//for(unsigned int i = 0; i < pointLights.size(); i++)
-	//{	
-	//	XMMATRIX worldViewProj = viewProjection * (XMLoadFloat4x4(&pointLights[i]->World));
+	for(unsigned int i = 0; i < pointLights.size(); i++)
+	{	
+		XMMATRIX worldViewProj = viewProjection * (XMLoadFloat4x4(&pointLights[i]->World));
 
-	//	d3D->SetLightStencilMethod1Phase1();
-	//	d3D->SetNoCullRasterizer();
+		d3D->SetLightStencilMethod1Phase1();
+		d3D->SetNoCullRasterizer();
 
-	//	sphereModel->Render(context);
-	//	result = vertexOnlyShader->Render(context, sphereModel->GetIndexCount(), &worldViewProj);
+		sphereModel->Render(context);
+		result = vertexOnlyShader->Render(context, sphereModel->GetIndexCount(), &worldViewProj);
 
-	//	//Phase two, draw sphere with light algorithm
-	//	d3D->SetLightStencilMethod1Phase2();
-	//	d3D->SetFrontFaceCullingRasterizer();
+		//Phase two, draw sphere with light algorithm
+		d3D->SetLightStencilMethod1Phase2();
+		d3D->SetFrontFaceCullingRasterizer();
 
-	//	//sphereModel->Render(context);
+		//sphereModel->Render(context);
 
-	//	result = pointLightShader->Render(context, sphereModel->GetIndexCount(), &worldViewProj, &invertedViewProjection, pointLights[i], gbufferTextures, camPos);
-	//	if(!result)
-	//	{
-	//		return false;
-	//	}
+		result = pointLightShader->Render(context, sphereModel->GetIndexCount(), &worldViewProj, &invertedViewProjection, 
+			pointLights[i], gbufferTextures, textureAndMaterialHandler->GetMaterialTextureArray(), camPos);
+		if(!result)
+		{
+			return false;
+		}
 
-	//	context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
-	//}
+		context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
+	}
 #pragma endregion
 
 #pragma region Directional light stage

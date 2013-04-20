@@ -18,25 +18,66 @@ struct VertexShaderOutput
 	float4 ScreenPosition : TEXCOORD0;
 };
 
+Texture1DArray materialArray;
+Texture2D textures[3]; //Color, Normal, depth. In that order
+SamplerState pointSampler;
+
+//////////////////////////////////////////////////
+//	FUNCTIONS
+//////////////////////////////////////////////////
+
 //Decoding of GBuffer Normals
-float3 Decode(float3 enc)
+float3 DecodeNormal(float3 enc)
 {
 	return (2.0f * enc.xyz - 1.0f);
 }
 
-Texture2D textures[3]; //Color, Normal, depth. In that order
-SamplerState pointSampler;
+void RetrieveMaterialData(int materialID, out float Kd, out float Ks, out float smoothness)
+{
+	/*
+	Because the runtime does not support 1D textures, the compiler will use a 2D texture with the knowledge 
+	that the y-coordinate is unimportant. Since tex1D(s, t) (DirectX HLSL) is implemented as a 2D texture lookup, 
+	the compiler is free to choose the y-component in an efficient manner.
+	*/
 
+	int3 LoadingCoordinates = int3(0, materialID, 0);
+
+	//Load all of the objects and assign them to local variables
+	LoadingCoordinates.x += 1;
+
+	Kd = materialArray.Load(LoadingCoordinates);
+	LoadingCoordinates.x += 1;
+
+	Ks = materialArray.Load(LoadingCoordinates);
+	LoadingCoordinates.x += 1;
+
+	smoothness = materialArray.Load(LoadingCoordinates);
+	LoadingCoordinates.x += 1;
+
+}
+
+///////////////////////////////////////////////////
+//	MAIN FUNCTION
+///////////////////////////////////////////////////
 half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 {
+	float diffuseCoefficient, specularCoefficient, smoothness;
+
 	input.ScreenPosition /= input.ScreenPosition.w; //Get screen position
 
 	float2 texCoord = 0.5f * (float2(input.ScreenPosition.x, -input.ScreenPosition.y) + 1.0f);
 
 	//get normal data from the normalMap
 	float4 normalData = textures[1].Sample(pointSampler, texCoord);
+
+	//We recreate the material ID
+	int materialID = round(normalData.w * 255);
+
+	//Retrieve material data from 1DTextureArray with help of material ID
+	RetrieveMaterialData(materialID, diffuseCoefficient, specularCoefficient, smoothness);
+
 	float depth = textures[2].Sample(pointSampler, texCoord);
-	float3 normal = normalize(Decode(normalData.xyz));
+	float3 normal = normalize(DecodeNormal(normalData.xyz));
 	
 	//Create a clip space position (I think?)
 	float4 position;
@@ -68,10 +109,10 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	float3 directionToCamera = normalize(position - CameraPosition);
 
 	//compute specular light
-	float specularLight = pow( saturate( dot(reflectionVector, directionToCamera)), LightPower);
+	float specularLight = pow( saturate( dot(reflectionVector, directionToCamera)), smoothness);
 
-	//scale final value with attenuation, leave specular light unaffected
-	return attenuation*half4(diffuseLight, specularLight);
+	//scale final value with attenuation, take into calculation the current material of this pixel
+	return (attenuation/LightPower)*half4(diffuseCoefficient*diffuseLight, specularCoefficient*specularLight);
 }
 
 /*

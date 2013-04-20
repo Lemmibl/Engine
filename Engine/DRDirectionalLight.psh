@@ -66,9 +66,9 @@ void RetrieveMaterialData(int materialID, out float Ka, out float Kd, out float 
 }
 
 //Decoding of GBuffer Normals
-float3 Decode(float3 enc)
+float3 DecodeNormal(float3 enc)
 {
-	return (2.0f * enc.xyz - 1.0f);
+	return ((2.0f * enc.xyz) - 1.0f);
 }
 
 float2 GetShadowTexOffset( int u, int v )
@@ -159,11 +159,12 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	float4 encodedNormal = shaderTextures[0].Sample(anisotropicSampler, input.TexCoord);
 	
 	//http://gamedev.stackexchange.com/questions/22864/enconding-decoding-bit-value-in-texture-alpha-channel
+	//We recreate the material ID
 	int materialID = round(encodedNormal.w * 255);
 	
 	RetrieveMaterialData(materialID, Ka, Kd, Ks, smoothness, recieveShadows);
 
-	float3 normal = normalize(Decode(encodedNormal.xyz));
+	float3 normal = normalize(DecodeNormal(encodedNormal.xyz));
 
 	//Surface-to-light vector
 	float3 lightVector = (-LightDirection);
