@@ -279,32 +279,36 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 
 #pragma region Point light initialization
 	float x, y, z;
-	x = 2.0f;
-	z = 2.0f;
-	y = 40.0f;
+	//x = 2.0f;
+	//z = 2.0f;
+	//y = 40.0f;
 
 	for(int i = 0; i < 50; i++)
 	{
+		x = utility->Random();
+		y = utility->Random();
+		z = utility->Random();
+
 		pointLights.push_back(new PointLight());
-		pointLights[i]->Position = XMFLOAT3(x, y, z);
-		pointLights[i]->Color = XMFLOAT3(utility->Random(), utility->Random(), utility->Random());
+		pointLights[i]->Color = XMFLOAT3(x, y, z);
+		pointLights[i]->Position = XMFLOAT3(x * 60.0f, 40.0f, z * 60.0f);
 		pointLights[i]->Radius = 4.0f; //Used to both scale the actual point light model and is a factor in the attenuation
 		pointLights[i]->Intensity = 3.0f; //Is used to control the attenuation
 
-		x += 6.0f;
+		//x += 12.0f;
 
-		if(x > 60.0f) //Every 10th light gets reseted in x and z plane.
-		{
-			x = 0.0f;
-			z += 6.0f;
-		}
+		//if(x > 60.0f) //Every 10th light gets reseted in x and z plane.
+		//{
+		//	x = 0.0f;
+		//	z += 6.0f;
+		//}
 
-		if(i != 0 && i % 100 == 0) //Every 100 pointlights we reset and make another layer that is (y+8) higher up.
-		{
-			x = -10.0f;
-			z = -10.0f;
-			y += 8.0f;
-		}
+		//if(i != 0 && i % 100 == 0) //Every 100 pointlights we reset and make another layer that is (y+8) higher up.
+		//{
+		//	x = -10.0f;
+		//	z = -10.0f;
+		//	y += 8.0f;
+		//}
 
 		XMMATRIX tempScale = XMMatrixScaling(pointLights[0]->Radius, pointLights[0]->Radius, pointLights[0]->Radius);
 		XMMATRIX tempTranslation = XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z);
