@@ -11,6 +11,7 @@ struct MaterialStruct
 	float Kdiffuse;
 	float Kspecular;
 	float smoothness;
+	float shouldBeShadowed; //Everything should be 1 except for grassquads, which should be 0
 };
 
 //We save the pixels in R8G8B8A8. This means that each pixel can have values 1-255.

@@ -44,8 +44,8 @@ PixelShaderOutput VegetationQuadPixelShader(PixelInputType input)
 
 	output.Normal = (0.5f * float4(0.0f, 1.0f, 0.0f, 1.0f) + 1.0f);
 
-	//This is the "Should this pixel recieve shadows" value. >= 1.0f means yes.
-	output.Normal.w = 0.0f;
+	//This is our material ID. It'll get multiplied by 255 when read, so this means we have material ID nr. 5(it's 0 based).
+	output.Normal.w = 4.0f / 255.0f;
 
 	return output;
 }

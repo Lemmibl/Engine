@@ -111,31 +111,43 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	grass.Kdiffuse = 1.0f;
 	grass.Kspecular = 0.0f;
 	grass.smoothness = 256.0f;
+	grass.shouldBeShadowed = 10.0f;
 
 	MaterialStruct rock;
 	rock.Kambience = 0.5f;
 	rock.Kdiffuse = 0.8f;
 	rock.Kspecular = 0.6f;
 	rock.smoothness = 256.0f;
+	rock.shouldBeShadowed = 10.0f;
 
 	MaterialStruct snow;
 	snow.Kambience = 1.0f;
 	snow.Kdiffuse = 1.0f;
 	snow.Kspecular = 1.0f;
 	snow.smoothness = 1.0f;
+	snow.shouldBeShadowed = 10.0f;
 
 	MaterialStruct dirt;
 	dirt.Kambience = 0.8f;
 	dirt.Kdiffuse = 0.9f;
 	dirt.Kspecular = 0.1f;
 	dirt.smoothness = 2.0f;
+	dirt.shouldBeShadowed = 10.0f;
+
+	MaterialStruct grassQuads;
+	grassQuads.Kambience = 0.5f;
+	grassQuads.Kdiffuse = 0.9f;
+	grassQuads.Kspecular = 0.0f;
+	grassQuads.smoothness = 1.0f;
+	grassQuads.shouldBeShadowed = 0.0f;
 
 	materials.push_back(grass);
 	materials.push_back(rock);
 	materials.push_back(snow);
 	materials.push_back(dirt);
+	materials.push_back(grassQuads);
 
-	Build1DMaterialTextureArray(device, deviceContext, materials, 4, 4, &materialTextures);
+	Build1DMaterialTextureArray(device, deviceContext, materials, 5, 5, &materialTextures);
 
 	return true;
 }
@@ -170,7 +182,8 @@ HRESULT TextureAndMaterialHandler::Build1DMaterialTexture( ID3D11Device* device,
 	dataArray[0]	= materialData.Kambience;
 	dataArray[1]	= materialData.Kdiffuse;
 	dataArray[2]	= materialData.Kspecular;
-	dataArray[3]	= materialData.smoothness; 
+	dataArray[3]	= materialData.smoothness;
+	dataArray[4]	= materialData.shouldBeShadowed;
 
 	//Initialize texture description
 	texDesc.Width				= textureWidth;

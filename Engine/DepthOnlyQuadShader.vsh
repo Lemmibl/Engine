@@ -32,7 +32,7 @@ PixelInputType DepthOnlyVertexShader(VertexInputType input)
 	output.Position = mul(input.Position, WorldViewProjection);
 
 	output.TexCoord.xy = input.TexCoord;
-	output.TexCoord.z = output.Position.z / output.Position.w; //Store depth in texcoord. I pack everything into a float4 to save space.
+	output.TexCoord.z = (output.Position.z / output.Position.w); //Store depth in texcoord. I pack everything into a float4 to save space.
 	
 	return output;
 }

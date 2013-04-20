@@ -48,23 +48,25 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 
 	if(input.WorldPosition.y <= 45.0f)
 	{
-		YZCoord = float3(input.WorldPosition.yz * scale, 1.0f);  
+		YZCoord = float3(input.WorldPosition.yz * scale, 2.0f);  
 		XZCoord = float3(input.WorldPosition.zx * scale, 1.0f);  
 		XYCoord = float3(input.WorldPosition.xy * scale, 2.0f);
+
+		output.Normal.w = 0.0f / 255.0f;
 	}
 	else
 	{
 		YZCoord = float3(input.WorldPosition.yz * scale, 1.0f);  
 		XZCoord = float3(input.WorldPosition.zx * scale, 4.0f);  
 		XYCoord = float3(input.WorldPosition.xy * scale, 1.0f);
+		output.Normal.w = 1.0f / 255.0f;
 	}
-
-	output.Normal.w = 10.0f; //This is the "Should this pixel recieve shadows" value. 0 means no.
 
 	if(dotResult <= 0.0f) //If surface is facing downwards
 	{
 		output.Normal.w = 0.0f; //Then it shouldn't be shadowed.
 		XZCoord.z = 2.0f; //Then change surface texture to rock.
+		output.Normal.w = 2.0f/ 255.0f;
 	}
 
 	float4 XZColor = shaderTextures.Sample(textureSampler, XZCoord);
@@ -74,25 +76,6 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 	output.Color = ((XZColor * blend_weights.y) + (YZColor * blend_weights.x) + (XYColor * blend_weights.z));
 	output.Color.w = 1.0f;
 
-	//Use this instead if you want "pure" texturing -- no blending.
-	
-	//float x = abs(NormalizedWorldNormal.x);
-	//float y = abs(NormalizedWorldNormal.y);
-	//float z = abs(NormalizedWorldNormal.z);
-	
-	//if(x > y && x > z)
-	//{
-	//	output.Color = (YZColor * blend_weights.x);
-	//}
-	//else if(y > x && y > z)
-	//{
-	//	output.Color = (XZColor * blend_weights.y);
-	//}
-	//else if(z > y && z > x)
-	//{
-	//	output.Color = (XYColor * blend_weights.z);
-	//} 
-	
 	output.Normal.xyz = (0.5f * (NormalizedWorldNormal + 1.0f)); //revert the normal output to [0,1] space then assign it to the output normal map's RGB channel
 	output.Depth = (input.Depth.x / input.Depth.y);
 

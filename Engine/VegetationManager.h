@@ -35,6 +35,10 @@ public:
 	inline ID3D11ShaderResourceView** GetTextureArray() {	return textureArray; }
 
 private:
+	bool BuildVertexBuffer(ID3D11Device* device);
+	bool BuildIndexBuffer(ID3D11Device* device, std::vector<XMFLOAT4>* positions);
+
+private:
 	ID3D11Buffer *vertexBuffer, *instanceBuffer;
 	int vertexCount, instanceCount;
 	ID3D11ShaderResourceView* textureArray[2];

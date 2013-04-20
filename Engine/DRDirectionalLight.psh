@@ -11,7 +11,6 @@ cbuffer PositionalBuffer //Whatever, idk what else to name it
 
 cbuffer PixelMatrixBuffer
 {
-	float4x4 InverseView;
 	float4x4 InverseViewProjection;
 	float4x4 LightViewProjection;
 };
@@ -20,23 +19,13 @@ cbuffer LightBuffer
 {
 	float4 DiffuseColor;
 	float4 AmbientColor;
-	float Ka;
-	//Ambient light coefficient
-	float Kd;
-	//Diffuse light coefficient
-	float Ks;
-	//Specular light coefficient
-	float a;
-	//Alpha coefficient
 };
-
-//0 == linear, 1 == point
-//SamplerState samplers[2];
 
 SamplerState linearSampler : register(s0);
 SamplerState anisotropicSampler : register(s1);
 SamplerComparisonState cmpSampler : register(s2);
 
+Texture1DArray materialArray;
 Texture2D shaderTextures[3]; // 0 = normal, 1 = standard depth, 2 = shadowmap depth.
 
 struct VertexShaderOutput
@@ -49,6 +38,32 @@ struct VertexShaderOutput
 /////////////////////////////////////////////
 ////////////UTILITY FUNCTIONS////////////////
 /////////////////////////////////////////////
+void RetrieveMaterialData(int materialID, out float Ka, out float Kd, out float Ks, out float smoothness, out float recieveShadows)
+{
+	/*
+	Because the runtime does not support 1D textures, the compiler will use a 2D texture with the knowledge 
+	that the y-coordinate is unimportant. Since tex1D(s, t) (DirectX HLSL) is implemented as a 2D texture lookup, 
+	the compiler is free to choose the y-component in an efficient manner.
+	*/
+
+	int3 LoadingCoordinates = int3(0, materialID, 0);
+
+	//Load all of the objects and assign them to local variables
+	Ka = materialArray.Load(LoadingCoordinates);
+	LoadingCoordinates.x += 1;
+
+	Kd = materialArray.Load(LoadingCoordinates);
+	LoadingCoordinates.x += 1;
+
+	Ks = materialArray.Load(LoadingCoordinates);
+	LoadingCoordinates.x += 1;
+
+	smoothness = materialArray.Load(LoadingCoordinates);
+	LoadingCoordinates.x += 1;
+
+	recieveShadows = materialArray.Load(LoadingCoordinates);
+	LoadingCoordinates.x += 1;
+}
 
 //Decoding of GBuffer Normals
 float3 Decode(float3 enc)
@@ -120,12 +135,14 @@ float ShadowContribution(float2 lightTexCoord, float distanceToLight)
 
 float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 {
+	float Ka, Kd, Ks, smoothness, recieveShadows;
+	Ka = Kd = Ks = smoothness = recieveShadows = 0.0f;
+
 	//I pre-declare all values so that I can still return the same variables if we break before light calculations. 
 	//It's neater this way.
 	float4 finalAmbienceProduct = float4(0.0f, 0.0f, 0.0f, 0.0f);
 	float3 finalDiffuseProduct = float3(0.0f, 0.0f, 0.0f);
 	float finalSpecularProduct = 0.0f;
-	float recieveShadows = 0.0f;
 
 	float LightIntensity = LightPosition.w;
 
@@ -140,7 +157,12 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	finalAmbienceProduct += Ka * AmbientColor;
 
 	float4 encodedNormal = shaderTextures[0].Sample(anisotropicSampler, input.TexCoord);
-	recieveShadows += encodedNormal.w;
+	
+	//http://gamedev.stackexchange.com/questions/22864/enconding-decoding-bit-value-in-texture-alpha-channel
+	int materialID = round(encodedNormal.w * 255);
+	
+	RetrieveMaterialData(materialID, Ka, Kd, Ks, smoothness, recieveShadows);
+
 	float3 normal = normalize(Decode(encodedNormal.xyz));
 
 	//Surface-to-light vector
@@ -226,13 +248,13 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		finalDiffuseProduct += Kd * (NdL * DiffuseColor.rgb);
 
 		//Calculate specular light 
-		finalSpecularProduct += Ks * pow( saturate( dot(reflectionVector, directionToCamera)), a);
+		finalSpecularProduct += Ks * pow( saturate( dot(reflectionVector, directionToCamera)), smoothness);
 	}
 
 	//Essentially I save a float in the normal render target's .w channel that decides if the object should be shaded or not.
 	//I do this because of how the vegatation quads are built -- they each consist of three different quads, and they all shade eachother.
 	//This results in the quads looking really ass and they start flickering when the light moves and shit. Bad.
-	if(recieveShadows > 0.2f)
+	if(recieveShadows > 0.8f)
 	{
 		return LightIntensity*float4(finalAmbienceProduct.rgb + (finalDiffuseProduct * shadowMultiplier), (finalSpecularProduct * shadowMultiplier));
 	}

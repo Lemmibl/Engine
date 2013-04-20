@@ -48,7 +48,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	position /= position.w;
 
 	//surface-to-light vector
-	float3 lightVector =  normalize(LightPosition-position);
+	float3 lightVector =  normalize(position-LightPosition);
 
 	//saturate( 1.0f - (length(lightVector) / LightRadius) );
 

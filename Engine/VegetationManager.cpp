@@ -53,53 +53,101 @@ bool VegetationManager::Initialize(ID3D11Device* device, HWND hwnd, WCHAR* filen
 
 bool VegetationManager::SetupQuads( ID3D11Device* device, std::vector<XMFLOAT4>* positions )
 {
+	if(!BuildVertexBuffer(device))
+	{
+		return false;
+	}
 
-	#pragma region old quad code
-	//// Set the number of vertices in the vertex array.
-	//vertexCount = 4;
+	if(!BuildIndexBuffer(device, positions))
+	{
+		return false;
+	}
 
-	//// Set the number of indices in the index array.
-	//indexCount = 6;
+	return true;
+}
 
-	//// Load the vertex array with data.
-	//vertices[0].position = XMFLOAT3(-1.0f, -1.0f, 0.0f);  // Bottom left.
-	//vertices[0].textexture = XMFLOAT2(0.0f, 1.0f);
-	//vertices[0].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
+void VegetationManager::Shutdown()
+{
+	// Release the instance buffer.
+	if(instanceBuffer)
+	{
+		instanceBuffer->Release();
+		instanceBuffer = 0;
+	}
 
-	//vertices[1].position = XMFLOAT3(-1.0f, 1.0f, 0.0f);  // Top left.
-	//vertices[1].textexture = XMFLOAT2(0.0f, 0.0f);
-	//vertices[1].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
+	// Release the vertex buffer.
+	if(vertexBuffer)
+	{
+		vertexBuffer->Release();
+		vertexBuffer = 0;
+	}
 
-	//vertices[2].position = XMFLOAT3(1.0f, 1.0f, 0.0f);  // Top right.
-	//vertices[2].textexture = XMFLOAT2(1.0f, 0.0f);
-	//vertices[2].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
+	if(textureArray[0])
+	{
+		textureArray[0]->Release();
+		textureArray[0] = 0;
+	}
 
-	//vertices[3].position = XMFLOAT3(1.0f, -1.0f, 0.0f);  // Bottom right.
-	//vertices[3].textexture = XMFLOAT2(1.0f, 1.0f);
-	//vertices[3].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
+	if(textureArray[1])
+	{
+		textureArray[1]->Release();
+		textureArray[1] = 0;
+	}
 
-	//// Load the index array with data.
-	//// First triangle
-	//indices[0] = 0;	// Bottom left.
-	//indices[1] = 1;	// Top left.
-	//indices[2] = 3;	// Bottom right.
+	if(vegetationShader)
+	{
+		vegetationShader->Shutdown();
+		vegetationShader = 0;
+	}
+}
 
-	//// Second triangle
-	//indices[3] = 1;	// Top left.
-	//indices[4] = 2;	// Top right.
-	//indices[5] = 3;	// Bottom right.
+bool VegetationManager::Render(ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textures)
+{
+	RenderBuffers(deviceContext);
 
-	/* 
-	// CW:  T1: 0,1,3  T2: 1,2,3
-	// CCW: T1: 0,3,1  T2: 1,3,2
-	*/
-	#pragma endregion
+	if(!vegetationShader->Render(deviceContext, vertexCount, instanceCount, worldViewProjection, textures))
+	{
+		return false;
+	}
 
+	return true;
+}
+
+void VegetationManager::RenderBuffers( ID3D11DeviceContext* deviceContext)
+{
+	unsigned int strides[2];
+	unsigned int offsets[2];
+	ID3D11Buffer* bufferPointers[2];
+
+	//Set the buffer strides.
+	strides[0] = sizeof(VertexType); 
+	strides[1] = sizeof(InstanceType); 
+
+	//Set the buffer offsets.
+	offsets[0] = 0;
+	offsets[1] = 0;
+
+	// Set the array of pointers to the vertex and instance buffers.
+	bufferPointers[0] = vertexBuffer;	
+	bufferPointers[1] = instanceBuffer;
+
+	// Set the vertex buffer to active in the input assembler so it can be rendered.
+	deviceContext->IASetVertexBuffers(0, 2, bufferPointers, strides, offsets);
+
+	// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
+	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	return;
+}
+
+bool VegetationManager::BuildVertexBuffer( ID3D11Device* device )
+{
 	VertexType* vertices;
-	InstanceType* instances;
-	D3D11_BUFFER_DESC vertexBufferDesc, instanceBufferDesc;
-	D3D11_SUBRESOURCE_DATA vertexData, instanceData;
+	D3D11_BUFFER_DESC vertexBufferDesc;
+	D3D11_SUBRESOURCE_DATA vertexData;
 	HRESULT result;
+
+#pragma region Setting up the vertices
 
 	// Set the number of vertices in the vertex array.
 	vertexCount = 18;
@@ -182,6 +230,7 @@ bool VegetationManager::SetupQuads( ID3D11Device* device, std::vector<XMFLOAT4>*
 	vertices[17].position = XMFLOAT3(quad3Right.x, 1.0f, quad3Right.y);  // Top right.
 	vertices[17].texCoord = XMFLOAT2(1.0f, 0.0f);
 
+#pragma endregion
 
 	// Set up the description of the static vertex buffer.
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -206,6 +255,16 @@ bool VegetationManager::SetupQuads( ID3D11Device* device, std::vector<XMFLOAT4>*
 	// Release the vertex array now that the vertex buffer has been created and loaded.
 	delete [] vertices;
 	vertices = 0;
+
+	return true;
+}
+
+bool VegetationManager::BuildIndexBuffer( ID3D11Device* device, std::vector<XMFLOAT4>* positions )
+{
+	InstanceType* instances;
+	D3D11_BUFFER_DESC instanceBufferDesc;
+	D3D11_SUBRESOURCE_DATA instanceData;
+	HRESULT result;
 
 	// Set the number of instances in the array.
 	instanceCount = positions->size();
@@ -248,78 +307,4 @@ bool VegetationManager::SetupQuads( ID3D11Device* device, std::vector<XMFLOAT4>*
 	instances = 0;
 
 	return true;
-}
-
-void VegetationManager::Shutdown()
-{
-	// Release the instance buffer.
-	if(instanceBuffer)
-	{
-		instanceBuffer->Release();
-		instanceBuffer = 0;
-	}
-
-	// Release the vertex buffer.
-	if(vertexBuffer)
-	{
-		vertexBuffer->Release();
-		vertexBuffer = 0;
-	}
-
-	if(textureArray[0])
-	{
-		textureArray[0]->Release();
-		textureArray[0] = 0;
-	}
-
-	if(textureArray[1])
-	{
-		textureArray[1]->Release();
-		textureArray[1] = 0;
-	}
-
-	if(vegetationShader)
-	{
-		vegetationShader->Shutdown();
-		vegetationShader = 0;
-	}
-}
-
-bool VegetationManager::Render(ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textures)
-{
-	RenderBuffers(deviceContext);
-
-	if(!vegetationShader->Render(deviceContext, vertexCount, instanceCount, worldViewProjection, textures))
-	{
-		return false;
-	}
-
-	return true;
-}
-
-void VegetationManager::RenderBuffers( ID3D11DeviceContext* deviceContext)
-{
-	unsigned int strides[2];
-	unsigned int offsets[2];
-	ID3D11Buffer* bufferPointers[2];
-
-	//Set the buffer strides.
-	strides[0] = sizeof(VertexType); 
-	strides[1] = sizeof(InstanceType); 
-
-	//Set the buffer offsets.
-	offsets[0] = 0;
-	offsets[1] = 0;
-
-	// Set the array of pointers to the vertex and instance buffers.
-	bufferPointers[0] = vertexBuffer;	
-	bufferPointers[1] = instanceBuffer;
-
-	// Set the vertex buffer to active in the input assembler so it can be rendered.
-	deviceContext->IASetVertexBuffers(0, 2, bufferPointers, strides, offsets);
-
-	// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
-	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	return;
 }

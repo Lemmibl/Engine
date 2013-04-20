@@ -644,13 +644,13 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 	if(inputManager->WasKeyPressed(DIK_P))
 	{
-		time_t t = time(0);// get time now
-		struct tm localTimeStruct;
-		localtime_s(&localTimeStruct, & t );
+		time_t timeObject = time(0);// get time now
+		struct tm tmStruct;
+		localtime_s(&tmStruct, &timeObject );
 
 		ostringstream convert;
 
-		convert << "SavedTexture_" << localTimeStruct.tm_mon << "-" << localTimeStruct.tm_mday <<  "-" << localTimeStruct.tm_min << "-" << localTimeStruct.tm_sec << ".bmp";
+		convert << "SavedTexture_" << tmStruct.tm_mon << "-" << tmStruct.tm_mday <<  "-" << tmStruct.tm_min << "-" << tmStruct.tm_sec << ".bmp";
 
 		string testString;
 		LPCSTR lpcString;
@@ -939,30 +939,30 @@ bool Renderer::Render()
 	//Phase one, draw sphere with vertex-only shader.
 	d3D->TurnOnLightBlending();
 
-	for(unsigned int i = 0; i < pointLights.size(); i++)
-	{	
-		XMMATRIX worldViewProj = viewProjection * (XMLoadFloat4x4(&pointLights[i]->World));
+	//for(unsigned int i = 0; i < pointLights.size(); i++)
+	//{	
+	//	XMMATRIX worldViewProj = viewProjection * (XMLoadFloat4x4(&pointLights[i]->World));
 
-		d3D->SetLightStencilMethod1Phase1();
-		d3D->SetNoCullRasterizer();
+	//	d3D->SetLightStencilMethod1Phase1();
+	//	d3D->SetNoCullRasterizer();
 
-		sphereModel->Render(context);
-		result = vertexOnlyShader->Render(context, sphereModel->GetIndexCount(), &worldViewProj);
+	//	sphereModel->Render(context);
+	//	result = vertexOnlyShader->Render(context, sphereModel->GetIndexCount(), &worldViewProj);
 
-		//Phase two, draw sphere with light algorithm
-		d3D->SetLightStencilMethod1Phase2();
-		d3D->SetFrontFaceCullingRasterizer();
+	//	//Phase two, draw sphere with light algorithm
+	//	d3D->SetLightStencilMethod1Phase2();
+	//	d3D->SetFrontFaceCullingRasterizer();
 
-		//sphereModel->Render(context);
+	//	//sphereModel->Render(context);
 
-		result = pointLightShader->Render(context, sphereModel->GetIndexCount(), &worldViewProj, &invertedViewProjection, pointLights[i], gbufferTextures, camPos);
-		if(!result)
-		{
-			return false;
-		}
+	//	result = pointLightShader->Render(context, sphereModel->GetIndexCount(), &worldViewProj, &invertedViewProjection, pointLights[i], gbufferTextures, camPos);
+	//	if(!result)
+	//	{
+	//		return false;
+	//	}
 
-		context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
-	}
+	//	context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
+	//}
 #pragma endregion
 
 #pragma region Directional light stage
@@ -975,8 +975,8 @@ bool Renderer::Render()
 
 	fullScreenQuad.Render(context, 0, 0);
 
-	result = dirLightShader->Render(context, fullScreenQuad.GetIndexCount(), &worldMatrix, &baseView, &orthoMatrix, &invertedViewProjection, &invertedView, 
-		dirLightTextures, camPos, dirLight, ambientLight, defaultModelMaterial, &lightViewProj);
+	result = dirLightShader->Render(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &invertedViewProjection, 
+		dirLightTextures, textureAndMaterialHandler->GetMaterialTextureArray(), camPos, dirLight, ambientLight, &lightViewProj);
 	if(!result)
 	{
 		return false;
