@@ -149,7 +149,7 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//Sample camera depth
 	float depth = shaderTextures[1].Sample(anisotropicSampler, input.TexCoord);
 
-	if(depth <= 0.001f)
+	if(depth <= 0.01f)
 	{
 		return finalAmbienceProduct; //0 0 0 0. We break really early for optimization + sky sphere
 	}
