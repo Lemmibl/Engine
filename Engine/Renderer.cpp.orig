@@ -398,6 +398,9 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 	marchingCubes->GetTerrain()->Noise3D();
 	marchingCubes->CalculateMesh(device);
 
+	lSystem = new LSystemClass();
+	lSystem->initialize();
+
 	skySphere = new Skysphere();
 	if(!skySphere)
 	{
@@ -445,8 +448,13 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 		{
 			k = 1.0f + utility->Random()*7.0f;
 		}
+<<<<<<< HEAD
+
+		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z,k);
+=======
 
 		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, k);
+>>>>>>> a827c99d10f8c095b0f212aa2a5806f46301b4cd
 		tempContainer->push_back(temp);
 	}
 
