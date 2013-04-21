@@ -74,14 +74,14 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 		XZCoord = float3(input.WorldPosition.zx * scale, 4.0f);  
 		XYCoord = float3(input.WorldPosition.xy * scale, 1.0f);
 
-		output.Normal.w = EncodeMaterialID(1.0f); //Set and save material to snow
+		output.Normal.w = EncodeMaterialID(2.0f); //Set and save material to snow
 	}
 
 	if(dotResult <= 0.1f) //If surface is facing downwards
 	{
 		XZCoord.z = 2.0f; //Then change surface texture to rock.
 		
-		output.Normal.w = EncodeMaterialID(2.0f); //Set and save material to rock
+		output.Normal.w = EncodeMaterialID(1.0f); //Set and save material to rock
 	}
 
 	float4 XZColor = shaderTextures.Sample(textureSampler, XZCoord);

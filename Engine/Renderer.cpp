@@ -399,10 +399,10 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 
 	float x,z,y,k;
 
-	LODVector500.reserve(500);
-	LODVector2500.reserve(2500);
-	LODVector5000.reserve(5000);
 	LODVector15000.reserve(15000);
+	LODVector5000.reserve(5000);
+	LODVector2500.reserve(2500);
+	LODVector500.reserve(500);
 
 	for(int i = 0; i < 15000; i++)
 	{

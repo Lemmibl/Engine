@@ -8,7 +8,7 @@ struct VertexShaderOutput
 		float2 TexCoord : TEXCOORD0;
 };
 
-half4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
+float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 {
 		float depth = shaderTextures[2].Sample(samplers[1], input.TexCoord);
 		float fogFactor = 0.0f;
@@ -37,7 +37,7 @@ half4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		float specularLight = light.a;
 		
 		//Not going to apply specular here, it'll be applied in the final composition stage.
-		return lerp( half4(baseColor * (diffuseLight + specularLight), 1.0f),  FogColor, fogFactor); // + (fogFactor * FogColor)
+		return lerp( float4(baseColor * (diffuseLight + specularLight), 1.0f),  FogColor, fogFactor); // + (fogFactor * FogColor)
 }
 
 /*
