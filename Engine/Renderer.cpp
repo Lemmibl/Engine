@@ -675,11 +675,15 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 	{
 		float distance = utility->VectorDistance(camera->GetPosition(), XMFLOAT3(30.0f, 60.0f, 30.0f));
 
-		if(distance <= 50.0f)
+		if(distance <= 100.0f)
+		{
+			lodState = 3;
+		}
+		else if(distance <= 150.0f)
 		{
 			lodState = 2;
 		}
-		else if(distance <= 100.0f)
+		else if(distance <= 200.0f)
 		{
 			lodState = 1;
 		}
