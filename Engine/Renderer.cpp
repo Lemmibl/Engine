@@ -295,7 +295,7 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 		pointLights.push_back(new PointLight());
 		pointLights[i]->Color = XMFLOAT3(x, y, z);
 		pointLights[i]->Position = XMFLOAT3(x * 60.0f, 40.0f, z * 60.0f);
-		pointLights[i]->Radius = y*4.0f; //Used to both scale the actual point light model and is a factor in the attenuation
+		pointLights[i]->Radius = 4.0f; //Used to both scale the actual point light model and is a factor in the attenuation
 		pointLights[i]->Intensity = 1.0f; //Is used to control the attenuation
 
 		//x += 12.0f;
@@ -951,8 +951,6 @@ bool Renderer::Render()
 	//Blur shadow map texture horizontally
 	fullScreenQuad.Render(context, 0, 0);
 	gaussianBlurShader->RenderBlurX(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &dirLightTextures[2]);
-
-	gaussianBlurTexture[0] = gaussianBlurPingPongRT->SRView;
 
 	//Change render target back to our shadow map to render the second blur and get the final result
 	context->OMSetRenderTargets(1, shadowTarget, shadowDS);

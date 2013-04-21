@@ -84,7 +84,7 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	int vegetationTextureCount = 8;
 	WCHAR* vegetationFilenames[8] = 
 	{
-		L"../Engine/data/Vegetation/grassQuad.dds",
+		L"../Engine/data/Vegetation/grassQuadResized.dds",
 		L"../Engine/data/Vegetation/leafbranch.dds",
 		L"../Engine/data/Vegetation/bush.dds",
 		L"../Engine/data/Vegetation/tropicalBush.dds",
@@ -144,7 +144,7 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	MaterialStruct underGround;
 	underGround.Kambience = 0.2f;
 	underGround.Kdiffuse = 0.5f;
-	underGround.Kspecular = 0.2;
+	underGround.Kspecular = 0.2f;
 	underGround.smoothness = 8.0f;
 	underGround.shouldBeShadowed = 10.0f;
 

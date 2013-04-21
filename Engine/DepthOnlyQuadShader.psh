@@ -23,7 +23,7 @@ half2 ComputeMoments(float depth)
 	float dy = ddy(depth);
 
 	// Compute second moment over the pixel extents.  
-	moments.y = 0.25*(dx*dx + dy*dy);
+	moments.y += 0.25*(dx*dx + dy*dy);
 
 	return moments;
 };
@@ -36,7 +36,7 @@ half2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 
 	alpha = shaderTexture.Sample(SampleType, samplingCoords).w;
 
-	if(alpha < 0.8f)
+	if(alpha <= 0.7f)
 	{
 		discard;
 	}
