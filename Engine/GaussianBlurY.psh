@@ -1,5 +1,5 @@
 #ifndef SEPARABLE_BLUR_KERNEL_SIZE
-#define SEPARABLE_BLUR_KERNEL_SIZE 5
+#define SEPARABLE_BLUR_KERNEL_SIZE 3
 #endif
 
 static const int BLUR_KERNEL_BEGIN = SEPARABLE_BLUR_KERNEL_SIZE / -2; 
@@ -24,7 +24,7 @@ half2 PSBlurY(PixelInputType input) : SV_Target0
 	
 	[unroll]for ( int y = BLUR_KERNEL_BEGIN; y < BLUR_KERNEL_END; y++ ) 
 	{
-		blurredValue += shadowTexture.Sample( shadowSampler,  input.TexCoord.xy, int2( 0,y ) );
+		blurredValue += shadowTexture.Sample( shadowSampler,  input.TexCoord.xy, int2(0, y) );
 	}
 	
 	blurredValue /= FLOAT_BLUR_KERNEL_SIZE;
