@@ -399,6 +399,11 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 
 	float x,z,y,k;
 
+	LODVector500.reserve(500);
+	LODVector2500.reserve(2500);
+	LODVector5000.reserve(5000);
+	LODVector15000.reserve(15000);
+
 	for(int i = 0; i < 15000; i++)
 	{
 		x = ((2.0f + (utility->Random() * 56.0f))* 1.0f);
@@ -710,18 +715,22 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 	if(inputManager->WasKeyPressed(DIK_N))
 	{
+		LODVector500.clear();
+		LODVector2500.clear();
+		LODVector5000.clear();
+		LODVector15000.clear();
 
 		marchingCubes->Reset();
 		marchingCubes->GetTerrain()->Noise3D();
 		marchingCubes->CalculateMesh(d3D->GetDevice());
 
-		std::vector<XMFLOAT4>* tempContainer = new std::vector<XMFLOAT4>();
 		float x,z,y,k;
-		for(int i = 0; i < 1000; i++)
-		{
 
+		for(int i = 0; i < 15000; i++)
+		{
 			x = ((2.0f + (utility->Random() * 56.0f))* 1.0f);
 			z = ((2.0f + (utility->Random() * 56.0f))* 1.0f);
+
 			y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate((int)x, (int)z);
 
 			if(y > 45.0f)
@@ -734,17 +743,30 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 			}
 			else
 			{
-				k = 2.0f + utility->Random()*6.0f;
+				k = 1.0f + utility->Random()*7.0f;
 			}
 
-			XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z, k);
-			tempContainer->push_back(temp);
+			XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z,k);
+
+			if(i <= 500)
+			{
+				LODVector500.push_back(temp);
+			}
+
+			if(i <= 2500)
+			{
+				LODVector2500.push_back(temp);
+			}
+
+			if(i <= 5000)
+			{
+				LODVector5000.push_back(temp);
+			}
+
+			LODVector15000.push_back(temp);
 		}
 
-		vegetationManager->SetupQuads(d3D->GetDevice(), tempContainer);
-
-		delete tempContainer;
-		tempContainer = 0;
+		vegetationManager->BuildIndexBuffer(d3D->GetDevice(), &LODVector500);
 	}
 
 	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
