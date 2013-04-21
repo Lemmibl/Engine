@@ -148,7 +148,7 @@ private:
 	vector<XMFLOAT4> LODVector2500;
 	vector<XMFLOAT4> LODVector5000;
 	vector<XMFLOAT4> LODVector15000;
-	int lodState;
+	int lodState, previousLodState;
 	ID3D11ShaderResourceView* lSystemSRV;
 
 };

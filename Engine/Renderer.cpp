@@ -83,6 +83,7 @@ Renderer::Renderer()
 	timeOfDay = 0.0f;
 	timer = 10.0f;
 	lodState = 0;
+	previousLodState = 0;
 
 	toggleTextureShader = false;
 	toggleDebugInfo = true;
@@ -287,9 +288,9 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 
 	for(int i = 0; i < 50; i++)
 	{
-		x = utility->Random();
-		y = utility->Random();
-		z = utility->Random();
+		x = utility->RandomFloat();
+		y = utility->RandomFloat();
+		z = utility->RandomFloat();
 
 		pointLights.push_back(new PointLight());
 		pointLights[i]->Color = XMFLOAT3(x, y, z);
@@ -406,8 +407,8 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 
 	for(int i = 0; i < 15000; i++)
 	{
-		x = ((2.0f + (utility->Random() * 56.0f))* 1.0f);
-		z = ((2.0f + (utility->Random() * 56.0f))* 1.0f);
+		x = ((2.0f + (utility->RandomFloat() * 56.0f))* 1.0f);
+		z = ((2.0f + (utility->RandomFloat() * 56.0f))* 1.0f);
 
 		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate((int)x, (int)z);
 
@@ -421,7 +422,7 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 		}
 		else
 		{
-			k = 1.0f + utility->Random()*7.0f;
+			k = 1.0f + utility->RandomFloat()*7.0f;
 		}
 
 		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z,k);
@@ -587,6 +588,8 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 {
 	bool result;
 
+	timer += seconds;
+
 	XMMATRIX tempScale = XMMatrixScaling(pointLights[0]->Radius, pointLights[0]->Radius, pointLights[0]->Radius);
 
 	if(inputManager->WasKeyPressed(DIK_Q))
@@ -667,15 +670,30 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		}
 	}
 
-	if(inputManager->WasKeyPressed(DIK_I))
+	//Distance between camera and middle of mcube chunk
+	if(timer >= 0.3f)
 	{
-		lodState++;
+		float distance = utility->VectorDistance(camera->GetPosition(), XMFLOAT3(30.0f, 60.0f, 30.0f));
 
-		if(lodState > 3)
+		if(distance <= 50.0f)
+		{
+			lodState = 2;
+		}
+		else if(distance <= 100.0f)
+		{
+			lodState = 1;
+		}
+		else
 		{
 			lodState = 0;
 		}
 
+		timer = 0.0f;
+	}
+
+
+	if(lodState != previousLodState)
+	{
 		switch (lodState)
 		{
 		case 0:
@@ -728,8 +746,8 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 		for(int i = 0; i < 15000; i++)
 		{
-			x = ((2.0f + (utility->Random() * 56.0f))* 1.0f);
-			z = ((2.0f + (utility->Random() * 56.0f))* 1.0f);
+			x = ((2.0f + (utility->RandomFloat() * 56.0f))* 1.0f);
+			z = ((2.0f + (utility->RandomFloat() * 56.0f))* 1.0f);
 
 			y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate((int)x, (int)z);
 
@@ -743,7 +761,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 			}
 			else
 			{
-				k = 1.0f + utility->Random()*7.0f;
+				k = 1.0f + utility->RandomFloat()*7.0f;
 			}
 
 			XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z,k);
@@ -777,6 +795,8 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 	XMStoreFloat3(&dirLight->Direction, XMVector3Normalize((lookAt - currentLightPos)));//XMLoadFloat3(&dirLight->Position)
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(currentLightPos, lookAt, up)); //Generate light view matrix
+
+	previousLodState = lodState;
 
 	return true;
 }
