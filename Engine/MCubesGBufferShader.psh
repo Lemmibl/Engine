@@ -73,7 +73,7 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 		YZCoord = float3(input.WorldPosition.yz * scale, 1.0f);  
 		XZCoord = float3(input.WorldPosition.zx * scale, 4.0f);  
 		XYCoord = float3(input.WorldPosition.xy * scale, 1.0f);
-
+		
 		output.Normal.w = EncodeMaterialID(2.0f); //Set and save material to snow
 	}
 

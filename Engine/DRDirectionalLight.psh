@@ -206,6 +206,11 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		/*Variance shadow mapping. http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html */
 		shadowMultiplier = ShadowContribution(sampleLightScreen, realDistanceToLight);
 
+		if(shadowMultiplier <= 0.2f)
+		{
+			shadowMultiplier = 0.2f;
+		}
+
 		//Reflection vector
 		float3 reflectionVector = normalize(reflect(lightVector, normal));
 
