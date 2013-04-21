@@ -107,8 +107,6 @@ private:
 	Skysphere* skySphere;
 	VegetationManager* vegetationManager;
 
-	MaterialStruct defaultModelMaterial;
-
 	//Add a bunch of models and init, destruct and render them.
 
 	RenderTarget2D* colorRT; // render target for storing color. 8R 8G 8B 8A. stores specular intensity in alpha value.
@@ -145,7 +143,14 @@ private:
 	Utility* utility;
 	TextureAndMaterialHandler* textureAndMaterialHandler;
 
-	ID3D11ShaderResourceView* lSystemSRV ;
+	//These should be temporary. Just used for testing my little LOD system.
+	vector<XMFLOAT4> LODVector500;
+	vector<XMFLOAT4> LODVector2500;
+	vector<XMFLOAT4> LODVector5000;
+	vector<XMFLOAT4> LODVector15000;
+	int lodState;
+	ID3D11ShaderResourceView* lSystemSRV;
+
 };
 
 #endif

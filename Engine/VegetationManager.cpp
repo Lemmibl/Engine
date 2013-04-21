@@ -5,8 +5,6 @@ VegetationManager::VegetationManager()
 	vegetationShader = 0;
 	vertexBuffer = 0;
 	instanceBuffer = 0;
-	textureArray[0] = 0;
-	textureArray[1] = 0;
 }
 
 VegetationManager::VegetationManager( const VegetationManager& )
@@ -19,22 +17,9 @@ VegetationManager::~VegetationManager()
 
 }
 
-bool VegetationManager::Initialize(ID3D11Device* device, HWND hwnd, WCHAR* filename1, WCHAR* filename2)
+bool VegetationManager::Initialize(ID3D11Device* device, HWND hwnd)
 {
 	HRESULT result;
-
-
-	result = D3DX11CreateShaderResourceViewFromFile(device, filename1, NULL, NULL, &textureArray[0], NULL);
-	if(FAILED(result))
-	{
-		return false;
-	}
-
-	result = D3DX11CreateShaderResourceViewFromFile(device, filename2, NULL, NULL, &textureArray[1], NULL);
-	if(FAILED(result))
-	{
-		return false;
-	}
 
 	vegetationShader = new VegetationShader();
 	if(!vegetationShader)
@@ -80,18 +65,6 @@ void VegetationManager::Shutdown()
 	{
 		vertexBuffer->Release();
 		vertexBuffer = 0;
-	}
-
-	if(textureArray[0])
-	{
-		textureArray[0]->Release();
-		textureArray[0] = 0;
-	}
-
-	if(textureArray[1])
-	{
-		textureArray[1]->Release();
-		textureArray[1] = 0;
 	}
 
 	if(vegetationShader)

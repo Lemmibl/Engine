@@ -72,16 +72,7 @@ float3 DecodeNormal(float3 enc)
 	return ((2.0f * enc.xyz) - 1.0f);
 }
 
-float2 GetShadowTexOffset( int u, int v )
-{
-	//This has to mirror shadowmap render target width and height; I'm just really, really lazy.
-	float2 shadowMapSize = float2(2048.0f, 2048.0f);	
-
-	//Scale and return texture coordinates
-	return float2( u * 1.0f/shadowMapSize.x, v * 1.0f/shadowMapSize.y );
-}
-
-//Not much to say, really
+//Linear stepping function used when reducing light bleeding for variance shadowmaps
 float Linstep(float minVal, float maxVal, float value)  
 {
 	return clamp( ((value - minVal) / (maxVal - minVal)), 0, 1);
@@ -96,7 +87,7 @@ float ReduceLightBleeding(float p_max, float amount)
 //Calculate shadow contribution using chevyshev's inequality.
 float ChebyshevUpperBound(float2 moments, float t)  
 {
-	float minVariance = 0.02f; //Scaling value.
+	float minVariance = 0.002f; //Scaling value.
 
 	// Compute variance.  
 	float variance = moments.y - (moments.x*moments.x);
@@ -213,34 +204,7 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	)
 	{
 		/*Variance shadow mapping. http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html */
-		
 		shadowMultiplier = ShadowContribution(sampleLightScreen, realDistanceToLight);
-		
-		/*PCF 16X shadow mapping. */
-
-		//float sum = 0.0f;
-		//float x, y;
-
-		////perform pcf filtering on a 4 x 4 texel neighborhood
-		//for (y = -1.5f; y <= 1.5f; y += 1.0f)
-		//{
-		//	for (x = -1.5f; x <= 1.5f; x += 1.0f)
-		//	{
-		//		sum += shaderTextures[2].SampleCmpLevelZero(cmpSampler, sampleLightScreen + GetShadowTexOffset(x,y), realDistanceToLight).x;
-		//	}
-		//}
-
-		//shadowMultiplier = (sum / 16.0f);
-
-
-		/*Normal shadow mapping. Produces more artifacts. Nasty.*/
-
-		//float distanceStoredInDepthMap = shaderTextures[2].Sample(linearSampler, sampleLightScreen).x;
-
-		//if (realDistanceToLight < 1.0f && realDistanceToLight > distanceStoredInDepthMap)
-		//{
-		//	shadowMultiplier = 0.35f;
-		//}
 
 		//Reflection vector
 		float3 reflectionVector = normalize(reflect(lightVector, normal));

@@ -79,6 +79,15 @@ Renderer::Renderer()
 	textureAndMaterialHandler = 0;
 
 	lSystemSRV = 0;
+
+	timeOfDay = 0.0f;
+	timer = 10.0f;
+	lodState = 0;
+
+	toggleTextureShader = false;
+	toggleDebugInfo = true;
+	returning = false;
+	debugRotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 }
 
 
@@ -107,14 +116,7 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	this->screenNear = screenNear;
 	this->d3D = d3D;
 	this->camera = camera;
-	timeOfDay = 0.0f;
-	timer = 10.0f;
 
-	toggleTextureShader = false;
-	toggleDebugInfo = true;
-
-	returning = false;
-	debugRotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	utility = new Utility();
 
 	XMStoreFloat4x4(&baseViewMatrix, camera->GetView());
@@ -292,8 +294,8 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 		pointLights.push_back(new PointLight());
 		pointLights[i]->Color = XMFLOAT3(x, y, z);
 		pointLights[i]->Position = XMFLOAT3(x * 60.0f, 40.0f, z * 60.0f);
-		pointLights[i]->Radius = 4.0f; //Used to both scale the actual point light model and is a factor in the attenuation
-		pointLights[i]->Intensity = 3.0f; //Is used to control the attenuation
+		pointLights[i]->Radius = y*4.0f; //Used to both scale the actual point light model and is a factor in the attenuation
+		pointLights[i]->Intensity = 1.0f; //Is used to control the attenuation
 
 		//x += 12.0f;
 
@@ -389,17 +391,15 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	result = vegetationManager->Initialize(device, hwnd, L"../Engine/data/Vegetation/grassQuad.dds", L"../Engine/data/Vegetation/leafbranch.dds");
+	result = vegetationManager->Initialize(device, hwnd);
 	if(!result)
 	{
 		return false;
 	}
 
-	std::vector<XMFLOAT4>* tempContainer = new std::vector<XMFLOAT4>();
-
 	float x,z,y,k;
 
-	for(int i = 0; i < 1000; i++)
+	for(int i = 0; i < 15000; i++)
 	{
 		x = ((2.0f + (utility->Random() * 56.0f))* 1.0f);
 		z = ((2.0f + (utility->Random() * 56.0f))* 1.0f);
@@ -420,14 +420,26 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 		}
 
 		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z,k);
-		tempContainer->push_back(temp);
+
+		if(i <= 500)
+		{
+			LODVector500.push_back(temp);
+		}
+
+		if(i <= 2500)
+		{
+			LODVector2500.push_back(temp);
+		}
+
+		if(i <= 5000)
+		{
+			LODVector5000.push_back(temp);
+		}
+
+		LODVector15000.push_back(temp);
 	}
 
-	vegetationManager->SetupQuads(device, tempContainer);
-
-	delete tempContainer;
-	tempContainer = 0;
-
+	vegetationManager->SetupQuads(device, &LODVector500);
 
 	// Create the model object.
 	groundModel = new ModelClass;
@@ -539,12 +551,6 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 		debugWindows[i].Initialize(device, screenWidth, screenHeight, 200, 200);
 	}
 
-
-	defaultModelMaterial.smoothness = 4096.0f;
-	defaultModelMaterial.Kambience = 0.3f;
-	defaultModelMaterial.Kdiffuse = 1.0f;
-	defaultModelMaterial.Kspecular = 1.0f;
-
 	fullScreenQuad.Initialize(device, screenWidth, screenHeight, screenWidth, screenHeight);
 
 	colorRT = new RenderTarget2D();
@@ -609,18 +615,6 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		return false;
 	}
 
-	if(inputManager->WasKeyPressed(DIK_T))
-	{
-		if(defaultModelMaterial.smoothness < 4096.0f)
-			defaultModelMaterial.smoothness *= 2.0f;
-	}
-
-	if(inputManager->WasKeyPressed(DIK_G))
-	{
-		if(defaultModelMaterial.smoothness > 1.0f)
-			defaultModelMaterial.smoothness *= 0.5f;
-	}
-
 	if(inputManager->IsKeyPressed(DIK_R))
 	{
 		for(int i = 0; i < (int)pointLights.size(); i++)
@@ -666,8 +660,34 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		{
 			return false;
 		}
+	}
 
-		//delete now;
+	if(inputManager->WasKeyPressed(DIK_I))
+	{
+		lodState++;
+
+		if(lodState > 3)
+		{
+			lodState = 0;
+		}
+
+		switch (lodState)
+		{
+		case 0:
+			vegetationManager->BuildIndexBuffer(d3D->GetDevice(), &LODVector500);
+			break;
+
+		case 1:
+			vegetationManager->BuildIndexBuffer(d3D->GetDevice(), &LODVector2500);
+			break;
+
+		case 2:
+			vegetationManager->BuildIndexBuffer(d3D->GetDevice(), &LODVector5000);
+			break;
+
+		case 3:
+			vegetationManager->BuildIndexBuffer(d3D->GetDevice(), &LODVector15000);
+		}
 	}
 
 	if(inputManager->IsKeyPressed(DIK_C))

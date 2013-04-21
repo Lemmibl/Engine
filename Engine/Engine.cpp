@@ -11,8 +11,6 @@ Engine::Engine()
 	cpuMeter = 0;
 	fpsMeter = 0;
 	cameraController = 0;
-	marchingCubes = 0;
-	metaBalls = 0;
 	camera = 0;
 	d3D = 0;
 }
@@ -196,12 +194,6 @@ void Engine::Shutdown()
 		renderer->Shutdown();
 		delete renderer;
 		renderer = 0;
-	}
-
-	if(marchingCubes)
-	{
-		delete marchingCubes;
-		marchingCubes = 0;
 	}
 
 	// Release the input object.

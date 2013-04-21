@@ -52,7 +52,15 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 	float3 XZCoord;
 	float3 XYCoord;
 
-	if(input.WorldPosition.y <= 45.0f)
+	if(input.WorldPosition.y <= 25.0f)
+	{
+		YZCoord = float3(input.WorldPosition.yz * scale, 2.0f);  
+		XZCoord = float3(input.WorldPosition.zx * scale, 2.0f);  
+		XYCoord = float3(input.WorldPosition.xy * scale, 2.0f);
+
+		output.Normal.w = EncodeMaterialID(5.0f); //Set and save material to underground ...
+	}
+	else if(input.WorldPosition.y <= 45.0f)
 	{
 		YZCoord = float3(input.WorldPosition.yz * scale, 2.0f);  
 		XZCoord = float3(input.WorldPosition.zx * scale, 1.0f);  
@@ -65,12 +73,14 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 		YZCoord = float3(input.WorldPosition.yz * scale, 1.0f);  
 		XZCoord = float3(input.WorldPosition.zx * scale, 4.0f);  
 		XYCoord = float3(input.WorldPosition.xy * scale, 1.0f);
+
 		output.Normal.w = EncodeMaterialID(1.0f); //Set and save material to snow
 	}
 
-	if(dotResult <= 0.0f) //If surface is facing downwards
+	if(dotResult <= 0.1f) //If surface is facing downwards
 	{
 		XZCoord.z = 2.0f; //Then change surface texture to rock.
+		
 		output.Normal.w = EncodeMaterialID(2.0f); //Set and save material to rock
 	}
 

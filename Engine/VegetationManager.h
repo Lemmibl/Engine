@@ -24,7 +24,7 @@ public:
 	VegetationManager(const VegetationManager&);
 	~VegetationManager();
 
-	bool Initialize(ID3D11Device*, HWND, WCHAR*, WCHAR*);
+	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
 	bool SetupQuads(ID3D11Device* device, std::vector<XMFLOAT4>* positions);
 	bool Render(ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textures);
@@ -32,16 +32,15 @@ public:
 
 	inline int GetVertexCount()		{	return vertexCount;		}
 	inline int GetInstanceCount()	{	return instanceCount;	}
-	inline ID3D11ShaderResourceView** GetTextureArray() {	return textureArray; }
+
+	bool BuildIndexBuffer(ID3D11Device* device, std::vector<XMFLOAT4>* positions);
 
 private:
 	bool BuildVertexBuffer(ID3D11Device* device);
-	bool BuildIndexBuffer(ID3D11Device* device, std::vector<XMFLOAT4>* positions);
 
 private:
 	ID3D11Buffer *vertexBuffer, *instanceBuffer;
 	int vertexCount, instanceCount;
-	ID3D11ShaderResourceView* textureArray[2];
 	VegetationShader* vegetationShader;
 };
 

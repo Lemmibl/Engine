@@ -34,7 +34,6 @@ const float SCREEN_NEAR = 0.5f;
 #include "cpumeter.h"
 #include "timerclass.h"
 #include "controllerclass.h"
-#include "marchingCubesClass.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: Engine
@@ -69,8 +68,6 @@ private:
 	CpuMeter* cpuMeter;
 	TimerClass* timer;
 	ControllerClass* cameraController;
-	MarchingCubesClass* marchingCubes;
-	MetaballsClass* metaBalls;
 	CameraClass* camera;
 
 	float rotationalValue;

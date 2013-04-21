@@ -141,13 +141,21 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	grassQuads.smoothness = 1.0f;
 	grassQuads.shouldBeShadowed = 0.0f;
 
+	MaterialStruct underGround;
+	underGround.Kambience = 0.2f;
+	underGround.Kdiffuse = 0.5f;
+	underGround.Kspecular = 0.2;
+	underGround.smoothness = 8.0f;
+	underGround.shouldBeShadowed = 10.0f;
+
 	materials.push_back(grass);
 	materials.push_back(rock);
 	materials.push_back(snow);
 	materials.push_back(dirt);
 	materials.push_back(grassQuads);
+	materials.push_back(underGround);
 
-	Build1DMaterialTextureArray(device, deviceContext, materials, 5, 5, &materialTextures);
+	Build1DMaterialTextureArray(device, deviceContext, materials, materials.size(), 5, &materialTextures);
 
 	return true;
 }
