@@ -417,7 +417,7 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 
 		if(y >= 45.0f)
 		{
-			k = rand()%2;
+			k = 0;
 		}
 		else
 		{
@@ -649,10 +649,6 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 	
 	if(inputManager->WasKeyPressed(DIK_O))
 	{
-		CreateRandom2DTexture();
-	}
-	if(inputManager->WasKeyPressed(DIK_P))
-	{
 		CreateTree2DTexture();
 	}
 
@@ -753,7 +749,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 			if(y >= 45.0f)
 			{
-				k = rand()%2;
+				k = 0;
 			}
 			else
 			{
@@ -1377,8 +1373,8 @@ void Renderer::CreateRandom2DTexture()
 void Renderer::CreateTree2DTexture()
 {
 	int textureWidth, textureHeight,i,x,y;
-	textureWidth = 50;
-	textureHeight = 50;
+	textureWidth = 150;
+	textureHeight = 150;
 	i = 0;
 	PixelData* pixelData = new PixelData[textureWidth*textureHeight]();
 	noise->~SimplexNoise();

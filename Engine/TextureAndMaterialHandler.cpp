@@ -88,7 +88,7 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 		L"../Engine/data/Vegetation/grassQuadResized.dds",
 		L"../Engine/data/Vegetation/leafbranch.dds",
 		L"../Engine/data/Vegetation/greenGrassQuad.dds",
-		L"../Engine/data/Vegetation/bush.dds",
+		L"../Engine/data/Vegetation/greenGrassQuad.dds",
 		L"../Engine/data/Vegetation/greenGrassQuad.dds",
 		L"../Engine/data/Vegetation/grassQuadResized.dds",
 		L"../Engine/data/Vegetation/greenGrassQuad.dds"

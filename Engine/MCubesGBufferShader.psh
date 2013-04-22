@@ -43,7 +43,7 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 	float3 blend_weights = abs(NormalizedWorldNormal);     
 	blend_weights = (blend_weights - tighten) * 7;  // Tighten up the blending zone
 	blend_weights = max(blend_weights, 0);
-	blend_weights /= (blend_weights.x + blend_weights.y + blend_weights.z); // Force weights to sum to 1.0 (very important!)  
+	blend_weights /= (blend_weights.x + blend_weights.y + blend_weights.z).xxx; // Force weights to sum to 1.0 (very important!)  
 
 	float scale = 0.2f;
 	float dotResult = dot(UpNormal, NormalizedWorldNormal);
