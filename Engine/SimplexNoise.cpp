@@ -1,5 +1,7 @@
 #include "SimplexNoise.h"
 
+//http://webstaff.itn.liu.se/~stegu/simplexnoise/SimplexNoise.java
+
 ////0..255, randomized
 //static int p[] = {151,160,137,91,90,15,
 //	131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,23,
@@ -161,10 +163,12 @@ float SimplexNoise::noise3D2(float xin, float yin, float zin)
 	float x0 = xin-X0; // The x,y,z distances from the cell origin
 	float y0 = yin-Y0;
 	float z0 = zin-Z0;
+
 	// For the 3D case, the simplex shape is a slightly irregular tetrahedron.
 	// Determine which simplex we are in.
 	int i1, j1, k1; // Ofsets for second corner of simplex in (i,j,k) coords
 	int i2, j2, k2; // Ofsets for third corner of simplex in (i,j,k) coords
+
 	if(x0>=y0) {
 		if(y0>=z0)
 		{ i1=1; j1=0; k1=0; i2=1; j2=1; k2=0; } // X Y Z order

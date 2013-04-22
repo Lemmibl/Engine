@@ -1395,9 +1395,9 @@ void Renderer::CreateTree2DTexture()
 			if(x < 0)
 				x *= -1;
 
-			float firstIteration = noise->noise2D(x*0.01f,y*0.01f)*255;
-			float seccondIteration = noise->noise2D(x*0.001f,y*0.001f)*255;
-			float thirdIteration = noise->noise2D(x*0.0005f,y*0.0005f)*255;
+			float firstIteration = noise->noise3D2(x*0.01f,y*0.01f, 10.0f)*255;
+			float seccondIteration = noise->noise3D2(x*0.001f,y*0.001f, 30.0f)*255;
+			float thirdIteration = noise->noise3D2(x*0.0005f,y*0.0005f, 45.0f)*255;
 
 
 				pixelData[i].x = (int)(firstIteration + seccondIteration + thirdIteration);
