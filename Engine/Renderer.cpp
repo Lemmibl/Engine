@@ -647,11 +647,11 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		}
 	}
 	
+	//if(inputManager->WasKeyPressed(DIK_O))
+	//{
+	//	CreateRandom2DTexture();
+	//}
 	if(inputManager->WasKeyPressed(DIK_O))
-	{
-		CreateRandom2DTexture();
-	}
-	if(inputManager->WasKeyPressed(DIK_P))
 	{
 		CreateTree2DTexture();
 	}
@@ -1378,18 +1378,16 @@ void Renderer::CreateRandom2DTexture()
 void Renderer::CreateTree2DTexture()
 {
 	int textureWidth, textureHeight,i,x,y;
-	textureWidth = 50;
-	textureHeight = 50;
+	textureWidth = 512;
+	textureHeight = 512;
 	i = 0;
 	PixelData* pixelData = new PixelData[textureWidth*textureHeight]();
 	noise->~SimplexNoise();
 	noise = new SimplexNoise();
-	//Don't use utility.Random(). We do not want floats.
 	for(int yCounter = -textureHeight*0.5f; yCounter < textureHeight*0.5f; yCounter++)
 	{
 		for(int xCounter = -textureWidth*0.5f; xCounter < textureWidth*0.5f; xCounter++)
 		{
-				//noise->noise3D2(this->marchingCubeVertices[idx].posX/80,marchingCubeVertices[idx].posY/320,marchingCubeVertices[idx].posZ/80);
 			y = yCounter;
 			x = xCounter;
 
@@ -1398,29 +1396,16 @@ void Renderer::CreateTree2DTexture()
 			if(x < 0)
 				x *= -1;
 
-			float firstIteration = noise->noise3D2(x,y,10.0f)*255;
-			float seccondIteration = noise->noise3D2(x*0.1f,y*0.1f,20.0f)*255;
-			float thirdIteration = noise->noise3D2(x*0.05f,y*0.05f,30.0f)*255;
-			//if (thirdIteration < .02)
-			//{
-			//	thirdIteration = 0.5f;
-			//}
-			//else
-			//{
-			//	thirdIteration = 1;
-			//}
+			float firstIteration = noise->noise3D2(x*0.01f,y*0.01f,10.0f)*255;
+			float seccondIteration = noise->noise3D2(x*0.001f,y*0.001f,20.0f)*255;
+			float thirdIteration = noise->noise3D2(x*0.0005f,y*0.0005f,30.0f)*255;
 
-				pixelData[i].x = (firstIteration + seccondIteration) + thirdIteration;
-				pixelData[i].y = (firstIteration + seccondIteration) + thirdIteration;
-				pixelData[i].z = (firstIteration + seccondIteration) + thirdIteration;
+
+				pixelData[i].x = (int)(firstIteration + seccondIteration + thirdIteration);
+				pixelData[i].y = (int)(firstIteration + seccondIteration + thirdIteration);
+				pixelData[i].z = (int)(firstIteration + seccondIteration + thirdIteration);
 				pixelData[i].w = 1; //Alpha.
 
-				//pixelData[i].x = noise->noise3D2(x,y,1.0f)*255;
-				//pixelData[i].x += noise->noise3D2(x*0.1f,y*0.1f,1.00f)*255;
-				//pixelData[i].y = noise->noise3D2(x,y,1.0f)*255;
-				//pixelData[i].y += noise->noise3D2(x*0.1f,y*0.1f,1.0f)*255;
-				//pixelData[i].z = noise->noise3D2(x,y,1.0f)*255;
-				//pixelData[i].z += noise->noise3D2(x*0.1f,y*0.1f,1.0f)*255;
 				
 		
 			i++;
