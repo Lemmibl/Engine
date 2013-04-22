@@ -410,8 +410,8 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 
 	for(int i = 0; i < 10000; i++)
 	{
-		x = ((2.0f + (utility->RandomFloat() * 56.0f))* 1.0f);
-		z = ((2.0f + (utility->RandomFloat() * 56.0f))* 1.0f);
+		x = (2.0f + (utility->RandomFloat() * 56.0f));
+		z = (2.0f + (utility->RandomFloat() * 56.0f));
 
 		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate((int)x, (int)z);
 
@@ -424,7 +424,7 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 			k = 1 + rand()%7;
 		}
 
-		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z,k);
+		XMFLOAT4 temp = XMFLOAT4(x, y, z,k);
 
 		if(i <= 500)
 		{
@@ -746,8 +746,8 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 		for(int i = 0; i < 10000; i++)
 		{
-			x = ((2.0f + (utility->RandomFloat() * 56.0f))* 1.0f);
-			z = ((2.0f + (utility->RandomFloat() * 56.0f))* 1.0f);
+			x = (2.0f + (utility->RandomFloat() * 56.0f));
+			z = (2.0f + (utility->RandomFloat() * 56.0f));
 
 			y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate((int)x, (int)z);
 

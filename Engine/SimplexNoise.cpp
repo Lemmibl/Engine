@@ -34,15 +34,14 @@ static Grads grad3 [] =
 
 SimplexNoise::SimplexNoise(void)
 {
+	for(int i=0; i<256; i++)
+	{
+		p[i] = 1 + (rand() % 10);
+	}
 
 	for(int i=0; i<512; i++)
 	{
-		perm[i]=p[i & 255];
-	}
-	
-	for(int i=0; i<256; i++)
-	{
-	p[i] =  1 + (rand() % 10);
+		perm[i] = p[i & 255];
 	}
 }
 
@@ -240,18 +239,18 @@ float SimplexNoise::noise3D(float xin, float yin, float zin)
 
 
 
-float SimplexNoise::noise3D2(float xin, float yin, float zin) {
-
-	for(int i=0; i<512; i++) perm[i]=p[i & 255];
+float SimplexNoise::noise3D2(float xin, float yin, float zin) 
+{
+	//for(int i=0; i<512; i++) perm[i]=p[i & 255]; //Remove this comment to slow down code by a margin of 6-7x.
 
 	float n0, n1, n2, n3; // Noise contributions from the four corners
 	// Skew the input space to determine which simplex cell we're in
-	float F3 = 1.0f/3.0f;
+	float F3 = 0.33333333f; //1.0f / 3.0f
 	float s = (xin+yin+zin)*F3; // Very nice and simple skew factor for 3D
 	int i = fastfloor(xin+s);
 	int j = fastfloor(yin+s);
 	int k = fastfloor(zin+s);
-	float G3 = 1.0f/6.0f; // Very nice and simple unskew factor, too
+	float G3 = 0.16666666666; // Very nice and simple unskew factor, too. 1.0f / 6.0f
 	float t = (i+j+k)*G3;
 	float X0 = i-t; // Unskew the cell origin back to (x,y,z) space
 	float Y0 = j-t;

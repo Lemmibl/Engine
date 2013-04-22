@@ -88,7 +88,6 @@ Renderer::Renderer()
 	toggleTextureShader = false;
 	toggleDebugInfo = true;
 	returning = false;
-	debugRotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 }
 
 
@@ -99,6 +98,9 @@ Renderer::Renderer(const Renderer& other)
 
 Renderer::~Renderer()
 {
+	noise->~SimplexNoise();
+	delete noise;
+	noise = 0;
 }
 
 
@@ -398,31 +400,28 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	float x,z,y,k;
+	float x,z,y;
+	int k;
 
-	LODVector15000.reserve(15000);
+	LODVector10000.reserve(10000);
 	LODVector5000.reserve(5000);
 	LODVector2500.reserve(2500);
 	LODVector500.reserve(500);
 
-	for(int i = 0; i < 15000; i++)
+	for(int i = 0; i < 10000; i++)
 	{
 		x = ((2.0f + (utility->RandomFloat() * 56.0f))* 1.0f);
 		z = ((2.0f + (utility->RandomFloat() * 56.0f))* 1.0f);
 
 		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate((int)x, (int)z);
 
-		if(y > 45.0f)
+		if(y >= 45.0f)
 		{
-			k = 0.0f;
-		}
-		else if(y < 15.0f)
-		{
-			k = 1.0f;
+			k = 0;
 		}
 		else
 		{
-			k = 1.0f + utility->RandomFloat()*7.0f;
+			k = 1 + rand()%7;
 		}
 
 		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z,k);
@@ -442,7 +441,7 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 			LODVector5000.push_back(temp);
 		}
 
-		LODVector15000.push_back(temp);
+		LODVector10000.push_back(temp);
 	}
 
 	vegetationManager->SetupQuads(device, &LODVector500);
@@ -520,8 +519,11 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 	{
 		return false;
 	}
-
+	
 	CreateRandom2DTexture();
+
+	noise = new SimplexNoise();
+	CreateTree2DTexture();
 
 	dayNightCycle = new DayNightCycle();
 	if(!dayNightCycle)
@@ -572,6 +574,8 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 	lightRT->Initialize(device, screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
 	shadowRT->Initialize(device, shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_FLOAT);
 	gaussianBlurPingPongRT->Initialize(device, shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_FLOAT); //Needs to be identical to shadowRT
+
+
 
 
 	// Create the frustum object.
@@ -642,31 +646,30 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale*XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y-0.5f, pointLights[i]->Position.z)));
 		}
 	}
-
+	
+	//if(inputManager->WasKeyPressed(DIK_O))
+	//{
+	//	CreateRandom2DTexture();
+	//}
 	if(inputManager->WasKeyPressed(DIK_O))
 	{
-		CreateRandom2DTexture();
+		CreateTree2DTexture();
 	}
 
 	if(inputManager->WasKeyPressed(DIK_P))
 	{
-		time_t timeObject = time(0);// get time now
+		//Create and initialize our time... things.
+		time_t timeObject = time(0);
 		struct tm tmStruct;
 		localtime_s(&tmStruct, &timeObject );
 
 		ostringstream convert;
 
-<<<<<<< Updated upstream
+		//Create the string that will hold the screenshot's name when it gets pooped out into the directory
 		convert << "SavedTexture_" << tmStruct.tm_mon << "-" << tmStruct.tm_mday <<  "-" << tmStruct.tm_min << "-" << tmStruct.tm_sec << ".bmp";
-=======
-		convert << "SavedTexture_" << now->tm_mday << "-" << now->tm_hour << "-" << now->tm_min << "-" << now->tm_sec << ".bmp";
->>>>>>> Stashed changes
 
-		string testString;
 		LPCSTR lpcString;
-		testString = convert.str();
-
-		lpcString = testString.c_str();
+		lpcString = convert.str().c_str(); //lol.
 
 		if(!textureAndMaterialHandler->SaveLTreeTextureToFile(d3D->GetDeviceContext(), D3DX11_IFF_BMP, lpcString))
 		{
@@ -674,20 +677,20 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		}
 	}
 
-	//Distance between camera and middle of mcube chunk
-	if(timer >= 0.3f)
+	//Distance between camera and middle of mcube chunk. We'll have to do this for each chunk, and keep an individual lodState for each chunk.
+	if(timer >= 0.5f)
 	{
-		float distance = utility->VectorDistance(camera->GetPosition(), XMFLOAT3(30.0f, 60.0f, 30.0f));
+		int distance = (int)utility->VectorDistance(camera->GetPosition(), XMFLOAT3(30.0f, 60.0f, 30.0f));
 
-		if(distance <= 100.0f)
+		if(distance <= 100)
 		{
 			lodState = 3;
 		}
-		else if(distance <= 150.0f)
+		else if(distance <= 150)
 		{
 			lodState = 2;
 		}
-		else if(distance <= 200.0f)
+		else if(distance <= 200)
 		{
 			lodState = 1;
 		}
@@ -717,20 +720,8 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 			break;
 
 		case 3:
-			vegetationManager->BuildIndexBuffer(d3D->GetDevice(), &LODVector15000);
+			vegetationManager->BuildIndexBuffer(d3D->GetDevice(), &LODVector10000);
 		}
-	}
-
-	if(inputManager->IsKeyPressed(DIK_C))
-	{
-		debugRotation.x += frameTime*0.002f;
-		debugRotation.y += frameTime*0.002f;
-	}
-
-	if(inputManager->IsKeyPressed(DIK_V))
-	{
-		debugRotation.x -= frameTime*0.002f;
-		debugRotation.y -= frameTime*0.002f;		
 	}
 
 	if(inputManager->IsKeyPressed(DIK_1))
@@ -744,32 +735,29 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		LODVector500.clear();
 		LODVector2500.clear();
 		LODVector5000.clear();
-		LODVector15000.clear();
+		LODVector10000.clear();
 
 		marchingCubes->Reset();
 		marchingCubes->GetTerrain()->Noise3D();
 		marchingCubes->CalculateMesh(d3D->GetDevice());
 
-		float x,z,y,k;
+		float x,z,y;
+		int k;
 
-		for(int i = 0; i < 15000; i++)
+		for(int i = 0; i < 10000; i++)
 		{
 			x = ((2.0f + (utility->RandomFloat() * 56.0f))* 1.0f);
 			z = ((2.0f + (utility->RandomFloat() * 56.0f))* 1.0f);
 
 			y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate((int)x, (int)z);
 
-			if(y > 45.0f)
+			if(y >= 45.0f)
 			{
-				k = 0.0f;
-			}
-			else if(y < 15.0f)
-			{
-				k = 1.0f;
+				k = 0;
 			}
 			else
 			{
-				k = 1.0f + utility->RandomFloat()*7.0f;
+				k = 1 + rand()%7;
 			}
 
 			XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z,k);
@@ -789,7 +777,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 				LODVector5000.push_back(temp);
 			}
 
-			LODVector15000.push_back(temp);
+			LODVector10000.push_back(temp);
 		}
 
 		vegetationManager->BuildIndexBuffer(d3D->GetDevice(), &LODVector500);
@@ -819,7 +807,7 @@ bool Renderer::Render()
 	context = d3D->GetDeviceContext();
 
 	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, scalingMatrix, viewProjection, invertedViewProjection, invertedView, 
-	lightView, lightProj, lightViewProj, baseView, worldBaseViewOrthoProj, identityWorldViewProj, lightWorldViewProj, untransposedViewProj;
+		lightView, lightProj, lightViewProj, baseView, worldBaseViewOrthoProj, identityWorldViewProj, lightWorldViewProj, untransposedViewProj;
 
 	XMFLOAT3 camPos;
 	bool result;
@@ -993,7 +981,7 @@ bool Renderer::Render()
 
 	marchingCubes->Render(context);
 	result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
-		&worldMatrix, &identityWorldViewProj, textureAndMaterialHandler->GetTerrainTextureArray());//TODO
+		&worldMatrix, &identityWorldViewProj, textureAndMaterialHandler->GetTerrainTextureArray());
 
 	d3D->TurnOnAlphaBlending();
 	d3D->SetNoCullRasterizer();
@@ -1386,4 +1374,48 @@ void Renderer::CreateRandom2DTexture()
 		pixelData, textureWidth, textureHeight, &lSystemSRV);
 }
 
+void Renderer::CreateTree2DTexture()
+{
+	int textureWidth, textureHeight,i,x,y;
+<<<<<<< HEAD
+	textureWidth = 150;
+	textureHeight = 150;
+=======
+	textureWidth = 512;
+	textureHeight = 512;
+>>>>>>> 140fb540a781a7ab89fa30dfb63ec2f0dee78ae1
+	i = 0;
+	PixelData* pixelData = new PixelData[textureWidth*textureHeight]();
+	noise->~SimplexNoise();
+	noise = new SimplexNoise();
+	for(int yCounter = -textureHeight*0.5f; yCounter < textureHeight*0.5f; yCounter++)
+	{
+		for(int xCounter = -textureWidth*0.5f; xCounter < textureWidth*0.5f; xCounter++)
+		{
+			y = yCounter;
+			x = xCounter;
 
+			if(y < 0)
+				y *= -1;
+			if(x < 0)
+				x *= -1;
+
+			float firstIteration = noise->noise3D2(x*0.01f,y*0.01f,10.0f)*255;
+			float seccondIteration = noise->noise3D2(x*0.001f,y*0.001f,20.0f)*255;
+			float thirdIteration = noise->noise3D2(x*0.0005f,y*0.0005f,30.0f)*255;
+
+
+				pixelData[i].x = (int)(firstIteration + seccondIteration + thirdIteration);
+				pixelData[i].y = (int)(firstIteration + seccondIteration + thirdIteration);
+				pixelData[i].z = (int)(firstIteration + seccondIteration + thirdIteration);
+				pixelData[i].w = 1; //Alpha.
+
+				
+		
+			i++;
+		}
+	}
+
+	textureAndMaterialHandler->Build2DTextureProgrammatically(d3D->GetDevice(), d3D->GetDeviceContext(), 
+		pixelData, textureWidth, textureHeight, &lSystemSRV);
+}
