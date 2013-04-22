@@ -65,7 +65,7 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	WCHAR* terrainFilenames[6] = 
 	{
 		L"../Engine/data/dirt.dds",
-		L"../Engine/data/grassGreenYellow.dds",
+		L"../Engine/data/grassTileTest01.dds",
 		L"../Engine/data/rock.dds",
 		L"../Engine/data/seafloor.dds",
 		L"../Engine/data/snow.dds",
@@ -172,21 +172,18 @@ bool TextureAndMaterialHandler::SaveLTreeTextureToFile( ID3D11DeviceContext* dev
 	return true;
 }
 
-
+//This function creates and loads a Texture1D into an external pointer
 HRESULT TextureAndMaterialHandler::Build1DMaterialTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
 	MaterialStruct materialData, int textureWidth, ID3D11Texture1D** texture)
 {
-	//, ID3D11ShaderResourceView* textureSRV
-	
 	HRESULT hResult;
 	D3D11_TEXTURE1D_DESC texDesc;
 	D3D11_SUBRESOURCE_DATA texInitializeData;
-	//D3D11_SHADER_RESOURCE_VIEW_DESC viewDesc;
 
-	//Create an array to hold each element in the texture
+	//Create an array to temporarily hold each element in the texture
 	float *dataArray = new float[textureWidth]();
 
-	//Fill up the array ... try to find a way to make this dynamic?
+	//Fill up the array
 	dataArray[0]	= materialData.Kambience;
 	dataArray[1]	= materialData.Kdiffuse;
 	dataArray[2]	= materialData.Kspecular;
@@ -216,19 +213,6 @@ HRESULT TextureAndMaterialHandler::Build1DMaterialTexture( ID3D11Device* device,
 		return false;
 	}
 
-	////Initialize shader resource view description
-	//viewDesc.Format = DXGI_FORMAT_R32_FLOAT;
-	//viewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE1D;
-	//viewDesc.Texture1D.MostDetailedMip = 0;
-	//viewDesc.Texture1D.MipLevels = 1;
-
-	////Create shader resource view
-	//hResult = device->CreateShaderResourceView(texture, &viewDesc, &textureSRV);
-	//if(FAILED(hResult))
-	//{
-	//	return false;
-	//}
-
 	//Clean up
 	delete [] dataArray;
 	dataArray = 0;
@@ -236,7 +220,7 @@ HRESULT TextureAndMaterialHandler::Build1DMaterialTexture( ID3D11Device* device,
 	return S_OK;
 }
 
-
+//Builds a Texture1DArray out of 1D material textures and finally assigns the Texture1DArray to an external shader resource view
 HRESULT TextureAndMaterialHandler::Build1DMaterialTextureArray( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
 	vector<MaterialStruct> materials, int materialCount, int textureWidth, ID3D11ShaderResourceView** materialSRV )
 {
@@ -339,7 +323,8 @@ HRESULT TextureAndMaterialHandler::Build1DMaterialTextureArray( ID3D11Device* de
 }
 
 
-/*Okay, so this function recieves PixelData, which  is a struct that contains 4 UINT8 (because we use the DXGI_FORMAT_R8G8B8A8_UNORM format*/
+/*Okay, so this function recieves PixelData, which  is a struct that contains 4 UINT8 (because we use the DXGI_FORMAT_R8G8B8A8_UNORM format.
+Then it creates a texture that is textureWidth*textureHeight big and fills it with data. Then it finally assigns the texture to an external shader resource view.*/
 HRESULT TextureAndMaterialHandler::Build2DTextureProgrammatically( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
 	PixelData* pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV )
 {
@@ -415,7 +400,7 @@ HRESULT TextureAndMaterialHandler::Build2DTextureProgrammatically( ID3D11Device*
 	return S_OK;
 }
 
-
+//Build 2DTextureArray and assigns it to an external shader resource view
 HRESULT TextureAndMaterialHandler::Build2DTextureArray(ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
 	WCHAR** filenames, int textureCount, ID3D11ShaderResourceView** textureArraySRV, int texWidth, int texHeight)
 {

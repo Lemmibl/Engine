@@ -400,12 +400,12 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 	float x,z,y;
 	int k;
 
-	LODVector15000.reserve(15000);
+	LODVector10000.reserve(10000);
 	LODVector5000.reserve(5000);
 	LODVector2500.reserve(2500);
 	LODVector500.reserve(500);
 
-	for(int i = 0; i < 15000; i++)
+	for(int i = 0; i < 10000; i++)
 	{
 		x = ((2.0f + (utility->RandomFloat() * 56.0f))* 1.0f);
 		z = ((2.0f + (utility->RandomFloat() * 56.0f))* 1.0f);
@@ -438,7 +438,7 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 			LODVector5000.push_back(temp);
 		}
 
-		LODVector15000.push_back(temp);
+		LODVector10000.push_back(temp);
 	}
 
 	vegetationManager->SetupQuads(device, &LODVector500);
@@ -646,19 +646,18 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 	if(inputManager->WasKeyPressed(DIK_P))
 	{
-		time_t timeObject = time(0);// get time now
+		//Create and initialize our time... things.
+		time_t timeObject = time(0);
 		struct tm tmStruct;
 		localtime_s(&tmStruct, &timeObject );
 
 		ostringstream convert;
 
+		//Create the string that will hold the screenshot's name when it gets pooped out into the directory
 		convert << "SavedTexture_" << tmStruct.tm_mon << "-" << tmStruct.tm_mday <<  "-" << tmStruct.tm_min << "-" << tmStruct.tm_sec << ".bmp";
 
-		string testString;
 		LPCSTR lpcString;
-		testString = convert.str();
-
-		lpcString = testString.c_str();
+		lpcString = convert.str().c_str(); //lol.
 
 		if(!textureAndMaterialHandler->SaveLTreeTextureToFile(d3D->GetDeviceContext(), D3DX11_IFF_BMP, lpcString))
 		{
@@ -709,7 +708,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 			break;
 
 		case 3:
-			vegetationManager->BuildIndexBuffer(d3D->GetDevice(), &LODVector15000);
+			vegetationManager->BuildIndexBuffer(d3D->GetDevice(), &LODVector10000);
 		}
 	}
 
@@ -724,7 +723,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		LODVector500.clear();
 		LODVector2500.clear();
 		LODVector5000.clear();
-		LODVector15000.clear();
+		LODVector10000.clear();
 
 		marchingCubes->Reset();
 		marchingCubes->GetTerrain()->Noise3D();
@@ -733,7 +732,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		float x,z,y;
 		int k;
 
-		for(int i = 0; i < 15000; i++)
+		for(int i = 0; i < 10000; i++)
 		{
 			x = ((2.0f + (utility->RandomFloat() * 56.0f))* 1.0f);
 			z = ((2.0f + (utility->RandomFloat() * 56.0f))* 1.0f);
@@ -766,7 +765,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 				LODVector5000.push_back(temp);
 			}
 
-			LODVector15000.push_back(temp);
+			LODVector10000.push_back(temp);
 		}
 
 		vegetationManager->BuildIndexBuffer(d3D->GetDevice(), &LODVector500);
