@@ -24,7 +24,7 @@ public:
 	bool Initialize();
 	void Frame();
 
-	float GetFrameTime();
+	float GetFrameTimeMilliseconds();
 	float GetFrameTimeSeconds();
 
 private:

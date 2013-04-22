@@ -124,7 +124,6 @@ private:
 
 	XMFLOAT4X4 baseViewMatrix;
 	XMFLOAT4 ambientLight;
-	XMFLOAT3 debugRotation;
 
 	UINT shadowMapWidth, shadowMapHeight, screenWidth, screenHeight;
 	float screenFar, screenNear, timer, timeOfDay;

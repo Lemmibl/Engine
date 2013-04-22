@@ -35,20 +35,14 @@ PixelShaderOutput VegetationQuadPixelShader(PixelInputType input)
 {
 	PixelShaderOutput output;
 
-	output.Color = half4(0.0f, 0.0f, 0.0f, 0.0f);
-	half4 tempColor = output.Color;
+	output.Color = shaderTexture.Sample(linearSampler, input.TexCoord.xyz); //No branching cuz texture array. Yay.
 
-	float3 samplingCoords = float3(input.TexCoord.xy, input.TexCoord.w); //Add textureID from TexCoord.w to Z channel so that we can sample dynamically
-
-	tempColor = shaderTexture.Sample(linearSampler, samplingCoords); //No branching cuz texture array. Yay.
-
-	if(tempColor.a >= 0.5f)
+	if(output.Color.a <= 0.7f)
 	{
-		output.Color.xyz = tempColor.xyz;
-		output.Color.a = 1.0f;
+		discard;
 	}
-	
-	output.Depth = (input.TexCoord.z); //We stored postProj.zw in TexCoord.zw to save one register slot of space.
+
+	output.Depth = (input.TexCoord.w); //We stored postProj.z/w in TexCoord.z to save one register slot of space.
 
 	output.Normal = (0.5f * float4(0.0f, 1.0f, 0.0f, 1.0f) + 1.0f);
 

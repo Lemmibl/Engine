@@ -23,8 +23,6 @@ PixelInputType VegetationQuadVertexShader(VertexInputType input)
 {
 	PixelInputType output;
 	
-	output.TexCoord.w = (int)input.InstancePosition.w+0.3f; //We've hidden texture ID in instanceposition alpha channel to save a register slot
-
 	// Change the position vector to be 4 units for proper matrix calculations.
 	input.Position.w = 1.0f;
 
@@ -35,10 +33,11 @@ PixelInputType VegetationQuadVertexShader(VertexInputType input)
 	output.Position = mul(input.Position, worldViewProjection);
 
 	// Store the texture coordinates for the pixel shader.
-	output.TexCoord.xy = input.TexCoord;
+	//We've hidden texture ID in instanceposition alpha channel to save a register slot
+	output.TexCoord.xyz = float3(input.TexCoord, input.InstancePosition.w);
 	
 	// Store data in texcoord .zw channel for further processing in pixelshader
-	output.TexCoord.z = output.Position.z / output.Position.w;
+	output.TexCoord.w = output.Position.z / output.Position.w;
 
 
 	return output;

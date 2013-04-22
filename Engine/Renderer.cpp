@@ -88,7 +88,6 @@ Renderer::Renderer()
 	toggleTextureShader = false;
 	toggleDebugInfo = true;
 	returning = false;
-	debugRotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 }
 
 
@@ -401,7 +400,8 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	float x,z,y,k;
+	float x,z,y;
+	int k;
 
 	LODVector15000.reserve(15000);
 	LODVector5000.reserve(5000);
@@ -415,17 +415,13 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 
 		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate((int)x, (int)z);
 
-		if(y > 45.0f)
+		if(y >= 45.0f)
 		{
-			k = 0.0f;
-		}
-		else if(y < 15.0f)
-		{
-			k = 1.0f;
+			k = rand()%2;
 		}
 		else
 		{
-			k = 1.0f + utility->RandomFloat()*7.0f;
+			k = 1 + rand()%7;
 		}
 
 		XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z,k);
@@ -682,20 +678,20 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		}
 	}
 
-	//Distance between camera and middle of mcube chunk
-	if(timer >= 0.3f)
+	//Distance between camera and middle of mcube chunk. We'll have to do this for each chunk, and keep an individual lodState for each chunk.
+	if(timer >= 0.5f)
 	{
-		float distance = utility->VectorDistance(camera->GetPosition(), XMFLOAT3(30.0f, 60.0f, 30.0f));
+		int distance = (int)utility->VectorDistance(camera->GetPosition(), XMFLOAT3(30.0f, 60.0f, 30.0f));
 
-		if(distance <= 100.0f)
+		if(distance <= 100)
 		{
 			lodState = 3;
 		}
-		else if(distance <= 150.0f)
+		else if(distance <= 150)
 		{
 			lodState = 2;
 		}
-		else if(distance <= 200.0f)
+		else if(distance <= 200)
 		{
 			lodState = 1;
 		}
@@ -729,18 +725,6 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		}
 	}
 
-	if(inputManager->IsKeyPressed(DIK_C))
-	{
-		debugRotation.x += frameTime*0.002f;
-		debugRotation.y += frameTime*0.002f;
-	}
-
-	if(inputManager->IsKeyPressed(DIK_V))
-	{
-		debugRotation.x -= frameTime*0.002f;
-		debugRotation.y -= frameTime*0.002f;		
-	}
-
 	if(inputManager->IsKeyPressed(DIK_1))
 	{
 		seconds = timeOfDay += frameTime*2.0f;
@@ -758,7 +742,8 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		marchingCubes->GetTerrain()->Noise3D();
 		marchingCubes->CalculateMesh(d3D->GetDevice());
 
-		float x,z,y,k;
+		float x,z,y;
+		int k;
 
 		for(int i = 0; i < 15000; i++)
 		{
@@ -767,17 +752,13 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 			y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate((int)x, (int)z);
 
-			if(y > 45.0f)
+			if(y >= 45.0f)
 			{
-				k = 0.0f;
-			}
-			else if(y < 15.0f)
-			{
-				k = 1.0f;
+				k = rand()%2;
 			}
 			else
 			{
-				k = 1.0f + utility->RandomFloat()*7.0f;
+				k = 1 + rand()%7;
 			}
 
 			XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z,k);
@@ -1001,7 +982,7 @@ bool Renderer::Render()
 
 	marchingCubes->Render(context);
 	result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
-		&worldMatrix, &identityWorldViewProj, textureAndMaterialHandler->GetTerrainTextureArray());//TODO
+		&worldMatrix, &identityWorldViewProj, textureAndMaterialHandler->GetTerrainTextureArray());
 
 	d3D->TurnOnAlphaBlending();
 	d3D->SetNoCullRasterizer();

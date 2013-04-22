@@ -54,7 +54,7 @@ void TimerClass::Frame()
 	return;
 }
 
-float TimerClass::GetFrameTime()
+float TimerClass::GetFrameTimeMilliseconds()
 {
 	return frameTime;
 }

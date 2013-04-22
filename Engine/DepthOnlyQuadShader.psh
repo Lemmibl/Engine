@@ -30,16 +30,10 @@ half2 ComputeMoments(float depth)
 
 half2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 {
-	float alpha = 0.0f;
-
-	float3 samplingCoords = float3(input.TexCoord.xy, input.TexCoord.w); //Add textureID to Z channel so that we can sample dynamically
-
-	alpha = shaderTexture.Sample(SampleType, samplingCoords).w;
-
-	if(alpha <= 0.7f)
+	if(0.7f >= shaderTexture.Sample(SampleType, input.TexCoord.xyz).w)
 	{
 		discard;
 	}
 
-	return clamp(ComputeMoments(input.TexCoord.z+0.4f), 0.0f, 1.0f); //I store depth in texcoord.z. I pack everything into a float4 to save space.
+	return ComputeMoments(input.TexCoord.w); //I store postProj.z/w depth in texcoord.w. I pack everything into a float4 to save space.
 };

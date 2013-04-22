@@ -31,8 +31,8 @@ bool Engine::Initialize()
 	toggleDebug = true;
 	screenWidth = 0;
 	screenHeight = 0;
-	shadowMapWidth = 2048;
-	shadowMapHeight = 2048;
+	shadowMapWidth = 1024;
+	shadowMapHeight = 1024;
 
 	// Initialize the windows api.
 	InitializeWindows(screenWidth, screenHeight);
@@ -269,11 +269,11 @@ bool Engine::Update()
 		return false;
 	}
 
-	cameraController->Update(timer->GetFrameTime(), camera->GetWorldMatrix()); //Processes all of the movement for this controller.
+	cameraController->Update(timer->GetFrameTimeMilliseconds(), camera->GetWorldMatrix()); //Processes all of the movement for this controller.
 	camera->Update();
 	
-	// Do the frame processing for the graphics object.
-	result = renderer->Update(fpsMeter->GetFps(), cpuMeter->GetCpuPercentage(), timer->GetFrameTime(), timer->GetFrameTimeSeconds());
+	// Do update renderer.
+	result = renderer->Update(fpsMeter->GetFps(), cpuMeter->GetCpuPercentage(), timer->GetFrameTimeMilliseconds(), timer->GetFrameTimeSeconds());
 	if(!result)
 	{
 		return false;
