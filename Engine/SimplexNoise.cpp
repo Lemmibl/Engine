@@ -105,9 +105,9 @@ float SimplexNoise::noise2D(float xin, float yin)
 	// Work out the hashed gradient indices of the three simplex corners
 	int ii = i & 255;
 	int jj = j & 255;
-	int gi0 = perm[ii+perm[jj]] % 12;
-	int gi1 = perm[ii+i1+perm[jj+j1]] % 12;
-	int gi2 = perm[ii+1+perm[jj+1]] % 12;
+	int gi0 = perm[ii+perm[jj]]			% 12;
+	int gi1 = perm[ii+i1+perm[jj+j1]]	% 12;
+	int gi2 = perm[ii+1+perm[jj+1]]		% 12;
 
 	// Calculate the contribution from the three corners
 	float t0 = 0.5f - x0*x0-y0*y0;
@@ -131,10 +131,9 @@ float SimplexNoise::noise2D(float xin, float yin)
 		n2 = t2 * t2 * dot(grad3[gi2], x2, y2);
 	}
 
-
 	// Add contributions from each corner to get the final noise value.
 	// The result is scaled to return values in the interval [-1,1].
-	return 70.0f * (n0 + n1 + n2);
+	return 72.0f * (n0 + n1 + n2);
 }
 
 float SimplexNoise::noise3D2(float xin, float yin, float zin) 
@@ -197,10 +196,10 @@ float SimplexNoise::noise3D2(float xin, float yin, float zin)
 	int jj = j & 255;
 	int kk = k & 255;
 
-	int gi0 = perm[ii+perm[jj+perm[kk]]] % 12;
-	int gi1 = perm[ii+i1+perm[jj+j1+perm[kk+k1]]] % 12;
-	int gi2 = perm[ii+i2+perm[jj+j2+perm[kk+k2]]] % 12;
-	int gi3 = perm[ii+1+perm[jj+1+perm[kk+1]]] % 12;
+	int gi0 = perm[ii+perm[jj+perm[kk]]]			% 12;
+	int gi1 = perm[ii+i1+perm[jj+j1+perm[kk+k1]]]	% 12;
+	int gi2 = perm[ii+i2+perm[jj+j2+perm[kk+k2]]]	% 12;
+	int gi3 = perm[ii+1+perm[jj+1+perm[kk+1]]]		% 12;
 
 	// Calculate the contribution from the four corners
 	float t0 = 0.5f - x0*x0 - y0*y0 - z0*z0;
