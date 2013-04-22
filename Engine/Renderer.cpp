@@ -670,8 +670,8 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		}
 	}
 
-	//Distance between camera and middle of mcube chunk
-	if(timer >= 0.3f)
+	//Distance between camera and middle of mcube chunk. We'll have to do this for each chunk, and keep an individual lodState for each chunk.
+	if(timer >= 0.5f)
 	{
 		float distance = utility->VectorDistance(camera->GetPosition(), XMFLOAT3(30.0f, 60.0f, 30.0f));
 
