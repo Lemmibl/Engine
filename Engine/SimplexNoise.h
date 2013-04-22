@@ -11,11 +11,9 @@ public:
 	~SimplexNoise(void);
 
 	float noise2D(float xin, float yin);
-	float noise3D(float xin, float yin, float zin);
 	float noise3D2(float xin, float yin, float zin);
 
 	int perm[512];
-
 	int p[256];
 
 	

@@ -126,7 +126,7 @@ void MCTerrainClass::Noise3D()
 				idx = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
 
 
-				density =  + sizeY * 0.4f - y;
+				density = 1 + sizeY * 0.4f - y;
 				/*density += (noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/260,marchingCubeVertices[idx].posZ/20) + 1.0f) *4.0f;
 				density += (noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/260,marchingCubeVertices[idx].posZ/20) + 1.0f) *2.0f;
 				density += (noise->noise3D2(this->marchingCubeVertices[idx].posX/30,marchingCubeVertices[idx].posY/30,marchingCubeVertices[idx].posZ/30) + 1.0f) *2.0f;
@@ -234,6 +234,7 @@ void MCTerrainClass::Noise3D()
 			}
 		}
 	}
+
 	maxDensity = maxDensity;
 	minDensity =  minDensity;
 	
