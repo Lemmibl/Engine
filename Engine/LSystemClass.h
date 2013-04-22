@@ -13,7 +13,7 @@ public:
 	void initialize();
 	
 public:
-	list<LSystemBranch*>* BranchList;
+	list<LSystemBranch>* BranchList;
 
 	
 private:

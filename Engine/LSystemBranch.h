@@ -16,7 +16,7 @@ public:
 		(
 		LSystemBranch* parrent,
 		unsigned short ID,
-		list<LSystemBranch*>* BranchList
+		list<LSystemBranch>* BranchList
 		);
 
 	void InitializeFirst
@@ -34,12 +34,12 @@ public:
 		float SplitPointPercent,
 		float chanceToSplit,
 		float angle,
-		list<LSystemBranch*>* BranchList
+		list<LSystemBranch>* BranchList
 		);
 
 	void CalculateAngle(float angle);
 
-	void BranchOff(list<LSystemBranch*>* BranchList);
+	void BranchOff(list<LSystemBranch>* BranchList);
 
 
 
@@ -71,6 +71,6 @@ public:
 	LSystemBranch* child2;
 	LSystemBranch* child3;
 
-	list<LSystemBranch*>* BranchList;
+	list<LSystemBranch>* BranchList;
 };
 

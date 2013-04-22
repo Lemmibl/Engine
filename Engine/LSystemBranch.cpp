@@ -25,7 +25,7 @@ void LSystemBranch::InitializeFirst
 	float SplitPointPercent,
 	float chanceToSplit,
 	float angle,
-	list<LSystemBranch*>* BranchList
+	list<LSystemBranch>* BranchList
 	)
 {
 	this->positionStart = positionStart;
@@ -45,12 +45,12 @@ void LSystemBranch::InitializeFirst
 	this->angle = angle;
 
 	this->itterationsDone = 0;
-	BranchList = new list<LSystemBranch*>;
-	BranchList->push_back(this);
+	BranchList = new list<LSystemBranch>;
+	BranchList->push_back(*this);
 	BranchOff(BranchList);
 }
 
-void LSystemBranch::Initialize(LSystemBranch* parrent, unsigned short ID, list<LSystemBranch*>* BranchList)
+void LSystemBranch::Initialize(LSystemBranch* parrent, unsigned short ID, list<LSystemBranch>* BranchList)
 {
 	this->parrent = parrent;
 	this->BranchList = BranchList;
@@ -90,26 +90,26 @@ void LSystemBranch::CalculateAngle(float angle)
 	}
 }
 
-void LSystemBranch::BranchOff(list<LSystemBranch*>* BranchList)
+void LSystemBranch::BranchOff(list<LSystemBranch>* BranchList)
 {
 	if(this->itterationsDone <= this->maxBranches)
 	{
 		child = new LSystemBranch();
 		child->Initialize(this,0,BranchList);
-		BranchList->push_back(child);
+		BranchList->push_back(*child);
 		child->BranchOff(BranchList);
 		if(random() < chanceToSplit)
 		{
 			child2 = new LSystemBranch();
 			child2->Initialize(this,1,BranchList);
-			BranchList->push_back(child2);
+			BranchList->push_back(*child2);
 			child2->BranchOff(BranchList);
 		}
 		if(random() < chanceToSplit)
 		{
 			child3 = new LSystemBranch();
 			child3->Initialize(this,2,BranchList);
-			BranchList->push_back(child3);
+			BranchList->push_back(*child3);
 			child3->BranchOff(BranchList);
 		}
 

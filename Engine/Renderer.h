@@ -42,6 +42,7 @@
 #include "marchingCubesClass.h"
 #include "MCTerrainClass.h"
 #include "LSystemClass.h"
+#include "SimplexNoise.h"
 
 //Shaders
 #include "MCubesGBufferShader.h"
@@ -74,6 +75,7 @@ public:
 	bool InitializeModels(HWND hwnd, ID3D11Device* device);
 	void Shutdown();
 	void CreateRandom2DTexture();
+	void CreateTree2DTexture();
 
 	bool Update(int, int, float, float seconds);
 	bool Render();
@@ -138,6 +140,7 @@ private:
 	MCTerrainClass* mcTerrain;
 
 	LSystemClass* lSystem;
+	SimplexNoise *noise;
 
 	Utility* utility;
 	TextureAndMaterialHandler* textureAndMaterialHandler;
@@ -149,6 +152,7 @@ private:
 	vector<XMFLOAT4> LODVector10000;
 	int lodState, previousLodState;
 	ID3D11ShaderResourceView* lSystemSRV;
+
 
 };
 

@@ -98,6 +98,9 @@ Renderer::Renderer(const Renderer& other)
 
 Renderer::~Renderer()
 {
+	noise->~SimplexNoise();
+	delete noise;
+	noise = 0;
 }
 
 
@@ -516,8 +519,11 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 	{
 		return false;
 	}
-
+	
 	CreateRandom2DTexture();
+
+	noise = new SimplexNoise();
+	CreateTree2DTexture();
 
 	dayNightCycle = new DayNightCycle();
 	if(!dayNightCycle)
@@ -568,6 +574,8 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 	lightRT->Initialize(device, screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
 	shadowRT->Initialize(device, shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_FLOAT);
 	gaussianBlurPingPongRT->Initialize(device, shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_FLOAT); //Needs to be identical to shadowRT
+
+
 
 
 	// Create the frustum object.
@@ -638,10 +646,14 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale*XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y-0.5f, pointLights[i]->Position.z)));
 		}
 	}
-
+	
 	if(inputManager->WasKeyPressed(DIK_O))
 	{
 		CreateRandom2DTexture();
+	}
+	if(inputManager->WasKeyPressed(DIK_P))
+	{
+		CreateTree2DTexture();
 	}
 
 	if(inputManager->WasKeyPressed(DIK_P))
@@ -795,7 +807,7 @@ bool Renderer::Render()
 	context = d3D->GetDeviceContext();
 
 	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, scalingMatrix, viewProjection, invertedViewProjection, invertedView, 
-	lightView, lightProj, lightViewProj, baseView, worldBaseViewOrthoProj, identityWorldViewProj, lightWorldViewProj, untransposedViewProj;
+		lightView, lightProj, lightViewProj, baseView, worldBaseViewOrthoProj, identityWorldViewProj, lightWorldViewProj, untransposedViewProj;
 
 	XMFLOAT3 camPos;
 	bool result;
@@ -1362,4 +1374,58 @@ void Renderer::CreateRandom2DTexture()
 		pixelData, textureWidth, textureHeight, &lSystemSRV);
 }
 
+void Renderer::CreateTree2DTexture()
+{
+	int textureWidth, textureHeight,i,x,y;
+	textureWidth = 50;
+	textureHeight = 50;
+	i = 0;
+	PixelData* pixelData = new PixelData[textureWidth*textureHeight]();
+	noise->~SimplexNoise();
+	noise = new SimplexNoise();
+	//Don't use utility.Random(). We do not want floats.
+	for(int yCounter = -textureHeight*0.5f; yCounter < textureHeight*0.5f; yCounter++)
+	{
+		for(int xCounter = -textureWidth*0.5f; xCounter < textureWidth*0.5f; xCounter++)
+		{
+				//noise->noise3D2(this->marchingCubeVertices[idx].posX/80,marchingCubeVertices[idx].posY/320,marchingCubeVertices[idx].posZ/80);
+			y = yCounter;
+			x = xCounter;
 
+			if(y < 0)
+				y *= -1;
+			if(x < 0)
+				x *= -1;
+
+			float firstIteration = noise->noise3D2(x,y,10.0f)*255;
+			float seccondIteration = noise->noise3D2(x*0.1f,y*0.1f,20.0f)*255;
+			float thirdIteration = noise->noise3D2(x*0.05f,y*0.05f,30.0f)*255;
+			//if (thirdIteration < .02)
+			//{
+			//	thirdIteration = 0.5f;
+			//}
+			//else
+			//{
+			//	thirdIteration = 1;
+			//}
+
+				pixelData[i].x = (firstIteration + seccondIteration) + thirdIteration;
+				pixelData[i].y = (firstIteration + seccondIteration) + thirdIteration;
+				pixelData[i].z = (firstIteration + seccondIteration) + thirdIteration;
+				pixelData[i].w = 1; //Alpha.
+
+				//pixelData[i].x = noise->noise3D2(x,y,1.0f)*255;
+				//pixelData[i].x += noise->noise3D2(x*0.1f,y*0.1f,1.00f)*255;
+				//pixelData[i].y = noise->noise3D2(x,y,1.0f)*255;
+				//pixelData[i].y += noise->noise3D2(x*0.1f,y*0.1f,1.0f)*255;
+				//pixelData[i].z = noise->noise3D2(x,y,1.0f)*255;
+				//pixelData[i].z += noise->noise3D2(x*0.1f,y*0.1f,1.0f)*255;
+				
+		
+			i++;
+		}
+	}
+
+	textureAndMaterialHandler->Build2DTextureProgrammatically(d3D->GetDevice(), d3D->GetDeviceContext(), 
+		pixelData, textureWidth, textureHeight, &lSystemSRV);
+}
