@@ -37,14 +37,9 @@ PixelShaderOutput VegetationQuadPixelShader(PixelInputType input)
 
 	output.Color = shaderTexture.Sample(linearSampler, input.TexCoord.xyz); //No branching cuz texture array. Yay.
 
-	if(output.Color.a <= 0.7f)
-	{
-		discard;
-	}
-
 	output.Depth = (input.TexCoord.w); //We stored postProj.z/w in TexCoord.z to save one register slot of space.
 
-	output.Normal = (0.5f * float4(0.0f, 1.0f, 0.0f, 1.0f) + 1.0f);
+	output.Normal = (0.5f * float4(0.0f, 1.0f, 0.0f, 1.0f) + 1.0f); //TODO: Change.
 
 	//This is our material ID. Our normal map is R8G8B8A8 so our alpha channel has 8 bits == 255 possible values.
 	output.Normal.w = EncodeMaterialID(4.0f);
