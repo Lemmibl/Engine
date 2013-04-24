@@ -85,12 +85,12 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	WCHAR* vegetationFilenames[8] = 
 	{
 		L"../Engine/data/Vegetation/yellowGrassQuad.dds",
-		L"../Engine/data/Vegetation/grassQuadResized.dds",
+		L"../Engine/data/Vegetation/greenGrassQuad.dds",
 		L"../Engine/data/Vegetation/leafbranch.dds",
 		L"../Engine/data/Vegetation/greenGrassQuad.dds",
 		L"../Engine/data/Vegetation/greenGrassQuad.dds",
 		L"../Engine/data/Vegetation/greenGrassQuad.dds",
-		L"../Engine/data/Vegetation/grassQuadResized.dds",
+		L"../Engine/data/Vegetation/flower.dds",
 		L"../Engine/data/Vegetation/greenGrassQuad.dds"
 	};
 

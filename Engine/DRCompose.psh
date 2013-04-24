@@ -18,7 +18,7 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		half4 FogColor = half4(0.6f, 0.6f, 0.6f, 1.0f);
 
 
-		if(depth <= 0) //Skip as early as possible if this pixel isn't supposed to be lit.
+		if(depth <= 0.0f) //Skip as early as possible if this pixel isn't supposed to be lit.
 		{
 			return float4(baseColor, 1.0f);
 		}
