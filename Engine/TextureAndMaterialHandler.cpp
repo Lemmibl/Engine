@@ -66,7 +66,7 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	{
 		L"../Engine/data/dirt.dds",
 		L"../Engine/data/grassTileTest01.dds",
-		L"../Engine/data/rock.dds",
+		L"../Engine/data/rock4.dds",
 		L"../Engine/data/seafloor.dds",
 		L"../Engine/data/snow.dds",
 		L"../Engine/data/stone.dds"
