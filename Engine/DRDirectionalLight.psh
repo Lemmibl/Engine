@@ -62,7 +62,8 @@ void RetrieveMaterialData(int materialID, out float ambienceCoefficient, out flo
 	surfaceSmoothness = materialArray.Load(LoadingCoordinates);
 	LoadingCoordinates.x += 1;
 
-	recieveShadows = ((materialArray.Load(LoadingCoordinates)) >= 0.01f ? true : false);
+	//Kind of a crude way to store a bool, but it works.
+	recieveShadows = ((materialArray.Load(LoadingCoordinates)) >= 0.5f ? true : false);
 	LoadingCoordinates.x += 1;
 }
 
@@ -87,7 +88,7 @@ float ReduceLightBleeding(float p_max, float amount)
 //Calculate shadow contribution using chevyshev's inequality.
 float ChebyshevUpperBound(float2 moments, float t)  
 {
-	float minVariance = 0.002f; //Scaling value.
+	float minVariance = 0.02f; //Scaling value.
 
 	// Compute variance.  
 	float variance = moments.y - (moments.x*moments.x);
@@ -187,7 +188,7 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//Adjust this value too.
 	lightScreenPos /= lightScreenPos.w;
 
-	float realDistanceToLight = lightScreenPos.z-0.00001f;
+	float realDistanceToLight = lightScreenPos.z;
 
 	float2 sampleLightScreen;
 	sampleLightScreen.x = ((lightScreenPos.x * 0.5f) + 0.5f);
@@ -206,7 +207,7 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		/*Variance shadow mapping. http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html */
 		shadowMultiplier = ShadowContribution(sampleLightScreen, realDistanceToLight);
 
-		if(shadowMultiplier <= 0.2f)
+		if(shadowMultiplier < 0.2f)
 		{
 			shadowMultiplier = 0.2f;
 		}

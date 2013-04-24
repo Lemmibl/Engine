@@ -120,6 +120,8 @@ bool VegetationManager::BuildVertexBuffer( ID3D11Device* device )
 	D3D11_SUBRESOURCE_DATA vertexData;
 	HRESULT result;
 
+	//TODO: http://stackoverflow.com/questions/9806630/calculating-the-vertex-normals-of-a-quad
+
 #pragma region Setting up the vertices
 
 	// Set the number of vertices in the vertex array.

@@ -35,6 +35,13 @@ if cross product (cameraDirection, lightDirection) == 0 then they're both facing
 
 TODO: http://forum.beyond3d.com/archive/index.php/t-45628.html
 http://www.gamedev.net/topic/640968-zfighting-on-ati-perfect-on-nvidia/
+
+
+Multithreading:
+http://gamedev.stackexchange.com/questions/2116/multi-threaded-game-engine-design-resources
+http://www.gamasutra.com/view/feature/1830/multithreaded_game_engine_.php
+http://www.gamasutra.com/view/feature/2463/threading_3d_game_engine_basics.php
+http://bitsquid.blogspot.se/2010/03/task-management-practical-example.html
 */
 
 Renderer::Renderer()
@@ -924,13 +931,13 @@ bool Renderer::Render()
 		return false;
 	}
 
-	d3D->TurnOnShadowBlendState();
-	vegetationManager->RenderBuffers(context);
+	//d3D->TurnOnShadowBlendState();
+	//vegetationManager->RenderBuffers(context);
 
-	depthOnlyQuadShader->Render(context, vegetationManager->GetVertexCount(), vegetationManager->GetInstanceCount(),
-		&lightWorldViewProj, textureAndMaterialHandler->GetVegetationTextureArray());
+	//depthOnlyQuadShader->Render(context, vegetationManager->GetVertexCount(), vegetationManager->GetInstanceCount(),
+	//	&lightWorldViewProj, textureAndMaterialHandler->GetVegetationTextureArray());
 
-	d3D->ResetBlendState();
+	//d3D->ResetBlendState();
 
 #pragma endregion
 
@@ -983,8 +990,8 @@ bool Renderer::Render()
 	result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
 		&worldMatrix, &identityWorldViewProj, textureAndMaterialHandler->GetTerrainTextureArray());
 
-	d3D->TurnOnAlphaBlending();
 	d3D->SetNoCullRasterizer();
+	d3D->TurnOnAlphaBlending();
 	vegetationManager->Render(context, &identityWorldViewProj, textureAndMaterialHandler->GetVegetationTextureArray());
 	d3D->TurnOffAlphaBlending();
 

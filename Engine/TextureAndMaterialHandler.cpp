@@ -66,7 +66,7 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	{
 		L"../Engine/data/dirt.dds",
 		L"../Engine/data/grassTileTest01.dds",
-		L"../Engine/data/rock.dds",
+		L"../Engine/data/rock4.dds",
 		L"../Engine/data/seafloor.dds",
 		L"../Engine/data/snow.dds",
 		L"../Engine/data/stone.dds"
@@ -85,12 +85,12 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	WCHAR* vegetationFilenames[8] = 
 	{
 		L"../Engine/data/Vegetation/yellowGrassQuad.dds",
-		L"../Engine/data/Vegetation/grassQuadResized.dds",
+		L"../Engine/data/Vegetation/greenGrassQuad.dds",
 		L"../Engine/data/Vegetation/leafbranch.dds",
 		L"../Engine/data/Vegetation/greenGrassQuad.dds",
 		L"../Engine/data/Vegetation/greenGrassQuad.dds",
 		L"../Engine/data/Vegetation/greenGrassQuad.dds",
-		L"../Engine/data/Vegetation/grassQuadResized.dds",
+		L"../Engine/data/Vegetation/flower.dds",
 		L"../Engine/data/Vegetation/greenGrassQuad.dds"
 	};
 
@@ -135,11 +135,11 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	dirt.shouldBeShadowed = 10.0f;
 
 	MaterialStruct grassQuads;
-	grassQuads.Kambience = 0.5f;
-	grassQuads.Kdiffuse = 0.9f;
-	grassQuads.Kspecular = 0.0f;
+	grassQuads.Kambience = 0.8f;
+	grassQuads.Kdiffuse = 1.0f;
+	grassQuads.Kspecular = 0.1f;
 	grassQuads.smoothness = 1.0f;
-	grassQuads.shouldBeShadowed = 0.0f;
+	grassQuads.shouldBeShadowed = 10.0f;
 
 	MaterialStruct underGround;
 	underGround.Kambience = 0.2f;
