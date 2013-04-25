@@ -736,6 +736,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		seconds = timeOfDay += frameTime*2.0f;
 	}
 
+	//Empty comment to be able to commit.
 
 	if(inputManager->WasKeyPressed(DIK_N))
 	{
