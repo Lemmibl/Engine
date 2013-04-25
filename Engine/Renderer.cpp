@@ -1088,44 +1088,44 @@ bool Renderer::Render()
 			}
 		}
 
-		//result = debugWindows[3].Render(d3D->GetDeviceContext(), 200, 200);
-		//if(!result)
-		//{
-		//	return false;
-		//}
+		result = debugWindows[3].Render(d3D->GetDeviceContext(), 200, 200);
+		if(!result)
+		{
+			return false;
+		}
 
-		//result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[3].GetIndexCount(), 
-		//	&worldBaseViewOrthoProj, lightRT->SRView);
-		//if(!result)
-		//{
-		//	return false;
-		//}
+		result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[3].GetIndexCount(), 
+			&worldBaseViewOrthoProj, lightRT->SRView);
+		if(!result)
+		{
+			return false;
+		}
 
-		//result = debugWindows[4].Render(d3D->GetDeviceContext(), 800, 0);
-		//if(!result)
-		//{
-		//	return false;
-		//}
+		result = debugWindows[4].Render(d3D->GetDeviceContext(), 800, 0);
+		if(!result)
+		{
+			return false;
+		}
 
-		//result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[4].GetIndexCount(), 
-		//	&worldBaseViewOrthoProj, shadowRT->SRView);
-		//if(!result)
-		//{
-		//	return false;
-		//}
+		result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[4].GetIndexCount(), 
+			&worldBaseViewOrthoProj, shadowRT->SRView);
+		if(!result)
+		{
+			return false;
+		}
 
-		//result = debugWindows[5].Render(d3D->GetDeviceContext(), 400, 200);
-		//if(!result)
-		//{
-		//	return false;
-		//}
+		result = debugWindows[5].Render(d3D->GetDeviceContext(), 400, 200);
+		if(!result)
+		{
+			return false;
+		}
 
-		//result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[5].GetIndexCount(), 
-		//	&worldBaseViewOrthoProj, lSystemSRV);
-		//if(!result)
-		//{
-		//	return false;
-		//}
+		result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[5].GetIndexCount(), 
+			&worldBaseViewOrthoProj, lSystemSRV);
+		if(!result)
+		{
+			return false;
+		}
 
 		d3D->TurnZBufferOff();
 

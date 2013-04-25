@@ -52,18 +52,24 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 	float3 XZCoord;
 	float3 XYCoord;
 
-	if(input.WorldPosition.y <= 25.0f)
+	float4 XZColor;
+	float4 YZColor;
+	float4 XYColor;
+
+	float worldPosY = input.WorldPosition.y;
+
+	if(worldPosY <= 25.0f)
 	{
 		YZCoord = float3(input.WorldPosition.yz * scale, 2.0f);  
-		XZCoord = float3(input.WorldPosition.zx * scale, 2.0f);  
+		XZCoord = float3(input.WorldPosition.xz * scale, 2.0f);  
 		XYCoord = float3(input.WorldPosition.xy * scale, 2.0f);
 
 		output.Normal.w = EncodeMaterialID(0.0f); //Set and save material to underground
 	}
-	else if(input.WorldPosition.y <= 45.0f)
+	else if(worldPosY <= 45.0f)
 	{
 		YZCoord = float3(input.WorldPosition.yz * scale, 2.0f);  
-		XZCoord = float3(input.WorldPosition.zx * scale, 1.0f);  
+		XZCoord = float3(input.WorldPosition.xz * scale, 1.0f);  
 		XYCoord = float3(input.WorldPosition.xy * scale, 2.0f);
 
 		output.Normal.w = EncodeMaterialID(0.0f); //Set and save material to grass
@@ -71,24 +77,39 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 	else
 	{
 		YZCoord = float3(input.WorldPosition.yz * scale, 2.0f);  
-		XZCoord = float3(input.WorldPosition.zx * scale, 4.0f);  
+		XZCoord = float3(input.WorldPosition.xz * scale, 4.0f);  
 		XYCoord = float3(input.WorldPosition.xy * scale, 2.0f);
 		
-		output.Normal.w = EncodeMaterialID(2.0f); //Set and save material to snow
+		output.Normal.w = EncodeMaterialID(0.0f); //Set and save material to snow
 	}
 
 	if(dotResult <= 0.1f) //If surface is facing downwards
 	{
 		XZCoord.z = 2.0f; //Then change surface texture to rock.
-
-		//Ass. Empty comment.
 		
-		output.Normal.w = EncodeMaterialID(0.0f); //Set and save material to rock
+		//Set and save material to .. grass... Temporary material change until we get it tweaked properly
+		output.Normal.w = EncodeMaterialID(0.0f); 
 	}
 
-	float4 XZColor = shaderTextures.Sample(textureSampler, XZCoord);
-	float4 YZColor = shaderTextures.Sample(textureSampler, YZCoord);
-	float4 XYColor = shaderTextures.Sample(textureSampler, XYCoord);
+	//We want to have a transitional phase between snow and grass.
+	if(worldPosY >= 45.0f && worldPosY <= 46.0f)
+	{
+		float lerpModifier = (input.WorldPosition.y - 45.0f); //Meaning it goes from 0.0f to 1.0f
+		float3 grassCoords = float3(input.WorldPosition.xz * scale, 1.0f);
+		float3 snowCoords = float3(input.WorldPosition.xz * scale, 4.0f);
+
+		YZColor = shaderTextures.Sample(textureSampler, YZCoord);
+		XZColor = lerp(shaderTextures.Sample(textureSampler, grassCoords), shaderTextures.Sample(textureSampler, snowCoords), lerpModifier);
+		XYColor = shaderTextures.Sample(textureSampler, XYCoord);
+
+		output.Normal.w = EncodeMaterialID(0.0f);
+	}
+	else
+	{
+		YZColor = shaderTextures.Sample(textureSampler, YZCoord);
+		XZColor = shaderTextures.Sample(textureSampler, XZCoord);
+		XYColor = shaderTextures.Sample(textureSampler, XYCoord);
+	}
 	
 	output.Color = ((XZColor * blend_weights.y) + (YZColor * blend_weights.x) + (XYColor * blend_weights.z));
 	output.Color.w = 1.0f;
