@@ -81,17 +81,14 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 
 
 
-	int vegetationTextureCount = 8;
-	WCHAR* vegetationFilenames[8] = 
+	int vegetationTextureCount = 5;
+	WCHAR* vegetationFilenames[5] = 
 	{
 		L"../Engine/data/Vegetation/yellowGrassQuad.dds",
 		L"../Engine/data/Vegetation/greenGrassQuad.dds",
 		L"../Engine/data/Vegetation/leafbranch.dds",
-		L"../Engine/data/Vegetation/greenGrassQuad.dds",
-		L"../Engine/data/Vegetation/greenGrassQuad.dds",
-		L"../Engine/data/Vegetation/greenGrassQuad.dds",
 		L"../Engine/data/Vegetation/flower.dds",
-		L"../Engine/data/Vegetation/greenGrassQuad.dds"
+		L"../Engine/data/Vegetation/bush.dds"
 	};
 
 	hResult = Build2DTextureArray(device, deviceContext, vegetationFilenames, vegetationTextureCount, 

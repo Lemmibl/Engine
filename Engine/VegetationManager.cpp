@@ -43,7 +43,7 @@ bool VegetationManager::SetupQuads( ID3D11Device* device, std::vector<XMFLOAT4>*
 		return false;
 	}
 
-	if(!BuildIndexBuffer(device, positions))
+	if(!BuildInstanceBuffer(device, positions))
 	{
 		return false;
 	}
@@ -234,7 +234,7 @@ bool VegetationManager::BuildVertexBuffer( ID3D11Device* device )
 	return true;
 }
 
-bool VegetationManager::BuildIndexBuffer( ID3D11Device* device, std::vector<XMFLOAT4>* positions )
+bool VegetationManager::BuildInstanceBuffer( ID3D11Device* device, std::vector<XMFLOAT4>* positions )
 {
 	InstanceType* instances;
 	D3D11_BUFFER_DESC instanceBufferDesc;

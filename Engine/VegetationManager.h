@@ -33,7 +33,7 @@ public:
 	inline int GetVertexCount()		{	return vertexCount;		}
 	inline int GetInstanceCount()	{	return instanceCount;	}
 
-	bool BuildIndexBuffer(ID3D11Device* device, std::vector<XMFLOAT4>* positions);
+	bool BuildInstanceBuffer(ID3D11Device* device, std::vector<XMFLOAT4>* positions);
 
 private:
 	bool BuildVertexBuffer(ID3D11Device* device);

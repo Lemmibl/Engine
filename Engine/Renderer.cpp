@@ -408,7 +408,7 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 	}
 
 	float x,z,y;
-	int k;
+	int k, randValue;
 
 	LODVector10000.reserve(10000);
 	LODVector5000.reserve(5000);
@@ -422,33 +422,76 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 
 		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate((int)x, (int)z);
 
+		randValue = rand()%100;
+
+		//If we are above "snow level", we only want yellow grass
 		if(y >= 45.0f)
 		{
-			k = 0;
+			//But the grass should be sparse, so there is
+			//95% chance that we won't actually add this to the instance list.
+			if(randValue >= 95)
+			{
+				k = 0;
+
+				XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z,k);
+
+				if(i <= 500)
+				{
+					LODVector500.push_back(temp);
+				}
+
+				if(i <= 2500)
+				{
+					LODVector2500.push_back(temp);
+				}
+
+				if(i <= 5000)
+				{
+					LODVector5000.push_back(temp);
+				}
+
+				LODVector10000.push_back(temp);
+			}
 		}
 		else
 		{
-			k = 1 + rand()%7;
+			if(randValue <= 10)
+			{
+				k = 2; //Some kind of leaf branch that I've turned into a plant quad.
+			}
+			else if(randValue <= 96)
+			{
+				k = 1; //Normal grass.
+			}
+			else if(randValue <= 98)
+			{
+				k = 4; //Bush.
+			}
+			else //If 100.
+			{
+				k = 3; //Flower.
+			}
+
+
+			XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z,k);
+
+			if(i <= 500)
+			{
+				LODVector500.push_back(temp);
+			}
+
+			if(i <= 2500)
+			{
+				LODVector2500.push_back(temp);
+			}
+
+			if(i <= 5000)
+			{
+				LODVector5000.push_back(temp);
+			}
+
+			LODVector10000.push_back(temp);
 		}
-
-		XMFLOAT4 temp = XMFLOAT4(x, y, z,k);
-
-		if(i <= 500)
-		{
-			LODVector500.push_back(temp);
-		}
-
-		if(i <= 2500)
-		{
-			LODVector2500.push_back(temp);
-		}
-
-		if(i <= 5000)
-		{
-			LODVector5000.push_back(temp);
-		}
-
-		LODVector10000.push_back(temp);
 	}
 
 	vegetationManager->SetupQuads(device, &LODVector500);
@@ -684,6 +727,112 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		}
 	}
 
+	if(inputManager->IsKeyPressed(DIK_1))
+	{
+		seconds = timeOfDay += frameTime*2.0f;
+	}
+
+	//Empty comment to be able to commit.
+
+	if(inputManager->WasKeyPressed(DIK_N))
+	{
+		previousLodState = 0; //We set previous lod state to something != lodState so that it'll trigger an instancebuffer rebuild
+		lodState = 3;
+
+		LODVector500.clear();
+		LODVector2500.clear();
+		LODVector5000.clear();
+		LODVector10000.clear();
+
+		marchingCubes->Reset();
+		marchingCubes->GetTerrain()->Noise3D();
+		marchingCubes->CalculateMesh(d3D->GetDevice());
+
+		float x,z,y;
+		int k, randValue;
+
+		for(int i = 0; i < 10000; i++)
+		{
+			x = (2.0f + (utility->RandomFloat() * 56.0f));
+			z = (2.0f + (utility->RandomFloat() * 56.0f));
+
+			y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate((int)x, (int)z);
+
+			randValue = rand()%100;
+
+			//If we are above "snow level", we only want yellow grass
+			if(y >= 45.0f)
+			{
+				//But the grass should be sparse, so there is
+				//95% chance that we won't actually add this to the instance list.
+				if(randValue >= 95)
+				{
+					k = 0;
+
+					XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z,k);
+
+					if(i <= 500)
+					{
+						LODVector500.push_back(temp);
+					}
+
+					if(i <= 2500)
+					{
+						LODVector2500.push_back(temp);
+					}
+
+					if(i <= 5000)
+					{
+						LODVector5000.push_back(temp);
+					}
+
+					LODVector10000.push_back(temp);
+				}
+			}
+			else
+			{
+				if(randValue <= 10)
+				{
+					k = 2; //Some kind of leaf branch that I've turned into a plant quad.
+				}
+				else if(randValue <= 96)
+				{
+					k = 1; //Normal grass.
+				}
+				else if(randValue <= 98)
+				{
+					k = 4; //Bush.
+				}
+				else //If 100.
+				{
+					k = 3; //Flower.
+				}
+
+
+				XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z,k);
+
+				if(i <= 500)
+				{
+					LODVector500.push_back(temp);
+				}
+
+				if(i <= 2500)
+				{
+					LODVector2500.push_back(temp);
+				}
+
+				if(i <= 5000)
+				{
+					LODVector5000.push_back(temp);
+				}
+
+				LODVector10000.push_back(temp);
+			}
+		}
+
+		vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector500);
+	}
+
 	//Distance between camera and middle of mcube chunk. We'll have to do this for each chunk, and keep an individual lodState for each chunk.
 	if(timer >= 0.5f)
 	{
@@ -709,88 +858,26 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		timer = 0.0f;
 	}
 
-
+	//If the lod state has changed since last update, switch and rebuild vegetation instance buffers
 	if(lodState != previousLodState)
 	{
 		switch (lodState)
 		{
 		case 0:
-			vegetationManager->BuildIndexBuffer(d3D->GetDevice(), &LODVector500);
+			vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector500);
 			break;
 
 		case 1:
-			vegetationManager->BuildIndexBuffer(d3D->GetDevice(), &LODVector2500);
+			vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector2500);
 			break;
 
 		case 2:
-			vegetationManager->BuildIndexBuffer(d3D->GetDevice(), &LODVector5000);
+			vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector5000);
 			break;
 
 		case 3:
-			vegetationManager->BuildIndexBuffer(d3D->GetDevice(), &LODVector10000);
+			vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector10000);
 		}
-	}
-
-	if(inputManager->IsKeyPressed(DIK_1))
-	{
-		seconds = timeOfDay += frameTime*2.0f;
-	}
-
-	//Empty comment to be able to commit.
-
-	if(inputManager->WasKeyPressed(DIK_N))
-	{
-		lodState = 3;
-
-		LODVector500.clear();
-		LODVector2500.clear();
-		LODVector5000.clear();
-		LODVector10000.clear();
-
-		marchingCubes->Reset();
-		marchingCubes->GetTerrain()->Noise3D();
-		marchingCubes->CalculateMesh(d3D->GetDevice());
-
-		float x,z,y;
-		int k;
-
-		for(int i = 0; i < 10000; i++)
-		{
-			x = (2.0f + (utility->RandomFloat() * 56.0f));
-			z = (2.0f + (utility->RandomFloat() * 56.0f));
-
-			y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate((int)x, (int)z);
-
-			if(y >= 45.0f)
-			{
-				k = 0;
-			}
-			else
-			{
-				k = 1 + rand()%7;
-			}
-
-			XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z,k);
-
-			if(i <= 500)
-			{
-				LODVector500.push_back(temp);
-			}
-
-			if(i <= 2500)
-			{
-				LODVector2500.push_back(temp);
-			}
-
-			if(i <= 5000)
-			{
-				LODVector5000.push_back(temp);
-			}
-
-			LODVector10000.push_back(temp);
-		}
-
-		vegetationManager->BuildIndexBuffer(d3D->GetDevice(), &LODVector500);
 	}
 
 	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
