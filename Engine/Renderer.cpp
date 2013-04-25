@@ -739,6 +739,8 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 	if(inputManager->WasKeyPressed(DIK_N))
 	{
+		lodState = 3;
+
 		LODVector500.clear();
 		LODVector2500.clear();
 		LODVector5000.clear();
