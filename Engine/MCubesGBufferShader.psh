@@ -80,6 +80,8 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 	if(dotResult <= 0.1f) //If surface is facing downwards
 	{
 		XZCoord.z = 2.0f; //Then change surface texture to rock.
+
+		//Ass. Empty comment.
 		
 		output.Normal.w = EncodeMaterialID(0.0f); //Set and save material to rock
 	}
