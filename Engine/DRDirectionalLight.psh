@@ -128,6 +128,9 @@ float ShadowContribution(float2 lightTexCoord, float distanceToLight)
 
 float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 {
+	//http://gamedev.stackexchange.com/questions/29447/could-someone-explain-why-my-world-reconstructed-from-depth-position-is-incorrec
+
+
 	float ambienceCoefficient, diffuseCoefficient, specularCoefficient, surfaceSmoothness;
 	bool recieveShadows;
 
