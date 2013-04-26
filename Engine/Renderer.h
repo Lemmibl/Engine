@@ -75,7 +75,9 @@ public:
 	bool InitializeModels(HWND hwnd, ID3D11Device* device);
 	void Shutdown();
 	void CreateRandom2DTexture();
-	void CreateTree2DTexture();
+	
+	void CreateSimplex2DTexture();
+	void CreateMirroredSimplex2DTexture();
 
 	bool Update(int, int, float, float seconds);
 	bool Render();

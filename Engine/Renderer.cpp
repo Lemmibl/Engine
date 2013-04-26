@@ -573,7 +573,7 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 	CreateRandom2DTexture();
 
 	noise = new SimplexNoise();
-	CreateTree2DTexture();
+	CreateSimplex2DTexture();
 
 	dayNightCycle = new DayNightCycle();
 	if(!dayNightCycle)
@@ -703,7 +703,11 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 	//}
 	if(inputManager->WasKeyPressed(DIK_O))
 	{
-		CreateTree2DTexture();
+		CreateSimplex2DTexture();
+	}
+	if(inputManager->WasKeyPressed(DIK_I))
+	{
+		CreateMirroredSimplex2DTexture();
 	}
 
 	if(inputManager->WasKeyPressed(DIK_P))
@@ -1471,7 +1475,7 @@ void Renderer::CreateRandom2DTexture()
 		pixelData, textureWidth, textureHeight, &lSystemSRV);
 }
 
-void Renderer::CreateTree2DTexture()
+void Renderer::CreateSimplex2DTexture()
 {
 	int textureWidth, textureHeight,i,x,y;
 	textureWidth = 512;
@@ -1498,9 +1502,9 @@ void Renderer::CreateTree2DTexture()
 			}
 					
 
-			float firstIteration = noise->noise3D2(x*0.01f,y*0.01f, 10.0f)*255;
-			float seccondIteration = noise->noise3D2(x*0.001f,y*0.001f, 30.0f)*255;
-			float thirdIteration = noise->noise3D2(x*0.0005f,y*0.0005f, 45.0f)*255;
+			float firstIteration = noise->noise3D2(x*0.01f,y*0.01f, 10.0f)*512;
+			float seccondIteration = noise->noise3D2(x*0.001f,y*0.001f, 30.0f)*512;
+			float thirdIteration = noise->noise3D2(x*0.0005f,y*0.0005f, 45.0f)*512;
 
 			pixelData[i].x = (int)(firstIteration + seccondIteration + thirdIteration);
 			pixelData[i].y = (int)(firstIteration + seccondIteration + thirdIteration);
@@ -1514,3 +1518,36 @@ void Renderer::CreateTree2DTexture()
 	textureAndMaterialHandler->Build2DTextureProgrammatically(d3D->GetDevice(), d3D->GetDeviceContext(), 
 		pixelData, textureWidth, textureHeight, &lSystemSRV);
 }
+void Renderer::CreateMirroredSimplex2DTexture()
+{
+	int textureWidth, textureHeight,i,x,y;
+	textureWidth = 512;
+	textureHeight = 512;
+	i = 0;
+	PixelData* pixelData = new PixelData[textureWidth*textureHeight]();
+	noise->~SimplexNoise();
+	noise = new SimplexNoise();
+	for(int yCounter = 0; yCounter < textureHeight; yCounter++)
+	{
+		for(int xCounter = 0; xCounter < textureWidth; xCounter++)
+		{
+			y = yCounter;
+			x = xCounter;	
+
+			float firstIteration = noise->noise3D2(x*0.01f,y*0.01f, 10.0f)*512;
+			float seccondIteration = noise->noise3D2(x*0.001f,y*0.001f, 30.0f)*512;
+			float thirdIteration = noise->noise3D2(x*0.0005f,y*0.0005f, 45.0f)*512;
+
+			pixelData[i].x = (int)(firstIteration + seccondIteration + thirdIteration);
+			pixelData[i].y = (int)(firstIteration + seccondIteration + thirdIteration);
+			pixelData[i].z = (int)(firstIteration + seccondIteration + thirdIteration);
+			pixelData[i].w = 1; //Alpha.
+
+			i++;
+		}
+	}
+
+	textureAndMaterialHandler->Build2DTextureProgrammatically(d3D->GetDevice(), d3D->GetDeviceContext(), 
+		pixelData, textureWidth, textureHeight, &lSystemSRV);
+}
+
