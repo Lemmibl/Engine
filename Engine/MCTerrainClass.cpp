@@ -126,7 +126,7 @@ void MCTerrainClass::Noise3D()
 				idx = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
 
 
-				density = 1 + sizeY * 0.4f - y;
+				density = 1 + sizeY * 0.6f - y;
 				/*density += (noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/260,marchingCubeVertices[idx].posZ/20) + 1.0f) *4.0f;
 				density += (noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/260,marchingCubeVertices[idx].posZ/20) + 1.0f) *2.0f;
 				density += (noise->noise3D2(this->marchingCubeVertices[idx].posX/30,marchingCubeVertices[idx].posY/30,marchingCubeVertices[idx].posZ/30) + 1.0f) *2.0f;
@@ -267,7 +267,21 @@ void MCTerrainClass::Noise3D()
 					this->marchingCubeVertices[idx].inside = false;
 				}
 
-				this->densityArray1D[idx] = this->marchingCubeVertices[idx].density;
+				if(this->marchingCubeVertices[idx].density < 0)
+				{
+					this->densityArray1D[idx] = 0 ;
+				}
+				else if(this->marchingCubeVertices[idx].density > 1)
+				{
+					this->densityArray1D[idx] = 1;
+				}
+				else
+				{
+					this->densityArray1D[idx] = this->marchingCubeVertices[idx].density;
+				}
+				
+				
+				
 				densityArray3D[z][y][x] = this->marchingCubeVertices[idx].density;
 
 
@@ -278,12 +292,20 @@ void MCTerrainClass::Noise3D()
 }
 
 
+//void MCTerrainClass::CreateMCVerts()
+//{
+//	this->marchingCubeVertices[idx].normalX = this->marchingCubeVertices[idx - 1].density/2 - this->marchingCubeVertices[idx+1].density;
+//	this->marchingCubeVertices[idx].normalY = this->marchingCubeVertices[idx - this->sizeY].density - this->marchingCubeVertices[idx + this->sizeY].density;
+//	this->marchingCubeVertices[idx].normalZ = this->marchingCubeVertices[idx - (this->sizeY * this->sizeZ)].density - this->marchingCubeVertices[idx + (this->sizeY * this->sizeZ)].density;
+//}
 void MCTerrainClass::CreateMCVerts()
 {
 
-	this->marchingCubeVertices[idx].normalX = this->marchingCubeVertices[idx - 1].density/2 - this->marchingCubeVertices[idx+1].density;
-	this->marchingCubeVertices[idx].normalY = this->marchingCubeVertices[idx - this->sizeY].density - this->marchingCubeVertices[idx + this->sizeY].density;
-	this->marchingCubeVertices[idx].normalZ = this->marchingCubeVertices[idx - (this->sizeY * this->sizeZ)].density - this->marchingCubeVertices[idx + (this->sizeY * this->sizeZ)].density;
+
+
+	this->marchingCubeVertices[idx].normalX = this->densityArray1D[idx - 1]/2 - this->densityArray1D[idx+1];
+	this->marchingCubeVertices[idx].normalY = this->densityArray1D[idx - this->sizeY] - this->densityArray1D[idx + this->sizeY];
+	this->marchingCubeVertices[idx].normalZ = this->densityArray1D[idx - (this->sizeY * this->sizeZ)] - this->densityArray1D[idx + (this->sizeY * this->sizeZ)];
 }
 
 float MCTerrainClass::GetHighestPositionOfCoordinate(int x, int z)
