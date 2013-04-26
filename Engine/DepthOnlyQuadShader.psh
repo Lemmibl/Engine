@@ -30,7 +30,7 @@ half2 ComputeMoments(float depth)
 
 half2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 {
-	if(0.7f >= shaderTexture.Sample(SampleType, input.TexCoord.xyz).w)
+	if(0.2f >= shaderTexture.Sample(SampleType, input.TexCoord.xyz).w)
 	{
 		discard;
 	}

@@ -361,7 +361,7 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 	XMStoreFloat3(&dirLight->Direction, direction);
 
 	//XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(((float)D3DX_PI/2.0f), 1.0f, 10.0f, 300.0f)); //Generate perspective light projection matrix and store it as float4x4
-	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(180.0f, 180.0f, 10.0f, 200.0f)); //Generate orthogonal light projection matrix and store it as float4x4
+	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(40.0f, 40.0f, 1.0f, 100.0f)); //Generate orthogonal light projection matrix and store it as float4x4
 
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix and store it as float4x4.
 #pragma endregion
@@ -880,11 +880,11 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		}
 	}
 
-	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
+	//timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
 
-	XMVECTOR lookAt = XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//(camera->ForwardVector()*30.0f)+XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//
+	XMVECTOR lookAt = (camera->ForwardVector()*30.0f)+XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
-	XMVECTOR currentLightPos = XMLoadFloat3(&dirLight->Position)+XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition())-(camera->ForwardVector()*30.0f);//+XMLoadFloat3(&camera->GetPosition())//XMLoadFloat3(&dirLight->Position)+
+	XMVECTOR currentLightPos = XMLoadFloat3(&camera->GetPosition())-(camera->ForwardVector()*30.0f);//XMLoadFloat3(&dirLight->Position)+XMLoadFloat3(&camera->GetPosition());//+XMLoadFloat3(&camera->GetPosition())//XMLoadFloat3(&dirLight->Position)+
 
 	XMStoreFloat3(&dirLight->Direction, XMVector3Normalize((lookAt - currentLightPos)));//XMLoadFloat3(&dirLight->Position)
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(currentLightPos, lookAt, up)); //Generate light view matrix
@@ -1021,13 +1021,13 @@ bool Renderer::Render()
 		return false;
 	}
 
-	//d3D->TurnOnShadowBlendState();
-	//vegetationManager->RenderBuffers(context);
+	d3D->TurnOnShadowBlendState();
+	vegetationManager->RenderBuffers(context);
 
-	//depthOnlyQuadShader->Render(context, vegetationManager->GetVertexCount(), vegetationManager->GetInstanceCount(),
-	//	&lightWorldViewProj, textureAndMaterialHandler->GetVegetationTextureArray());
+	depthOnlyQuadShader->Render(context, vegetationManager->GetVertexCount(), vegetationManager->GetInstanceCount(),
+		&lightWorldViewProj, textureAndMaterialHandler->GetVegetationTextureArray());
 
-	//d3D->ResetBlendState();
+	d3D->ResetBlendState();
 
 #pragma endregion
 
@@ -1488,22 +1488,25 @@ void Renderer::CreateTree2DTexture()
 			x = xCounter;
 
 			if(y < 0)
+			{
 				y *= -1;
+			}
+
 			if(x < 0)
+			{
 				x *= -1;
+			}
+					
 
 			float firstIteration = noise->noise3D2(x*0.01f,y*0.01f, 10.0f)*255;
 			float seccondIteration = noise->noise3D2(x*0.001f,y*0.001f, 30.0f)*255;
 			float thirdIteration = noise->noise3D2(x*0.0005f,y*0.0005f, 45.0f)*255;
 
+			pixelData[i].x = (int)(firstIteration + seccondIteration + thirdIteration);
+			pixelData[i].y = (int)(firstIteration + seccondIteration + thirdIteration);
+			pixelData[i].z = (int)(firstIteration + seccondIteration + thirdIteration);
+			pixelData[i].w = 1; //Alpha.
 
-				pixelData[i].x = (int)(firstIteration + seccondIteration + thirdIteration);
-				pixelData[i].y = (int)(firstIteration + seccondIteration + thirdIteration);
-				pixelData[i].z = (int)(firstIteration + seccondIteration + thirdIteration);
-				pixelData[i].w = 1; //Alpha.
-
-				
-		
 			i++;
 		}
 	}

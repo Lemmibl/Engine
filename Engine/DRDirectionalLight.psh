@@ -88,7 +88,7 @@ float ReduceLightBleeding(float p_max, float amount)
 //Calculate shadow contribution using chevyshev's inequality.
 float ChebyshevUpperBound(float2 moments, float t)  
 {
-	float minVariance = 0.002f; //Scaling value.
+	float minVariance = 0.02f; //Scaling value.
 
 	// Compute variance.  
 	float variance = moments.y - (moments.x*moments.x);
@@ -130,9 +130,8 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 {
 	//http://gamedev.stackexchange.com/questions/29447/could-someone-explain-why-my-world-reconstructed-from-depth-position-is-incorrec
 
-
 	float ambienceCoefficient, diffuseCoefficient, specularCoefficient, surfaceSmoothness;
-	bool recieveShadows = false;
+	bool recieveShadows = false; //Used to combat self-shadowing.
 
 	//I pre-declare all values so that I can still return the same variables if we break before light calculations. 
 	//It's neater this way.
@@ -207,6 +206,11 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	{
 		/*Variance shadow mapping. http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html */
 		shadowMultiplier = ShadowContribution(sampleLightScreen, realDistanceToLight);
+
+		if(shadowMultiplier <= 0.8f)
+		{
+			shadowMultiplier = 0.01f;
+		}
 
 		//Reflection vector
 		float3 reflectionVector = normalize(reflect(lightVector, normal));

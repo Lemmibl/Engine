@@ -32,18 +32,21 @@ private:
 	}
 
 private:
-	StageOfDay currentStageOfDay;
+	StageOfDay currentStageOfDay, previousFrameStageOfDay;
 	float timePerStage, elapsedTime;
 
 	XMFLOAT4 directionalLightDayColor;
 	XMFLOAT4 directionalLightNightColor;
+
+	XMFLOAT4 ambientDayColor;
+	XMFLOAT4 ambientNightColor;
 
 	XMFLOAT4 skysphereDawnColor;
 	XMFLOAT4 skysphereDayColor;
 	XMFLOAT4 skysphereDuskColor;
 	XMFLOAT4 skysphereNightColor;
 
-	XMFLOAT3* startAndEndPositions;
+	vector<XMFLOAT3> startAndEndPositions;
 
 	float timeOfDay, shouldLightMove;
 

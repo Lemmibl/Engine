@@ -143,8 +143,6 @@ void MCTerrainClass::Noise3D()
 				density -= (noise->noise3D2(this->marchingCubeVertices[idx].posX/30,marchingCubeVertices[idx].posY/30,marchingCubeVertices[idx].posZ/300) + 1.0f) *10.0f;
 				***/
 
-
-
 				density += (noise->noise3D2(this->marchingCubeVertices[idx].posX/80,marchingCubeVertices[idx].posY/320,marchingCubeVertices[idx].posZ/80) + 1.0f) *5.0f;
 				density += (noise->noise3D2(this->marchingCubeVertices[idx].posX/80,marchingCubeVertices[idx].posY/20,marchingCubeVertices[idx].posZ/80) + 1.0f) *2.0f;
 				density += (noise->noise3D2(this->marchingCubeVertices[idx].posX/120,marchingCubeVertices[idx].posY/20,marchingCubeVertices[idx].posZ/120) + 1.0f) *5.0f;
@@ -156,7 +154,7 @@ void MCTerrainClass::Noise3D()
 				//	density += 40.0f;
 				//}
 
-				///Toplvl
+				//Toplvl
 
 				/*
 				if(y > 10)
@@ -174,8 +172,8 @@ void MCTerrainClass::Noise3D()
 				if(y > 25)
 				{
 				density -= 7.0f;
-				}*/
-				
+				}
+				*/		
 
 				//density -= (noise->noise3D2(this->marchingCubeVertices[idx].posX/230,marchingCubeVertices[idx].posY/30,marchingCubeVertices[idx].posZ/30) + 1.0f) *5.0f;
 				//density += (noise->noise3D2(this->marchingCubeVertices[idx].posX/120,marchingCubeVertices[idx].posY/20,marchingCubeVertices[idx].posZ/120) + 1.0f) *5.0f;
@@ -203,18 +201,15 @@ void MCTerrainClass::Noise3D()
 				/*if(r<0)
 				{density = 0.0f;}*/
 
-
 				//density *= 1000 *3;
 
-
-
-				if (density<-2)
+				if(density < -2)
 				{
-				density = -2;
+					density = -2;
 				}
-				else if (density>2)
+				else if (density > 2)
 				{
-				density = 2;
+					density = 2;
 				}
 
 				this->marchingCubeVertices[idx].density = density;
@@ -227,10 +222,6 @@ void MCTerrainClass::Noise3D()
 				{
 					minDensity = density;
 				}
-
-
-
-
 			}
 		}
 	}
@@ -256,12 +247,12 @@ void MCTerrainClass::Noise3D()
 			for (x = 1; x < (this->sizeX -1); x++)
 			{
 				idx = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
-
-				
+		
 				if (this->marchingCubeVertices[idx].density > densityToBeInside)
 				{
 					this->marchingCubeVertices[idx].density = (this->marchingCubeVertices[idx].density ) * densityRangeUpper;
 				}
+
 				if (this->marchingCubeVertices[idx].density < densityToBeInside)
 				{
 					this->marchingCubeVertices[idx].density = (this->marchingCubeVertices[idx].density ) * densityRangeLower;
