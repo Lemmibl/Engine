@@ -47,10 +47,17 @@ SimplexNoise::SimplexNoise(void)
 	}
 }
 
-
-static int fastfloor(float x)
+void SimplexNoise::ReseedRandom()
 {
-	return x>0 ? (int)x : (int)x-1;
+	for(int i=0; i<256; i++)
+	{
+		p[i] = 1 + (rand() % 10);
+	}
+
+	for(int i=0; i<512; i++)
+	{
+		perm[i] = p[i & 255];
+	}
 }
 
 SimplexNoise::~SimplexNoise(void)

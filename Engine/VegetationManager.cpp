@@ -120,8 +120,6 @@ bool VegetationManager::BuildVertexBuffer( ID3D11Device* device )
 	D3D11_SUBRESOURCE_DATA vertexData;
 	HRESULT result;
 
-	//TODO: http://stackoverflow.com/questions/9806630/calculating-the-vertex-normals-of-a-quad
-
 #pragma region Setting up the vertices
 
 	// Set the number of vertices in the vertex array.
@@ -134,9 +132,30 @@ bool VegetationManager::BuildVertexBuffer( ID3D11Device* device )
 		return false;
 	}
 
+	/*
+	http://stackoverflow.com/questions/9806630/calculating-the-vertex-normals-of-a-quad
+
+	If you have this -
+
+	v1        v2
+	+---------+
+	|         | 
+	|         |
+	+---------+
+	v3        v4
+
+	Where v1..v4 are the vertices of your quad then to calculate the normal at v1 you should calculate the vectors along the two edges it is on, and then calculate the cross product of those vertices.
+
+	So, the normal at v1 is
+
+	CrossProduct((v2-v1), (v3-v1))
+	You can repeat this for each vertex, although they will all be the same if the quad is "flat"
+	*/
+
+
 	XMFLOAT2 quad1Left, quad1Right;
-	quad1Left = XMFLOAT2(-0.6f, -0.2f);
-	quad1Right = XMFLOAT2(0.5f, 0.0f);
+	quad1Left = XMFLOAT2(0.5f, 0.0f);
+	quad1Right = XMFLOAT2(-0.6f, -0.2f);
 
 	XMFLOAT2 quad2Left, quad2Right;
 	quad2Left = XMFLOAT2(0.0f, -0.7f);
@@ -145,6 +164,8 @@ bool VegetationManager::BuildVertexBuffer( ID3D11Device* device )
 	XMFLOAT2 quad3Left, quad3Right;
 	quad3Left = XMFLOAT2(-0.45f, 0.15f);
 	quad3Right = XMFLOAT2(0.35f, -0.6f);
+
+	int i = 0;
 
 	//Quad #1
 	vertices[0].position = XMFLOAT3(quad1Left.x, 0.0f, quad1Left.y);  // Bottom left.
@@ -165,6 +186,16 @@ bool VegetationManager::BuildVertexBuffer( ID3D11Device* device )
 	vertices[5].position = XMFLOAT3(quad1Right.x, 1.0f, quad1Right.y);  // Top right.
 	vertices[5].texCoord = XMFLOAT2(1.0f, 0.0f);
 
+	//The quad is "straight" so we'll only need to calculate normal once to know all of the normals
+	XMFLOAT3 vertexNormal = CalculateVertexNormals(vertices[1].position, vertices[2].position, vertices[0].position);
+	vertices[0].normal = vertexNormal;
+	vertices[1].normal = vertexNormal;
+	vertices[2].normal = vertexNormal;
+	vertices[3].normal = vertexNormal;
+	vertices[4].normal = vertexNormal;
+	vertices[5].normal = vertexNormal;
+
+	i += 6;
 
 	//Quad #2
 	vertices[6].position = XMFLOAT3(quad2Left.x, 0.0f, quad2Left.y);  // Bottom left.
@@ -185,7 +216,17 @@ bool VegetationManager::BuildVertexBuffer( ID3D11Device* device )
 	vertices[11].position = XMFLOAT3(quad2Right.x, 1.0f, quad2Right.y);  // Top right.
 	vertices[11].texCoord = XMFLOAT2(1.0f, 0.0f);
 
+	//I use i+=6 cuz I'm lazy.
+	vertexNormal = CalculateVertexNormals(vertices[1+i].position, vertices[2+i].position, vertices[0+i].position);
+	vertices[0+i].normal = vertexNormal;
+	vertices[1+i].normal = vertexNormal;
+	vertices[2+i].normal = vertexNormal;
+	vertices[3+i].normal = vertexNormal;
+	vertices[4+i].normal = vertexNormal;
+	vertices[5+i].normal = vertexNormal;
 
+	i += 6;
+	
 	//Quad #3
 	vertices[12].position = XMFLOAT3(quad3Left.x, 0.0f, quad3Left.y);  // Bottom left.
 	vertices[12].texCoord = XMFLOAT2(0.0f, 1.0f);
@@ -204,6 +245,15 @@ bool VegetationManager::BuildVertexBuffer( ID3D11Device* device )
 
 	vertices[17].position = XMFLOAT3(quad3Right.x, 1.0f, quad3Right.y);  // Top right.
 	vertices[17].texCoord = XMFLOAT2(1.0f, 0.0f);
+
+	//I use i+=6 cuz I'm lazy.
+	vertexNormal = CalculateVertexNormals(vertices[1+i].position, vertices[2+i].position, vertices[0+i].position);
+	vertices[0+i].normal = vertexNormal;
+	vertices[1+i].normal = vertexNormal;
+	vertices[2+i].normal = vertexNormal;
+	vertices[3+i].normal = vertexNormal;
+	vertices[4+i].normal = vertexNormal;
+	vertices[5+i].normal = vertexNormal;
 
 #pragma endregion
 
@@ -282,4 +332,20 @@ bool VegetationManager::BuildInstanceBuffer( ID3D11Device* device, std::vector<X
 	instances = 0;
 
 	return true;
+}
+
+XMFLOAT3 VegetationManager::CalculateVertexNormals( XMFLOAT3 topLeft, XMFLOAT3 topRight, XMFLOAT3 bottomLeft)
+{
+	XMVECTOR v1 = XMLoadFloat3(&topLeft);
+	XMVECTOR v2 = XMLoadFloat3(&topRight);
+	XMVECTOR v3 = XMLoadFloat3(&bottomLeft);
+	XMVECTOR resultVec;
+
+	resultVec = XMVector3Cross((v2-v1), (v3-v1));
+
+	XMFLOAT3 result;
+
+	XMStoreFloat3(&result, resultVec);
+
+	return result;
 }

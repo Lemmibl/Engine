@@ -10,6 +10,7 @@ SamplerState linearSampler;
 struct PixelInputType
 {
 	float4 Position : SV_POSITION;
+	float3 Normal :NORMAL;
 	float4 TexCoord : TEXCOORD0;
 };
 
@@ -28,6 +29,14 @@ float EncodeMaterialID(float id)
 	return (id / 255.0f);
 }
 
+//Normal Encoding Function
+float3 Encode(float3 n)
+{
+	n = 0.5f * (n + 1.0f);
+
+	return n;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Pixel Shader
 ////////////////////////////////////////////////////////////////////////////////
@@ -35,11 +44,17 @@ PixelShaderOutput VegetationQuadPixelShader(PixelInputType input)
 {
 	PixelShaderOutput output;
 
-	output.Color = shaderTexture.Sample(linearSampler, input.TexCoord.xyz); //No branching cuz texture array. Yay.
+	//No branching cuz texture array. Yay. To clarify -- our texCoord.z channel contains texture ID, which we extract from each instance of vegetation.
+	output.Color = shaderTexture.Sample(linearSampler, input.TexCoord.xyz);
+
+	if(output.Color.w <= 0.7) //Alpha testing and tiny optimization for the break-early cases, I guess.
+	{
+		discard;
+	}
 
 	output.Depth = (input.TexCoord.w); //We stored postProj.z/w in TexCoord.z to save one register slot of space.
 
-	output.Normal = (0.5f * float4(0.0f, 1.0f, 0.0f, 1.0f) + 1.0f); //TODO: Change.
+	output.Normal.xyz = Encode(input.Normal); //TODO: Change.
 
 	//This is our material ID. Our normal map is R8G8B8A8 so our alpha channel has 8 bits == 255 possible values.
 	output.Normal.w = EncodeMaterialID(4.0f);

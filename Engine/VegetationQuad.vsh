@@ -6,6 +6,7 @@ cbuffer MatrixBufferType
 struct VertexInputType
 {
 	float4 Position : POSITION;
+	float3 Normal :NORMAL;
 	float2 TexCoord : TEXCOORD0;
 	float4 InstancePosition : TEXCOORD1;
 };
@@ -13,6 +14,7 @@ struct VertexInputType
 struct PixelInputType
 {
 	float4 Position : SV_POSITION;
+	float3 Normal :NORMAL;
 	float4 TexCoord : TEXCOORD0;
 };
 
@@ -31,6 +33,8 @@ PixelInputType VegetationQuadVertexShader(VertexInputType input)
 
 	// Calculate the position of the vertex against the world, view, and projection matrices.
 	output.Position = mul(input.Position, worldViewProjection);
+
+	output.Normal = input.Normal;
 
 	// Store the texture coordinates for the pixel shader.
 	//We've hidden texture ID in instanceposition alpha channel to save a register slot

@@ -40,7 +40,7 @@ public:
 
 	bool Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, HWND hwnd, int screenWidth, int screenHeight);
 	void Shutdown();
-	bool Render(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, XMMATRIX* viewMatrix, XMMATRIX* orthoMatrix);
+	bool Render(ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection);
 
 	bool SetMousePosition(int, int, ID3D11DeviceContext*);
 	bool SetFps(int, ID3D11DeviceContext*);
@@ -56,7 +56,7 @@ private:
 	bool UpdateSentence(SentenceType* sentence, char*, int, int, float, float, float, ID3D11DeviceContext*);
 	void ReleaseSentence(SentenceType**);
 	void ReleaseSentences(vector<SentenceType*> sentences);
-	bool RenderSentence(SentenceType*, ID3D11DeviceContext*, XMMATRIX*, XMMATRIX*, XMMATRIX*);
+	bool RenderSentence(SentenceType*, ID3D11DeviceContext*, XMMATRIX* worldViewProjection);
 
 private:
 	vector<SentenceType*> sentences;

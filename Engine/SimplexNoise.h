@@ -13,12 +13,14 @@ public:
 	float noise2D(float xin, float yin);
 	float noise3D2(float xin, float yin, float zin);
 
+	void ReseedRandom();
+
 	short perm[512];
 	short p[256];
 
 	
 private:
-	int fastfloor(float x) 
+	inline int fastfloor(float x) 
 	{
 		int xi = (int)x;
 		return x < xi ? xi-1 : xi;

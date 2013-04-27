@@ -300,13 +300,13 @@ void TextClass::Shutdown()
 	return;
 }
 
-bool TextClass::Render(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, XMMATRIX* viewMatrix, XMMATRIX* orthoMatrix)
+bool TextClass::Render(ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection)
 {
 	bool result;
 
 	for(std::vector<SentenceType*>::iterator sentence = sentences.begin(); sentence != sentences.end(); sentence++) 
 	{
-		result = RenderSentence(*sentence, deviceContext, worldMatrix, viewMatrix, orthoMatrix);
+		result = RenderSentence(*sentence, deviceContext, worldViewProjection);
 		if(!result)
 		{
 			return false;
@@ -544,7 +544,7 @@ void TextClass::ReleaseSentences(vector<SentenceType*> sentences)
 }
 
 
-bool TextClass::RenderSentence(SentenceType* sentence, ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, XMMATRIX* viewMatrix, XMMATRIX* orthoMatrix)
+bool TextClass::RenderSentence(SentenceType* sentence, ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection)
 {
 	unsigned int stride, offset;
 	XMFLOAT4 pixelColor;
@@ -568,7 +568,7 @@ bool TextClass::RenderSentence(SentenceType* sentence, ID3D11DeviceContext* devi
 	pixelColor = XMFLOAT4(sentence->red, sentence->green, sentence->blue, 1.0f);
 
 	// Render the text using the font shader.
-	result = fontShader->Render(deviceContext, sentence->indexCount, worldMatrix, viewMatrix, orthoMatrix, font->GetTexture(), pixelColor);
+	result = fontShader->Render(deviceContext, sentence->indexCount, worldViewProjection, font->GetTexture(), pixelColor);
 	if(!result)
 	{
 		false;

@@ -47,13 +47,12 @@ void FontShaderClass::Shutdown()
 	return;
 }
 
-bool FontShaderClass::Render( ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, XMMATRIX* viewMatrix, 
-	XMMATRIX* projectionMatrix, ID3D11ShaderResourceView* texture, XMFLOAT4 pixelColor)
+bool FontShaderClass::Render( ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldBaseViewOrthoProj, ID3D11ShaderResourceView* texture, XMFLOAT4 pixelColor)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture, pixelColor);
+	result = SetShaderParameters(deviceContext, worldBaseViewOrthoProj, texture, pixelColor);
 	if(!result)
 	{
 		return false;
@@ -310,8 +309,7 @@ void FontShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hw
 	return;
 }
 
-bool FontShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, 
-	XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, ID3D11ShaderResourceView* texture, XMFLOAT4 pixelColor)
+bool FontShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, ID3D11ShaderResourceView* texture, XMFLOAT4 pixelColor)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -331,9 +329,7 @@ bool FontShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XM
 
 
 	// Copy the matrices into the constant buffer.
-	dataPtr->world = *worldMatrix;
-	dataPtr->view = *viewMatrix;
-	dataPtr->projection = *projectionMatrix;
+	dataPtr->WorldViewProjection = *worldViewProjection;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(constantBuffer, 0);

@@ -433,7 +433,7 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 			{
 				k = 0;
 
-				XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z,k);
+				XMFLOAT4 temp = XMFLOAT4(x, y, z, (float)k);
 
 				if(i <= 500)
 				{
@@ -473,7 +473,7 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 			}
 
 
-			XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z,k);
+			XMFLOAT4 temp = XMFLOAT4(x, y, z, (float)k);
 
 			if(i <= 500)
 			{
@@ -773,7 +773,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 				{
 					k = 0;
 
-					XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z,k);
+					XMFLOAT4 temp = XMFLOAT4(x, y, z, (float)k);
 
 					if(i <= 500)
 					{
@@ -813,7 +813,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 				}
 
 
-				XMFLOAT4 temp = XMFLOAT4((float)x, y, (float)z,k);
+				XMFLOAT4 temp = XMFLOAT4(x, y, z, (float)k);
 
 				if(i <= 500)
 				{
@@ -1025,13 +1025,13 @@ bool Renderer::Render()
 		return false;
 	}
 
-	d3D->TurnOnShadowBlendState();
-	vegetationManager->RenderBuffers(context);
+	//d3D->TurnOnShadowBlendState();
+	//vegetationManager->RenderBuffers(context);
 
-	depthOnlyQuadShader->Render(context, vegetationManager->GetVertexCount(), vegetationManager->GetInstanceCount(),
-		&lightWorldViewProj, textureAndMaterialHandler->GetVegetationTextureArray());
+	//depthOnlyQuadShader->Render(context, vegetationManager->GetVertexCount(), vegetationManager->GetInstanceCount(),
+	//	&lightWorldViewProj, textureAndMaterialHandler->GetVegetationTextureArray());
 
-	d3D->ResetBlendState();
+	//d3D->ResetBlendState();
 
 #pragma endregion
 
@@ -1088,8 +1088,6 @@ bool Renderer::Render()
 	d3D->TurnOnAlphaBlending();
 	vegetationManager->Render(context, &identityWorldViewProj, textureAndMaterialHandler->GetVegetationTextureArray());
 	d3D->TurnOffAlphaBlending();
-
-	text->SetRenderCount(renderCount, context);
 #pragma endregion
 
 #pragma region Point light stage
@@ -1226,7 +1224,7 @@ bool Renderer::Render()
 		d3D->TurnOnAlphaBlending();
 
 		// Render the text user interface elements.
-		result = text->Render(d3D->GetDeviceContext(), &worldMatrix, &baseView, &orthoMatrix);
+		result = text->Render(d3D->GetDeviceContext(), &worldBaseViewOrthoProj);
 		if(!result)
 		{
 			return false;
@@ -1451,6 +1449,12 @@ void Renderer::Shutdown()
 		lSystemSRV = 0;
 	}
 
+	if(noise)
+	{
+		delete noise;
+		noise = 0;
+	}
+
 	return;
 }
 
@@ -1477,16 +1481,18 @@ void Renderer::CreateRandom2DTexture()
 
 void Renderer::CreateSimplex2DTexture()
 {
-	int textureWidth, textureHeight,i,x,y;
+	int textureWidth, textureHeight,i;
+	float x,y;
 	textureWidth = 512;
 	textureHeight = 512;
 	i = 0;
 	PixelData* pixelData = new PixelData[textureWidth*textureHeight]();
-	noise->~SimplexNoise();
-	noise = new SimplexNoise();
-	for(int yCounter = -textureHeight*0.5f; yCounter < textureHeight*0.5f; yCounter++)
+	
+	noise->ReseedRandom();
+
+	for(float yCounter = -textureHeight*0.5f; yCounter < textureHeight*0.5f; yCounter++)
 	{
-		for(int xCounter = -textureWidth*0.5f; xCounter < textureWidth*0.5f; xCounter++)
+		for(float xCounter = -textureWidth*0.5f; xCounter < textureWidth*0.5f; xCounter++)
 		{
 			y = yCounter;
 			x = xCounter;
@@ -1500,7 +1506,6 @@ void Renderer::CreateSimplex2DTexture()
 			{
 				x *= -1;
 			}
-					
 
 			float firstIteration = noise->noise3D2(x*0.01f,y*0.01f, 10.0f)*512;
 			float seccondIteration = noise->noise3D2(x*0.001f,y*0.001f, 30.0f)*512;
@@ -1520,23 +1525,25 @@ void Renderer::CreateSimplex2DTexture()
 }
 void Renderer::CreateMirroredSimplex2DTexture()
 {
-	int textureWidth, textureHeight,i,x,y;
+	int textureWidth, textureHeight,i;
+	float x,y;
 	textureWidth = 512;
 	textureHeight = 512;
 	i = 0;
 	PixelData* pixelData = new PixelData[textureWidth*textureHeight]();
-	noise->~SimplexNoise();
-	noise = new SimplexNoise();
-	for(int yCounter = 0; yCounter < textureHeight; yCounter++)
+
+	noise->ReseedRandom();
+
+	for(float yCounter = 0; yCounter < textureHeight; yCounter++)
 	{
-		for(int xCounter = 0; xCounter < textureWidth; xCounter++)
+		for(float xCounter = 0; xCounter < textureWidth; xCounter++)
 		{
 			y = yCounter;
 			x = xCounter;	
 
-			float firstIteration = noise->noise3D2(x*0.01f,y*0.01f, 10.0f)*512;
-			float seccondIteration = noise->noise3D2(x*0.001f,y*0.001f, 30.0f)*512;
-			float thirdIteration = noise->noise3D2(x*0.0005f,y*0.0005f, 45.0f)*512;
+			float firstIteration = noise->noise3D2(x*0.01f, y*0.01f, 10.0f)*512;
+			float seccondIteration = noise->noise3D2(x*0.001f, y*0.001f, 30.0f)*512;
+			float thirdIteration = noise->noise3D2(x*0.0005f, y*0.0005f, 45.0f)*512;
 
 			pixelData[i].x = (int)(firstIteration + seccondIteration + thirdIteration);
 			pixelData[i].y = (int)(firstIteration + seccondIteration + thirdIteration);

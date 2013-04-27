@@ -10,6 +10,7 @@ private:
 	struct VertexType
 	{
 		XMFLOAT3 position;
+		XMFLOAT3 normal;
 		XMFLOAT2 texCoord;
 	};
 
@@ -37,6 +38,7 @@ public:
 
 private:
 	bool BuildVertexBuffer(ID3D11Device* device);
+	XMFLOAT3 CalculateVertexNormals(XMFLOAT3 v1, XMFLOAT3 v2, XMFLOAT3 v3);
 
 private:
 	ID3D11Buffer *vertexBuffer, *instanceBuffer;
