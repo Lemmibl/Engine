@@ -56,6 +56,20 @@ void RetrieveMaterialData(int materialID, out float Kd, out float Ks, out float 
 
 }
 
+float4 ReconstructPositionFromDepth(float depth, float2 ScreenPosition)
+{
+	//Create a clip space position (I think?)
+	float4 position;
+	position.xy = ScreenPosition;
+	position.z = depth; //With depth from camera
+	position.w = 1.0f;
+
+	position = mul(position, InvViewProjection); //And revert it back to world position
+	position /= position.w;
+
+	return position;
+}
+
 ///////////////////////////////////////////////////
 //	MAIN FUNCTION
 ///////////////////////////////////////////////////
@@ -79,19 +93,11 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	float depth = textures[2].Sample(pointSampler, texCoord);
 	float3 normal = normalize(DecodeNormal(normalData.xyz));
 	
-	//Create a clip space position (I think?)
-	float4 position;
-	position.xy = input.ScreenPosition.xy;
-	position.z = depth; //With depth from camera
-	position.w = 1.0f;
-
-	position = mul(position, InvViewProjection); //And revert it back to world position
-	position /= position.w;
+	float4 position = ReconstructPositionFromDepth(depth, input.ScreenPosition.xy);
 
 	//surface-to-light vector
 	float3 lightVector =  normalize(position-LightPosition);
 
-	//saturate( 1.0f - (length(lightVector) / LightRadius) );
 
 	float d = distance(position, LightPosition);
 	float attenuation = (LightRadius / (d*d)); //Slight offset to dampen the light
@@ -112,7 +118,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	float specularLight = pow( saturate( dot(reflectionVector, directionToCamera)), smoothness);
 
 	//scale final value with attenuation, take into calculation the current material of this pixel
-	return (attenuation/(LightPower+0.00001f))*half4(diffuseCoefficient*diffuseLight, specularCoefficient*specularLight);
+	return (attenuation/(LightPower+0.0001f))*half4(diffuseCoefficient*diffuseLight, specularCoefficient*specularLight);
 }
 
 /*

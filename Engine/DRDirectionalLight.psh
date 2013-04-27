@@ -73,6 +73,20 @@ float3 DecodeNormal(float3 enc)
 	return ((2.0f * enc.xyz) - 1.0f);
 }
 
+float4 ReconstructPositionFromDepth(float depth, float2 ScreenPosition)
+{
+	//Create a clip space position (I think?)
+	float4 position;
+	position.xy = ScreenPosition;
+	position.z = depth; //With depth from camera
+	position.w = 1.0f;
+
+	position = mul(position, InverseViewProjection); //And revert it back to world position
+	position /= position.w;
+
+	return position;
+}
+
 //Linear stepping function used when reducing light bleeding for variance shadowmaps
 float Linstep(float minVal, float maxVal, float value)  
 {
@@ -171,16 +185,7 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	input.ScreenPosition /= input.ScreenPosition.w;
 	
 	//Reconstructing position
-	float4 position;
-	position.xy = input.ScreenPosition.xy;
-	position.z = depth;
-	position.w = 1.0f;
-
-	//Extract pixel world position as seen from camera POV.
-	position = mul(position, InverseViewProjection);
-
-	//Adjust value
-	position /= position.w;
+	float4 position = ReconstructPositionFromDepth(depth, input.ScreenPosition.xy);
 
 	//Extract pixel position as seen from light POV for shadow map extraction.
 	float4 lightScreenPos = mul(position, LightViewProjection);
@@ -207,10 +212,10 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		/*Variance shadow mapping. http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html */
 		shadowMultiplier = ShadowContribution(sampleLightScreen, realDistanceToLight);
 
-		if(shadowMultiplier <= 0.8f)
-		{
-			shadowMultiplier = 0.01f;
-		}
+		//if(shadowMultiplier <= 0.8f)
+		//{
+		//	shadowMultiplier = 0.01f;
+		//}
 
 		//Reflection vector
 		float3 reflectionVector = normalize(reflect(lightVector, normal));

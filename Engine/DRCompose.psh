@@ -1,12 +1,47 @@
-SamplerState samplers[2]; //0 == linear sampler, 1 == point
-Texture2D shaderTextures[3]; // 0 = color, light = 1, 2 = normal depth
-
-
 struct VertexShaderOutput
 {
 		float4 Position : SV_POSITION;
 		float2 TexCoord : TEXCOORD0;
 };
+
+float sampleRadius;
+float intensity;
+float scale;
+float bias;
+
+SamplerState samplers[2]; //0 == linear sampler, 1 == point
+Texture2D shaderTextures[3]; // 0 = color, light = 1, 2 = depth
+
+cbuffer PixelMatrixBufferType
+{
+	float4x4 InvViewProjection;
+}
+
+float4 ReconstructPositionFromDepth(float depth, float2 ScreenPosition)
+{
+	//Create a clip space position (I think?)
+	float4 position;
+	position.xy = ScreenPosition;
+	position.z = depth; //With depth from camera
+	position.w = 1.0f;
+
+	position = mul(position, InvViewProjection); //And revert it back to world position
+	position /= position.w;
+
+	return position;
+}
+
+float DoAmbientOcclusion(float2 TexCoord, float2 Offset, float2 ScreenPos, float3 Position, float3 Normal)
+{
+	float offsetDepth = shaderTextures[2].Sample(samplers[1], TexCoord + Offset);
+	float3 offsetPosition = ReconstructPositionFromDepth(offsetDepth, ScreenPos).xyz;
+
+	float3 diff = offsetPosition - Position;
+	float3 v = normalize(diff);
+	float d = length(diff)*scale;
+
+	return max(0.0, dot(Normal, v)-bias)*(1.0/(1.0+d))*intensity;
+}
 
 float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 {
@@ -18,7 +53,7 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		half4 FogColor = half4(0.6f, 0.6f, 0.6f, 1.0f);
 
 
-		if(depth <= 0.0f) //Skip as early as possible if this pixel isn't supposed to be lit.
+		if(depth <= 0.0001f) //Skip as early as possible if this pixel isn't supposed to be lit.
 		{
 			return float4(baseColor, 1.0f);
 		}
@@ -27,9 +62,45 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 
 		fogFactor = saturate((depth - FogStart) / (FogEnd - FogStart));
 
+		//FOG:
 		//http://www.iquilezles.org/www/articles/ssao/ssao.htm
 		//http://jcoluna.wordpress.com/2012/11/06/xna-adding-fog-in-a-lpp-or-deferred-pipeline/
 		//http://cloneofduty.com/2012/07/30/deferred-rendering-5-foggy-haze/
+
+		//SSAO:
+		//http://www.gamedev.net/page/resources/_/technical/graphics-programming-and-theory/a-simple-and-practical-approach-to-ssao-r2753
+
+		/*
+		const float2 vec[4] = {	float2(1,0),float2(-1,0),
+								float2(0,1),float2(0,-1) };
+
+		float3 p = ReconstructPositionFromDepth(depth, input.ScreenPosition.xy).xyz;
+		float3 n = getNormal(i.uv);
+		float2 rand = getRandom(i.uv);
+
+		float ao = 0.0f;
+		float rad = g_sample_rad/p.z;
+
+		//SSAO Calculation
+		int iterations = 4;
+		for (int j = 0; j < iterations; ++j)
+		{
+			float2 coord1 = reflect(vec[j], rand)*radius;
+			float2 coord2 = float2(	coord1.x*0.707 - coord1.y*0.707,
+									coord1.x*0.707 + coord1.y*0.707);
+  
+			ao += DoAmbientOcclusion(input.TexCoord, coord1*0.25,	input.ScreenPosition.xy, p, n);
+			ao += DoAmbientOcclusion(input.TexCoord, coord2*0.5,	input.ScreenPosition.xy, p, n);
+			ao += DoAmbientOcclusion(input.TexCoord, coord1*0.75,	input.ScreenPosition.xy, p, n);
+			ao += DoAmbientOcclusion(input.TexCoord, coord2,		input.ScreenPosition.xy, p, n);
+		}
+		
+		ao /= (float)iterations*4.0;
+
+		ao = (1.0f - ao);
+
+		//Add AO to final calculation ...
+		*/
 
 		//specular intensity is stored in the color map's alpha channel.
 		float4 light = shaderTextures[1].Sample(samplers[0], input.TexCoord);

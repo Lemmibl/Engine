@@ -7,8 +7,8 @@
 class SimplexNoise
 {
 public:
-	SimplexNoise(void);
-	~SimplexNoise(void);
+	SimplexNoise();
+	~SimplexNoise();
 
 	float noise2D(float xin, float yin);
 	float noise3D2(float xin, float yin, float zin);

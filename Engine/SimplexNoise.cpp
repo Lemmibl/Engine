@@ -34,7 +34,7 @@ static Grads grad3 [] =
 };
 
 
-SimplexNoise::SimplexNoise(void)
+SimplexNoise::SimplexNoise()
 {
 	for(int i=0; i<256; i++)
 	{
@@ -60,7 +60,7 @@ void SimplexNoise::ReseedRandom()
 	}
 }
 
-SimplexNoise::~SimplexNoise(void)
+SimplexNoise::~SimplexNoise()
 {
 }
 

@@ -139,9 +139,6 @@
     <ClCompile Include="DRCompose.cpp">
       <Filter>Rendering\Shader wrappers\Post processing</Filter>
     </ClCompile>
-    <ClCompile Include="SSAO.cpp">
-      <Filter>Rendering\Shader wrappers\Post processing</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cpumeter.h">
@@ -291,9 +288,6 @@
     <ClInclude Include="DRCompose.h">
       <Filter>Rendering\Shader wrappers\Post processing</Filter>
     </ClInclude>
-    <ClInclude Include="SSAO.h">
-      <Filter>Rendering\Shader wrappers\Post processing</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader-error.txt" />
@@ -373,12 +367,6 @@
       <Filter>Rendering\Shaders\Post processing</Filter>
     </None>
     <None Include="DRCompose.psh">
-      <Filter>Rendering\Shaders\Post processing</Filter>
-    </None>
-    <None Include="SSAO.vsh">
-      <Filter>Rendering\Shaders\Post processing</Filter>
-    </None>
-    <None Include="SSAO.psh">
       <Filter>Rendering\Shaders\Post processing</Filter>
     </None>
   </ItemGroup>

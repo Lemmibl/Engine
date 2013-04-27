@@ -305,7 +305,7 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 		pointLights[i]->Color = XMFLOAT3(x, y, z);
 		pointLights[i]->Position = XMFLOAT3(x * 60.0f, 40.0f, z * 60.0f);
 		pointLights[i]->Radius = 4.0f; //Used to both scale the actual point light model and is a factor in the attenuation
-		pointLights[i]->Intensity = 1.0f; //Is used to control the attenuation
+		pointLights[i]->Intensity = 5.0f; //Is used to control the attenuation
 
 		//x += 12.0f;
 
