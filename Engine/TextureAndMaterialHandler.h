@@ -7,6 +7,7 @@
 #include <vector>
 #include "MCTerrainClass.h"
 #include "structs.h"
+#include "Utility.h"
 
 class TextureAndMaterialHandler
 {
@@ -16,19 +17,17 @@ public:
 	~TextureAndMaterialHandler();
 
 	bool Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
-	bool SaveLTreeTextureToFile(ID3D11DeviceContext* deviceContext, D3DX11_IMAGE_FILE_FORMAT format, LPCSTR fileName);
 
 	ID3D11ShaderResourceView** GetVegetationTextureArray();
 	ID3D11ShaderResourceView** GetTerrainTextureArray();
 	ID3D11ShaderResourceView** GetMaterialTextureArray();
 
-	HRESULT Build2DTextureProgrammatically( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
-		PixelData* pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV );
-
-	
+	HRESULT Create2DSSAORandomTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, Utility* utility, ID3D11ShaderResourceView** srv);
 	HRESULT CreateRandom2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv);
 	HRESULT CreateSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, SimplexNoise*  noise, ID3D11ShaderResourceView** srv);
 	HRESULT CreateMirroredSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, SimplexNoise*  noise, ID3D11ShaderResourceView** srv);
+
+	bool SaveLTreeTextureToFile(ID3D11DeviceContext* deviceContext, D3DX11_IMAGE_FILE_FORMAT format, LPCSTR fileName);
 
 private:
 	HRESULT Build1DMaterialTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
@@ -36,6 +35,12 @@ private:
 
 	HRESULT Build1DMaterialTextureArray(ID3D11Device* device, ID3D11DeviceContext* deviceContext, vector<MaterialStruct> materials,
 		int materialCount, int textureWidth, ID3D11ShaderResourceView** textureSRV );
+
+	HRESULT Build2DTextureProgrammatically( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
+		PixelData* pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV );
+
+	HRESULT Build2DSSAORandomTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
+		XMFLOAT2* pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV );
 
 	HRESULT Build2DTextureArray(ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
 		WCHAR** filenames, int textureCount, ID3D11ShaderResourceView** textureArray, int texWidth, int texHeight);

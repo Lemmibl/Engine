@@ -16,6 +16,8 @@
 #include <xnamath.h>
 #include <ctime>
 #include <sstream>
+#include <iosfwd>
+#include <string>
 
 //Utility
 #include "Utility.h"
@@ -150,8 +152,7 @@ private:
 	vector<XMFLOAT4> LODVector10000;
 	int lodState, previousLodState;
 	ID3D11ShaderResourceView* lSystemSRV;
-
-
+	ID3D11ShaderResourceView* ssaoRandomTextureSRV;
 };
 
 #endif

@@ -86,6 +86,7 @@ Renderer::Renderer()
 	textureAndMaterialHandler = 0;
 
 	lSystemSRV = 0;
+	ssaoRandomTextureSRV = 0;
 
 	timeOfDay = 0.0f;
 	timer = 10.0f;
@@ -408,18 +409,14 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 	}
 
 	float x,z,y;
-	int k, randValue;
-
-	LODVector10000.reserve(10000);
-	LODVector5000.reserve(5000);
-	LODVector2500.reserve(2500);
-	LODVector500.reserve(500);
+	int textureID, randValue;
 
 	for(int i = 0; i < 10000; i++)
 	{
 		x = (2.0f + (utility->RandomFloat() * 56.0f));
 		z = (2.0f + (utility->RandomFloat() * 56.0f));
 
+		//Extract highest Y at this point
 		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate((int)x, (int)z);
 
 		randValue = rand()%100;
@@ -429,12 +426,14 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 		{
 			//But the grass should be sparse, so there is
 			//95% chance that we won't actually add this to the instance list.
-			if(randValue >= 95)
+			if(randValue > 95)
 			{
-				k = 0;
+				textureID = 0;
 
-				XMFLOAT4 temp = XMFLOAT4(x, y, z, (float)k);
+				//Place texture ID in .w channel
+				XMFLOAT4 temp = XMFLOAT4(x, y, z, (float)textureID);
 
+				//We use i to control how many should be added to each LOD vector
 				if(i <= 500)
 				{
 					LODVector500.push_back(temp);
@@ -455,26 +454,27 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 		}
 		else
 		{
-			if(randValue <= 10)
+			if(randValue <= 5)
 			{
-				k = 2; //Some kind of leaf branch that I've turned into a plant quad.
+				textureID = 2; //Some kind of leaf branch that I've turned into a plant quad.
 			}
-			else if(randValue <= 96)
+			else if(randValue <= 96) //By far biggest chance that we get normal grass
 			{
-				k = 1; //Normal grass.
+				textureID = 1; //Normal grass.
 			}
-			else if(randValue <= 98)
+			else if(randValue <= 98) //If 97-98
 			{
-				k = 4; //Bush.
+				textureID = 4; //Bush.
 			}
-			else //If 100.
+			else //If 99-100.
 			{
-				k = 3; //Flower.
+				textureID = 3; //Flower.
 			}
 
+			//Place texture ID in .w channel
+			XMFLOAT4 temp = XMFLOAT4(x, y, z, (float)textureID);
 
-			XMFLOAT4 temp = XMFLOAT4(x, y, z, (float)k);
-
+			//We use i to control how many should be added to each LOD vector
 			if(i <= 500)
 			{
 				LODVector500.push_back(temp);
@@ -494,7 +494,7 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 		}
 	}
 
-	vegetationManager->SetupQuads(device, &LODVector500);
+	vegetationManager->SetupQuads(d3D->GetDevice(), &LODVector500);
 
 	// Create the model object.
 	groundModel = new ModelClass;
@@ -631,9 +631,6 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 	shadowRT->Initialize(device, shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_FLOAT);
 	gaussianBlurPingPongRT->Initialize(device, shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_FLOAT); //Needs to be identical to shadowRT
 
-
-
-
 	// Create the frustum object.
 	frustum = new FrustumClass;
 	if(!frustum)
@@ -649,8 +646,6 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 	bool result;
 
 	timer += seconds;
-
-	XMMATRIX tempScale = XMMatrixScaling(pointLights[0]->Radius, pointLights[0]->Radius, pointLights[0]->Radius);
 
 	if(inputManager->WasKeyPressed(DIK_Q))
 	{
@@ -685,6 +680,8 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 	if(inputManager->IsKeyPressed(DIK_R))
 	{
+		XMMATRIX tempScale = XMMatrixScaling(pointLights[0]->Radius, pointLights[0]->Radius, pointLights[0]->Radius);
+
 		for(int i = 0; i < (int)pointLights.size(); i++)
 		{
 			pointLights[i]->Position.y += frameTime*0.006f;
@@ -695,6 +692,8 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 	if(inputManager->IsKeyPressed(DIK_F))
 	{
+		XMMATRIX tempScale = XMMatrixScaling(pointLights[0]->Radius, pointLights[0]->Radius, pointLights[0]->Radius);
+
 		for(int i = 0; i < (int)pointLights.size(); i++)
 		{
 			pointLights[i]->Position.y -= frameTime*0.006f;
@@ -703,6 +702,22 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		}
 	}
 	
+	if(inputManager->WasKeyPressed(DIK_U))
+	{
+		if(FAILED(textureAndMaterialHandler->CreateRandom2DTexture(d3D->GetDevice(), d3D->GetDeviceContext(), &ssaoRandomTextureSRV)))
+		{
+			return false;
+		}
+
+	}
+
+	if(inputManager->WasKeyPressed(DIK_I))
+	{
+		if(FAILED(textureAndMaterialHandler->CreateMirroredSimplex2DTexture(d3D->GetDevice(), d3D->GetDeviceContext(), noise, &lSystemSRV)))
+		{
+			return false;
+		}
+	}
 
 	if(inputManager->WasKeyPressed(DIK_O))
 	{
@@ -712,30 +727,25 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		}
 
 	}
-	if(inputManager->WasKeyPressed(DIK_I))
-	{
-		if(FAILED(textureAndMaterialHandler->CreateMirroredSimplex2DTexture(d3D->GetDevice(), d3D->GetDeviceContext(), noise, &lSystemSRV)))
-		{
-			return false;
-		}
-	}
 
 	if(inputManager->WasKeyPressed(DIK_P))
 	{
 		//Create and initialize our time... things.
-		time_t timeObject = time(0);
-		struct tm tmStruct;
-		localtime_s(&tmStruct, &timeObject );
+		const time_t timeObject = time(NULL);
+		struct tm parts;
+		localtime_s(&parts, &timeObject );
 
-		ostringstream convert;
+		std::ostringstream stringStream;
 
 		//Create the string that will hold the screenshot's name when it gets pooped out into the directory
-		convert << "SavedTexture_" << tmStruct.tm_mon << "-" << tmStruct.tm_mday <<  "-" << tmStruct.tm_min << "-" << tmStruct.tm_sec << ".bmp";
+		stringStream << "SavedTexture_" << (1+parts.tm_mon) << "-" << parts.tm_mday <<  "-" << parts.tm_min << "-" << parts.tm_sec << ".bmp";
 
-		LPCSTR lpcString;
-		lpcString = convert.str().c_str(); //lol.
+		LPCSTR fileName;
+		string temp = stringStream.str();
+		fileName = (temp).c_str();
 
-		if(!textureAndMaterialHandler->SaveLTreeTextureToFile(d3D->GetDeviceContext(), D3DX11_IFF_BMP, lpcString))
+
+		if(!textureAndMaterialHandler->SaveLTreeTextureToFile(d3D->GetDeviceContext(), D3DX11_IFF_BMP, fileName))
 		{
 			return false;
 		}
@@ -762,13 +772,14 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		marchingCubes->CalculateMesh(d3D->GetDevice());
 
 		float x,z,y;
-		int k, randValue;
+		int textureID, randValue;
 
 		for(int i = 0; i < 10000; i++)
 		{
 			x = (2.0f + (utility->RandomFloat() * 56.0f));
 			z = (2.0f + (utility->RandomFloat() * 56.0f));
 
+			//Extract highest Y at this point
 			y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate((int)x, (int)z);
 
 			randValue = rand()%100;
@@ -778,12 +789,14 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 			{
 				//But the grass should be sparse, so there is
 				//95% chance that we won't actually add this to the instance list.
-				if(randValue >= 95)
+				if(randValue > 95)
 				{
-					k = 0;
+					textureID = 0;
 
-					XMFLOAT4 temp = XMFLOAT4(x, y, z, (float)k);
+					//Place texture ID in .w channel
+					XMFLOAT4 temp = XMFLOAT4(x, y, z, (float)textureID);
 
+					//We use i to control how many should be added to each LOD vector
 					if(i <= 500)
 					{
 						LODVector500.push_back(temp);
@@ -804,26 +817,27 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 			}
 			else
 			{
-				if(randValue <= 10)
+				if(randValue <= 5)
 				{
-					k = 2; //Some kind of leaf branch that I've turned into a plant quad.
+					textureID = 2; //Some kind of leaf branch that I've turned into a plant quad.
 				}
-				else if(randValue <= 96)
+				else if(randValue <= 96) //By far biggest chance that we get normal grass
 				{
-					k = 1; //Normal grass.
+					textureID = 1; //Normal grass.
 				}
-				else if(randValue <= 98)
+				else if(randValue <= 98) //If 97-98
 				{
-					k = 4; //Bush.
+					textureID = 4; //Bush.
 				}
-				else //If 100.
+				else //If 99-100.
 				{
-					k = 3; //Flower.
+					textureID = 3; //Flower.
 				}
 
+				//Place texture ID in .w channel
+				XMFLOAT4 temp = XMFLOAT4(x, y, z, (float)textureID);
 
-				XMFLOAT4 temp = XMFLOAT4(x, y, z, (float)k);
-
+				//We use i to control how many should be added to each LOD vector
 				if(i <= 500)
 				{
 					LODVector500.push_back(temp);
@@ -1459,6 +1473,12 @@ void Renderer::Shutdown()
 	{
 		lSystemSRV->Release();
 		lSystemSRV = 0;
+	}
+
+	if(ssaoRandomTextureSRV)
+	{
+		ssaoRandomTextureSRV->Release();
+		ssaoRandomTextureSRV = 0;
 	}
 
 	if(noise)
