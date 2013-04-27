@@ -518,3 +518,102 @@ HRESULT TextureAndMaterialHandler::Build2DTextureArray(ID3D11Device* device, ID3
 
 	return S_OK;
 };
+
+HRESULT TextureAndMaterialHandler::CreateRandom2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv)
+{
+	int textureWidth, textureHeight;
+	textureWidth = 512;
+	textureHeight = 512;
+
+	PixelData* pixelData = new PixelData[textureWidth*textureHeight]();
+
+	//Don't use utility.Random(). We do not want floats.
+	for(int i = 0; i < textureWidth*textureHeight; i++)
+	{
+		pixelData[i].x = rand()%255;//%255;
+		pixelData[i].y = rand()%255;//%255;
+		pixelData[i].z = rand()%255;//%255;
+		pixelData[i].w = 1; //Alpha.
+	}
+
+	return Build2DTextureProgrammatically(device, deviceContext, pixelData, textureWidth, textureHeight, srv);
+}
+
+HRESULT TextureAndMaterialHandler::CreateSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, SimplexNoise*  noise, ID3D11ShaderResourceView** srv)
+{
+	int textureWidth, textureHeight,i;
+	float x,y;
+	textureWidth = 512;
+	textureHeight = 512;
+	i = 0;
+
+	PixelData* pixelData = new PixelData[textureWidth*textureHeight]();
+
+	noise->ReseedRandom();
+
+	for(float yCounter = -textureHeight*0.5f; yCounter < textureHeight*0.5f; yCounter++)
+	{
+		for(float xCounter = -textureWidth*0.5f; xCounter < textureWidth*0.5f; xCounter++)
+		{
+			y = yCounter;
+			x = xCounter;
+
+			if(y < 0)
+			{
+				y *= -1;
+			}
+
+			if(x < 0)
+			{
+				x *= -1;
+			}
+
+			float firstIteration = noise->noise3D2(x*0.01f,y*0.01f, 10.0f)*512;
+			float seccondIteration = noise->noise3D2(x*0.001f,y*0.001f, 30.0f)*512;
+			float thirdIteration = noise->noise3D2(x*0.0005f,y*0.0005f, 45.0f)*512;
+
+			pixelData[i].x = (int)(firstIteration + seccondIteration + thirdIteration);
+			pixelData[i].y = (int)(firstIteration + seccondIteration + thirdIteration);
+			pixelData[i].z = (int)(firstIteration + seccondIteration + thirdIteration);
+			pixelData[i].w = 1; //Alpha.
+
+			i++;
+		}
+	}
+
+	return Build2DTextureProgrammatically(device, deviceContext, pixelData, textureWidth, textureHeight, srv);
+}
+
+HRESULT TextureAndMaterialHandler::CreateMirroredSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, SimplexNoise*  noise, ID3D11ShaderResourceView** srv)
+{
+	int textureWidth, textureHeight,i;
+	float x,y;
+	textureWidth = 512;
+	textureHeight = 512;
+	i = 0;
+	PixelData* pixelData = new PixelData[textureWidth*textureHeight]();
+
+	noise->ReseedRandom();
+
+	for(float yCounter = 0; yCounter < textureHeight; yCounter++)
+	{
+		for(float xCounter = 0; xCounter < textureWidth; xCounter++)
+		{
+			y = yCounter;
+			x = xCounter;	
+
+			float firstIteration = noise->noise3D2(x*0.01f, y*0.01f, 10.0f)*512;
+			float seccondIteration = noise->noise3D2(x*0.001f, y*0.001f, 30.0f)*512;
+			float thirdIteration = noise->noise3D2(x*0.0005f, y*0.0005f, 45.0f)*512;
+
+			pixelData[i].x = (int)(firstIteration + seccondIteration + thirdIteration);
+			pixelData[i].y = (int)(firstIteration + seccondIteration + thirdIteration);
+			pixelData[i].z = (int)(firstIteration + seccondIteration + thirdIteration);
+			pixelData[i].w = 1; //Alpha.
+
+			i++;
+		}
+	}
+
+	return Build2DTextureProgrammatically(device, deviceContext, pixelData, textureWidth, textureHeight, srv);
+}

@@ -81,8 +81,10 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		float ao = 0.0f;
 		float rad = g_sample_rad/p.z;
 
+		//primitive SSAO LOD
+		int iterations = lerp(6, 1, (p.z/150.0f)); //Divide p.z with farClip 
+
 		//SSAO Calculation
-		int iterations = 4;
 		for (int j = 0; j < iterations; ++j)
 		{
 			float2 coord1 = reflect(vec[j], rand)*radius;

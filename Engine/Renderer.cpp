@@ -570,10 +570,16 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 	
-	CreateRandom2DTexture();
-
 	noise = new SimplexNoise();
-	CreateSimplex2DTexture();
+	if(!noise)
+	{
+		return false;
+	}
+
+	if(FAILED(textureAndMaterialHandler->CreateSimplex2DTexture(device, d3D->GetDeviceContext(), noise, &lSystemSRV)))
+	{
+		return false;
+	}
 
 	dayNightCycle = new DayNightCycle();
 	if(!dayNightCycle)
@@ -697,17 +703,21 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		}
 	}
 	
-	//if(inputManager->WasKeyPressed(DIK_O))
-	//{
-	//	CreateRandom2DTexture();
-	//}
+
 	if(inputManager->WasKeyPressed(DIK_O))
 	{
-		CreateSimplex2DTexture();
+		if(FAILED(textureAndMaterialHandler->CreateSimplex2DTexture(d3D->GetDevice(), d3D->GetDeviceContext(), noise, &lSystemSRV)))
+		{
+			return false;
+		}
+
 	}
 	if(inputManager->WasKeyPressed(DIK_I))
 	{
-		CreateMirroredSimplex2DTexture();
+		if(FAILED(textureAndMaterialHandler->CreateMirroredSimplex2DTexture(d3D->GetDevice(), d3D->GetDeviceContext(), noise, &lSystemSRV)))
+		{
+			return false;
+		}
 	}
 
 	if(inputManager->WasKeyPressed(DIK_P))
@@ -736,8 +746,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		seconds = timeOfDay += frameTime*2.0f;
 	}
 
-	//Empty comment to be able to commit.
-
+	#pragma region Generate new marching cubes world
 	if(inputManager->WasKeyPressed(DIK_N))
 	{
 		previousLodState = 0; //We set previous lod state to something != lodState so that it'll trigger an instancebuffer rebuild
@@ -836,7 +845,9 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 		vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector500);
 	}
+	#pragma endregion
 
+	#pragma region LOD stuff
 	//Distance between camera and middle of mcube chunk. We'll have to do this for each chunk, and keep an individual lodState for each chunk.
 	if(timer >= 0.5f)
 	{
@@ -883,6 +894,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 			vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector10000);
 		}
 	}
+	#pragma endregion
 
 	//timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
 
@@ -1112,7 +1124,7 @@ bool Renderer::Render()
 		d3D->SetLightStencilMethod1Phase2();
 		d3D->SetFrontFaceCullingRasterizer();
 
-		//sphereModel->Render(context);
+		sphereModel->Render(context);
 
 		result = pointLightShader->Render(context, sphereModel->GetIndexCount(), &worldViewProj, &invertedViewProjection, 
 			pointLights[i], gbufferTextures, textureAndMaterialHandler->GetMaterialTextureArray(), camPos);
@@ -1457,104 +1469,3 @@ void Renderer::Shutdown()
 
 	return;
 }
-
-void Renderer::CreateRandom2DTexture()
-{
-	int textureWidth, textureHeight;
-	textureWidth = 512;
-	textureHeight = 512;
-
-	PixelData* pixelData = new PixelData[textureWidth*textureHeight]();
-
-	//Don't use utility.Random(). We do not want floats.
-	for(int i = 0; i < textureWidth*textureHeight; i++)
-	{
-		pixelData[i].x = rand()%255;//%255;
-		pixelData[i].y = rand()%255;//%255;
-		pixelData[i].z = rand()%255;//%255;
-		pixelData[i].w = 1; //Alpha.
-	}
-
-	textureAndMaterialHandler->Build2DTextureProgrammatically(d3D->GetDevice(), d3D->GetDeviceContext(), 
-		pixelData, textureWidth, textureHeight, &lSystemSRV);
-}
-
-void Renderer::CreateSimplex2DTexture()
-{
-	int textureWidth, textureHeight,i;
-	float x,y;
-	textureWidth = 512;
-	textureHeight = 512;
-	i = 0;
-	PixelData* pixelData = new PixelData[textureWidth*textureHeight]();
-	
-	noise->ReseedRandom();
-
-	for(float yCounter = -textureHeight*0.5f; yCounter < textureHeight*0.5f; yCounter++)
-	{
-		for(float xCounter = -textureWidth*0.5f; xCounter < textureWidth*0.5f; xCounter++)
-		{
-			y = yCounter;
-			x = xCounter;
-
-			if(y < 0)
-			{
-				y *= -1;
-			}
-
-			if(x < 0)
-			{
-				x *= -1;
-			}
-
-			float firstIteration = noise->noise3D2(x*0.01f,y*0.01f, 10.0f)*512;
-			float seccondIteration = noise->noise3D2(x*0.001f,y*0.001f, 30.0f)*512;
-			float thirdIteration = noise->noise3D2(x*0.0005f,y*0.0005f, 45.0f)*512;
-
-			pixelData[i].x = (int)(firstIteration + seccondIteration + thirdIteration);
-			pixelData[i].y = (int)(firstIteration + seccondIteration + thirdIteration);
-			pixelData[i].z = (int)(firstIteration + seccondIteration + thirdIteration);
-			pixelData[i].w = 1; //Alpha.
-
-			i++;
-		}
-	}
-
-	textureAndMaterialHandler->Build2DTextureProgrammatically(d3D->GetDevice(), d3D->GetDeviceContext(), 
-		pixelData, textureWidth, textureHeight, &lSystemSRV);
-}
-void Renderer::CreateMirroredSimplex2DTexture()
-{
-	int textureWidth, textureHeight,i;
-	float x,y;
-	textureWidth = 512;
-	textureHeight = 512;
-	i = 0;
-	PixelData* pixelData = new PixelData[textureWidth*textureHeight]();
-
-	noise->ReseedRandom();
-
-	for(float yCounter = 0; yCounter < textureHeight; yCounter++)
-	{
-		for(float xCounter = 0; xCounter < textureWidth; xCounter++)
-		{
-			y = yCounter;
-			x = xCounter;	
-
-			float firstIteration = noise->noise3D2(x*0.01f, y*0.01f, 10.0f)*512;
-			float seccondIteration = noise->noise3D2(x*0.001f, y*0.001f, 30.0f)*512;
-			float thirdIteration = noise->noise3D2(x*0.0005f, y*0.0005f, 45.0f)*512;
-
-			pixelData[i].x = (int)(firstIteration + seccondIteration + thirdIteration);
-			pixelData[i].y = (int)(firstIteration + seccondIteration + thirdIteration);
-			pixelData[i].z = (int)(firstIteration + seccondIteration + thirdIteration);
-			pixelData[i].w = 1; //Alpha.
-
-			i++;
-		}
-	}
-
-	textureAndMaterialHandler->Build2DTextureProgrammatically(d3D->GetDevice(), d3D->GetDeviceContext(), 
-		pixelData, textureWidth, textureHeight, &lSystemSRV);
-}
-

@@ -25,9 +25,14 @@ public:
 	HRESULT Build2DTextureProgrammatically( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
 		PixelData* pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV );
 
+	
+	HRESULT CreateRandom2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv);
+	HRESULT CreateSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, SimplexNoise*  noise, ID3D11ShaderResourceView** srv);
+	HRESULT CreateMirroredSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, SimplexNoise*  noise, ID3D11ShaderResourceView** srv);
+
 private:
 	HRESULT Build1DMaterialTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
-		MaterialStruct materialData, int textureWidth, ID3D11Texture1D**);//, ID3D11ShaderResourceView* textureSRV
+		MaterialStruct materialData, int textureWidth, ID3D11Texture1D** texture);
 
 	HRESULT Build1DMaterialTextureArray(ID3D11Device* device, ID3D11DeviceContext* deviceContext, vector<MaterialStruct> materials,
 		int materialCount, int textureWidth, ID3D11ShaderResourceView** textureSRV );
