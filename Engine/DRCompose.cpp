@@ -13,6 +13,7 @@ DRCompose::DRCompose()
 	samplers[2] = 0;
 
 	vertexMatrixBuffer = 0;
+	pixelMatrixBuffer = 0;
 }
 
 
@@ -49,13 +50,13 @@ void DRCompose::Shutdown()
 	return;
 }
 
-bool DRCompose::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection,
-	ID3D11ShaderResourceView** textureArray)
+bool DRCompose::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldViewProjection, XMMATRIX* invViewProjection,
+	ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView* randomTexture)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, world, view, projection, textureArray);
+	result = SetShaderParameters(deviceContext, worldViewProjection, invViewProjection, textureArray, randomTexture);
 	if(!result)
 	{
 		return false;
@@ -203,7 +204,6 @@ bool DRCompose::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 	samplerDesc.MinLOD = 0;
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-
 	// Create the texture sampler state.
 	result = device->CreateSamplerState(&samplerDesc, &samplers[1]);
 	if(FAILED(result))
@@ -228,6 +228,21 @@ bool DRCompose::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 		return false;
 	}
 
+	// Setup the description of the dynamic matrix constant buffer that is in the pixel shader.
+	vertexMatrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	vertexMatrixBufferDesc.ByteWidth = sizeof(PixelMatrixBuffer);
+	vertexMatrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	vertexMatrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	vertexMatrixBufferDesc.MiscFlags = 0;
+	vertexMatrixBufferDesc.StructureByteStride = 0;
+
+	// Create the camera constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+	result = device->CreateBuffer(&vertexMatrixBufferDesc, NULL, &pixelMatrixBuffer);
+	if(FAILED(result))
+	{
+		return false;
+	}
+
 	return true;
 }
 
@@ -239,6 +254,12 @@ void DRCompose::ShutdownShader()
 	{
 		vertexMatrixBuffer->Release();
 		vertexMatrixBuffer = 0;
+	}
+
+	if(pixelMatrixBuffer)
+	{
+		pixelMatrixBuffer->Release();
+		pixelMatrixBuffer = 0;
 	}
 
 	// Release the sampler state.
@@ -314,14 +335,15 @@ void DRCompose::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WC
 	return;
 }
 
-bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* world, XMMATRIX* view, 
-XMMATRIX* projection, ID3D11ShaderResourceView** textureArray)
+bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, XMMATRIX* invViewProjection,
+	ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView* randomTexture)
 {		
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	unsigned int bufferNumber;
 
 	VertexMatrixBuffer* dataPtr1;
+	PixelMatrixBuffer* dataPtr2;
 
 	/////////////#1
 
@@ -335,9 +357,7 @@ XMMATRIX* projection, ID3D11ShaderResourceView** textureArray)
 	// Get a pointer to the data in the constant buffer.
 	dataPtr1 = (VertexMatrixBuffer*)mappedResource.pData;
 
-	dataPtr1->World = *world;
-	dataPtr1->Projection = *projection;
-	dataPtr1->View = *view;
+	dataPtr1->WorldViewProjection = *worldViewProjection;
 
 	deviceContext->Unmap(vertexMatrixBuffer, 0);
 
@@ -346,8 +366,31 @@ XMMATRIX* projection, ID3D11ShaderResourceView** textureArray)
 
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &vertexMatrixBuffer);
 
+
+	/////////////#2
+
+	// Lock the vertex constant buffer so it can be written to.
+	result = deviceContext->Map(pixelMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if(FAILED(result))
+	{
+		return false;
+	}
+
+	// Get a pointer to the data in the constant buffer.
+	dataPtr2 = (PixelMatrixBuffer*)mappedResource.pData;
+
+	dataPtr2->InvViewProjection = *invViewProjection;
+
+	deviceContext->Unmap(pixelMatrixBuffer, 0);
+
+	// Set the position of the constant buffer in the vertex shader.
+	bufferNumber = 0;
+
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &pixelMatrixBuffer);
+
 	// Set shader texture resource in the pixel shader.
-	deviceContext->PSSetShaderResources(0, 3, textureArray);
+	deviceContext->PSSetShaderResources(0, 1, &randomTexture);
+	deviceContext->PSSetShaderResources(1, 4, textureArray);
 
 	return true;
 }

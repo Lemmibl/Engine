@@ -581,6 +581,11 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
+	if(FAILED(textureAndMaterialHandler->CreateRandom2DTexture(d3D->GetDevice(), d3D->GetDeviceContext(), &ssaoRandomTextureSRV)))
+	{
+		return false;
+	}
+
 	dayNightCycle = new DayNightCycle();
 	if(!dayNightCycle)
 	{
@@ -708,7 +713,6 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		{
 			return false;
 		}
-
 	}
 
 	if(inputManager->WasKeyPressed(DIK_I))
@@ -946,7 +950,7 @@ bool Renderer::Render()
 
 	ID3D11ShaderResourceView* gbufferTextures[3] = { NULL, NULL, NULL };
 	ID3D11ShaderResourceView* dirLightTextures[3] = { NULL, NULL, NULL };
-	ID3D11ShaderResourceView* finalTextures[3] = { NULL, NULL, NULL };
+	ID3D11ShaderResourceView* finalTextures[4] = { NULL, NULL, NULL, NULL };
 	ID3D11ShaderResourceView* gaussianBlurTexture[1] = { NULL };
 
 	ID3D11ShaderResourceView* lightMap = NULL;
@@ -984,6 +988,7 @@ bool Renderer::Render()
 	finalTextures[0] = colorRT->SRView;
 	finalTextures[1] = lightRT->SRView;
 	finalTextures[2] = depthRT->SRView;
+	finalTextures[3] = normalRT->SRView;
 
 	gaussianBlurTexture[0] = gaussianBlurPingPongRT->SRView;
 
@@ -1175,8 +1180,7 @@ bool Renderer::Render()
 
 	fullScreenQuad.Render(context, 0, 0);
 
-	composeShader->Render(context, fullScreenQuad.GetIndexCount(), &worldMatrix, &baseView, 
-		&orthoMatrix, finalTextures);
+	composeShader->Render(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &invertedViewProjection, finalTextures, ssaoRandomTextureSRV);
 #pragma endregion
 
 #pragma region Debug and text stage

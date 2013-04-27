@@ -1,16 +1,18 @@
 struct VertexShaderOutput
 {
 		float4 Position : SV_POSITION;
-		float2 TexCoord : TEXCOORD0;
+		float4 ScreenPosition : TEXCOORD0;
+		float2 TexCoord : TEXCOORD1;
 };
 
-float sampleRadius;
-float intensity;
-float scale;
-float bias;
-
 SamplerState samplers[2]; //0 == linear sampler, 1 == point
-Texture2D shaderTextures[3]; // 0 = color, light = 1, 2 = depth
+Texture2D randomTexture : register(ps_5_0, t0);
+Texture2D shaderTextures[4] : register(ps_5_0, t1); // 0 = color, light = 1, 2 = depth, 3 = normal
+
+static const float sampleRadius = 2.0f;
+static const float intensity = 10.0f;
+static const float scale = 2.0f;
+static const float bias = 0.5f;
 
 cbuffer PixelMatrixBufferType
 {
@@ -52,7 +54,6 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		float FogStart = 149.8f;
 		half4 FogColor = half4(0.6f, 0.6f, 0.6f, 1.0f);
 
-
 		if(depth <= 0.0001f) //Skip as early as possible if this pixel isn't supposed to be lit.
 		{
 			return float4(baseColor, 1.0f);
@@ -69,40 +70,40 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 
 		//SSAO:
 		//http://www.gamedev.net/page/resources/_/technical/graphics-programming-and-theory/a-simple-and-practical-approach-to-ssao-r2753
-
-		/*
+		
 		const float2 vec[4] = {	float2(1,0),float2(-1,0),
 								float2(0,1),float2(0,-1) };
 
 		float3 p = ReconstructPositionFromDepth(depth, input.ScreenPosition.xy).xyz;
-		float3 n = getNormal(i.uv);
-		float2 rand = getRandom(i.uv);
+		float3 n = shaderTextures[3].Sample(samplers[0], input.TexCoord);
+		float2 rand = randomTexture.Sample(samplers[0], input.TexCoord);
 
 		float ao = 0.0f;
-		float rad = g_sample_rad/p.z;
+		float rad = sampleRadius/p.z;
 
 		//primitive SSAO LOD
-		int iterations = lerp(6, 1, (p.z/150.0f)); //Divide p.z with farClip 
+		int iterations = 4.0f; //lerp(6, 1, (p.z/150.0f)); //Divide p.z with farClip 
 
 		//SSAO Calculation
-		for (int j = 0; j < iterations; ++j)
+		[unroll]
+		for (int i = 0; i < iterations; i++)
 		{
-			float2 coord1 = reflect(vec[j], rand)*radius;
-			float2 coord2 = float2(	coord1.x*0.707 - coord1.y*0.707,
-									coord1.x*0.707 + coord1.y*0.707);
+			float2 coord1 = reflect(vec[i], rand)*sampleRadius;
+			float2 coord2 = float2(	coord1.x*0.707f - coord1.y*0.707f,
+									coord1.x*0.707f + coord1.y*0.707f);
   
-			ao += DoAmbientOcclusion(input.TexCoord, coord1*0.25,	input.ScreenPosition.xy, p, n);
-			ao += DoAmbientOcclusion(input.TexCoord, coord2*0.5,	input.ScreenPosition.xy, p, n);
-			ao += DoAmbientOcclusion(input.TexCoord, coord1*0.75,	input.ScreenPosition.xy, p, n);
+			ao += DoAmbientOcclusion(input.TexCoord, coord1*0.25f,	input.ScreenPosition.xy, p, n);
+			ao += DoAmbientOcclusion(input.TexCoord, coord2*0.5f,	input.ScreenPosition.xy, p, n);
+			ao += DoAmbientOcclusion(input.TexCoord, coord1*0.75f,	input.ScreenPosition.xy, p, n);
 			ao += DoAmbientOcclusion(input.TexCoord, coord2,		input.ScreenPosition.xy, p, n);
 		}
 		
-		ao /= (float)iterations*4.0;
+		ao /= (float)iterations*4.0f;
 
 		ao = (1.0f - ao);
 
 		//Add AO to final calculation ...
-		*/
+		
 
 		//specular intensity is stored in the color map's alpha channel.
 		float4 light = shaderTextures[1].Sample(samplers[0], input.TexCoord);
@@ -110,7 +111,7 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		float specularLight = light.a;
 		
 		//Not going to apply specular here, it'll be applied in the final composition stage.
-		return lerp( float4(baseColor * (diffuseLight + specularLight), 1.0f),  FogColor, fogFactor); // + (fogFactor * FogColor)
+		return lerp( float4(ao*baseColor * (diffuseLight + specularLight), 1.0f),  FogColor, fogFactor); // + (fogFactor * FogColor)
 }
 
 /*
