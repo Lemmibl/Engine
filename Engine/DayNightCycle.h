@@ -55,7 +55,7 @@ private:
 	vector<XMFLOAT3> startAndEndPositions;
 	vector<StageOfDayStruct> stagesOfDay;
 
-	float timeOfDay, shouldLightMove;
+	float timeOfDay;
 
 	//Should light colors / skysphere colors be kept here?
 	//Moonshine: 217 206 190
