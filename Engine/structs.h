@@ -44,6 +44,16 @@ enum StageOfDay
 	NIGHT
 };
 
+struct StageOfDayStruct
+{
+	XMFLOAT4 AmbientColor;
+	XMFLOAT4 DirectionalLightColor;
+	XMFLOAT4 SkysphereColor;
+	float LightIntensity;
+	XMFLOAT3 StartPosition;
+	XMFLOAT3 EndPosition;
+};
+
 struct PointLight
 {
 	XMFLOAT3 Position;

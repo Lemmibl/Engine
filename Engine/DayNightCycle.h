@@ -26,7 +26,8 @@ private:
 		return ((1.0f-t)*a + t*b);
 	}
 
-	inline float GetColorValueFromRGB(float val)
+	//Well, I don't know what else to call it.
+	inline float ConvertColorValueTo_0_1_Range(float val)
 	{
 		return (val/255.0f);
 	}
@@ -45,6 +46,11 @@ private:
 	XMFLOAT4 skysphereDayColor;
 	XMFLOAT4 skysphereDuskColor;
 	XMFLOAT4 skysphereNightColor;
+
+	//Containers for current lerping value.
+	XMFLOAT4 currentSkysphereColor;
+	XMFLOAT4 currentAmbienceColor;
+	XMFLOAT4 currentDirectionalLightColor;
 
 	vector<XMFLOAT3> startAndEndPositions;
 

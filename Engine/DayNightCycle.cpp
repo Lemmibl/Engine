@@ -35,9 +35,9 @@ bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
 	directionalLightDayColor = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
 	directionalLightNightColor = XMFLOAT4(0.15f, 0.15f, 0.25f, 1.0f);
 
-	skysphereDawnColor = XMFLOAT4(1.0f, GetColorValueFromRGB(160.0f), GetColorValueFromRGB(122.0f), 1.0f);
-	skysphereDayColor = XMFLOAT4(GetColorValueFromRGB(100.0f), GetColorValueFromRGB(149.0f), GetColorValueFromRGB(237.0f), 1.0f);
-	skysphereDuskColor = XMFLOAT4(0.0f, GetColorValueFromRGB(206.0f), GetColorValueFromRGB(209.0f), 1.0f);
+	skysphereDawnColor = XMFLOAT4(1.0f, ConvertColorValueTo_0_1_Range(160.0f), ConvertColorValueTo_0_1_Range(122.0f), 1.0f);
+	skysphereDayColor = XMFLOAT4(ConvertColorValueTo_0_1_Range(100.0f), ConvertColorValueTo_0_1_Range(149.0f), ConvertColorValueTo_0_1_Range(237.0f), 1.0f);
+	skysphereDuskColor = XMFLOAT4(0.0f, ConvertColorValueTo_0_1_Range(206.0f), ConvertColorValueTo_0_1_Range(209.0f), 1.0f);
 	skysphereNightColor = XMFLOAT4(0.15f, 0.15f, 0.25f, 1.0f);
 
 	/*

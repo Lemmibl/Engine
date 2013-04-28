@@ -9,9 +9,9 @@ SamplerState samplers[2]; //0 == linear sampler, 1 == point
 Texture2D randomTexture : register(ps_5_0, t0);
 Texture2D shaderTextures[4] : register(ps_5_0, t1); // 0 = color, light = 1, 2 = depth, 3 = normal
 
-static const float sampleRadius = 1.5f;
+static const float sampleRadius = 1.0f;
 static const float intensity = 3.0f;
-static const float scale = 3.0f;
+static const float scale = 0.8f;
 static const float bias = 0.1f;
 
 cbuffer PixelMatrixBufferType
@@ -59,8 +59,8 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		float FogEnd = 150.0f;
 		float FogStart = 149.8f;
 		half4 FogColor = half4(0.6f, 0.6f, 0.6f, 1.0f);
-		float2 screenSize = float2(1024, 768);
-		float2 randomSize = float2(64, 64);
+		float2 screenSize = float2(1024.0f, 768.0f);
+		float2 randomSize = float2(64.0f, 64.0f);
 
 		if(depth <= 0.0001f) //Skip as early as possible if this pixel isn't supposed to be lit.
 		{
@@ -86,13 +86,13 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		float3 normal = normalize(DecodeNormal(shaderTextures[3].Sample(samplers[0], input.TexCoord).xyz));
 
 		//return normalize(tex2D(g_random, g_screen_size * uv / random_size).xy * 2.0f - 1.0f);
-		float2 rand = normalize(randomTexture.Sample(samplers[0], (screenSize*input.TexCoord / randomSize)).xy * 2.0f - 1.0f);
+		float2 rand = normalize(randomTexture.Sample(samplers[0], ((screenSize*input.TexCoord) / randomSize)).xy * 2.0f - 1.0f);
 
 		float ao = 0.0f;
 		float rad = sampleRadius/position.z;
 
 
-		int iterations = 2; //lerp(6, 1, (position.z/150.0f)); //primitive SSAO LOD; Divide p.z with farClip
+		int iterations = 4; //lerp(6, 1, (position.z/150.0f)); //primitive SSAO LOD; Divide p.z with farClip
 
 		//SSAO Calculation
 		[unroll]
@@ -121,7 +121,7 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		float specularLight = light.a;
 		
 		//Not going to apply specular here, it'll be applied in the final composition stage.
-		return lerp(float4(ao*(baseColor * (diffuseLight + specularLight)), 1.0f),  FogColor, fogFactor); // + (fogFactor * FogColor)
+		return lerp(float4((baseColor*ao) * (diffuseLight + specularLight), 1.0f),  FogColor, fogFactor); // + (fogFactor * FogColor)
 }
 
 /*
