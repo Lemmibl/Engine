@@ -619,7 +619,7 @@ const int MarchingCubesClass::edgeTable[256] = {
 
 								
 								//Remove this if you want the edges back. :)
-								if(x > 0 && x < this->sizeX-2 && z > 0 && z < this->sizeZ-2 && y > 0)
+								if(x > 1 && x < this->sizeX-3 && z > 1 && z < this->sizeZ-3 && y > 0)
 								{
 									indices[indexCounter] = vertexCounter;
 
