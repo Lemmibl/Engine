@@ -9,7 +9,7 @@ SamplerState samplers[2]; //0 == linear sampler, 1 == point
 Texture2D randomTexture : register(ps_5_0, t0);
 Texture2D shaderTextures[4] : register(ps_5_0, t1); // 0 = color, light = 1, 2 = depth, 3 = normal
 
-static const float sampleRadius = 0.5f;
+static const float sampleRadius = 1.5f;
 static const float intensity = 3.0f;
 static const float scale = 3.0f;
 static const float bias = 0.1f;
@@ -91,8 +91,8 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		float ao = 0.0f;
 		float rad = sampleRadius/position.z;
 
-		//primitive SSAO LOD
-		int iterations = 4; //lerp(6, 1, (p.z/150.0f)); //Divide p.z with farClip 
+
+		int iterations = 2; //lerp(6, 1, (position.z/150.0f)); //primitive SSAO LOD; Divide p.z with farClip
 
 		//SSAO Calculation
 		[unroll]
@@ -121,7 +121,7 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		float specularLight = light.a;
 		
 		//Not going to apply specular here, it'll be applied in the final composition stage.
-		return ao*lerp(float4(baseColor * ((diffuseLight + specularLight)), 1.0f),  FogColor, fogFactor); // + (fogFactor * FogColor)
+		return lerp(float4(ao*(baseColor * (diffuseLight + specularLight)), 1.0f),  FogColor, fogFactor); // + (fogFactor * FogColor)
 }
 
 /*
