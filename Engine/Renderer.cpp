@@ -362,7 +362,7 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 	XMStoreFloat3(&dirLight->Direction, direction);
 
 	//XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(((float)D3DX_PI/2.0f), 1.0f, 10.0f, 300.0f)); //Generate perspective light projection matrix and store it as float4x4
-	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(60.0f, 60.0f, 1.0f, 150.0f)); //Generate orthogonal light projection matrix and store it as float4x4
+	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(100.0f, 100.0f, 1.0f, 200.0f)); //Generate orthogonal light projection matrix and store it as float4x4
 
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix and store it as float4x4.
 #pragma endregion
@@ -914,11 +914,11 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 	}
 	#pragma endregion
 
-	//timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
+	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
 
-	XMVECTOR lookAt = (camera->ForwardVector()*30.0f)+XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//
+	XMVECTOR lookAt = XMVectorSet(30.0f, 20.0f, 30.0f, 1.0f);//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition())+(camera->ForwardVector()*30.0f);//XMLoadFloat3(&camera->GetPosition());//
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
-	XMVECTOR currentLightPos = XMLoadFloat3(&camera->GetPosition())-(camera->ForwardVector()*30.0f);//XMLoadFloat3(&dirLight->Position)+XMLoadFloat3(&camera->GetPosition());//+XMLoadFloat3(&camera->GetPosition())//XMLoadFloat3(&dirLight->Position)+
+	XMVECTOR currentLightPos = XMLoadFloat3(&dirLight->Position);//XMLoadFloat3(&camera->GetPosition())-(camera->ForwardVector()*30.0f);
 
 	XMStoreFloat3(&dirLight->Direction, XMVector3Normalize((lookAt - currentLightPos)));//XMLoadFloat3(&dirLight->Position)
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(currentLightPos, lookAt, up)); //Generate light view matrix

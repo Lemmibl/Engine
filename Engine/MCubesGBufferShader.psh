@@ -58,15 +58,15 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 
 	float worldPosY = input.WorldPosition.y;
 
-	if(worldPosY <= 25.0f)
-	{
-		YZCoord = float3(input.WorldPosition.yz * scale, 2.0f);  
-		XZCoord = float3(input.WorldPosition.xz * scale, 2.0f);  
-		XYCoord = float3(input.WorldPosition.xy * scale, 2.0f);
+	//if(worldPosY <= 25.0f)
+	//{
+	//	YZCoord = float3(input.WorldPosition.yz * scale, 2.0f);  
+	//	XZCoord = float3(input.WorldPosition.xz * scale, 2.0f);  
+	//	XYCoord = float3(input.WorldPosition.xy * scale, 2.0f);
 
-		output.Normal.w = EncodeMaterialID(0.0f); //Set and save material to underground
-	}
-	else if(worldPosY <= 45.0f)
+	//	output.Normal.w = EncodeMaterialID(0.0f); //Set and save material to underground
+	//}
+	if(worldPosY <= 45.0f)
 	{
 		YZCoord = float3(input.WorldPosition.yz * scale, 2.0f);  
 		XZCoord = float3(input.WorldPosition.xz * scale, 1.0f);  

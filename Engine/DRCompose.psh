@@ -110,7 +110,7 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		
 		ao /= (float)iterations*4.0f;
 
-		ao = max((0.8f - ao), 0.0f);
+		ao = max((1.0f - ao), 0.0f);
 
 		//Add AO to final calculation ...
 		

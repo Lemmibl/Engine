@@ -33,7 +33,7 @@ bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
 
 	//Initialize colors for the different stages of the day.
 	directionalLightDayColor = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
-	directionalLightNightColor = XMFLOAT4(0.4f, 0.4f, 0.5f, 1.0f);
+	directionalLightNightColor = XMFLOAT4(0.15f, 0.15f, 0.25f, 1.0f);
 
 	skysphereDawnColor = XMFLOAT4(1.0f, GetColorValueFromRGB(160.0f), GetColorValueFromRGB(122.0f), 1.0f);
 	skysphereDayColor = XMFLOAT4(GetColorValueFromRGB(100.0f), GetColorValueFromRGB(149.0f), GetColorValueFromRGB(237.0f), 1.0f);
@@ -57,28 +57,28 @@ bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
 	startAndEndPositions.reserve(12); 
 
 	//2 positions for the 6 different stages of the day. We store them as such: 0-5 previous positions, 6-11 future positions
-	startAndEndPositions.push_back(XMFLOAT3(150.0f, 0.0f, 0.0f)); //start pos for dawn
-	startAndEndPositions.push_back(XMFLOAT3(75.0f, 35.0f, 35.0f)); //end pos for dawn
+	startAndEndPositions.push_back(XMFLOAT3(150.0f, 45.0f, 30.0f)); //start pos for dawn
+	startAndEndPositions.push_back(XMFLOAT3(75.0f, 65.0f, 50.0f)); //end pos for dawn
 
 	//which leads into...
 
-	startAndEndPositions.push_back(XMFLOAT3(75.0f, 35.0f, 35.0f)); //start pos for morning
-	startAndEndPositions.push_back(XMFLOAT3(35.0f, 70.0f, 70.0f)); //end pos for morning
+	startAndEndPositions.push_back(XMFLOAT3(75.0f, 65.0f, 70.0f)); //start pos for morning
+	startAndEndPositions.push_back(XMFLOAT3(35.0f, 80.0f, 90.0f)); //end pos for morning
 
 	//which leads into...
 
-	startAndEndPositions.push_back(XMFLOAT3(35.0f, 70.0f, 70.0f)); //start pos for day
-	startAndEndPositions.push_back(XMFLOAT3(-35.0f, 70.0f, 70.0f)); //end pos for day
+	startAndEndPositions.push_back(XMFLOAT3(35.0f, 90.0f, 90.0f)); //start pos for day
+	startAndEndPositions.push_back(XMFLOAT3(-35.0f, 90.0f, 90.0f)); //end pos for day
 
 	//which leads into...
 
-	startAndEndPositions.push_back(XMFLOAT3(-35.0f, 70.0f, 70.0f)); //start pos for dusk
-	startAndEndPositions.push_back(XMFLOAT3(-75.0f, 35.0f, 35.0f)); //end pos for dusk
+	startAndEndPositions.push_back(XMFLOAT3(-35.0f, 80.0f, 90.0f)); //start pos for dusk
+	startAndEndPositions.push_back(XMFLOAT3(-75.0f, 65.0f, 70.0f)); //end pos for dusk
 
 	//which leads into...
 
-	startAndEndPositions.push_back(XMFLOAT3(-75.0f, 35.0f, 35.0f)); //start pos for evening
-	startAndEndPositions.push_back(XMFLOAT3(-150.0f, 0.0f, 0.0f)); //end pos for evening
+	startAndEndPositions.push_back(XMFLOAT3(-75.0f, 65.0f, 50.0f)); //start pos for evening
+	startAndEndPositions.push_back(XMFLOAT3(-150.0f, 45.0f, 30.0f)); //end pos for evening
 
 	//which leads into...
 
@@ -182,7 +182,7 @@ float DayNightCycle::Update( float elapsedTime, DirLight* directionalLight, Skys
 
 		case NIGHT:
 			directionalLight->Color = directionalLightNightColor;
-			directionalLight->Intensity = 1.0f;
+			directionalLight->Intensity = 0.55f;
 
 			skysphere->SetCenterColor(skysphereNightColor);
 			skysphere->SetApexColor(skysphereNightColor);
