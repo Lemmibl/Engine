@@ -9,10 +9,10 @@ SamplerState samplers[2]; //0 == linear sampler, 1 == point
 Texture2D randomTexture : register(ps_5_0, t0);
 Texture2D shaderTextures[4] : register(ps_5_0, t1); // 0 = color, light = 1, 2 = depth, 3 = normal
 
-static const float sampleRadius = 1.0f;
-static const float intensity = 1.0f;
-static const float scale = 1.0f;
-static const float bias = 1.0f;
+static const float sampleRadius = 0.5f;
+static const float intensity = 3.0f;
+static const float scale = 3.0f;
+static const float bias = 0.1f;
 
 cbuffer PixelMatrixBufferType
 {
@@ -41,7 +41,7 @@ float4 ReconstructPositionFromDepth(float depth, float2 ScreenPosition)
 
 float DoAmbientOcclusion(float2 TexCoord, float2 Offset, float2 ScreenPos, float3 Position, float3 Normal)
 {
-	float offsetDepth = shaderTextures[2].Sample(samplers[1], TexCoord + Offset);
+	float offsetDepth = shaderTextures[2].Sample(samplers[0], (TexCoord + Offset));
 	float3 offsetPosition = ReconstructPositionFromDepth(offsetDepth, ScreenPos).xyz;
 
 	float3 diff = offsetPosition - Position;
@@ -82,17 +82,17 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		const float2 vec[4] = {	float2(1,0),float2(-1,0),
 								float2(0,1),float2(0,-1) };
 
-		float3 p = ReconstructPositionFromDepth(depth, input.ScreenPosition.xy).xyz;
-		float3 n = normalize(DecodeNormal(shaderTextures[3].Sample(samplers[0], input.TexCoord).xyz));
+		float3 position = ReconstructPositionFromDepth(depth, input.ScreenPosition.xy).xyz;
+		float3 normal = normalize(DecodeNormal(shaderTextures[3].Sample(samplers[0], input.TexCoord).xyz));
 
 		//return normalize(tex2D(g_random, g_screen_size * uv / random_size).xy * 2.0f - 1.0f);
-		float2 rand = normalize(randomTexture.Sample(samplers[0], (screenSize*input.TexCoord / randomSize)) * 2.0f - 1.0f);
+		float2 rand = normalize(randomTexture.Sample(samplers[0], (screenSize*input.TexCoord / randomSize)).xy * 2.0f - 1.0f);
 
 		float ao = 0.0f;
-		float rad = sampleRadius/p.z;
+		float rad = sampleRadius/position.z;
 
 		//primitive SSAO LOD
-		int iterations = 4.0f; //lerp(6, 1, (p.z/150.0f)); //Divide p.z with farClip 
+		int iterations = 4; //lerp(6, 1, (p.z/150.0f)); //Divide p.z with farClip 
 
 		//SSAO Calculation
 		[unroll]
@@ -102,15 +102,15 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 			float2 coord2 = float2(	coord1.x*0.707f - coord1.y*0.707f,
 									coord1.x*0.707f + coord1.y*0.707f);
   
-			ao += DoAmbientOcclusion(input.TexCoord, coord1*0.25f,	input.ScreenPosition.xy, p, n);
-			ao += DoAmbientOcclusion(input.TexCoord, coord2*0.5f,	input.ScreenPosition.xy, p, n);
-			ao += DoAmbientOcclusion(input.TexCoord, coord1*0.75f,	input.ScreenPosition.xy, p, n);
-			ao += DoAmbientOcclusion(input.TexCoord, coord2,		input.ScreenPosition.xy, p, n);
+			ao += DoAmbientOcclusion(input.TexCoord, coord1*0.25f,	input.ScreenPosition.xy, position, normal);
+			ao += DoAmbientOcclusion(input.TexCoord, coord2*0.5f,	input.ScreenPosition.xy, position, normal);
+			ao += DoAmbientOcclusion(input.TexCoord, coord1*0.75f,	input.ScreenPosition.xy, position, normal);
+			ao += DoAmbientOcclusion(input.TexCoord, coord2,		input.ScreenPosition.xy, position, normal);
 		}
 		
 		ao /= (float)iterations*4.0f;
 
-		ao = (1.0f - ao);
+		ao = max((0.8f - ao), 0.0f);
 
 		//Add AO to final calculation ...
 		
@@ -121,7 +121,7 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		float specularLight = light.a;
 		
 		//Not going to apply specular here, it'll be applied in the final composition stage.
-		return lerp( ao*float4(baseColor * ((diffuseLight + specularLight)), 1.0f),  FogColor, fogFactor); // + (fogFactor * FogColor)
+		return ao*lerp(float4(baseColor * ((diffuseLight + specularLight)), 1.0f),  FogColor, fogFactor); // + (fogFactor * FogColor)
 }
 
 /*
