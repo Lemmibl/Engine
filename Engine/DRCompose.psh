@@ -41,7 +41,7 @@ float4 ReconstructPositionFromDepth(float depth, float2 ScreenPosition)
 
 float DoAmbientOcclusion(float2 TexCoord, float2 Offset, float2 ScreenPos, float3 Position, float3 Normal)
 {
-	float offsetDepth = shaderTextures[2].Sample(samplers[0], (TexCoord + Offset));
+	float offsetDepth = shaderTextures[2].Sample(samplers[1], (TexCoord + Offset));
 	float3 offsetPosition = ReconstructPositionFromDepth(offsetDepth, ScreenPos).xyz;
 
 	float3 diff = offsetPosition - Position;
@@ -83,10 +83,10 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 								float2(0,1),float2(0,-1) };
 
 		float3 position = ReconstructPositionFromDepth(depth, input.ScreenPosition.xy).xyz;
-		float3 normal = normalize(DecodeNormal(shaderTextures[3].Sample(samplers[0], input.TexCoord).xyz));
+		float3 normal = normalize(DecodeNormal(shaderTextures[3].Sample(samplers[1], input.TexCoord).xyz));
 
 		//return normalize(tex2D(g_random, g_screen_size * uv / random_size).xy * 2.0f - 1.0f);
-		float2 rand = normalize(randomTexture.Sample(samplers[0], ((screenSize*input.TexCoord) / randomSize)).xy * 2.0f - 1.0f);
+		float2 rand = normalize(randomTexture.Sample(samplers[1], ((screenSize*input.TexCoord) / randomSize)).xy * 2.0f - 1.0f);
 
 		float ao = 0.0f;
 		float rad = sampleRadius/position.z;

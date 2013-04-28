@@ -53,6 +53,8 @@ bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
 	then repeats
 	*/
 
+	stagesOfDay.reserve(8);
+
 	//Tiny optimization so that we won't have to resize vector every time we add a new variable
 	startAndEndPositions.reserve(12); 
 

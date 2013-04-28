@@ -37,7 +37,7 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 	float3 UpNormal = float3(0.0f, 1.0f, 0.0f);
 
 	//Create weights for color interpolation based on world-space normal of surface
-	float tighten = 0.25f; 
+	float tighten = 0.2f; 
 	float3 NormalizedWorldNormal = normalize(input.WorldNormal.xyz);
 
 	float3 blend_weights = abs(input.WorldNormal.xyz);     

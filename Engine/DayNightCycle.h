@@ -53,6 +53,7 @@ private:
 	XMFLOAT4 currentDirectionalLightColor;
 
 	vector<XMFLOAT3> startAndEndPositions;
+	vector<StageOfDayStruct> stagesOfDay;
 
 	float timeOfDay, shouldLightMove;
 

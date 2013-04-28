@@ -609,32 +609,40 @@ const int MarchingCubesClass::edgeTable[256] = {
 						{
 							for (j = i; j < (i+3); j++)
 							{
-								indices[indexCounter] = vertexCounter;
 
-								vertices[vertexCounter].position = XMFLOAT3	
+								XMFLOAT3 temp = XMFLOAT3	
 									(	
 									this->verts[this->triTable[lookup][j]].posX,
 									this->verts[this->triTable[lookup][j]].posY,
 									this->verts[this->triTable[lookup][j]].posZ		
 									);
 
-								vertices[vertexCounter].normal = XMFLOAT3	
-									(	
-									this->verts[this->triTable[lookup][j]].normalX, 
-									this->verts[this->triTable[lookup][j]].normalY, 
-									this->verts[this->triTable[lookup][j]].normalZ	
-									);
+								
+								//Remove this if you want the edges back. :)
+								if(x > 0 && x < this->sizeX-2 && z > 0 && z < this->sizeZ-2 && y > 0)
+								{
+									indices[indexCounter] = vertexCounter;
 
-								vertexCounter++;
-								indexCounter++;
+									vertices[vertexCounter].position = temp;
 
-								/*
-								// Allocate new vertex & index
-								indices[indexCount++] = vertexCount;
-								vertices[vertexCount++] = vertexPos;
-								*/
+									vertices[vertexCounter].normal = XMFLOAT3	
+										(	
+										this->verts[this->triTable[lookup][j]].normalX, 
+										this->verts[this->triTable[lookup][j]].normalY, 
+										this->verts[this->triTable[lookup][j]].normalZ	
+										);
+
+									vertexCounter++;
+									indexCounter++;
+
+									/*
+									// Allocate new vertex & index
+									indices[indexCount++] = vertexCount;
+									vertices[vertexCount++] = vertexPos;
+									*/
+								}
+								numberOfTriangles++;
 							}
-							numberOfTriangles++;
 						}
 
 						/*
@@ -783,7 +791,7 @@ const int MarchingCubesClass::edgeTable[256] = {
 		}
 		delete this->Terrain;
 		this->Terrain = 0;
-		
+
 		this->Terrain = new MCTerrainClass();
 		this->Terrain->Initialize(sizeX,sizeY,sizeZ,this->marchingCubeVertices);
 		Terrain->Noise3D();

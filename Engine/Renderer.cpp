@@ -767,9 +767,13 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		lodState = 3;
 
 		LODVector500.clear();
+		LODVector500.reserve(500);
 		LODVector2500.clear();
+		LODVector2500.reserve(2500);
 		LODVector5000.clear();
+		LODVector5000.reserve(5000);
 		LODVector10000.clear();
+		LODVector10000.reserve(10000);
 
 		marchingCubes->Reset();
 		marchingCubes->GetTerrain()->Noise3D();
