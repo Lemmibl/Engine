@@ -350,7 +350,7 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	XMVECTOR lookAt = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);//LookAt for dir light. We always want this to be (0,0,0), because it's the easiest to visualize.
+	XMVECTOR lookAt = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);//LookAt for dir light. We always want thi0s to be (0,0,0), because it's the easiest to visualize.
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 
 	// Initialize the directional light.
@@ -363,52 +363,6 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 
 	//XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(((float)D3DX_PI/2.0f), 1.0f, 10.0f, 300.0f)); //Generate perspective light projection matrix and store it as float4x4
 	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(100.0f, 100.0f, 1.0f, 200.0f)); //Generate orthogonal light projection matrix and store it as float4x4
-
-	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix and store it as float4x4.
-#pragma endregion
-
-	return true;
-}
-
-bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
-{
-	bool result;
-
-	metaBalls = new MetaballsClass();
-	marchingCubes = new MarchingCubesClass(0.0f, 0.0f, 0.0f, 60.0f, 60.0f, 60.0f, 1.0f, 1.0f, 1.0f);
-	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
-
-	marchingCubes->GetTerrain()->Noise3D();
-	marchingCubes->CalculateMesh(device);
-
-	lSystem = new LSystemClass();
-	lSystem->initialize();
-
-	skySphere = new Skysphere();
-	if(!skySphere)
-	{
-		return false;
-	}
-
-	result = skySphere->Initialize(device, hwnd);
-	if(!result)
-	{
-		return false;
-	}
-
-	vegetationManager = new VegetationManager();
-	if(!vegetationManager)
-	{
-		return false;
-	}
-
-	result = vegetationManager->Initialize(device, hwnd);
-	if(!result)
-	{
-		return false;
-	}
-
-	float x,z,y;
 
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix and store it as float4x4.
 #pragma endregion

@@ -1,13 +1,7 @@
-/////////////
-// GLOBALS //
-/////////////
-Texture2DArray shaderTexture;
-SamplerState SampleType;
-
 struct VertexShaderOutput
 {
 	float4 Position : SV_POSITION;
-	float4 TexCoord : TEXCOORD0;
+	float Depth : TEXCOORD0;
 };
 
 float2 ComputeMoments(float depth)  
@@ -17,9 +11,9 @@ float2 ComputeMoments(float depth)
 	// First moment is normal depth.  
 	moments.x = depth;
 <<<<<<< Updated upstream
-	moments.y = depth*depth;//0.0f;//moments.x*moments.x;
+	moments.y = depth*depth;
 =======
-	moments.y = moments.x*moments.x;
+	moments.y = moments.x*moments.x;//depth*depth;
 >>>>>>> Stashed changes
 
 	//// Compute partial derivatives of depth.  
@@ -34,10 +28,5 @@ float2 ComputeMoments(float depth)
 
 float2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 {
-	if(0.4f >= shaderTexture.Sample(SampleType, input.TexCoord.xyz).w)
-	{
-		discard;
-	}
-
-	return ComputeMoments(input.TexCoord.w); //I store postProj.z/w depth in texcoord.w. I pack everything into a float4 to save space.
+	return ComputeMoments(input.Depth);
 };

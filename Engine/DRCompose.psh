@@ -9,10 +9,10 @@ SamplerState samplers[2]; //0 == linear sampler, 1 == point
 Texture2D randomTexture : register(ps_5_0, t0);
 Texture2D shaderTextures[4] : register(ps_5_0, t1); // 0 = color, light = 1, 2 = depth, 3 = normal
 
-static const float sampleRadius = 1.0f;
-static const float intensity = 3.0f;
-static const float scale = 0.8f;
-static const float bias = 0.1f;
+static const float sampleRadius = 2.0f;
+static const float intensity = 1.0f;
+static const float scale = 0.25f;
+static const float bias = 0.5f;
 
 cbuffer PixelMatrixBufferType
 {
@@ -121,7 +121,7 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		float specularLight = light.a;
 		
 		//Not going to apply specular here, it'll be applied in the final composition stage.
-		return lerp(float4((baseColor*ao) * (diffuseLight + specularLight), 1.0f),  FogColor, fogFactor); // + (fogFactor * FogColor)
+		return lerp(float4((ao*baseColor) * (diffuseLight + specularLight), 1.0f),  FogColor, fogFactor); // + (fogFactor * FogColor)
 }
 
 /*

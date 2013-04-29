@@ -38,14 +38,13 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 
 	//Create weights for color interpolation based on world-space normal of surface
 <<<<<<< Updated upstream
-	float tighten = 0.3f; 
-	float3 NormalizedWorldNormal = normalize(input.WorldNormal.xyz);
+	float tighten = 0.2f; 
 =======
-	float tighten = 0.35f; 
-	float3 NormalizedWorldNormal = normalize(input.WorldNormal);
+	float tighten = 0.45f;
 >>>>>>> Stashed changes
+	float3 NormalizedWorldNormal = normalize(input.WorldNormal.xyz);
 
-	float3 blend_weights = abs(input.WorldNormal.xyz);     
+	float3 blend_weights = abs(NormalizedWorldNormal);     
 	blend_weights = (blend_weights - tighten) * 7;  // Tighten up the blending zone
 	blend_weights = max(blend_weights, 0);
 	blend_weights /= (blend_weights.x + blend_weights.y + blend_weights.z).xxx; // Force weights to sum to 1.0 (very important!)  
@@ -63,15 +62,15 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 
 	float worldPosY = input.WorldPosition.y;
 
-	if(worldPosY <= 25.0f)
-	{
-		YZCoord = float3(input.WorldPosition.yz * scale, 2.0f);  
-		XZCoord = float3(input.WorldPosition.xz * scale, 2.0f);  
-		XYCoord = float3(input.WorldPosition.xy * scale, 2.0f);
+	//if(worldPosY <= 25.0f)
+	//{
+	//	YZCoord = float3(input.WorldPosition.yz * scale, 2.0f);  
+	//	XZCoord = float3(input.WorldPosition.xz * scale, 2.0f);  
+	//	XYCoord = float3(input.WorldPosition.xy * scale, 2.0f);
 
-		output.Normal.w = EncodeMaterialID(0.0f); //Set and save material to underground
-	}
-	else if(worldPosY <= 45.0f)
+	//	output.Normal.w = EncodeMaterialID(0.0f); //Set and save material to underground
+	//}
+	if(worldPosY <= 45.0f)
 	{
 		YZCoord = float3(input.WorldPosition.yz * scale, 2.0f);  
 		XZCoord = float3(input.WorldPosition.xz * scale, 1.0f);  
