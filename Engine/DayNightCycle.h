@@ -14,6 +14,7 @@ public:
 	float Update(float elapsedTime, DirLight* directionalLight, Skysphere* skysphere);
 
 	StageOfDay GetCurrentStageOfDay() { return currentStageOfDay; }
+	XMFLOAT4 GetAmbientLightColor();
 
 private:
 	inline float clamp(float x, float a, float b)
@@ -33,31 +34,16 @@ private:
 	}
 
 private:
-	StageOfDay currentStageOfDay, previousFrameStageOfDay;
 	float timePerStage, elapsedTime;
-
-	XMFLOAT4 directionalLightDayColor;
-	XMFLOAT4 directionalLightNightColor;
-
-	XMFLOAT4 ambientDayColor;
-	XMFLOAT4 ambientNightColor;
-
-	XMFLOAT4 skysphereDawnColor;
-	XMFLOAT4 skysphereDayColor;
-	XMFLOAT4 skysphereDuskColor;
-	XMFLOAT4 skysphereNightColor;
 
 	//Containers for current lerping value.
 	XMFLOAT4 currentSkysphereColor;
 	XMFLOAT4 currentAmbienceColor;
 	XMFLOAT4 currentDirectionalLightColor;
 
-	vector<XMFLOAT3> startAndEndPositions;
 	vector<StageOfDayStruct> stagesOfDay;
 
+	StageOfDay currentStageOfDay, previousFrameStageOfDay;
+	StageOfDayStruct previousStageStruct;
 	float timeOfDay;
-
-	//Should light colors / skysphere colors be kept here?
-	//Moonshine: 217 206 190
-	//Yellow sunshine: 231 187 65
 };

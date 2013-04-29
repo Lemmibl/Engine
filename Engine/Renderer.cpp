@@ -4,6 +4,12 @@
 #include "Renderer.h"
 
 /*
+THE LINK DUNGEON
+
+Bit shifting to store multiple values in one int:
+http://stackoverflow.com/questions/3499444/compress-two-or-more-numbers-into-one-byte
+http://stackoverflow.com/questions/13930672/load-store-between-8-bit-and-32-bit-values
+
 Inför cleana upp kod:
 http://gamedev.stackexchange.com/questions/24615/managing-shaders-and-objects-in-directx-11
 https://graphics.stanford.edu/wikis/cs448s-11/FrontPage?action=AttachFile&do=get&target=05-GPU_Arch_I.pdf
@@ -1181,7 +1187,7 @@ bool Renderer::Render()
 	fullScreenQuad.Render(context, 0, 0);
 
 	result = dirLightShader->Render(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &invertedViewProjection, 
-		dirLightTextures, textureAndMaterialHandler->GetMaterialTextureArray(), camPos, dirLight, ambientLight, &lightViewProj);
+		dirLightTextures, textureAndMaterialHandler->GetMaterialTextureArray(), camPos, dirLight, dayNightCycle->GetAmbientLightColor(), &lightViewProj);
 	if(!result)
 	{
 		return false;
