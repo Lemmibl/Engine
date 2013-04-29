@@ -37,6 +37,13 @@ float PerlinEaseCurve(float value)
 float4 SkyspherePixelShader(PixelInputType input) : SV_TARGET0
 {
 	float4 fogColor = float4(0.6f, 0.6f, 0.6f, 1.0f);
+
+	//Then it's night
+	if(CenterColor.a < 0.9f)
+	{
+		fogColor = float4(0.05f, 0.05f, 0.05f, 1.0f);
+	}
+
 	float4 sphereColor = lerp(ApexColor, CenterColor, time);
 	float fogMultiplier = PerlinEaseCurve(clamp(0.2f-input.DomePosition.y, 0.0f, 1.0f));
 	//TODO: ... maybe just make an if()elseif()else() to better control the flow ..
