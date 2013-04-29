@@ -409,6 +409,52 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 	}
 
 	float x,z,y;
+
+	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix and store it as float4x4.
+#pragma endregion
+
+	return true;
+}
+
+bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
+{
+	bool result;
+
+	metaBalls = new MetaballsClass();
+	marchingCubes = new MarchingCubesClass(0.0f, 0.0f, 0.0f, 60.0f, 60.0f, 60.0f, 1.0f, 1.0f, 1.0f);
+	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
+
+	marchingCubes->GetTerrain()->Noise3D();
+	marchingCubes->CalculateMesh(device);
+
+	lSystem = new LSystemClass();
+	lSystem->initialize();
+
+	skySphere = new Skysphere();
+	if(!skySphere)
+	{
+		return false;
+	}
+
+	result = skySphere->Initialize(device, hwnd);
+	if(!result)
+	{
+		return false;
+	}
+
+	vegetationManager = new VegetationManager();
+	if(!vegetationManager)
+	{
+		return false;
+	}
+
+	result = vegetationManager->Initialize(device, hwnd);
+	if(!result)
+	{
+		return false;
+	}
+
+	float x,z,y;
 	int textureID, randValue;
 
 	for(int i = 0; i < 10000; i++)
@@ -633,8 +679,8 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 	normalRT->Initialize(device, screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
 	depthRT->Initialize(device, screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
 	lightRT->Initialize(device, screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
-	shadowRT->Initialize(device, shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_FLOAT);
-	gaussianBlurPingPongRT->Initialize(device, shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_FLOAT); //Needs to be identical to shadowRT
+	shadowRT->Initialize(device, shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R32G32_FLOAT);
+	gaussianBlurPingPongRT->Initialize(device, shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R32G32_FLOAT); //Needs to be identical to shadowRT
 
 	// Create the frustum object.
 	frustum = new FrustumClass;
@@ -1123,6 +1169,16 @@ bool Renderer::Render()
 	d3D->TurnOnAlphaBlending();
 	vegetationManager->Render(context, &identityWorldViewProj, textureAndMaterialHandler->GetVegetationTextureArray());
 	d3D->TurnOffAlphaBlending();
+#pragma endregion
+
+#pragma region Point light stage
+	context->OMSetRenderTargets(1, lightTarget, ds);
+	context->ClearRenderTargetView(lightTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
+	context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	//Phase one, draw sphere with vertex-only shader.
+	d3D->TurnOnLightBlending();
+
 #pragma endregion
 
 #pragma region Point light stage

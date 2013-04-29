@@ -1,5 +1,5 @@
 #ifndef SEPARABLE_BLUR_KERNEL_SIZE
-#define SEPARABLE_BLUR_KERNEL_SIZE 3
+#define SEPARABLE_BLUR_KERNEL_SIZE 5
 #endif
 
 static const int BLUR_KERNEL_BEGIN = SEPARABLE_BLUR_KERNEL_SIZE / -2; 
@@ -18,7 +18,7 @@ SamplerState shadowSampler;
 //--------------------------------------------------------------------------------------
 // Pixel shader that performs vertical blurring as part of a two-pass gaussian blur
 //--------------------------------------------------------------------------------------
-half2 PSBlurY(PixelInputType input) : SV_Target0
+float2 PSBlurY(PixelInputType input) : SV_Target0
 {	
 	float2 blurredValue=0;
 	
