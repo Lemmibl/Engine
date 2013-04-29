@@ -763,7 +763,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 	if(inputManager->IsKeyPressed(DIK_1))
 	{
-		seconds = timeOfDay += frameTime*2.0f;
+		seconds = timeOfDay += frameTime*4.0f;
 	}
 
 	#pragma region Generate new marching cubes world
