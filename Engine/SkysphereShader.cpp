@@ -48,13 +48,14 @@ void SkysphereShader::Shutdown()
 }
 
 
-bool SkysphereShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldViewProjection, XMFLOAT4 apexColor, XMFLOAT4 centerColor, XMFLOAT4 antapexColor, float time)
+bool SkysphereShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldViewProjection, XMFLOAT4 apexColor, 
+	XMFLOAT4 centerColor, XMFLOAT4 fogColor, float time)
 {
 	bool result;
 
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldViewProjection, apexColor, centerColor, antapexColor, time);
+	result = SetShaderParameters(deviceContext, worldViewProjection, apexColor, centerColor, fogColor, time);
 	if(!result)
 	{
 		return false;
@@ -295,7 +296,8 @@ void SkysphereShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hw
 }
 
 
-bool SkysphereShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, XMFLOAT4 apexColor, XMFLOAT4 centerColor, XMFLOAT4 antapexColor, float time)
+bool SkysphereShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, XMFLOAT4 apexColor, 
+	XMFLOAT4 centerColor, XMFLOAT4 fogColor, float time)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -339,7 +341,7 @@ bool SkysphereShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XM
 	// Copy the gradient color variables into the constant buffer.
 	dataPtr2->ApexColor = apexColor;
 	dataPtr2->CenterColor = centerColor;
-	dataPtr2->AntapexColor = antapexColor;
+	dataPtr2->FogColor = fogColor;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(gradientBuffer, 0);

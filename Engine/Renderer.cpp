@@ -310,7 +310,7 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 
 		pointLights.push_back(new PointLight());
 		pointLights[i]->Color = XMFLOAT3(x, y, z);
-		pointLights[i]->Position = XMFLOAT3(x * 60.0f, 40.0f, z * 60.0f);
+		pointLights[i]->Position = XMFLOAT3(utility->RandomFloat() * 60.0f, 40.0f, utility->RandomFloat() * 60.0f);
 		pointLights[i]->Radius = 4.0f; //Used to both scale the actual point light model and is a factor in the attenuation
 		pointLights[i]->Intensity = 5.0f; //Is used to control the attenuation
 
@@ -575,7 +575,7 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 	{
 		return false;
 	}
-	
+
 	noise = new SimplexNoise();
 	if(!noise)
 	{
@@ -712,7 +712,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale*XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y-0.5f, pointLights[i]->Position.z)));
 		}
 	}
-	
+
 	if(inputManager->WasKeyPressed(DIK_U))
 	{
 		if(FAILED(textureAndMaterialHandler->CreateRandom2DTexture(d3D->GetDevice(), d3D->GetDeviceContext(), &ssaoRandomTextureSRV)))
@@ -766,7 +766,56 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		seconds = timeOfDay += frameTime*4.0f;
 	}
 
-	#pragma region Generate new marching cubes world
+#pragma region LOD stuff
+	//Distance between camera and middle of mcube chunk. We'll have to do this for each chunk, and keep an individual lodState for each chunk.
+	if(timer >= 0.5f)
+	{
+		int distance = (int)utility->VectorDistance(camera->GetPosition(), XMFLOAT3(30.0f, 60.0f, 30.0f));
+
+		//if(distance <= 100)
+		//{
+		//	lodState = 3;
+		//}
+		if(distance <= 150)
+		{
+			lodState = 2;
+		}
+		else if(distance <= 200)
+		{
+			lodState = 1;
+		}
+		else
+		{
+			lodState = 0;
+		}
+
+		timer = 0.0f;
+	}
+
+	//If the lod state has changed since last update, switch and rebuild vegetation instance buffers
+	if(lodState != previousLodState)
+	{
+		switch (lodState)
+		{
+		case 0:
+			vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector500);
+			break;
+
+		case 1:
+			vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector2500);
+			break;
+
+		case 2:
+			vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector5000);
+			break;
+
+		case 3:
+			vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector10000);
+		}
+	}
+#pragma endregion
+
+#pragma region Generate new marching cubes world
 	if(inputManager->WasKeyPressed(DIK_N))
 	{
 		previousLodState = 0; //We set previous lod state to something != lodState so that it'll trigger an instancebuffer rebuild
@@ -871,39 +920,6 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 			}
 		}
 
-		vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector500);
-	}
-	#pragma endregion
-
-	#pragma region LOD stuff
-	//Distance between camera and middle of mcube chunk. We'll have to do this for each chunk, and keep an individual lodState for each chunk.
-	if(timer >= 0.5f)
-	{
-		int distance = (int)utility->VectorDistance(camera->GetPosition(), XMFLOAT3(30.0f, 60.0f, 30.0f));
-
-		if(distance <= 100)
-		{
-			lodState = 3;
-		}
-		else if(distance <= 150)
-		{
-			lodState = 2;
-		}
-		else if(distance <= 200)
-		{
-			lodState = 1;
-		}
-		else
-		{
-			lodState = 0;
-		}
-
-		timer = 0.0f;
-	}
-
-	//If the lod state has changed since last update, switch and rebuild vegetation instance buffers
-	if(lodState != previousLodState)
-	{
 		switch (lodState)
 		{
 		case 0:
@@ -922,7 +938,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 			vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector10000);
 		}
 	}
-	#pragma endregion
+#pragma endregion
 
 	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
 
@@ -948,7 +964,8 @@ bool Renderer::Render()
 	context = d3D->GetDeviceContext();
 
 	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, scalingMatrix, viewProjection, invertedViewProjection, invertedView, 
-		lightView, lightProj, lightViewProj, baseView, worldBaseViewOrthoProj, identityWorldViewProj, lightWorldViewProj, untransposedViewProj;
+		lightView, lightProj, lightViewProj, baseView, worldBaseViewOrthoProj, identityWorldViewProj, lightWorldViewProj, 
+		invertedProjection, untransposedViewProj;
 
 	XMFLOAT3 camPos;
 	bool result;
@@ -1034,6 +1051,7 @@ bool Renderer::Render()
 	viewProjection = XMMatrixMultiply(viewMatrix, projectionMatrix);
 
 	invertedView = XMMatrixInverse(&nullVec, viewMatrix);
+	invertedProjection = XMMatrixInverse(&nullVec, projectionMatrix);
 	invertedViewProjection = XMMatrixInverse(&nullVec, viewProjection);
 
 	identityWorldViewProj = ((worldMatrix*viewMatrix ) * projectionMatrix);
@@ -1046,7 +1064,7 @@ bool Renderer::Render()
 	lightViewProj =				XMMatrixTranspose(lightViewProj);
 	invertedViewProjection =	XMMatrixTranspose(invertedViewProjection);
 	baseView =					XMMatrixTranspose(XMLoadFloat4x4(&baseViewMatrix));
-
+	invertedProjection =		XMMatrixTranspose(invertedProjection);
 	worldBaseViewOrthoProj = ((baseView * worldMatrix)* orthoMatrix); //Do it post-transpose
 #pragma endregion
 
@@ -1111,7 +1129,7 @@ bool Renderer::Render()
 	worldMatrix = (XMMatrixTranslation(camPos.x, camPos.y, camPos.z)*viewMatrix)*projectionMatrix;
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
-	skySphere->Render(context, &worldMatrix, timeOfDay);
+	skySphere->Render(context, &worldMatrix, &dayNightCycle->GetAmbientLightColor(), timeOfDay);
 
 	d3D->SetBackFaceCullingRasterizer();
 	d3D->TurnZBufferOn();
@@ -1200,7 +1218,8 @@ bool Renderer::Render()
 
 	fullScreenQuad.Render(context, 0, 0);
 
-	composeShader->Render(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &invertedViewProjection, finalTextures, ssaoRandomTextureSRV);
+	composeShader->Render(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &invertedViewProjection, 
+		&dayNightCycle->GetAmbientLightColor(), finalTextures, ssaoRandomTextureSRV);
 #pragma endregion
 
 #pragma region Debug and text stage

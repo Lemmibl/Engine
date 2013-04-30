@@ -68,9 +68,16 @@ void RetrieveMaterialData(int materialID, out float ambienceCoefficient, out flo
 }
 
 //Decoding of GBuffer Normals
-float3 DecodeNormal(float3 enc)
+half3 DecodeNormal(half2 enc)
 {
-	return ((2.0f * enc.xyz) - 1.0f);
+    half2 fenc = enc*4-2;
+    half f = dot(fenc,fenc);
+    half g = sqrt(1-f/4);
+
+    half3 n;
+    n.xy = fenc*g;
+    n.z = 1-f/2;
+    return n;
 }
 
 float4 ReconstructPositionFromDepth(float depth, float2 ScreenPosition)
@@ -173,7 +180,7 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	
 	finalAmbienceProduct += ambienceCoefficient * AmbientColor;
 
-	float3 normal = normalize(DecodeNormal(encodedNormal.xyz));
+	float3 normal = normalize(DecodeNormal(encodedNormal.xy));
 
 	//Surface-to-light vector
 	float3 lightVector = (-LightDirection);

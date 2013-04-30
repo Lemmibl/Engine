@@ -30,9 +30,10 @@ float EncodeMaterialID(float id)
 }
 
 //Normal Encoding Function
-float3 Encode(float3 n)
+half3 Encode(half3 n)
 {
-	n = 0.5f * (n + 1.0f);
+    half p = sqrt(n.z*8+8);
+    return half3(n.xy/p + 0.5,0);
 
 	return n;
 }

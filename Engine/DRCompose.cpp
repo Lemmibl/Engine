@@ -51,12 +51,12 @@ void DRCompose::Shutdown()
 }
 
 bool DRCompose::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldViewProjection, XMMATRIX* invViewProjection,
-	ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView* randomTexture)
+	XMFLOAT4* fogColor, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView* randomTexture)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldViewProjection, invViewProjection, textureArray, randomTexture);
+	result = SetShaderParameters(deviceContext, worldViewProjection, invViewProjection, fogColor, textureArray, randomTexture);
 	if(!result)
 	{
 		return false;
@@ -174,12 +174,12 @@ bool DRCompose::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 	pixelShaderBuffer = 0;
 
 	// Create a texture sampler state description.
-	samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.MipLODBias = 0.0f;
-	samplerDesc.MaxAnisotropy = 16;
+	samplerDesc.MaxAnisotropy = 1;
 	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
 	samplerDesc.BorderColor[0] = samplerDesc.BorderColor[1] = samplerDesc.BorderColor[2] = samplerDesc.BorderColor[3] = 0;
 	samplerDesc.MinLOD = 0;
@@ -336,7 +336,7 @@ void DRCompose::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WC
 }
 
 bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, XMMATRIX* invViewProjection,
-	ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView* randomTexture)
+	XMFLOAT4* fogColor, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView* randomTexture)
 {		
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -380,6 +380,7 @@ bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRI
 	dataPtr2 = (PixelMatrixBuffer*)mappedResource.pData;
 
 	dataPtr2->InvViewProjection = *invViewProjection;
+	dataPtr2->FogColor = *fogColor;
 
 	deviceContext->Unmap(pixelMatrixBuffer, 0);
 

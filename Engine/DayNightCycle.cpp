@@ -116,7 +116,7 @@ bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
 	StageOfDayStruct dusk;
 	dusk.AmbientColor =		XMFLOAT4(0.5f,	0.5f,	0.5f,	1.0f);
 	dusk.DirectionalLightColor = dusk.AmbientColor;
-	dusk.SkysphereColor = XMFLOAT4(0.2f,	ConvertColorValueTo_0_1_Range(180.0f),	ConvertColorValueTo_0_1_Range(170.0f),	1.0f);
+	dusk.SkysphereColor = morning.SkysphereColor;//XMFLOAT4(0.2f,	ConvertColorValueTo_0_1_Range(180.0f),	ConvertColorValueTo_0_1_Range(170.0f),	1.0f);
 	
 	dusk.StartPosition = day.EndPosition;
 	dusk.EndPosition =	XMFLOAT3(-75.0f, 65.0f, 30.0f);
@@ -130,7 +130,7 @@ bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
 	StageOfDayStruct evening;
 	evening.AmbientColor =	XMFLOAT4(0.3f,	0.3f,	0.3f,	1.0f);
 	evening.DirectionalLightColor = evening.AmbientColor;
-	evening.SkysphereColor = XMFLOAT4(0.15f,	0.23f,	0.25f,	1.0f);
+	evening.SkysphereColor = dawn.SkysphereColor;//XMFLOAT4(0.15f,	0.23f,	0.25f,	1.0f);
 	
 	evening.StartPosition = dusk.EndPosition;
 	evening.EndPosition =	XMFLOAT3(-150.0f, 45.0f, 30.0f);

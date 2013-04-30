@@ -27,9 +27,16 @@ SamplerState pointSampler;
 //////////////////////////////////////////////////
 
 //Decoding of GBuffer Normals
-float3 DecodeNormal(float3 enc)
+half3 DecodeNormal(half2 enc)
 {
-	return (2.0f * enc.xyz - 1.0f);
+    half2 fenc = enc*4-2;
+    half f = dot(fenc,fenc);
+    half g = sqrt(1-f/4);
+
+    half3 n;
+    n.xy = fenc*g;
+    n.z = 1-f/2;
+    return n;
 }
 
 void RetrieveMaterialData(int materialID, out float Kd, out float Ks, out float smoothness)
@@ -91,7 +98,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	RetrieveMaterialData(materialID, diffuseCoefficient, specularCoefficient, smoothness);
 
 	float depth = textures[2].Sample(pointSampler, texCoord);
-	float3 normal = normalize(DecodeNormal(normalData.xyz));
+	float3 normal = normalize(DecodeNormal(normalData.xy));
 	
 	float4 position = ReconstructPositionFromDepth(depth, input.ScreenPosition.xy);
 
