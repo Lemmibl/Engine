@@ -1,6 +1,6 @@
 #pragma once
 #include <math.h>
-#include "structs.h"
+#include "StructsAndEnums.h"
 #include <stdlib.h>
 #include <stdio.h>
 

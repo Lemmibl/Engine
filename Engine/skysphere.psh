@@ -24,9 +24,15 @@ struct PixelInputType
 	float4 DomePosition : TEXCOORD0;
 };
 
-//Perlin noise ease curve: 3p² - 2p³
+//This function is used for values in the 0 to 1 range; lerp values etc. 
+//It's originally from Ken Perlin's perlin noise algorithm for smoothing transition between points.
+
+//Essentially the ease curve will accentuate a value towards the extremes; 
+//if it's a low value, it'll become lower, if it's a high value it'll become higher.
+//If it's avg it won't move very much.
 float PerlinEaseCurve(float value)
 {
+	//Algorithmically speaking: 3p² - 2p³
 	return	(3.0f * (value*value) - (2.0f * (value*value*value)));
 }
 
@@ -37,8 +43,11 @@ float PerlinEaseCurve(float value)
 float4 SkyspherePixelShader(PixelInputType input) : SV_TARGET0
 {
 	float4 sphereColor = lerp(ApexColor, CenterColor, time);
+
+	//Fog/Skysphere color lerp multiplier. It basically scales with the Y position of this pixel, plus a little offset to make the fog begin higher up.
+	//We clamp it to 0-1 to make sure the lerp value doesn't get screwy.
+	//After that we put it through a perlin ease curve to make the beginning and the end more extreme
 	float fogMultiplier = PerlinEaseCurve(clamp(0.4f-input.DomePosition.y, 0.0f, 1.0f));
-	//TODO: ... maybe just make an if()elseif()else() to better control the flow ..
 
 	return lerp(sphereColor, FogColor, fogMultiplier); //We want to scale so that furthest down on the skysphere is covered in fog
 }

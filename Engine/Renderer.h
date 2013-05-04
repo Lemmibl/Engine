@@ -21,8 +21,7 @@
 
 //Utility
 #include "Utility.h"
-#include "structs.h"
-#include "modellistclass.h"
+#include "StructsAndEnums.h"
 #include "inputclass.h"
 #include "d3dclass.h"
 #include "timerclass.h"
@@ -102,14 +101,9 @@ private:
 	DRDirLight* dirLightShader;
 	DirLight* dirLight;
 
-	ModelListClass* modelList;
-	ModelClass* groundModel;
-	ModelClass* otherModel;
 	ModelClass* sphereModel;
 	Skysphere* skySphere;
 	VegetationManager* vegetationManager;
-
-	//Add a bunch of models and init, destruct and render them.
 
 	RenderTarget2D* colorRT; // render target for storing color. 8R 8G 8B 8A. stores specular intensity in alpha value.
 	RenderTarget2D* depthRT; // render target for storing depth. it's a R16 G16 because we use variance shadowmapping

@@ -1,5 +1,5 @@
 #pragma once
-#include "structs.h"
+#include "StructsAndEnums.h"
 #include "SkySphere.h"
 #include <math.h>
 

@@ -69,10 +69,7 @@ Renderer::Renderer()
 	dirLightShader = 0;
 	dirLight = 0;
 
-	modelList = 0;
-	groundModel = 0;
 	sphereModel = 0;
-	otherModel = 0;
 	skySphere = 0;
 	vegetationManager = 0;
 	depthOnlyQuadShader = 0;
@@ -503,21 +500,6 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 	vegetationManager->SetupQuads(d3D->GetDevice(), &LODVector500);
 
 	// Create the model object.
-	groundModel = new ModelClass;
-	if(!groundModel)
-	{
-		return false;
-	}
-
-	// Initialize the model object.
-	result = groundModel->Initialize(device, "../Engine/data/ground.txt", L"../Engine/data/grass.dds", L"../Engine/data/ground_normal.dds", L"../Engine/data/ground_specular.dds");
-	if(!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
-		return false;
-	}
-
-	// Create the model object.
 	sphereModel = new ModelClass();
 	if(!sphereModel)
 	{
@@ -529,31 +511,6 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
-		return false;
-	}
-
-	otherModel = new ModelClass();
-	if(!otherModel)
-	{
-		return false;
-	}
-
-	result = otherModel->Initialize(device, "../Engine/data/cube.txt", L"../Engine/data/stone02.dds", L"../Engine/data/bump02.dds", L"../Engine/data/stone_specmap.dds");
-	if(!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
-		return false;
-	}
-
-	modelList = new ModelListClass();
-	if(!modelList)
-	{
-		return false;
-	}
-
-	result = modelList->Initialize(10);
-	if(!result)
-	{
 		return false;
 	}
 
@@ -969,7 +926,6 @@ bool Renderer::Render()
 
 	XMFLOAT3 camPos;
 	bool result;
-	int modelCount, renderCount;
 	ID3D11RenderTargetView* gbufferRenderTargets[3] = { NULL, NULL, NULL }; //render targets for GBuffer pass
 	ID3D11RenderTargetView* lightTarget[1] = { NULL };
 	ID3D11RenderTargetView* shadowTarget[1] = { NULL };
@@ -1018,12 +974,6 @@ bool Renderer::Render()
 	finalTextures[3] = normalRT->SRView;
 
 	gaussianBlurTexture[0] = gaussianBlurPingPongRT->SRView;
-
-	// Get the number of models that will be rendered.
-	modelCount = modelList->GetModelCount();
-
-	// Initialize the count of models that have been rendered.
-	renderCount = 0;
 #pragma endregion
 
 #pragma region Matrix preparations
@@ -1083,6 +1033,8 @@ bool Renderer::Render()
 	{
 		return false;
 	}
+
+	//////////////////////////////////////////////Uncomment to enable vegetation quad shadows...
 
 	//d3D->TurnOnShadowBlendState();
 	//vegetationManager->RenderBuffers(context);
@@ -1438,32 +1390,11 @@ void Renderer::Shutdown()
 		gaussianBlurPingPongRT  = 0;
 	}
 
-	if(modelList)
-	{
-		modelList->Shutdown();
-		delete modelList;
-		modelList = 0;
-	}
-
-	if(groundModel)
-	{
-		groundModel->Shutdown();
-		delete groundModel;
-		groundModel = 0;
-	}
-
 	if(sphereModel)
 	{
 		sphereModel->Shutdown();
 		delete sphereModel;
 		sphereModel = 0;
-	}
-
-	if(otherModel)
-	{
-		otherModel->Shutdown();
-		delete otherModel;
-		otherModel = 0;
 	}
 
 	if(skySphere)

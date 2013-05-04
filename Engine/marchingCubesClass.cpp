@@ -610,27 +610,35 @@ const int MarchingCubesClass::edgeTable[256] = {
 							for (j = i; j < (i+3); j++)
 							{
 
-								XMFLOAT3 temp = XMFLOAT3	
+								XMFLOAT3 tempPos = XMFLOAT3	
 									(	
 									this->verts[this->triTable[lookup][j]].posX,
 									this->verts[this->triTable[lookup][j]].posY,
 									this->verts[this->triTable[lookup][j]].posZ		
 									);
 
-								
+								XMFLOAT3 tempNormal = XMFLOAT3	
+									(	
+									this->verts[this->triTable[lookup][j]].normalX, 
+									this->verts[this->triTable[lookup][j]].normalY, 
+									this->verts[this->triTable[lookup][j]].normalZ	
+									);
+
+
+								unsigned int texAndMatIDs = 0;
+								float lerpVal = 0;
+
+								utility.GenerateMaterialAndTextureData(tempPos.y, &tempNormal, lerpVal, texAndMatIDs);
+
 								//Remove this if you want the edges back. :)
 								if(x > 1 && x < this->sizeX-3 && z > 1 && z < this->sizeZ-3 && y > 0)
 								{
 									indices[indexCounter] = vertexCounter;
 
-									vertices[vertexCounter].position = temp;
-
-									vertices[vertexCounter].normal = XMFLOAT3	
-										(	
-										this->verts[this->triTable[lookup][j]].normalX, 
-										this->verts[this->triTable[lookup][j]].normalY, 
-										this->verts[this->triTable[lookup][j]].normalZ	
-										);
+									vertices[vertexCounter].position = tempPos;
+									vertices[vertexCounter].normal = tempNormal;
+									vertices[vertexCounter].lerpValue = lerpVal;
+									vertices[vertexCounter].TextureAndMaterialIDs = texAndMatIDs;
 
 									vertexCounter++;
 									indexCounter++;
@@ -745,7 +753,7 @@ const int MarchingCubesClass::edgeTable[256] = {
 		// Set the index buffer to active in the input assembler so it can be rendered.
 		deviceContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-		// Set the tangentYpe of primitive that should be rendered from this vertex buffer, in this case triangles.
+		// Set the tangent type of primitive that should be rendered from this vertex buffer, in this case triangles.
 		deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		return true;
@@ -801,5 +809,3 @@ const int MarchingCubesClass::edgeTable[256] = {
 	{
 		return 0;
 	}
-
-
