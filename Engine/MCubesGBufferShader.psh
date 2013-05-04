@@ -84,11 +84,11 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 	XYColor = shaderTextures.Sample(textureSampler, XYCoord);
 	
 	//We want to have a transitional phase between snow and grass.
-	if(input.LerpValues > 0.01f)
+	if(input.LerpValues > 0.0f)
 	{
 		float lerpModifier = input.LerpValues; //Meaning it goes from 0.0f to 1.0f
-		float3 firstCoords = float3(input.WorldPosition.xz * scale, 1.0f);
-		float3 secondCoords = float3(input.WorldPosition.xz * scale, 4.0f);
+		float3 firstCoords = float3(input.WorldPosition.xz * scale, tex1);
+		float3 secondCoords = float3(input.WorldPosition.xz * scale, tex2);
 
 		XZColor = lerp(shaderTextures.Sample(textureSampler, firstCoords), shaderTextures.Sample(textureSampler, secondCoords), lerpModifier);
 	}
