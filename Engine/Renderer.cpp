@@ -291,15 +291,13 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 {
 	bool result;
 
-	ambientLight = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f);
-
 #pragma region Point light initialization
 	float x, y, z;
 	//x = 2.0f;
 	//z = 2.0f;
 	//y = 40.0f;
 
-	for(int i = 0; i < 50; i++)
+	for(int i = 0; i < 200; i++)
 	{
 		x = utility->RandomFloat();
 		y = utility->RandomFloat();

@@ -117,7 +117,6 @@ private:
 	DebugWindowClass fullScreenQuad;
 
 	XMFLOAT4X4 baseViewMatrix;
-	XMFLOAT4 ambientLight;
 
 	UINT shadowMapWidth, shadowMapHeight, screenWidth, screenHeight;
 	float screenFar, screenNear, timer, timeOfDay;

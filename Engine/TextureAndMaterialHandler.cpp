@@ -106,15 +106,15 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	MaterialStruct grass;
 	grass.Kambience = 0.8f;
 	grass.Kdiffuse = 1.0f;
-	grass.Kspecular = 0.0f;
-	grass.smoothness = 256.0f;
+	grass.Kspecular = 0.01f;
+	grass.smoothness = 1.0f;
 	grass.shouldBeShadowed = 10.0f;
 
 	MaterialStruct rock;
 	rock.Kambience = 0.5f;
 	rock.Kdiffuse = 0.8f;
 	rock.Kspecular = 0.6f;
-	rock.smoothness = 256.0f;
+	rock.smoothness = 1.0f;
 	rock.shouldBeShadowed = 10.0f;
 
 	MaterialStruct snow;

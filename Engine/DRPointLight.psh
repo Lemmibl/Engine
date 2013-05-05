@@ -39,7 +39,7 @@ half3 DecodeNormal(half2 enc)
 	return n;
 }
 
-void RetrieveMaterialData(int materialID, out float Kd, out float Ks, out float smoothness)
+void RetrieveMaterialData(int materialID, out float Kd, out float Ks, out float surfaceSmoothness)
 {
 	/*
 	Because the runtime does not support 1D textures, the compiler will use a 2D texture with the knowledge 
@@ -58,7 +58,7 @@ void RetrieveMaterialData(int materialID, out float Kd, out float Ks, out float 
 	Ks = materialArray.Load(LoadingCoordinates);
 	LoadingCoordinates.x += 1;
 
-	smoothness = materialArray.Load(LoadingCoordinates);
+	surfaceSmoothness = materialArray.Load(LoadingCoordinates);
 	LoadingCoordinates.x += 1;
 
 }
@@ -82,7 +82,7 @@ float4 ReconstructPositionFromDepth(float depth, float2 ScreenPosition)
 ///////////////////////////////////////////////////
 half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 {
-	float diffuseCoefficient, specularCoefficient, smoothness;
+	float diffuseCoefficient, specularCoefficient, surfaceSmoothness;
 
 	input.ScreenPosition /= input.ScreenPosition.w; //Get screen position
 
@@ -91,11 +91,23 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	//get normal data from the normalMap
 	float4 normalData = textures[1].Sample(pointSampler, texCoord);
 
-	//We recreate the material ID
 	int materialID = round(normalData.z * 255);
+	int materialID2 = round(normalData.w * 255);
 
-	//Retrieve material data from 1DTextureArray with help of material ID
-	RetrieveMaterialData(materialID, diffuseCoefficient, specularCoefficient, smoothness);
+	RetrieveMaterialData(materialID, diffuseCoefficient, specularCoefficient, surfaceSmoothness);
+	
+	//If there's a difference between our two materials, we have to lerp!
+	if(materialID != materialID2) 
+	{
+		float lerpVal = (textures[0].Sample(pointSampler, texCoord).w);
+		float diffuseCoefficient2, specularCoefficient2, surfaceSmoothness2;
+
+		RetrieveMaterialData(materialID2, diffuseCoefficient2, specularCoefficient2, surfaceSmoothness2);
+
+		diffuseCoefficient = lerp(diffuseCoefficient, diffuseCoefficient2, lerpVal);
+		specularCoefficient = lerp(specularCoefficient, specularCoefficient2, lerpVal);
+		surfaceSmoothness = lerp(surfaceSmoothness, surfaceSmoothness2, lerpVal);
+	}
 
 	float depth = textures[2].Sample(pointSampler, texCoord);
 	float3 normal = normalize(DecodeNormal(normalData.xy));
@@ -121,7 +133,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	float3 directionToCamera = normalize(position - CameraPosition);
 
 	//compute specular light
-	float specularLight = pow( saturate( dot(reflectionVector, directionToCamera)), smoothness);
+	float specularLight = pow( saturate( dot(reflectionVector, directionToCamera)), surfaceSmoothness);
 
 	//scale final value with attenuation, take into calculation the current material of this pixel
 	return (attenuation/(LightPower+0.0001f))*half4(diffuseCoefficient*diffuseLight, specularCoefficient*specularLight);

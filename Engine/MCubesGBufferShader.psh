@@ -103,8 +103,8 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 		texture1 = 2;
 		texture2 = 2;
 
-		material1 = 1;
-		material2 = 1;
+		material1 = 5;
+		material2 = 5;
 	}
 	else if(worldY <= 31.0f)
 	{
@@ -113,7 +113,7 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 		texture1 = 2;
 		texture2 = 1;
 
-		material1 = 1;
+		material1 = 5;
 		material2 = 0;
 	}
 	else if(worldY <= 43.0f)
