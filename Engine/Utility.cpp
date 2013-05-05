@@ -38,7 +38,7 @@ float Utility::RandomFloat()
 	{
 		uint8_t materialAndTextureValues[4];
 		unsigned int material1, material2, texture1, texture2;
-		float lerp = -1.0f, dotResult = 0.0f;
+		float lerp = 0.0f, dotResult = 0.0f;
 		const XMVECTOR upVector = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 
 		//Does dot between two vectors and gets the float value...
@@ -46,7 +46,7 @@ float Utility::RandomFloat()
 		dotResult = XMVectorGetX(XMVector3Dot(XMLoadFloat3(normal), upVector));
 
 		//Big clunky bunch of if()elseIf(), but it does the job.
-		if(WorldPositionY <= 25.0f)
+		if(WorldPositionY <= 30.0f)
 		{
 			texture1 = TEXTURE_ROCK;
 			texture2 = TEXTURE_ROCK;
@@ -54,9 +54,9 @@ float Utility::RandomFloat()
 			material1 = MATERIAL_ROCK;
 			material2 = material1;
 		}
-		else if(WorldPositionY >= 25.0f && WorldPositionY <= 26.0f)
+		else if(WorldPositionY <= 30.8f)
 		{
-			lerp = (WorldPositionY - 25.0f); //Meaning it goes from 0.0f to 1.0f
+			lerp = 30.0f;
 
 			texture1 = TEXTURE_ROCK;
 			texture2 = TEXTURE_GRASS;
@@ -64,7 +64,7 @@ float Utility::RandomFloat()
 			material1 = MATERIAL_ROCK;
 			material2 = MATERIAL_GRASS;
 		}
-		else if(WorldPositionY <= 45.0f)
+		else if(WorldPositionY <= 44.8f)
 		{
 			texture1 = TEXTURE_GRASS;
 			texture2 = TEXTURE_GRASS;
@@ -72,13 +72,22 @@ float Utility::RandomFloat()
 			material1 = MATERIAL_GRASS;
 			material2 = material1;
 		}
-		else if(WorldPositionY >= 45.0f && WorldPositionY <= 46.0f)
+		else if( WorldPositionY <= 45.8f)
 		{
-			lerp = (WorldPositionY - 45.0f); //Meaning it goes from 0.0f to 1.0f
+			lerp = 45.0f;
 			texture1 = TEXTURE_GRASS;
-			texture2 = TEXTURE_SNOW;
+			texture2 = TEXTURE_ROCK;
 
 			material1 = MATERIAL_GRASS;
+			material2 = MATERIAL_ROCK;
+		}
+		else if(WorldPositionY <= 46.8f)
+		{
+			lerp = 46.0f;
+			texture1 = TEXTURE_ROCK;
+			texture2 = TEXTURE_SNOW;
+
+			material1 = MATERIAL_ROCK;
 			material2 = MATERIAL_SNOW;
 		}
 		else
@@ -118,4 +127,10 @@ float Utility::RandomFloat()
 		final |= ( data[3]       );
 
 		return final;
+	}
+
+	float Utility::ConvertFromOneRangeToAnother(float OldValue, float OldMin, float OldMax, float NewMin, float NewMax)
+	{
+		//NewValue = (((OldValue - OldMin) * (NewMax - NewMin)) / (OldMax - OldMin)) + NewMin
+		return ((OldValue - OldMin) * (NewMax-NewMin) / (OldMax-OldMin)+NewMin);
 	}

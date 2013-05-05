@@ -517,7 +517,7 @@ bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATR
 
 	// Set shader texture resources in the pixel shader.
 	deviceContext->PSSetShaderResources(0, 1, materialTextureArray);
-	deviceContext->PSSetShaderResources(1, 3, textureArray);
+	deviceContext->PSSetShaderResources(1, 4, textureArray);
 
 	return true;
 }

@@ -4,8 +4,7 @@ struct VertexShaderOutput
 	float3 WorldNormal : NORMAL;
 	float4 WorldPosition : TEXCOORD0;
 	float Depth : TEXCOORD1;
-	float LerpValues : TEXCOORD2;
-	uint IDValues : BLENDINDICES;
+	uint4 IDValues : TEXCOORD2;
 };
 
 struct PixelShaderOutput
@@ -22,19 +21,19 @@ SamplerState textureSampler;
 half3 Encode(half3 n)
 {
 	half p = sqrt(n.z*8+8);
-	return half3(n.xy/p + 0.5,0);
+	return half3(n.xy/p + 0.5f, 0);
 
 	return n;
 }
 
-void ExtractMaterialAndTextureID(int encodedValue, out int texture1, out int texture2, out int material1, out int material2)
-{
-	//http://stackoverflow.com/questions/7787423/c-get-nth-byte-of-integer
-	texture1  =		(encodedValue >> 24	) & 0xff;
-	texture2 =		(encodedValue >> 16	) & 0xff;
-	material1 =		(encodedValue >> 8	) & 0xff;
-	material2 =		(encodedValue >> 0	) & 0xff;
-}
+//void ExtractMaterialAndTextureID(int encodedValue, out int texture1, out int texture2, out int material1, out int material2)
+//{
+//	//http://stackoverflow.com/questions/7787423/c-get-nth-byte-of-integer
+//	texture1  =		(encodedValue >> 24	) & 0xff;
+//	texture2 =		(encodedValue >> 16	) & 0xff;
+//	material1 =		(encodedValue >> 8	) & 0xff;
+//	material2 =		(encodedValue >> 0	) & 0xff;
+//}
 
 //When it gets read in other shaders it gets multiplied back to 255.
 float EncodeMaterialID(float id)
@@ -68,39 +67,120 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 	float4 XZColor;
 	float4 XYColor;
 
-	//TODO: Get material and tex IDs
-	int tex1, tex2, mat1, mat2;
-
-	ExtractMaterialAndTextureID(input.IDValues, tex1, tex2, mat1, mat2);
-
 	YZCoord = float3(input.WorldPosition.yz * scale, 2.0f);  
-	XZCoord = float3(input.WorldPosition.xz * scale, tex1);  
 	XYCoord = float3(input.WorldPosition.xy * scale, 2.0f);
-
-	output.Normal.w = EncodeMaterialID(mat1); //Set and save material to grass
-	output.Normal.z = EncodeMaterialID(mat2);
 
 	YZColor = shaderTextures.Sample(textureSampler, YZCoord);
 	XYColor = shaderTextures.Sample(textureSampler, XYCoord);
-	
-	//We want to have a transitional phase between snow and grass.
-	if(input.LerpValues > 0.0f)
-	{
-		float lerpModifier = input.LerpValues; //Meaning it goes from 0.0f to 1.0f
-		float3 firstCoords = float3(input.WorldPosition.xz * scale, tex1);
-		float3 secondCoords = float3(input.WorldPosition.xz * scale, tex2);
 
-		XZColor = lerp(shaderTextures.Sample(textureSampler, firstCoords), shaderTextures.Sample(textureSampler, secondCoords), lerpModifier);
+	//enum MaterialID
+	//{
+	//MATERIAL_GRASS,
+	//MATERIAL_ROCK,
+	//MATERIAL_SNOW,
+	//MATERIAL_DIRT,
+	//MATERIAL_GRASSQUADS,
+	//MATERIAL_UNDERGROUND
+	//};
+	
+	//enum TextureID
+	//{
+	//TEXTURE_DIRT,
+	//TEXTURE_GRASS,
+	//TEXTURE_ROCK,
+	//TEXTURE_SAND,
+	//TEXTURE_SNOW,
+	//TEXTURE_TILEDSTONE
+	//};
+
+	float lerpVal = 0.0f;
+	float worldY = input.WorldPosition.y;
+
+	int texture1, texture2, material1, material2;
+	
+	if(worldY <= 29.0f)
+	{
+		texture1 = 2;
+		texture2 = 2;
+
+		material1 = 1;
+		material2 = 1;
+	}
+	else if(worldY <= 31.0f)
+	{
+		lerpVal = (worldY-29.0f)*0.5f;
+
+		texture1 = 2;
+		texture2 = 1;
+
+		material1 = 1;
+		material2 = 0;
+	}
+	else if(worldY <= 43.0f)
+	{
+		texture1 = 1;
+		texture2 = 1;
+
+		material1 = 0;
+		material2 = 0;
+	}
+	else if( worldY <= 45.0f)
+	{
+		lerpVal = (worldY-43.0f)*0.5f;
+
+		texture1 = 1;
+		texture2 = 2;
+
+		material1 = 0;
+		material2 = 1;
+	}
+	else if(worldY <= 47.0f)
+	{
+		lerpVal = (worldY-45.0f)*0.5f;
+
+		texture1 = 2;
+		texture2 = 4;
+
+		material1 = 1;
+		material2 = 2;
 	}
 	else
 	{
+		texture1 = 4; 
+		texture2 = 4;
+
+		material1 = 2;
+		material2 = 2;	
+	}
+	
+	//If surface is facing downwards, change textures but not materials
+	if(dotResult <= 0.0f)
+	{
+		texture1 = 2;
+		texture2 = 2;
+	}
+
+	//If there are two different textures to lerp.
+	if(texture1 != texture2)
+	{
+		float3 firstCoords = float3(input.WorldPosition.xz * scale, texture1);
+		float3 secondCoords = float3(input.WorldPosition.xz * scale, texture2);
+
+		XZColor = lerp(shaderTextures.Sample(textureSampler, firstCoords), shaderTextures.Sample(textureSampler, secondCoords), lerpVal);
+	}
+	else
+	{
+		XZCoord = float3(input.WorldPosition.xz * scale, texture1);
 		XZColor = shaderTextures.Sample(textureSampler, XZCoord);
 	}
 	
 	output.Color = ((XZColor * blend_weights.y) + (YZColor * blend_weights.x) + (XYColor * blend_weights.z));
-	output.Color.w = 1.0f;
+	output.Color.w = (lerpVal);//Convert our [0,1] range lerp value to [0,255] to preserve data
 
-	output.Normal.xyz = Encode(NormalizedWorldNormal); //revert the normal output to [0,1] space then assign it to the output normal map's RGB channel
+	output.Normal.xy = Encode(NormalizedWorldNormal);
+	output.Normal.z = EncodeMaterialID(material1);
+	output.Normal.w = EncodeMaterialID(material2);
+
 	output.Depth = (input.Depth);
 
 	return output;

@@ -637,7 +637,7 @@ const int MarchingCubesClass::edgeTable[256] = {
 
 									vertices[vertexCounter].position = tempPos;
 									vertices[vertexCounter].normal = tempNormal;
-									vertices[vertexCounter].lerpValue = lerpVal;
+									//vertices[vertexCounter].lerpValue = lerpVal;
 									vertices[vertexCounter].TextureAndMaterialIDs = texAndMatIDs;
 
 									vertexCounter++;

@@ -34,7 +34,7 @@ struct MarchingCubeVectors
 	XMFLOAT3 position;
 	XMFLOAT3 normal;
 	UINT32 TextureAndMaterialIDs;
-	float lerpValue;
+	/*float lerpValue;*/
 };
 
 #endif

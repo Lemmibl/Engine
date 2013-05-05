@@ -8,8 +8,7 @@ struct VertexShaderInput
 {
 	float4 Position : POSITION;
 	float3 Normal : NORMAL;
-	uint IDValues : BLENDINDICES;
-	float LerpValues : TEXCOORD;
+	uint4 IDValues : COLOR0;
 };
 
 struct VertexShaderOutput
@@ -18,8 +17,7 @@ struct VertexShaderOutput
 	float3 WorldNormal : NORMAL;
 	float4 WorldPosition : TEXCOORD0;
 	float Depth : TEXCOORD1;
-	float LerpValues : TEXCOORD2;
-	uint IDValues : BLENDINDICES;
+	uint4 IDValues : TEXCOORD2;
 };
 
 VertexShaderOutput MCubesGBufferVertexShader(VertexShaderInput input)
@@ -32,7 +30,6 @@ VertexShaderOutput MCubesGBufferVertexShader(VertexShaderInput input)
 	output.Depth = output.Position.z/output.Position.w;
 
 	output.WorldNormal = mul(input.Normal, World);
-	output.LerpValues = input.LerpValues;
 	output.IDValues = input.IDValues;
 
 	return output;

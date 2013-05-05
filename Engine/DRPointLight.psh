@@ -29,14 +29,14 @@ SamplerState pointSampler;
 //Decoding of GBuffer Normals
 half3 DecodeNormal(half2 enc)
 {
-    half2 fenc = enc*4-2;
-    half f = dot(fenc,fenc);
-    half g = sqrt(1-f/4);
+	half2 fenc = enc*4-2;
+	half f = dot(fenc,fenc);
+	half g = sqrt(1-f/4);
 
-    half3 n;
-    n.xy = fenc*g;
-    n.z = 1-f/2;
-    return n;
+	half3 n;
+	n.xy = fenc*g;
+	n.z = 1-f/2;
+	return n;
 }
 
 void RetrieveMaterialData(int materialID, out float Kd, out float Ks, out float smoothness)
@@ -92,7 +92,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	float4 normalData = textures[1].Sample(pointSampler, texCoord);
 
 	//We recreate the material ID
-	int materialID = round(normalData.w * 255);
+	int materialID = round(normalData.z * 255);
 
 	//Retrieve material data from 1DTextureArray with help of material ID
 	RetrieveMaterialData(materialID, diffuseCoefficient, specularCoefficient, smoothness);
@@ -104,7 +104,6 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 
 	//surface-to-light vector
 	float3 lightVector =  normalize(position-LightPosition);
-
 
 	float d = distance(position, LightPosition);
 	float attenuation = (LightRadius / (d*d)); //Slight offset to dampen the light

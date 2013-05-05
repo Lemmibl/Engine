@@ -932,7 +932,7 @@ bool Renderer::Render()
 	ID3D11RenderTargetView* gaussianBlurPingPongRTView[1] = { NULL };
 
 	ID3D11ShaderResourceView* gbufferTextures[3] = { NULL, NULL, NULL };
-	ID3D11ShaderResourceView* dirLightTextures[3] = { NULL, NULL, NULL };
+	ID3D11ShaderResourceView* dirLightTextures[4] = { NULL, NULL, NULL, NULL };
 	ID3D11ShaderResourceView* finalTextures[4] = { NULL, NULL, NULL, NULL };
 	ID3D11ShaderResourceView* gaussianBlurTexture[1] = { NULL };
 
@@ -966,6 +966,7 @@ bool Renderer::Render()
 	dirLightTextures[0] = normalRT->SRView;
 	dirLightTextures[1] = depthRT->SRView;
 	dirLightTextures[2] = shadowRT->SRView;
+	dirLightTextures[3] = colorRT->SRView;
 
 	//For the the final composition pass
 	finalTextures[0] = colorRT->SRView;
