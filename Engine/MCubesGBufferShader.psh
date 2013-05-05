@@ -100,20 +100,20 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 	
 	if(worldY <= 29.0f)
 	{
-		texture1 = 2;
-		texture2 = 2;
+		texture1 = 0;
+		texture2 = 0;
 
-		material1 = 5;
-		material2 = 5;
+		material1 = 3;
+		material2 = 3;
 	}
 	else if(worldY <= 31.0f)
 	{
 		lerpVal = (worldY-29.0f)*0.5f;
 
-		texture1 = 2;
+		texture1 = 0;
 		texture2 = 1;
 
-		material1 = 5;
+		material1 = 3;
 		material2 = 0;
 	}
 	else if(worldY <= 43.0f)

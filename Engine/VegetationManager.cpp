@@ -154,7 +154,7 @@ bool VegetationManager::BuildVertexBuffer( ID3D11Device* device )
 
 
 	XMFLOAT2 quad1Left, quad1Right;
-	quad1Left = XMFLOAT2(0.5f, 0.0f);
+	quad1Left = XMFLOAT2(0.4f, 0.0f);
 	quad1Right = XMFLOAT2(-0.6f, -0.2f);
 
 	XMFLOAT2 quad2Left, quad2Right;

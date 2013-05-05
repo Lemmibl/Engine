@@ -81,6 +81,9 @@ public:
 	bool RenderToTexture(RenderToTextureClass* const);
 	bool RenderScene();
 
+	//And the winner for worst parameter name 2013 goes to.....
+	void GenerateVegetation(ID3D11Device* device, bool IfSetupThenTrue_IfUpdateThenFalse);
+
 private:
 	D3DClass* d3D;
 	CameraClass* camera;
@@ -110,7 +113,7 @@ private:
 	RenderTarget2D* normalRT; //render target for storing normals. 8R 8G 8B 8A. stores specular power in alpha value.
 	RenderTarget2D* lightRT; // light rendertarget
 	RenderTarget2D* shadowRT; //Shadow map
-	RenderTarget2D* gaussianBlurPingPongRT; //Yep. To be used when blurring shadow map
+	RenderTarget2D* gaussianBlurPingPongRT; //Used for blurring shadow map
 
 	TextureShaderClass* textureShader;
 	DebugWindowClass debugWindows[6];
