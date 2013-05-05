@@ -10,6 +10,10 @@ Geometry shader quads:
 http://www.braynzarsoft.net/index.php?p=D3D11BILLBOARDS
 http://rastergrid.com/blog/2010/02/instance-culling-using-geometry-shaders/
 
+Linear depth:
+http://www.gamerendering.com/2008/09/28/linear-depth-texture/
+http://mynameismjp.wordpress.com/2010/09/05/position-from-depth-3/
+
 Inför cleana upp kod:
 http://gamedev.stackexchange.com/questions/24615/managing-shaders-and-objects-in-directx-11
 https://graphics.stanford.edu/wikis/cs448s-11/FrontPage?action=AttachFile&do=get&target=05-GPU_Arch_I.pdf
