@@ -54,7 +54,7 @@ public:
 
 	void Noise3D();
 
-	MarchingCubeVertex* &getMarchingCubeVertices()
+	MarchingCubeVertex* &GetMarchingCubeVertices()
 	{
 		return marchingCubeVertices;
 	}
@@ -76,7 +76,7 @@ public:
 
 	vector<vector<vector<float>>> const &getDensityArray3D() const
 {
-    return densityArray3D;
+	return densityArray3D;
 }
 
 	

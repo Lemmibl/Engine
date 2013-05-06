@@ -117,7 +117,7 @@ void TreeClass::LSystem()
 		//a = b  + D3DXVECTOR3(15.0f,10.0f,i*10);
 
 
-		float angle = XM_PI*0.11;
+		float angle = XM_PI*0.11f;
 		
 		XMMATRIX tempMatrix;
 		XMVECTOR tempVector4;

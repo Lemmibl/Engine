@@ -159,7 +159,7 @@ float SimplexNoise::noise3D2(float xin, float yin, float zin)
 	int j = fastfloor(yin+s);
 	int k = fastfloor(zin+s);
 
-	float G3 = 0.16666666666; // Very nice and simple unskew factor, too. 1.0f / 6.0f
+	float G3 = 0.16666666666f; // Very nice and simple unskew factor, too. 1.0f / 6.0f
 
 	float t = (i+j+k)*G3;
 
