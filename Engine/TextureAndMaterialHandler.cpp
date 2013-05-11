@@ -604,8 +604,8 @@ HRESULT TextureAndMaterialHandler::Create2DSSAORandomTexture( ID3D11Device* devi
 HRESULT TextureAndMaterialHandler::CreateRandom2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv)
 {
 	int textureWidth, textureHeight;
-	textureWidth = 64;
-	textureHeight = 64;
+	textureWidth = 256;
+	textureHeight = 256;
 
 	PixelData* pixelData = new PixelData[textureWidth*textureHeight]();
 
@@ -615,7 +615,7 @@ HRESULT TextureAndMaterialHandler::CreateRandom2DTexture(ID3D11Device* device, I
 		pixelData[i].x = rand()%255;//%255;
 		pixelData[i].y = rand()%255;//%255;
 		pixelData[i].z = rand()%255;//%255;
-		pixelData[i].w = 1; //Alpha.
+		pixelData[i].w = rand()%255; //Alpha.
 	}
 
 	return Build2DTextureProgrammatically(device, deviceContext, pixelData, textureWidth, textureHeight, srv);

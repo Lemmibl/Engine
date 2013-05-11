@@ -70,13 +70,14 @@ void RetrieveMaterialData(int materialID, out float ambienceCoefficient, out flo
 //Decoding of GBuffer Normals
 half3 DecodeNormal(half2 enc)
 {
-	half2 fenc = enc*4-2;
+	half2 fenc = (enc*4.0f)-2.0f;
 	half f = dot(fenc,fenc);
-	half g = sqrt(1-f/4);
-
+	half g = sqrt(1.0f-(f*0.25f));
+	
 	half3 n;
 	n.xy = fenc*g;
-	n.z = 1-f/2;
+	n.z = 1.0f-(f*0.5f);
+
 	return n;
 }
 
@@ -109,7 +110,7 @@ float ReduceLightBleeding(float p_max, float amount)
 //Calculate shadow contribution using chevyshev's inequality.
 float ChebyshevUpperBound(float2 moments, float t)  
 {
-	float minVariance = 0.002f; //Scaling value.
+	float minVariance = 0.02f; //Scaling value.
 
 	// Compute variance.  
 	float variance = moments.y - (moments.x*moments.x);
@@ -119,7 +120,7 @@ float ChebyshevUpperBound(float2 moments, float t)
 	float d = (t - moments.x);
 	float p_max = (variance / (variance + d*d));
 
-	return p_max;
+	return pow(p_max, 1.5f);
 }
 
 
@@ -217,6 +218,7 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	float realDistanceToLight = lightScreenPos.z;
 
 	float2 sampleLightScreen;
+	
 	//Adjust from [-1,1] range to [0,1] range
 	sampleLightScreen.x = ((lightScreenPos.x * 0.5f) + 0.5f);
 	sampleLightScreen.y = ((-lightScreenPos.y * 0.5f) + 0.5f);
@@ -254,7 +256,7 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	{
 		return LightIntensity*float4(finalAmbienceProduct.rgb + (finalDiffuseProduct * shadowMultiplier), (finalSpecularProduct * shadowMultiplier));
 	}
-	else //Don't shade if it shouldn't recieve any shadows. This also includes the empty space where nothing exists, seeing as we clear the normal rendertarget alpha channel to 0.0f in gbuffer stage.
+	else //Don't shade if it shouldn't recieve any shadows.
 	{
 		return LightIntensity*float4(finalAmbienceProduct.rgb + finalDiffuseProduct, finalSpecularProduct);
 	}
