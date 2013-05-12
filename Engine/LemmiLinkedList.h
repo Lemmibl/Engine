@@ -98,13 +98,16 @@ public:
 		return count;
 	}
 
-	void AddTwoLinkedLists(const LemmiListIterator<T> otherListIterator)
+	void AddTwoLinkedLists(const LemmiListIterator<T>& otherListIterator)
 	{
-		//I have no fucking idea atm
-		//for(otherListIterator.Start(); otherListIterator != otherListIterator.End(); otherListIterator.Forth())
-		//{
-		//	Append(otherListIterator->Data());
-		//}
+		//I have no fucking idea
+		otherListIterator->Start();
+		
+		while(otherListIterator.Valid())
+		{
+			Append(otherListIterator->Data());
+			otherListIterator->Forth();
+		}
 	}
 
 	void Append( T p_data ) //Add to the front
@@ -258,8 +261,9 @@ private:
 	LemmiLinkedList<T>* list;
 
 public:
-	LemmiListIterator( LemmiLinkedList<T>* p_list = 0,
-		LemmiListNode<T>* p_node = 0 )
+	LemmiListIterator( 
+	LemmiLinkedList<T>* p_list = 0,
+	LemmiListNode<T>* p_node = 0 )
 	{
 		list = p_list;
 		node = p_node;
@@ -313,6 +317,7 @@ public:
 		{
 			return true;
 		}
+
 		return false;
 	}
 };
