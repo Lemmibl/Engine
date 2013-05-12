@@ -98,6 +98,15 @@ public:
 		return count;
 	}
 
+	void AddTwoLinkedLists(const LemmiListIterator<T> otherListIterator)
+	{
+		//I have no fucking idea atm
+		//for(otherListIterator.Start(); otherListIterator != otherListIterator.End(); otherListIterator.Forth())
+		//{
+		//	Append(otherListIterator->Data());
+		//}
+	}
+
 	void Append( T p_data ) //Add to the front
 	{
 		if( head == 0 )

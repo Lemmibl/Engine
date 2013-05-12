@@ -45,23 +45,23 @@ public class OctreeNode<T> where T :IOctreeable
 {
 public BoundingBox BoundingBox
 {
-get;
-set;
+	get;
+	set;
 }
 public int Depth
 {
-get;
-set;
+	get;
+	set;
 }
 public float Size
 {
-get;
-set;
+	get;
+	set;
 }
 public Vector3 Center
 {
-get;
-set;
+	get;
+	set;
 }
 
 protected OctreeNode<T> parent = null;
