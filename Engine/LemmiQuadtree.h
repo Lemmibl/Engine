@@ -1,40 +1,137 @@
-//#pragma once
-//#include <xnamath.h>
-//#include "Lemmi2DAABB.h"
-//#include "LemmiLinkedList.h"
-//#include <memory>
-//
-//template<class T> 
-//class QuadTreeNode
-//{
-//	private:
-//	float size;
-//	int depth;
-//	XMFLOAT2 centerPosition;
-//	
-//	Lemmi2DAABB* boundingBox;
-//	QuadTreeNode* children[4];
-//
-//	vector<shared_ptr<T>> content;
-//
-//	QuadTreeNode(XMFLOAT2 position, XMFLOAT2 size, int maxDepth)
-//	{
-//		//boundingBox = new Lemmi2DAABB();
-//	}
-//
-//	~QuadTreeNode()
-//	{
-//		delete [] children;
-//		delete boundingBox;
-//	}
-//};
+#pragma once
+#include <windows.h>
+#include <xnamath.h>
+#include <memory>
+#include <vector>
+#include <stdlib.h>
+#include "Lemmi2DAABB.h"
 
+template<class T>
+class QuadTreeNode
+{
+	private:
+	static const int maxDepth = 6; //Depth defines how many times the original node splits. Every node splits into 4 new nodes. -> 4^maxItems.
+	static const int maxItems = 10; //How many items a node can contain before it splits.
 
+	float size;
+	int depth; 
+	XMFLOAT2 centerPosition;
 
+	Lemmi2DAABB* boundingBox;
+	std::vector<QuadTreeNode> children;
+	std::vector<std::shared_ptr<T>> content;
+	
+	protected: 
+	std::shared_ptr<QuadTreeNode> parent;
 
+	public:
 
+	QuadTreeNode(std::shared_ptr<QuadTreeNode> parent, Lemmi2DAABB box, int depth)
+	{
+		this.parent = parent;
+		this->depth = depth;
 
+		boundingBox = new Lemmi2DAABB(&box);
 
+		XMStoreFloat(&size, XMVector2Length(XMLoadFloat2(box.MaxPoint - box.MinPoint)));
+
+		XMStoreFloat2(centerPosition, XMLoadFloat2(&box.MinPoint) + 
+			(0.5f * size * XMVector2Normalize(XMLoadFloat2(box.MaxPoint - box.MinPoint))));
+	}
+
+	QuadTreeNode(std::shared_ptr<QuadTreeNode> parent, XMFLOAT2 center, float size, int depth)
+	{
+		this.parent = parent;
+		this->size = size;
+		this->centerPosition = center;
+		this->depth = depth;
+
+		XMFLOAT2 minPoint, maxPoint;
+		XMStoreFloat2(&minPoint, (XMLoadFloat2(&center) - (XMVectorSplatOne() * size * 0.5f)))
+		XMStoreFloat2(&maxPoint, (XMLoadFloat2(&center) + (XMVectorSplatOne() * size * 0.5f)))
+
+		boundingBox = new Lemmi2DAABB(minPoint, maxPoint);
+	}
+
+	~QuadTreeNode()
+	{
+		delete boundingBox;
+	}
+
+	protected:
+
+	/// <summary>
+	/// Divide node and create sub-nodes
+	/// </summary>
+	void CreateSubNodes()
+	{
+		if(children.size() == 0)
+		{
+			for(int i = -1; i < 2; i += 2)
+			{
+				for(int j = -1; j < 2; j += 2)
+				{
+						XMFLOAT2 subCenter = new XMFLOAT2(Center.X + (0.25f * size * (float)i), Center.Y + (0.25f * size * (float)j));
+						float subSize = size * 0.5f;
+
+						QuadTreeNode newNode = QuadTreeNode(this, subCenter, subSize, depth + 1);
+
+						children.push_back(newNode);
+				}
+			}
+		}
+	}
+
+	///// <summary>
+	///// Propagates objects down the tree up to maxDepth
+	///// </summary>
+	//public void Propagate()
+	//{
+	//	if(Content.Count > maxItems && Depth <= maxDepth)
+	//	{
+	//		CreateSubNodes();
+
+	//		for(int index = Content.Count - 1; index >= 0; index--)
+	//		{
+	//			switch(OctreeContainmentMode)
+	//			{
+	//			case OctreeContainmentModes.Intersects:
+	//				T item = Content[index];
+	//				Content.Remove(Content[index]);
+
+	//				for(int subNodeIndex = 0; subNodeIndex < SubNodes.Count; subNodeIndex++)
+	//				{
+	//					if(item.Intersect(SubNodes[subNodeIndex].BoundingBox))
+	//					{
+	//						SubNodes[subNodeIndex].Content.Add(item);
+	//					}
+	//				}
+	//				break;
+
+	//			case OctreeContainmentModes.Contains:
+	//				for(int subNodeIndex = 0; subNodeIndex < SubNodes.Count; subNodeIndex++)
+	//				{
+	//					if(Content[index].IsContained(SubNodes[subNodeIndex].BoundingBox) == ContainmentType.Contains)
+	//					{
+	//						SubNodes[subNodeIndex].Content.Add(Content[index]);
+	//						Content.Remove(Content[index]);
+	//						break;
+	//					}
+	//				}
+	//				break;
+	//			}
+	//		}
+
+	//		//Propagate subnodes
+	//		for(int subNodeIndex = 0; subNodeIndex < SubNodes.Count; subNodeIndex++)
+	//		{
+	//			SubNodes[subNodeIndex].Propagate();
+
+	//		}
+	//	}
+	//}
+
+};
 
 /*
 /// <summary>
@@ -43,144 +140,11 @@
 /// <typeparam name="T">Object of Type IOctreeable</typeparam>
 public class OctreeNode<T> where T :IOctreeable
 {
-public BoundingBox BoundingBox
-{
-	get;
-	set;
-}
-public int Depth
-{
-	get;
-	set;
-}
-public float Size
-{
-	get;
-	set;
-}
-public Vector3 Center
-{
-	get;
-	set;
-}
 
-protected OctreeNode<T> parent = null;
-protected List<OctreeNode<T>> SubNodes = new List<OctreeNode<T>>();
 
-protected int maxDepth = 6; //Depth defines how many times the original node splits. Every node splits into 8 new nodes. -> 8^6 = 262 144 nodes if fully split. Yeah.
-protected int maxItems = 3; //How many items a node can contain before it splits.
 
-private List<T> content = new List<T>();
 
-virtual public List<T> Content
-{
-get
-{
-return content;
-}
-set
-{
-content = value;
-}
-}
 
-public OctreeNode(OctreeNode<T> parent, BoundingBox box, int depth)
-{
-this.parent = parent;
-BoundingBox = box;
-Size = (box.Max - box.Min).Length();
-Center = box.Min + (0.5f * Size * Vector3.Normalize(box.Max - box.Min));
-Depth = depth;
-DebugShapeRenderer.AddBoundingBox(BoundingBox, Color.LightGreen, 2);
-}
-
-public OctreeNode(OctreeNode<T> parent, Vector3 center, float size, int depth)
-{
-this.parent = parent;
-BoundingBox = new BoundingBox(center - (Vector3.One * size * 0.5f), center + (Vector3.One * size * 0.5f));
-Size = size;
-Center = center;
-Depth = depth;
-DebugShapeRenderer.AddBoundingBox(BoundingBox, Color.LightGreen, 2);
-}
-
-/// <summary>
-/// Divide node and create sub-nodes
-/// </summary>
-protected void CreateSubNodes()
-{
-if(SubNodes.Count == 0)
-{
-for(int i = -1; i < 2; i += 2)
-{
-for(int j = -1; j < 2; j += 2)
-{
-for(int k = -1; k < 2; k += 2)
-{
-Vector3 subCenter = new Vector3(Center.X + (0.25f * Size * (float)i), Center.Y + (0.25f * Size * (float)j), Center.Z + (0.25f * Size * (float)k));
-float subSize = Size * 0.5f;
-
-OctreeNode<T> newNode = new OctreeNode<T>(this, subCenter, subSize, Depth + 1);
-newNode.OctreeContainmentMode = OctreeContainmentMode;
-#if DEBUG
-//DebugShapeRenderer.AddBoundingBox(newNode.BoundingBox, Color.LightGreen, 10000);
-#endif
-SubNodes.Add(newNode);
-}
-
-}
-}
-}
-}
-
-/// <summary>
-/// Propagates objects down the tree up to maxDepth
-/// </summary>
-public void Propagate()
-{
-if(Content.Count > maxItems && Depth <= maxDepth)
-{
-CreateSubNodes();
-
-for(int index = Content.Count - 1; index >= 0; index--)
-{
-switch(OctreeContainmentMode)
-{
-case OctreeContainmentModes.Intersects:
-T item = Content[index];
-Content.Remove(Content[index]);
-
-for(int subNodeIndex = 0; subNodeIndex < SubNodes.Count; subNodeIndex++)
-{
-if(item.Intersect(SubNodes[subNodeIndex].BoundingBox))
-{
-SubNodes[subNodeIndex].Content.Add(item);
-}
-}
-break;
-
-case OctreeContainmentModes.Contains:
-for(int subNodeIndex = 0; subNodeIndex < SubNodes.Count; subNodeIndex++)
-{
-if(Content[index].IsContained(SubNodes[subNodeIndex].BoundingBox) == ContainmentType.Contains)
-{
-SubNodes[subNodeIndex].Content.Add(Content[index]);
-Content.Remove(Content[index]);
-break;
-}
-}
-break;
-}
-}
-
-//Propagate subnodes
-for(int subNodeIndex = 0; subNodeIndex < SubNodes.Count; subNodeIndex++)
-{
-SubNodes[subNodeIndex].Propagate();
-
-}
-}
-}
 
 /// <summary>
 /// Clean up all empty subnodes and report if current node is empty
@@ -188,13 +152,13 @@ SubNodes[subNodeIndex].Propagate();
 /// <returns>True is node is empty</returns>
 public bool CleanUpSubNodes()
 {
-for(int subNodeIndex = SubNodes.Count - 1; subNodeIndex >= 0; subNodeIndex--)
-{
-if(SubNodes[subNodeIndex].CleanUpSubNodes())
-{
-SubNodes.Remove(SubNodes[subNodeIndex]);
-}
-}
+	for(int subNodeIndex = SubNodes.Count - 1; subNodeIndex >= 0; subNodeIndex--)
+	{
+		if(SubNodes[subNodeIndex].CleanUpSubNodes())
+		{
+			SubNodes.Remove(SubNodes[subNodeIndex]);
+		}
+	}
 
 if(Content.Count > 0)
 return false;
@@ -351,129 +315,148 @@ results.Add(Content[contentIndex]);
 			return results;
 		}
 	}
-
-	/// <summary>
-	/// Interface to define objects that can be tested againt bounding primitives
-	/// </summary>
-	public interface IOctreeable
-	{
-		ContainmentType IsContained(BoundingBox box);
-		ContainmentType IsContained(BoundingSphere sphere);
-		ContainmentType IsContained(BoundingFrustum frustum);
-
-		bool Intersect(BoundingBox box);
-		bool Intersect(BoundingSphere sphere);
-		bool Intersect(BoundingFrustum frustum);
-
-		int LastQueryID
-		{
-			get;
-			set;
-		}
-
-		BoundingBox BoundingBox
-		{
-			get;
-			set;
-		}
-
-		bool Destroyed
-		{
-			get;
-		}
-	}
-}
-
-	//IOctreeable implementations.
-	   #region Octree members
-		private int m_lastQueryID = -1;
-		private BoundingBox m_boundingBox;
-
-		public ContainmentType IsContained(BoundingBox box)
-		{
-			ContainmentType contains = ContainmentType.Disjoint;
-
-			if(m_boundingBox.Contains(box) == ContainmentType.Contains)
-			{
-				contains = ContainmentType.Contains;
-			}
-			return contains;
-		}
-
-		public ContainmentType IsContained(BoundingSphere sphere)
-		{
-			ContainmentType contains = ContainmentType.Disjoint;
-
-			if(m_boundingBox.Contains(sphere) == ContainmentType.Contains)
-			{
-				contains = ContainmentType.Contains;
-			}
-			return contains;
-		}
-
-		public ContainmentType IsContained(BoundingFrustum frustum)
-		{
-			ContainmentType contains = ContainmentType.Disjoint;
-
-
-			if(m_boundingBox.Contains(frustum) == ContainmentType.Contains)
-			{
-				contains = ContainmentType.Contains;
-			}
-			return contains;
-		}
-
-		public bool Intersect(BoundingBox box)
-		{
-			if(IsContained(box) != ContainmentType.Disjoint)
-			{
-				return true;
-			}
-
-			return false;
-		}
-
-		public bool Intersect(BoundingSphere sphere)
-		{
-			if(IsContained(sphere) != ContainmentType.Disjoint)
-			{
-				return true;
-			}
-
-			return false;
-		}
-
-		public bool Intersect(BoundingFrustum frustum)
-		{
-			if(IsContained(frustum) != ContainmentType.Disjoint)
-			{
-				return true;
-			}
-			return false;
-		}
-
-		public int LastQueryID
-		{
-			get
-			{
-				return m_lastQueryID;
-			}
-			set
-			{
-				m_lastQueryID = value;
-			}
-		}
-
-		public BoundingBox BoundingBox
-		{
-			get
-			{
-				return m_boundingBox;
-			}
-			set
-			{
-				m_boundingBox = value;
-			}
-		}
-		#endregion
 */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/************************************************************************/
+/* IOctreeable implementations                                          */
+/************************************************************************/
+
+///// <summary>
+///// Interface to define objects that can be tested againt bounding primitives
+///// </summary>
+//public interface IOctreeable
+//{
+//	ContainmentType IsContained(BoundingBox box);
+//	ContainmentType IsContained(BoundingSphere sphere);
+//	ContainmentType IsContained(BoundingFrustum frustum);
+//
+//	bool Intersect(BoundingBox box);
+//	bool Intersect(BoundingSphere sphere);
+//	bool Intersect(BoundingFrustum frustum);
+//
+//	int LastQueryID
+//	{
+//		get;
+//		set;
+//	}
+//
+//	BoundingBox BoundingBox
+//	{
+//		get;
+//		set;
+//	}
+//
+//	bool Destroyed
+//	{
+//		get;
+//	}
+//}
+//}
+
+//#region Octree members
+//private int m_lastQueryID = -1;
+//private BoundingBox m_boundingBox;
+//
+//public ContainmentType IsContained(BoundingBox box)
+//{
+//	ContainmentType contains = ContainmentType.Disjoint;
+//
+//	if(m_boundingBox.Contains(box) == ContainmentType.Contains)
+//	{
+//		contains = ContainmentType.Contains;
+//	}
+//	return contains;
+//}
+//
+//public ContainmentType IsContained(BoundingSphere sphere)
+//{
+//	ContainmentType contains = ContainmentType.Disjoint;
+//
+//	if(m_boundingBox.Contains(sphere) == ContainmentType.Contains)
+//	{
+//		contains = ContainmentType.Contains;
+//	}
+//	return contains;
+//}
+//
+//public ContainmentType IsContained(BoundingFrustum frustum)
+//{
+//	ContainmentType contains = ContainmentType.Disjoint;
+//
+//
+//	if(m_boundingBox.Contains(frustum) == ContainmentType.Contains)
+//	{
+//		contains = ContainmentType.Contains;
+//	}
+//	return contains;
+//}
+//
+//public bool Intersect(BoundingBox box)
+//{
+//	if(IsContained(box) != ContainmentType.Disjoint)
+//	{
+//		return true;
+//	}
+//
+//	return false;
+//}
+//
+//public bool Intersect(BoundingSphere sphere)
+//{
+//	if(IsContained(sphere) != ContainmentType.Disjoint)
+//	{
+//		return true;
+//	}
+//
+//	return false;
+//}
+//
+//public bool Intersect(BoundingFrustum frustum)
+//{
+//	if(IsContained(frustum) != ContainmentType.Disjoint)
+//	{
+//		return true;
+//	}
+//	return false;
+//}
+//
+//public int LastQueryID
+//{
+//	get
+//	{
+//		return m_lastQueryID;
+//	}
+//	set
+//	{
+//		m_lastQueryID = value;
+//	}
+//}
+//
+//public BoundingBox BoundingBox
+//{
+//	get
+//	{
+//		return m_boundingBox;
+//	}
+//	set
+//	{
+//		m_boundingBox = value;
+//	}
+//}
+//#endregion
