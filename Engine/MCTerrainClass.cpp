@@ -143,10 +143,10 @@ void MCTerrainClass::Noise3D()
 				density -= (noise->noise3D2(this->marchingCubeVertices[idx].posX/30,marchingCubeVertices[idx].posY/30,marchingCubeVertices[idx].posZ/300) + 1.0f) *10.0f;
 				***/
 				
-				density += noise->noise3D2(this->marchingCubeVertices[idx].posX/220,marchingCubeVertices[idx].posY/220,marchingCubeVertices[idx].posZ/420) *5.0f;
-				density += noise->noise3D2(this->marchingCubeVertices[idx].posX/120,marchingCubeVertices[idx].posY/20,marchingCubeVertices[idx].posZ/20) *5.0f;
-				density += noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/320,marchingCubeVertices[idx].posZ/20) *10.0f;
-				density += noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/320,marchingCubeVertices[idx].posZ/20) *10.0f;
+				density += noise->noise3D2(this->marchingCubeVertices[idx].posX/220,marchingCubeVertices[idx].posY/220,marchingCubeVertices[idx].posZ/420) *2.0f;
+				density += noise->noise3D2(this->marchingCubeVertices[idx].posX/120,marchingCubeVertices[idx].posY/20,marchingCubeVertices[idx].posZ/20) *10.0f;
+				//density += noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/320,marchingCubeVertices[idx].posZ/20) *10.0f;
+				density += noise->noise3D2(this->marchingCubeVertices[idx].posX/20,marchingCubeVertices[idx].posY/20,marchingCubeVertices[idx].posZ/20) *2.0f;
 				//Hardfloor
 
 				//if(y < 5)
@@ -203,13 +203,13 @@ void MCTerrainClass::Noise3D()
 
 				//density *= 1000 *3;
 
-				if(density < -2)
+				if(density < 0)
 				{
-					density = -2;
+					density = 0;
 				}
-				else if (density > 2)
+				else if (density > 1)
 				{
-					density = 2;
+					density = 1;
 				}
 
 				this->marchingCubeVertices[idx].density = density;
@@ -242,9 +242,9 @@ void MCTerrainClass::Noise3D()
 
 	for (z = 1; z < (this->sizeZ -1); z++)
 	{
-		for (y = 1; y < (this->sizeY -1); y++)
+		for (y = 0; y < (this->sizeY -0); y++)
 		{
-			for (x = 1; x < (this->sizeX -1); x++)
+			for (x = 0; x < (this->sizeX -0); x++)
 			{
 				idx = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
 		
@@ -291,7 +291,7 @@ void MCTerrainClass::Noise3D()
 	}
 }
 
-
+//
 //void MCTerrainClass::CreateMCVerts()
 //{
 //	this->marchingCubeVertices[idx].normalX = this->marchingCubeVertices[idx - 1].density/2 - this->marchingCubeVertices[idx+1].density;
@@ -300,9 +300,6 @@ void MCTerrainClass::Noise3D()
 //}
 void MCTerrainClass::CreateMCVerts()
 {
-
-
-
 	this->marchingCubeVertices[idx].normalX = this->densityArray1D[idx - 1]/2 - this->densityArray1D[idx+1];
 	this->marchingCubeVertices[idx].normalY = this->densityArray1D[idx - this->sizeY] - this->densityArray1D[idx + this->sizeY];
 	this->marchingCubeVertices[idx].normalZ = this->densityArray1D[idx - (this->sizeY * this->sizeZ)] - this->densityArray1D[idx + (this->sizeY * this->sizeZ)];

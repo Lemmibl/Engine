@@ -247,7 +247,9 @@ float SimplexNoise::noise3D2(float xin, float yin, float zin)
 
 	// Add contributions from each corner to get the final noise value.
 	// The result is scaled to stay just inside [-1,1]
-	return 72.0f*(n0 + n1 + n2 + n3);
+
+	//return (36.0f*(n0 + n1 + n2 + n3)+1)*0.5f;// 0 -> 1
+	return (72.0f*(n0 + n1 + n2 + n3)); //-1 -> 1
 }
 
 /*
