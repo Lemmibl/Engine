@@ -106,7 +106,7 @@ bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
 	
 	day.StartPosition = morning.EndPosition;
 	day.EndPosition =	XMFLOAT3(-35.0f, 90.0f, 50.0f);
-	day.DurationOfStage = timePerStage*3.0f; //Cuz fuck yeah, day!
+	day.DurationOfStage = timePerStage*3.0f; //Make day three times as long as the other stages
 	day.LightIntensity = 1.0f;
 
 	stagesOfDay.push_back(day);
@@ -148,7 +148,7 @@ bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
 	
 	night.StartPosition =	evening.EndPosition;
 	night.EndPosition =		dawn.StartPosition;
-	night.DurationOfStage = timePerStage*3.0f; //Cuz fuck yeah, night...?
+	night.DurationOfStage = timePerStage*3.0f; //Make night three times as long as the other stages
 	night.LightIntensity = 0.45f;
 
 	stagesOfDay.push_back(night);
@@ -157,21 +157,20 @@ bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
 
 	previousStageStruct = stagesOfDay[previousFrameStageOfDay];
 	elapsedTime = 0.0f;
-	timeOfDay = 0.0f;
+	lerpAmountThisStage = 0.0f;
 
 	return true;
 }
 
-float DayNightCycle::Update( float elapsedTime, DirLight* directionalLight, Skysphere* skysphere )
+float DayNightCycle::Update( float deltaTime, DirLight* directionalLight, Skysphere* skysphere )
 {
 	XMVECTOR startVector, endVector, currentVector;
 
 	currentVector =  XMLoadFloat3(&directionalLight->Position); //Save current position in XMVECTOR format, needed when calculating sum of each frame's lerping
 
-	this->elapsedTime += elapsedTime;
-	float lerpAmountThisFrame = (elapsedTime / stagesOfDay[currentStageOfDay].DurationOfStage); //Calculate amount we'll be moving by this frame
+	this->elapsedTime += deltaTime;
+	lerpAmountThisStage += (deltaTime / stagesOfDay[currentStageOfDay].DurationOfStage); //Calculate amount we'll be moving by this frame
 
-	timeOfDay += lerpAmountThisFrame; //This is for controlling the skysphere lerping.
 
 	//See if we should change stage of day
 	if(this->elapsedTime > stagesOfDay[currentStageOfDay].DurationOfStage)
@@ -191,7 +190,7 @@ float DayNightCycle::Update( float elapsedTime, DirLight* directionalLight, Skys
 		}
 		
 		this->elapsedTime = 0.0f; //Reset elapsed time as well
-		timeOfDay =  0.0f;
+		lerpAmountThisStage =  0.0f;
 	}
 
 	if(currentStageOfDay != previousFrameStageOfDay) //Tiny optimization
@@ -206,7 +205,7 @@ float DayNightCycle::Update( float elapsedTime, DirLight* directionalLight, Skys
 	endVector = XMLoadFloat3(&stagesOfDay[currentStageOfDay].EndPosition);
 
 	//Here we lerp the positions
-	currentVector = XMVectorLerp(startVector, endVector, timeOfDay);
+	currentVector = XMVectorLerp(startVector, endVector, lerpAmountThisStage);
 	XMStoreFloat3(&directionalLight->Position, currentVector);
 
 	//Then we extract the start and end colors of this stage to lerp between
@@ -214,17 +213,17 @@ float DayNightCycle::Update( float elapsedTime, DirLight* directionalLight, Skys
 	endVector = XMLoadFloat4(&stagesOfDay[currentStageOfDay].AmbientColor);
 
 	//Lerp between the two values and save the current value as our current ambience color
-	currentVector = XMVectorLerp(startVector, endVector, timeOfDay);
+	currentVector = XMVectorLerp(startVector, endVector, lerpAmountThisStage);
 	XMStoreFloat4(&currentAmbienceColor, currentVector);
 
 	//Currently, all of our different colors are the same, so just apply them right here and now.
 	directionalLight->Color = currentAmbienceColor;
 
-	directionalLight->Intensity = lerp(previousStageStruct.LightIntensity, stagesOfDay[currentStageOfDay].LightIntensity, timeOfDay);
+	directionalLight->Intensity = lerp(previousStageStruct.LightIntensity, stagesOfDay[currentStageOfDay].LightIntensity, lerpAmountThisStage);
 
 	previousFrameStageOfDay = currentStageOfDay;
 
-	return timeOfDay;
+	return lerpAmountThisStage;
 }
 
 

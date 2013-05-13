@@ -78,7 +78,6 @@ Renderer::Renderer()
 	previousLodState = 0;
 
 	toggleTextureShader = false;
-	toggleDebugInfo = true;
 	returning = false;
 }
 
@@ -97,11 +96,12 @@ Renderer::~Renderer()
 
 
 bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3DClass* d3D, UINT screenWidth, UINT screenHeight,
-	UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear)
+	UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear, bool toggleDebug)
 {
 	srand((unsigned int)time(NULL));
 	bool result;
 
+	this->toggleDebugInfo = toggleDebug;
 	this->inputManager = input;
 	this->shadowMapWidth = shadowmapWidth;
 	this->shadowMapHeight = shadowmapHeight;
@@ -287,8 +287,8 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 		pointLights.push_back(new PointLight());
 		pointLights[i]->Color = XMFLOAT3(x, y, z);
 		pointLights[i]->Position = XMFLOAT3(utility->RandomFloat() * 60.0f, 40.0f, utility->RandomFloat() * 60.0f);
-		pointLights[i]->Radius = 4.0f; //Used to both scale the actual point light model and is a factor in the attenuation
-		pointLights[i]->Intensity = 5.0f; //Is used to control the attenuation
+		pointLights[i]->Radius = 3.0f; //Used to both scale the actual point light model and is a factor in the attenuation
+		pointLights[i]->Intensity = 2.0f; //Is used to control the attenuation
 
 		//x += 12.0f;
 
@@ -448,7 +448,7 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	result = dayNightCycle->Initialize(86400.0f/6, DAY);
+	result = dayNightCycle->Initialize(300.0f, DAY); //86400.0f/6
 	if(!result)
 	{
 		return false;
@@ -545,7 +545,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 		for(int i = 0; i < (int)pointLights.size(); i++)
 		{
-			pointLights[i]->Position.y += frameTime*0.006f;
+			pointLights[i]->Position.y += frameTime*0.01f;
 
 			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale*XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y-0.5f, pointLights[i]->Position.z)));
 		}
@@ -557,7 +557,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 		for(int i = 0; i < (int)pointLights.size(); i++)
 		{
-			pointLights[i]->Position.y -= frameTime*0.006f;
+			pointLights[i]->Position.y -= frameTime*0.01f;
 
 			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale*XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y-0.5f, pointLights[i]->Position.z)));
 		}
@@ -613,7 +613,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 	if(inputManager->IsKeyPressed(DIK_1))
 	{
-		seconds = timeOfDay += frameTime*4.0f;
+		seconds = timeOfDay += frameTime;
 	}
 
 #pragma region LOD stuff
@@ -927,7 +927,7 @@ bool Renderer::Render()
 		d3D->SetLightStencilMethod1Phase2();
 		d3D->SetFrontFaceCullingRasterizer();
 
-		sphereModel->Render(context);
+		//sphereModel->Render(context);
 
 		result = pointLightShader->Render(context, sphereModel->GetIndexCount(), &worldViewProj, &invertedViewProjection, 
 			pointLights[i], gbufferTextures, textureAndMaterialHandler->GetMaterialTextureArray(), camPos);

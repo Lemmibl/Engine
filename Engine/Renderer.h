@@ -69,7 +69,8 @@ public:
 	Renderer(const Renderer&);
 	~Renderer();
 
-	bool Initialize(HWND hwnd, CameraClass* camera, InputClass* inputManager, D3DClass* d3D, UINT screenWidth, UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear);
+	bool Initialize(HWND hwnd, CameraClass* camera, InputClass* inputManager, D3DClass* d3D, UINT screenWidth, 
+		UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear, bool toggleDebug);
 	bool InitializeShaders(HWND hwnd, ID3D11Device* device);
 	bool InitializeLights(HWND hwnd, ID3D11Device* device);
 	bool InitializeEverythingElse(HWND hwnd, ID3D11Device* device);

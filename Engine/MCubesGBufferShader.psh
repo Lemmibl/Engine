@@ -17,6 +17,7 @@ struct PixelShaderOutput
 Texture2DArray shaderTextures;
 SamplerState textureSampler;
 
+//http://aras-p.info/texts/CompactNormalStorage.html#method04spheremap
 //Normal Encoding Function
 half3 Encode(half3 n)
 {

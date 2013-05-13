@@ -120,7 +120,7 @@ float ChebyshevUpperBound(float2 moments, float t)
 	float d = (t - moments.x);
 	float p_max = (variance / (variance + d*d));
 
-	return pow(p_max, 1.5f);
+	return pow(p_max, 4);
 }
 
 

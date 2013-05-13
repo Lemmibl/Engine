@@ -45,5 +45,5 @@ private:
 
 	StageOfDay currentStageOfDay, previousFrameStageOfDay;
 	StageOfDayStruct previousStageStruct;
-	float timeOfDay;
+	float lerpAmountThisStage;
 };
