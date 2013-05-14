@@ -22,6 +22,11 @@ private:
 		XMMATRIX WorldViewProjection;
 	};
 
+	struct CameraBufferType
+	{
+		XMFLOAT4 CameraPosition;
+	};
+
 public:
 	VegetationShader();
 	VegetationShader(const VegetationShader&);
@@ -29,14 +34,14 @@ public:
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
-	bool Render(ID3D11DeviceContext* deviceContext, int vertexCount, int instanceCount, XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textures);
+	bool Render(ID3D11DeviceContext* deviceContext, int vertexCount, int instanceCount, XMFLOAT4* cameraPosition, XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textures);
 
 private:
 	bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
 	void ShutdownShader();
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
 
-	bool SetShaderParameters(ID3D11DeviceContext*, XMMATRIX* worldViewProjection, ID3D11ShaderResourceView**);
+	bool SetShaderParameters(ID3D11DeviceContext*, XMMATRIX* worldViewProjection, XMFLOAT4* cameraPosition, ID3D11ShaderResourceView**);
 	void RenderShader(ID3D11DeviceContext*, int vertexCount, int instanceCount);
 
 private:
@@ -44,5 +49,6 @@ private:
 	ID3D11PixelShader* pixelShader;
 	ID3D11InputLayout* layout;
 	ID3D11Buffer* matrixBuffer;
+	ID3D11Buffer* cameraBuffer;
 	ID3D11SamplerState* samplerState;
 };

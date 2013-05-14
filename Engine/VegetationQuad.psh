@@ -7,11 +7,17 @@ SamplerState linearSampler;
 //////////////
 // TYPEDEFS //
 //////////////
+cbuffer CameraBufferType
+{
+	float4 CameraPosition;
+}
+
 struct PixelInputType
 {
 	float4 Position : SV_POSITION;
-	float3 Normal :NORMAL;
+	float3 Normal : NORMAL;
 	float4 TexCoord : TEXCOORD0;
+	float4 WorldPosition : TEXCOORD1;
 };
 
 struct PixelShaderOutput
@@ -29,11 +35,12 @@ float EncodeMaterialID(float id)
 	return (id / 255.0f);
 }
 
+//http://aras-p.info/texts/CompactNormalStorage.html#method04spheremap
 //Normal Encoding Function
 half3 Encode(half3 n)
 {
-    half p = sqrt(n.z*8+8);
-    return half3(n.xy/p + 0.5,0);
+	half p = sqrt(n.z*8+8);
+	return half3(n.xy/p + 0.5f, 0);
 
 	return n;
 }
@@ -45,10 +52,12 @@ PixelShaderOutput VegetationQuadPixelShader(PixelInputType input)
 {
 	PixelShaderOutput output;
 
-	//No branching cuz texture array. Yay. To clarify -- our texCoord.z channel contains texture ID, which we extract from each instance of vegetation.
-	output.Color = shaderTexture.Sample(linearSampler, input.TexCoord.xyz);
+	//float camDist = 1.0f - distance(CameraPosition, input.WorldPosition)*0.005f;
 
-	if(output.Color.w <= 0.7) //Alpha testing and tiny optimization for the break-early cases, I guess.
+	//No branching cuz texture array. Yay. To clarify -- our texCoord.z channel contains texture ID, which we extract from each instance of vegetation.
+	output.Color = shaderTexture.Sample(linearSampler, input.TexCoord.xyz) * (1.69f-input.TexCoord.w);
+
+	if(output.Color.w <= 0.7f) //Alpha testing and tiny optimization for the break-early cases, I guess.
 	{
 		discard;
 	}
@@ -58,6 +67,7 @@ PixelShaderOutput VegetationQuadPixelShader(PixelInputType input)
 	output.Normal.xyz = Encode(input.Normal); //TODO: Change.
 
 	//This is our material ID. Our normal map is R8G8B8A8 so our alpha channel has 8 bits == 255 possible values.
+	output.Normal.z = EncodeMaterialID(4.0f);
 	output.Normal.w = EncodeMaterialID(4.0f);
 
 	return output;

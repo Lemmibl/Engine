@@ -261,9 +261,7 @@ private:
 	LemmiLinkedList<T>* list;
 
 public:
-	LemmiListIterator( 
-	LemmiLinkedList<T>* p_list = 0,
-	LemmiListNode<T>* p_node = 0 )
+	LemmiListIterator( LemmiLinkedList<T>* p_list = 0, LemmiListNode<T>* p_node = 0 )
 	{
 		list = p_list;
 		node = p_node;

@@ -104,7 +104,7 @@ struct Lemmi2DAABB
 
 	XMFLOAT2 GetNegativeVertex( const XMFLOAT3 &normal ) const
 	{
-		XMFLOAT2 negativeVertex = maximum;
+		XMFLOAT2 negativeVertex = MaxPoint;
 
 		if( normal.x >= 0.0f ) negativeVertex.x = MinPoint.x;
 		if( normal.z >= 0.0f ) negativeVertex.y = MinPoint.y;

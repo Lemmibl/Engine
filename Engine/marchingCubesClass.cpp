@@ -631,7 +631,7 @@ const int MarchingCubesClass::edgeTable[256] = {
 								utility.GenerateMaterialAndTextureData(tempPos.y, &tempNormal, lerpVal, texAndMatIDs);
 
 								//Comment this if you want the edges back. :)
-								if(y > 10)//x > 1 && x < this->sizeX-3 && z > 1 && z < this->sizeZ-3 && 
+								if(x < this->sizeX-1 && z < this->sizeZ-1 && y > 10)//x > 0 && z > 0 && 
 								{
 									indices[indexCounter] = vertexCounter;
 
@@ -649,8 +649,9 @@ const int MarchingCubesClass::edgeTable[256] = {
 									vertices[vertexCount++] = vertexPos;
 									*/
 								}
-								numberOfTriangles++;
 							}
+
+							numberOfTriangles++;
 						}
 
 						/*

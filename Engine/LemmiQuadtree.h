@@ -5,7 +5,6 @@
 #include <vector>
 #include <stdlib.h>
 #include "Lemmi2DAABB.h"
-#include <xxshared>
 
 template <class T>
 class QuadTreeNode
@@ -141,7 +140,7 @@ protected:
 	/// Clean up all empty subnodes and report if current node is empty
 	/// </summary>
 	/// <returns>True is node is empty</returns>
-	public bool CleanUpSubNodes()
+	bool CleanUpSubNodes()
 	{
 		for(int subNodeIndex = children.size() - 1; subNodeIndex >= 0; subNodeIndex--)
 		{
@@ -165,8 +164,7 @@ protected:
 		return true;
 	}
 
-
-	public void Get(Lemmi2DAABB test, vector<shared_ptr<T>> results, int queryID)
+	void Get(Lemmi2DAABB test, std::vector<std::shared_ptr<T>> results, int queryID)
 	{
 		//If test is inside the bounding box ...
 		if(boundingBox->Contains(test)) //(sphere.Contains(BoundingBox) != ContainmentType.Disjoint)
@@ -188,7 +186,6 @@ protected:
 			}
 		}
 	}
-}
 
 };
 

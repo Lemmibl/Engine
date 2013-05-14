@@ -16,6 +16,7 @@ struct PixelInputType
 	float4 Position : SV_POSITION;
 	float3 Normal :NORMAL;
 	float4 TexCoord : TEXCOORD0;
+	float4 WorldPosition : TEXCOORD1;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -30,6 +31,7 @@ PixelInputType VegetationQuadVertexShader(VertexInputType input)
 
 	// Update the position of the vertices based on the data for this particular instance.
 	input.Position.xyz += input.InstancePosition.xyz;
+	output.WorldPosition = float4(input.InstancePosition.xyz, 1.0f);
 
 	// Calculate the position of the vertex against the world, view, and projection matrices.
 	output.Position = mul(input.Position, worldViewProjection);

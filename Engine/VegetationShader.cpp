@@ -8,6 +8,7 @@ VegetationShader::VegetationShader()
 	vertexShader = 0;
 	layout = 0;
 	matrixBuffer = 0;
+	cameraBuffer = 0;
 	samplerState = 0;
 	pixelShader = 0;
 }
@@ -48,12 +49,12 @@ void VegetationShader::Shutdown()
 }
 
 
-bool VegetationShader::Render(ID3D11DeviceContext* deviceContext, int vertexCount, int instanceCount, XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textures)
+bool VegetationShader::Render(ID3D11DeviceContext* deviceContext, int vertexCount, int instanceCount, XMFLOAT4* cameraPosition, XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textures)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldViewProjection, textures);
+	result = SetShaderParameters(deviceContext, worldViewProjection, cameraPosition, textures);
 	if(!result)
 	{
 		return false;
@@ -197,6 +198,21 @@ bool VegetationShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 		return false;
 	}
 
+	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
+	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	matrixBufferDesc.ByteWidth = sizeof(CameraBufferType);
+	matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	matrixBufferDesc.MiscFlags = 0;
+	matrixBufferDesc.StructureByteStride = 0;
+
+	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+	result = device->CreateBuffer(&matrixBufferDesc, NULL, &cameraBuffer);
+	if(FAILED(result))
+	{
+		return false;
+	}
+
 	// Create a texture sampler state description.
 	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
@@ -229,6 +245,12 @@ void VegetationShader::ShutdownShader()
 	{
 		matrixBuffer->Release();
 		matrixBuffer = 0;
+	}
+
+	if(cameraBuffer)
+	{	
+		cameraBuffer->Release();
+		cameraBuffer = 0;
 	}
 
 	// Release the layout.
@@ -295,12 +317,17 @@ void VegetationShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND h
 	return;
 }
 
-bool VegetationShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textures)
+bool VegetationShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, XMFLOAT4* cameraPosition, ID3D11ShaderResourceView** textures)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	MatrixBufferType* dataPtr;
+	CameraBufferType* dataPtr2;
 	unsigned int bufferNumber;
+
+	/************************************************************************/
+	/* Vertex buffer #1                                                     */
+	/************************************************************************/
 
 	// Lock the constant buffer so it can be written to.
 	result = deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -323,6 +350,32 @@ bool VegetationShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, X
 
 	// Finanly set the constant buffer in the vertex shader with the updated values.
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &matrixBuffer);
+
+	/************************************************************************/
+	/* Pixel buffer #1                                                      */
+	/************************************************************************/
+
+	// Lock the constant buffer so it can be written to.
+	result = deviceContext->Map(cameraBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if(FAILED(result))
+	{
+		return false;
+	}
+
+	// Get a pointer to the data in the constant buffer.
+	dataPtr2 = (CameraBufferType*)mappedResource.pData;
+
+	// Copy the matrices into the constant buffer.
+	dataPtr2->CameraPosition = *cameraPosition;
+
+	// Unlock the constant buffer.
+	deviceContext->Unmap(cameraBuffer, 0);
+
+	// Set the position of the constant buffer in the vertex shader.
+	bufferNumber = 0;
+
+	// Finanly set the constant buffer in the vertex shader with the updated values.
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &cameraBuffer);
 
 	// Set shader texture array resource in the pixel shader.
 	deviceContext->PSSetShaderResources(0, 1, textures);
