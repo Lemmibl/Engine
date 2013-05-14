@@ -728,7 +728,6 @@ bool Renderer::Render()
 		invertedProjection, untransposedViewProj;
 
 	XMFLOAT3 camPos;
-	XMFLOAT4 camPosF4;
 	bool result;
 	ID3D11RenderTargetView* gbufferRenderTargets[3] = { NULL, NULL, NULL }; //render targets for GBuffer pass
 	ID3D11RenderTargetView* lightTarget[1] = { NULL };
@@ -747,7 +746,6 @@ bool Renderer::Render()
 
 	// Generate the view matrix based on the camera's position.
 	camPos = camera->GetPosition();
-	camPosF4 = XMFLOAT4(camPos.x, camPos.y, camPos.z, 1.0f);
 
 	gbufferRenderTargets[0] = colorRT->RTView;
 	gbufferRenderTargets[1] = normalRT->RTView;
@@ -903,7 +901,7 @@ bool Renderer::Render()
 
 	d3D->SetNoCullRasterizer();
 	d3D->TurnOnAlphaBlending();
-	vegetationManager->Render(context, &camPosF4, &identityWorldViewProj, textureAndMaterialHandler->GetVegetationTextureArray());
+	vegetationManager->Render(context, &identityWorldViewProj, textureAndMaterialHandler->GetVegetationTextureArray());
 	d3D->TurnOffAlphaBlending();
 #pragma endregion
 

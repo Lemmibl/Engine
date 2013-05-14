@@ -28,7 +28,7 @@ public:
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
 	bool SetupQuads(ID3D11Device* device, std::vector<XMFLOAT4>* positions);
-	bool Render(ID3D11DeviceContext* deviceContext, XMFLOAT4* cameraPosition, XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textures);
+	bool Render(ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textures);
 	void RenderBuffers(ID3D11DeviceContext* deviceContext);
 
 	inline int GetVertexCount()		{	return vertexCount;		}

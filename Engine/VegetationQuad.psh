@@ -7,17 +7,11 @@ SamplerState linearSampler;
 //////////////
 // TYPEDEFS //
 //////////////
-cbuffer CameraBufferType
-{
-	float4 CameraPosition;
-}
-
 struct PixelInputType
 {
 	float4 Position : SV_POSITION;
 	float3 Normal : NORMAL;
 	float4 TexCoord : TEXCOORD0;
-	float4 WorldPosition : TEXCOORD1;
 };
 
 struct PixelShaderOutput
@@ -51,8 +45,6 @@ half3 Encode(half3 n)
 PixelShaderOutput VegetationQuadPixelShader(PixelInputType input)
 {
 	PixelShaderOutput output;
-
-	//float camDist = 1.0f - distance(CameraPosition, input.WorldPosition)*0.005f;
 
 	//No branching cuz texture array. Yay. To clarify -- our texCoord.z channel contains texture ID, which we extract from each instance of vegetation.
 	output.Color = shaderTexture.Sample(linearSampler, input.TexCoord.xyz) * (1.69f-input.TexCoord.w);
