@@ -5,6 +5,7 @@
 
 #define ANG2RAD 3.14159265358979323846/180.0
 
+//http://pastebin.com/PEeDKLET
 
 FrustumClass::FrustumClass()
 {
@@ -186,6 +187,30 @@ bool FrustumClass::CheckPoint(float x, float y, float z)
 	return true;
 }
 
+//// check whether an AABB intersects the frustum
+//BoundingVolume::TestResult Frustum::testIntersection( shared_ptr<const BoundingBox> box ) const
+//{
+//	TestResult result = TEST_INSIDE;
+//
+//	for( uint i = 0; i < 6; i++ )
+//	{
+//		const float pos = m_planes[i].w;
+//		const vec3 normal = vec3(m_planes[i]);
+//
+//		if( glm::dot(normal, box->getPositiveVertex(normal))+pos < 0.0f )
+//		{
+//			return TEST_OUTSIDE;
+//		}
+//
+//		if( glm::dot(normal, box->getNegativeVertex(normal))+pos < 0.0f )
+//		{
+//			result = TEST_INTERSECT;
+//		}
+//	}
+//
+//	return result;
+//}
+
 bool FrustumClass::CheckCube(float xCenter, float yCenter, float zCenter, float radius)
 {
 	int i;
@@ -309,3 +334,109 @@ bool FrustumClass::CheckRectangle(float xCenter, float yCenter, float zCenter, f
 
 	return true;
 }
+
+/*
+struct AABB {
+
+vec3x min;
+
+vec3x max;
+
+};
+
+
+
+struct Frustum {
+
+vec4f planes[6];
+
+
+
+Frustum(const mat4f &m)
+
+{
+
+const vec4f r1(m.elem[0][0], m.elem[0][1], m.elem[0][2], m.elem[0][3]);
+
+const vec4f r2(m.elem[1][0], m.elem[1][1], m.elem[1][2], m.elem[1][3]);
+
+const vec4f r3(m.elem[2][0], m.elem[2][1], m.elem[2][2], m.elem[2][3]);
+
+const vec4f r4(m.elem[3][0], m.elem[3][1], m.elem[3][2], m.elem[3][3]);
+
+
+
+planes[0] = r4 + r1;
+
+planes[1] = r4 - r1;
+
+planes[2] = r4 + r2;
+
+planes[3] = r4 - r2;
+
+planes[4] = r4 + r3;
+
+planes[5] = r4 - r3;
+
+}
+
+};
+
+
+
+int aabb_vs_frustum(const AABB &aabb, const Frustum &f)
+
+{
+
+int result = 1;
+
+
+
+for (int i = 0; i < 6; ++i) {
+
+const vec4f &plane = f.planes[i];
+
+
+
+const vec3f pv(
+
+plane.x > 0 ? aabb.max.x : aabb.min.x,
+
+plane.y > 0 ? aabb.max.y : aabb.min.y,
+
+plane.z > 0 ? aabb.max.z : aabb.min.z
+
+);
+
+
+
+const vec3f nv(
+
+plane.x < 0 ? aabb.max.x : aabb.min.x,
+
+plane.y < 0 ? aabb.max.y : aabb.min.y,
+
+plane.z < 0 ? aabb.max.z : aabb.min.z
+
+);
+
+
+
+const float n = dot(vec4f(pv, 1.0f), plane);
+
+if (n < 0) return -1;
+
+
+
+const float m = dot(vec4f(nv, 1.0f), plane);
+
+if (m < 0) result = 0;
+
+}
+
+
+
+return result;
+
+}
+*/

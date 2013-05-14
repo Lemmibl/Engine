@@ -4,12 +4,14 @@
 
 struct Lemmi3DAABB
 {
-	XMFLOAT3 MinPoint, MaxPoint;
+	XMFLOAT3 MinPoint, MaxPoint, CenterPosition;
 
 	Lemmi3DAABB(const XMFLOAT3& extMinPoint, const XMFLOAT3& extMaxPoint)
 	{
 		MinPoint = extMinPoint;
 		MaxPoint = extMaxPoint;
+
+		this->CenterPosition = XMFLOAT3(((MinPoint.x+MaxPoint.x)*0.5f), ((MinPoint.y+MaxPoint.y)*0.5f), ((MinPoint.z+MaxPoint.z)*0.5f));
 	}
 
 	bool Intersects(const Lemmi3DAABB& otherAABB)
@@ -100,5 +102,35 @@ struct Lemmi3DAABB
 		}
 
 		return false;
+	}
+
+	XMFLOAT3 GetPositiveVertex( const XMFLOAT3 &normal ) const
+	{
+		XMFLOAT3 positiveVertex = MinPoint;
+
+		if( normal.x >= 0.0f ) positiveVertex.x = MaxPoint.x;
+		if( normal.y >= 0.0f ) positiveVertex.y = MaxPoint.y;
+		if( normal.z >= 0.0f ) positiveVertex.z = MaxPoint.z;
+
+		positiveVertex.x += CenterPosition.x;
+		positiveVertex.y += CenterPosition.y;
+		positiveVertex.z += CenterPosition.z;
+
+		return positiveVertex;
+	}
+
+	XMFLOAT3 GetNegativeVertex( const XMFLOAT3 &normal ) const
+	{
+		XMFLOAT3 negativeVertex = maximum;
+
+		if( normal.x >= 0.0f ) negativeVertex.x = MinPoint.x;
+		if( normal.y >= 0.0f ) negativeVertex.y = MinPoint.y;
+		if( normal.z >= 0.0f ) negativeVertex.z = MinPoint.z;
+
+		negativeVertex.x += CenterPosition.x;
+		negativeVertex.y += CenterPosition.y;
+		negativeVertex.z += CenterPosition.z;
+
+		return negativeVertex;
 	}
 };

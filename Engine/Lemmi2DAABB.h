@@ -5,13 +5,19 @@
 //http://devmaster.net/forums/topic/7934-aabb-collision/
 struct Lemmi2DAABB
 {
-	XMFLOAT2 MinPoint, MaxPoint;
+	XMFLOAT2 MinPoint, MaxPoint, CenterPosition;
+
+	Lemmi2DAABB(){}
 
 	Lemmi2DAABB(XMFLOAT2 minPoint, XMFLOAT2 maxPoint)
 	{
 		this->MinPoint = minPoint;
 		this->MaxPoint = maxPoint;
+
+		this->CenterPosition = XMFLOAT2(((MinPoint.x+MaxPoint.x)*0.5f), ((MinPoint.y+MaxPoint.y)*0.5f));
 	}
+
+	~Lemmi2DAABB(){}
 
 	bool Intersects(const Lemmi2DAABB& otherAABB)
 	{
@@ -81,5 +87,31 @@ struct Lemmi2DAABB
 		}
 
 		return false;
+	}
+
+	XMFLOAT2 GetPositiveVertex( const XMFLOAT3 &normal ) const
+	{
+		XMFLOAT2 positiveVertex = MinPoint;
+
+		if( normal.x >= 0.0f ) positiveVertex.x = MaxPoint.x;
+		if( normal.z >= 0.0f ) positiveVertex.y = MaxPoint.y; //YES, it's supposed to be normal.z. I think.
+
+		positiveVertex.x += CenterPosition.x;
+		positiveVertex.y += CenterPosition.y;
+
+		return positiveVertex;
+	}
+
+	XMFLOAT2 GetNegativeVertex( const XMFLOAT3 &normal ) const
+	{
+		XMFLOAT2 negativeVertex = maximum;
+
+		if( normal.x >= 0.0f ) negativeVertex.x = MinPoint.x;
+		if( normal.z >= 0.0f ) negativeVertex.y = MinPoint.y;
+
+		negativeVertex.x += CenterPosition.x;
+		negativeVertex.y += CenterPosition.y;
+
+		return negativeVertex;
 	}
 };
