@@ -51,7 +51,7 @@ PixelShaderOutput VegetationQuadPixelShader(PixelInputType input)
 	float fadeFactor = saturate((depth - 148.0f) / (150.0f - 148.0f));
 
 	//No branching cuz texture array. Yay. To clarify -- our texCoord.z channel contains texture ID, which we extract from each instance of vegetation.
-	output.Color = lerp(float4(0.1f, 0.1f, 0.1f, 0.1f), shaderTexture.Sample(linearSampler, input.TexCoord.xyz), 1.0f-fadeFactor);
+	output.Color = lerp(float4(0.5f, 0.5f, 0.5f, 0.0f), shaderTexture.Sample(linearSampler, input.TexCoord.xyz), 1.0f-fadeFactor);
 
 	if(output.Color.w <= 0.7f) //Alpha testing and tiny optimization for the break-early cases, I guess.
 	{
