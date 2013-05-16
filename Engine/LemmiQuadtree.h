@@ -89,7 +89,7 @@ protected:
 	/// </summary>
 	void Propagate()
 	{
-		if(children.size() > maxItems && depth <= maxDepth)
+		if(content.size() > maxItems && depth <= maxDepth)
 		{
 			CreateSubNodes();
 
@@ -115,23 +115,23 @@ protected:
 				{
 					/*************************************************************************************
 					//If content[i] is contained by a smaller bounding box (of a sub node), 
-					//then remove it from this list and add it to the subnode[j] content vector instead
+					//then remove it from this list and add it to the child[j] content vector instead
 					**************************************************************************************/
 
 					if(children[j]->boundingBox->Contains(static_cast<IOctreeable>(content[i])->boundingBox))
 					{
 						children[j].content.Add(content[i]);
 						this->content.erase(i);
-						break;
+						break; //Break early to make sure we don't add the object to several children
 					}
 				}
 			}
 
 
 			//Propagate subnodes
-			for(int subNodeIndex = 0; subNodeIndex < SubNodes.Count; subNodeIndex++)
+			for(int subNodeIndex = 0; subNodeIndex < children.size(); subNodeIndex++)
 			{
-				SubNodes[subNodeIndex].Propagate();
+				children[subNodeIndex].Propagate();
 			}
 		}
 	}
@@ -187,6 +187,30 @@ protected:
 		}
 	}
 
+
+	void Get(XMFLOAT2 test, std::vector<std::shared_ptr<T>> results, int queryID)
+	{
+		//If test is inside the bounding box ...
+		if(boundingBox->Contains(test.x, test.y)) //(sphere.Contains(BoundingBox) != ContainmentType.Disjoint)
+		{
+			//Process children
+			for(int subNodeIndex = 0; subNodeIndex < children.size(); subNodeIndex++)
+			{
+				children[subNodeIndex].Get(test, results, queryID);
+			}
+
+			//Add content
+			for(int contentIndex = 0; contentIndex < content.size(); contentIndex++)
+			{
+				//To make sure we don't query too many times
+				if(Content[contentIndex].LastQueryID != queryID)
+				{
+					static_cast<IOctreeable>(content[contentIndex])->lastQueryID = queryID;
+					results.Add(content[contentIndex]);
+				}
+			}
+		}
+	}
 };
 
 
@@ -232,26 +256,6 @@ root.Propagate();
 root.CleanUpSubNodes();
 }
 
-public void Update()
-{
-root.Propagate();
-root.CleanUpSubNodes();
-}
-
-/// <summary>
-/// Get a list of objects from nodes intersecting a sphere
-/// </summary>
-/// <param name="sphere">Sphere to test against the Octree</param>
-/// <returns>List of objects</returns>
-public List<T> Get(BoundingSphere sphere)
-{
-results.Clear();
-queryID++;
-root.Get(node => sphere.Contains(node) != ContainmentType.Disjoint, results, queryID);
-
-return results;
-}
-
 
 /// <summary>
 /// Get a list of objects from nodes intersecting a box
@@ -281,25 +285,6 @@ root.Get(node => frustum.Contains(node) != ContainmentType.Disjoint, results, qu
 return results;
 }
 
-/// <summary>
-/// Get a list of objects from nodes intersecting a ray
-/// </summary>
-/// <param name="ray">Ray</param>
-/// <param name="range">Ray's max range</param>
-/// <returns>List of objects</returns>
-public List<T> Get(Ray ray, float range)
-{
-results.Clear();
-queryID++;
-root.Get(node =>
-{
-float? d = ray.Intersects(node);
-return (d != null && d <= range);
-}, results, queryID);
-
-return results;
-}
-}
 */
 
 /// <summary>

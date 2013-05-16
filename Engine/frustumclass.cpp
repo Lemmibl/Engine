@@ -6,6 +6,8 @@
 #define ANG2RAD 3.14159265358979323846/180.0
 
 //http://pastebin.com/PEeDKLET
+//http://www.gamedev.net/topic/499753-extract-frustum-corners/
+//http://www.geometrictools.com/LibMathematics/Intersection/Intersection.html
 
 FrustumClass::FrustumClass()
 {
@@ -30,11 +32,13 @@ void FrustumClass::SetInternals( float aspectRatio, float angle, float nearZ, fl
 	this->farZ = farZ;
 
 	// compute width and height of the near and far plane sections
-	float tang = (float)tan(ANG2RAD * angle * 0.5) ;
-	nearHeight = nearZ * tang;
-	nearWidth = nearHeight * aspectRatio;
+	float tang = (float)tan(ANG2RAD * angle * 0.5f);
 	farHeight = farZ  * tang;
 	farWidth = farHeight * aspectRatio;
+
+	//I want an "Orthogonal" frustum
+	nearHeight = farHeight;//nearZ * tang;
+	nearWidth = farWidth;//nearHeight * aspectRatio;
 }
 
 XMFLOAT3* FrustumClass::GetFarFrustumCorners(XMVECTOR position, XMVECTOR lookAt, XMVECTOR up)
@@ -107,6 +111,47 @@ XMFLOAT3* FrustumClass::GetNearFrustumCorners(XMVECTOR position, XMVECTOR lookAt
 	fourPoints[3] = nearBottomRight;
 
 	return fourPoints;
+}
+
+void FrustumClass::CalculateXZBounds( XMVECTOR position, XMVECTOR lookAt, XMVECTOR up )
+{
+	XMVECTOR farCenter, nearCenter, X, Y, Z;
+
+	// compute the Z axis of camera
+	// this axis points in the opposite direction from
+	// the looking direction (OpenGL)
+	Z = XMVector3Normalize(lookAt);
+
+	// X axis of camera with given "up" vector and Z axis
+	X = up * Z;
+	X = XMVector3Normalize(X);
+
+	// the real "up" vector is the cross product of Z and X
+	Y = Z * X;
+
+	// compute the centers of the far plane
+	nearCenter = position + Z * nearZ;
+
+	// compute the centers of the far plane
+	farCenter = position + Z * farZ;
+
+	// compute the 4 relevant corners of the frustum
+	XMStoreFloat3(&farBottomLeft,	farCenter	- X * farWidth);
+	XMStoreFloat3(&farBottomRight,	farCenter	+ X * farWidth);
+	XMStoreFloat3(&nearBottomLeft,	nearCenter	- X * nearWidth);
+	XMStoreFloat3(&nearBottomRight, nearCenter	+ X * nearWidth);
+
+	/*
+	- Y * farHeight		
+	- Y * farHeight		
+	- Y * nearHeight	
+	- Y * nearHeight	
+	*/
+
+	farLeft		=	XMFLOAT2(farBottomLeft.x,	farBottomLeft.z);
+	farRight	=	XMFLOAT2(farBottomRight.x,	farBottomRight.z);
+	nearLeft	=	XMFLOAT2(nearBottomLeft.x,	nearBottomLeft.z);
+	nearRight	=	XMFLOAT2(nearBottomRight.x, nearBottomRight.z);
 }
 
 void FrustumClass::ConstructFrustum(float screenDepth, XMMATRIX* projectionMatrix, XMMATRIX* viewMatrix)
@@ -262,6 +307,26 @@ bool FrustumClass::CheckCube(float xCenter, float yCenter, float zCenter, float 
 	}
 
 	return true;
+}
+
+
+bool FrustumClass::Check2DAABB(Lemmi2DAABB* aabb)
+{
+	XMFLOAT2 minPoint, maxPoint;
+
+	//We need to make sure that "maxPoint" actually is the farthest away from the camera, 
+	//it gets weird if we rotate camera 180 degrees the wrong way
+	minPoint = XMFLOAT2(min(min(nearLeft.x, nearRight.x), min(farRight.x, farLeft.x)), min(min(nearLeft.y, nearRight.y), min(farRight.y, farLeft.y)));
+	maxPoint = XMFLOAT2(max(max(nearLeft.x, nearRight.x), max(farRight.x, farLeft.x)), max(max(nearLeft.y, nearRight.y), max(farRight.y, farLeft.y)));
+
+	Lemmi2DAABB thisAABB = Lemmi2DAABB(minPoint, maxPoint);
+
+	if(thisAABB.Intersects((const Lemmi2DAABB) *aabb))
+	{
+		return true;
+	}
+
+	return false;
 }
 
 bool FrustumClass::CheckSphere(float xCenter, float yCenter, float zCenter, float radius)

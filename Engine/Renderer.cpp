@@ -499,6 +499,9 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
+	frustum->SetInternals(((float)D3DX_PI/2.0f), 1.0f, 0.5f, 150.0f);
+	testBoundingbox = Lemmi2DAABB(XMFLOAT2(0, 0), XMFLOAT2(60, 60));
+
 	return true;
 }
 
@@ -799,6 +802,7 @@ bool Renderer::Render()
 
 	// Construct the frustum.
 	frustum->ConstructFrustum(screenFar, &projectionMatrix, &viewMatrix);
+	frustum->CalculateXZBounds(XMLoadFloat3(&camera->GetPosition()), camera->ForwardVector(), camera->UpVector());
 
 	XMVECTOR nullVec;
 	lightViewProj = XMMatrixMultiply(lightView, lightProj);
@@ -895,9 +899,13 @@ bool Renderer::Render()
 	worldMatrix = XMMatrixIdentity(); 
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
-	marchingCubes->Render(context);
-	result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
-		&worldMatrix, &identityWorldViewProj, textureAndMaterialHandler->GetTerrainTextureArray());
+	if(frustum->Check2DAABB(&testBoundingbox))
+	{
+		marchingCubes->Render(context);
+		result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
+			&worldMatrix, &identityWorldViewProj, textureAndMaterialHandler->GetTerrainTextureArray());
+
+	}
 
 	d3D->SetNoCullRasterizer();
 	d3D->TurnOnAlphaBlending();

@@ -150,6 +150,8 @@ private:
 	int lodState, previousLodState;
 	ID3D11ShaderResourceView* lSystemSRV;
 	ID3D11ShaderResourceView* ssaoRandomTextureSRV;
+
+	Lemmi2DAABB testBoundingbox;
 };
 
 #endif
