@@ -16,6 +16,7 @@ struct PixelInputType
 	float4 Position : SV_POSITION;
 	float3 Normal :NORMAL;
 	float4 TexCoord : TEXCOORD0;
+
 };
 
 ////////////////////////////////////////////////////////////////////////////////

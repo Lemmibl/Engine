@@ -12,7 +12,7 @@
 #include <d3dx11async.h>
 #include <fstream>
 
-#include "structs.h"
+#include "StructsAndEnums.h"
 #include <windows.h>
 #include <xnamath.h>
 using namespace std;

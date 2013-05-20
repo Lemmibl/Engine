@@ -14,7 +14,7 @@
 #include <xnamath.h>
 #include <d3dx11async.h>
 #include <fstream>
-#include "structs.h"
+#include "StructsAndEnums.h"
 using namespace std;
 
 

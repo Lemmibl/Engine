@@ -27,6 +27,7 @@
 #include <windows.h>
 #include <xnamath.h> 
 #include <d3dx10math.h>
+#include "Lemmi2DAABB.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: FrustumClass
@@ -40,16 +41,19 @@ public:
 
 	void SetInternals(float aspectRatio, float angle, float nearZ, float farZ);
 
-	//Returns the four frustum corners in a float4. [0] = top left, [1] = top right, [2] = bottom left, [3] = bottom right
+	//Returns the four frustum corners in a float3. [0] = top left, [1] = top right, [2] = bottom left, [3] = bottom right
 	XMFLOAT3* GetFarFrustumCorners(XMVECTOR position, XMVECTOR lookAt, XMVECTOR up);
 
-	//Returns the four frustum corners in a float4. [0] = top left, [1] = top right, [2] = bottom left, [3] = bottom right
+	//Returns the four frustum corners in a float3. [0] = top left, [1] = top right, [2] = bottom left, [3] = bottom right
 	XMFLOAT3* GetNearFrustumCorners(XMVECTOR position, XMVECTOR lookAt, XMVECTOR up);
+
+	void CalculateXZBounds(XMVECTOR position, XMVECTOR lookAt, XMVECTOR up);
 
 	void ConstructFrustum(float, XMMATRIX* , XMMATRIX* );
 
 	bool CheckPoint(float, float, float);
 	bool CheckCube(float, float, float, float);
+	bool Check2DAABB(Lemmi2DAABB* aabb);
 	bool CheckSphere(float, float, float, float);
 	bool CheckRectangle(float, float, float, float, float, float);
 
@@ -59,6 +63,7 @@ private:
 	float nearHeight, nearWidth, farHeight, farWidth;
 	XMFLOAT3 nearTopLeft, nearTopRight, nearBottomLeft, nearBottomRight;
 	XMFLOAT3 farTopLeft, farTopRight, farBottomLeft, farBottomRight;
+	XMFLOAT2 nearLeft, nearRight, farLeft, farRight;
 };
 
 #endif

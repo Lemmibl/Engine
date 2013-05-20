@@ -32,7 +32,7 @@ private:
 	{
 		XMFLOAT4 ApexColor;
 		XMFLOAT4 CenterColor;
-		XMFLOAT4 AntapexColor;
+		XMFLOAT4 FogColor;
 	};
 
 	struct TimeBufferType
@@ -49,7 +49,7 @@ public:
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
 	bool Render(ID3D11DeviceContext* context, int indexCount, XMMATRIX* worldViewProjection, 
-	XMFLOAT4 ApexColor, XMFLOAT4 CenterColor, XMFLOAT4 AntapexColor, float time);
+	XMFLOAT4 ApexColor, XMFLOAT4 CenterColor, XMFLOAT4 FogColor, float time);
 
 private:
 	bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
@@ -57,7 +57,7 @@ private:
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
 
 	bool SetShaderParameters(ID3D11DeviceContext* context, XMMATRIX* worldViewProjection, 
-		XMFLOAT4 ApexColor, XMFLOAT4 CenterColor, XMFLOAT4 AntapexColor, float time);
+		XMFLOAT4 ApexColor, XMFLOAT4 CenterColor, XMFLOAT4 FogColor, float time);
 	void RenderShader(ID3D11DeviceContext*, int);
 
 private:

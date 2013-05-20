@@ -4,38 +4,25 @@
 #include "Renderer.h"
 
 /*
+THE LINK DUNGEON
+
+Geometry shader quads:
+http://www.braynzarsoft.net/index.php?p=D3D11BILLBOARDS
+http://rastergrid.com/blog/2010/02/instance-culling-using-geometry-shaders/
+
+Linear depth:
+http://www.gamerendering.com/2008/09/28/linear-depth-texture/
+http://mynameismjp.wordpress.com/2010/09/05/position-from-depth-3/
+
 Inför cleana upp kod:
 http://gamedev.stackexchange.com/questions/24615/managing-shaders-and-objects-in-directx-11
 https://graphics.stanford.edu/wikis/cs448s-11/FrontPage?action=AttachFile&do=get&target=05-GPU_Arch_I.pdf
 
-Inför terrain rendering / många texturer:
-http://stackoverflow.com/questions/10623787/directx-11-framebuffer-capture-c-no-win32-or-d3dx < SPARA TEXTURER TIL HDD
-
-Inför perlin/simplex noise:
-http://stackoverflow.com/questions/14802205/creating-texture-programmatically-directx
-http://stackoverflow.com/questions/4120108/how-to-save-backbuffer-to-file-in-directx-10
-
-Inför SSAO:
-http://www.gamedev.net/page/resources/_/technical/graphics-programming-and-theory/a-simple-and-practical-approach-to-ssao-r2753
-http://www.iquilezles.org/www/articles/ssao/ssao.htm
-
-Inför shadow maps:
-http://gameengineers.blogspot.se/2013/02/no-title-yet.html
-http://lousodrome.net/blog/light/2012/01/23/variance-shadow-maps/
-http://developer.download.nvidia.com/SDK/10.5/opengl/src/cascaded_shadow_maps/doc/cascaded_shadow_maps.pdf
-http://msdn.microsoft.com/en-us/library/windows/desktop/ee416307(v=vs.85).aspx
-http://devblog.drheinous.com/2012/10/cascaded-variance-shadow-maps.html
-http://developer.download.nvidia.com/SDK/9.5/Samples/samples.html#HLSL_SoftShadows
-http://graphics.stanford.edu/~mdfisher/Shadows.html
 
 Directional light lens flare:
 http://www.madgamedev.com/post/2010/04/21/Article-Sun-and-Lens-Flare-as-a-Post-Process.aspx
 http://stackoverflow.com/questions/14161727/hlsl-drawing-a-centered-circle
 if cross product (cameraDirection, lightDirection) == 0 then they're both facing the same way? I think.
-
-TODO: http://forum.beyond3d.com/archive/index.php/t-45628.html
-http://www.gamedev.net/topic/640968-zfighting-on-ati-perfect-on-nvidia/
-
 
 Multithreading:
 http://gamedev.stackexchange.com/questions/2116/multi-threaded-game-engine-design-resources
@@ -63,10 +50,7 @@ Renderer::Renderer()
 	dirLightShader = 0;
 	dirLight = 0;
 
-	modelList = 0;
-	groundModel = 0;
 	sphereModel = 0;
-	otherModel = 0;
 	skySphere = 0;
 	vegetationManager = 0;
 	depthOnlyQuadShader = 0;
@@ -94,7 +78,6 @@ Renderer::Renderer()
 	previousLodState = 0;
 
 	toggleTextureShader = false;
-	toggleDebugInfo = true;
 	returning = false;
 }
 
@@ -113,11 +96,12 @@ Renderer::~Renderer()
 
 
 bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3DClass* d3D, UINT screenWidth, UINT screenHeight,
-	UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear)
+	UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear, bool toggleDebug)
 {
 	srand((unsigned int)time(NULL));
 	bool result;
 
+	this->toggleDebugInfo = toggleDebug;
 	this->inputManager = input;
 	this->shadowMapWidth = shadowmapWidth;
 	this->shadowMapHeight = shadowmapHeight;
@@ -288,15 +272,13 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 {
 	bool result;
 
-	ambientLight = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f);
-
 #pragma region Point light initialization
 	float x, y, z;
 	//x = 2.0f;
 	//z = 2.0f;
 	//y = 40.0f;
 
-	for(int i = 0; i < 50; i++)
+	for(int i = 0; i < 200; i++)
 	{
 		x = utility->RandomFloat();
 		y = utility->RandomFloat();
@@ -304,9 +286,9 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 
 		pointLights.push_back(new PointLight());
 		pointLights[i]->Color = XMFLOAT3(x, y, z);
-		pointLights[i]->Position = XMFLOAT3(x * 60.0f, 40.0f, z * 60.0f);
-		pointLights[i]->Radius = 4.0f; //Used to both scale the actual point light model and is a factor in the attenuation
-		pointLights[i]->Intensity = 5.0f; //Is used to control the attenuation
+		pointLights[i]->Position = XMFLOAT3(utility->RandomFloat() * 60.0f, 40.0f, utility->RandomFloat() * 60.0f);
+		pointLights[i]->Radius = 3.0f; //Used to both scale the actual point light model and is a factor in the attenuation
+		pointLights[i]->Intensity = 2.0f; //Is used to control the attenuation
 
 		//x += 12.0f;
 
@@ -350,7 +332,7 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	XMVECTOR lookAt = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);//LookAt for dir light. We always want this to be (0,0,0), because it's the easiest to visualize.
+	XMVECTOR lookAt = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);//LookAt for dir light. We always want thi0s to be (0,0,0), because it's the easiest to visualize.
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 
 	// Initialize the directional light.
@@ -408,154 +390,7 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	float x,z,y;
-
-	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix and store it as float4x4.
-#pragma endregion
-
-	return true;
-}
-
-bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
-{
-	bool result;
-
-	metaBalls = new MetaballsClass();
-	marchingCubes = new MarchingCubesClass(0.0f, 0.0f, 0.0f, 60.0f, 60.0f, 60.0f, 1.0f, 1.0f, 1.0f);
-	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
-
-	marchingCubes->GetTerrain()->Noise3D();
-	marchingCubes->CalculateMesh(device);
-
-	lSystem = new LSystemClass();
-	lSystem->initialize();
-
-	skySphere = new Skysphere();
-	if(!skySphere)
-	{
-		return false;
-	}
-
-	result = skySphere->Initialize(device, hwnd);
-	if(!result)
-	{
-		return false;
-	}
-
-	vegetationManager = new VegetationManager();
-	if(!vegetationManager)
-	{
-		return false;
-	}
-
-	result = vegetationManager->Initialize(device, hwnd);
-	if(!result)
-	{
-		return false;
-	}
-
-	float x,z,y;
-	int textureID, randValue;
-
-	for(int i = 0; i < 10000; i++)
-	{
-		x = (2.0f + (utility->RandomFloat() * 56.0f));
-		z = (2.0f + (utility->RandomFloat() * 56.0f));
-
-		//Extract highest Y at this point
-		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate((int)x, (int)z);
-
-		randValue = rand()%100;
-
-		//If we are above "snow level", we only want yellow grass
-		if(y >= 45.0f)
-		{
-			//But the grass should be sparse, so there is
-			//95% chance that we won't actually add this to the instance list.
-			if(randValue > 95)
-			{
-				textureID = 0;
-
-				//Place texture ID in .w channel
-				XMFLOAT4 temp = XMFLOAT4(x, y, z, (float)textureID);
-
-				//We use i to control how many should be added to each LOD vector
-				if(i <= 500)
-				{
-					LODVector500.push_back(temp);
-				}
-
-				if(i <= 2500)
-				{
-					LODVector2500.push_back(temp);
-				}
-
-				if(i <= 5000)
-				{
-					LODVector5000.push_back(temp);
-				}
-
-				LODVector10000.push_back(temp);
-			}
-		}
-		else
-		{
-			if(randValue <= 5)
-			{
-				textureID = 2; //Some kind of leaf branch that I've turned into a plant quad.
-			}
-			else if(randValue <= 96) //By far biggest chance that we get normal grass
-			{
-				textureID = 1; //Normal grass.
-			}
-			else if(randValue <= 98) //If 97-98
-			{
-				textureID = 4; //Bush.
-			}
-			else //If 99-100.
-			{
-				textureID = 3; //Flower.
-			}
-
-			//Place texture ID in .w channel
-			XMFLOAT4 temp = XMFLOAT4(x, y, z, (float)textureID);
-
-			//We use i to control how many should be added to each LOD vector
-			if(i <= 500)
-			{
-				LODVector500.push_back(temp);
-			}
-
-			if(i <= 2500)
-			{
-				LODVector2500.push_back(temp);
-			}
-
-			if(i <= 5000)
-			{
-				LODVector5000.push_back(temp);
-			}
-
-			LODVector10000.push_back(temp);
-		}
-	}
-
-	vegetationManager->SetupQuads(d3D->GetDevice(), &LODVector500);
-
-	// Create the model object.
-	groundModel = new ModelClass;
-	if(!groundModel)
-	{
-		return false;
-	}
-
-	// Initialize the model object.
-	result = groundModel->Initialize(device, "../Engine/data/ground.txt", L"../Engine/data/grass.dds", L"../Engine/data/ground_normal.dds", L"../Engine/data/ground_specular.dds");
-	if(!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
-		return false;
-	}
+	GenerateVegetation(device, true);
 
 	// Create the model object.
 	sphereModel = new ModelClass();
@@ -569,31 +404,6 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
-		return false;
-	}
-
-	otherModel = new ModelClass();
-	if(!otherModel)
-	{
-		return false;
-	}
-
-	result = otherModel->Initialize(device, "../Engine/data/cube.txt", L"../Engine/data/stone02.dds", L"../Engine/data/bump02.dds", L"../Engine/data/stone_specmap.dds");
-	if(!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
-		return false;
-	}
-
-	modelList = new ModelListClass();
-	if(!modelList)
-	{
-		return false;
-	}
-
-	result = modelList->Initialize(10);
-	if(!result)
-	{
 		return false;
 	}
 
@@ -615,7 +425,7 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 	{
 		return false;
 	}
-	
+
 	noise = new SimplexNoise();
 	if(!noise)
 	{
@@ -638,7 +448,7 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	result = dayNightCycle->Initialize(86400.0f/6, DAY);
+	result = dayNightCycle->Initialize(300.0f, DAY); //86400.0f/6
 	if(!result)
 	{
 		return false;
@@ -689,6 +499,9 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
+	frustum->SetInternals(((float)D3DX_PI/2.0f), 1.0f, 0.5f, 150.0f);
+	testBoundingbox = Lemmi2DAABB(XMFLOAT2(0, 0), XMFLOAT2(60, 60));
+
 	return true;
 }
 
@@ -735,7 +548,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 		for(int i = 0; i < (int)pointLights.size(); i++)
 		{
-			pointLights[i]->Position.y += frameTime*0.006f;
+			pointLights[i]->Position.y += frameTime*0.01f;
 
 			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale*XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y-0.5f, pointLights[i]->Position.z)));
 		}
@@ -747,12 +560,12 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 		for(int i = 0; i < (int)pointLights.size(); i++)
 		{
-			pointLights[i]->Position.y -= frameTime*0.006f;
+			pointLights[i]->Position.y -= frameTime*0.01f;
 
 			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale*XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y-0.5f, pointLights[i]->Position.z)));
 		}
 	}
-	
+
 	if(inputManager->WasKeyPressed(DIK_U))
 	{
 		if(FAILED(textureAndMaterialHandler->CreateRandom2DTexture(d3D->GetDevice(), d3D->GetDeviceContext(), &ssaoRandomTextureSRV)))
@@ -803,123 +616,14 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 	if(inputManager->IsKeyPressed(DIK_1))
 	{
-		seconds = timeOfDay += frameTime*2.0f;
+		seconds = timeOfDay += frameTime;
 	}
 
-	#pragma region Generate new marching cubes world
-	if(inputManager->WasKeyPressed(DIK_N))
-	{
-		previousLodState = 0; //We set previous lod state to something != lodState so that it'll trigger an instancebuffer rebuild
-		lodState = 3;
-
-		LODVector500.clear();
-		LODVector500.reserve(500);
-		LODVector2500.clear();
-		LODVector2500.reserve(2500);
-		LODVector5000.clear();
-		LODVector5000.reserve(5000);
-		LODVector10000.clear();
-		LODVector10000.reserve(10000);
-
-		marchingCubes->Reset();
-		marchingCubes->GetTerrain()->Noise3D();
-		marchingCubes->CalculateMesh(d3D->GetDevice());
-
-		float x,z,y;
-		int textureID, randValue;
-
-		for(int i = 0; i < 10000; i++)
-		{
-			x = (2.0f + (utility->RandomFloat() * 56.0f));
-			z = (2.0f + (utility->RandomFloat() * 56.0f));
-
-			//Extract highest Y at this point
-			y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate((int)x, (int)z);
-
-			randValue = rand()%100;
-
-			//If we are above "snow level", we only want yellow grass
-			if(y >= 45.0f)
-			{
-				//But the grass should be sparse, so there is
-				//95% chance that we won't actually add this to the instance list.
-				if(randValue > 95)
-				{
-					textureID = 0;
-
-					//Place texture ID in .w channel
-					XMFLOAT4 temp = XMFLOAT4(x, y, z, (float)textureID);
-
-					//We use i to control how many should be added to each LOD vector
-					if(i <= 500)
-					{
-						LODVector500.push_back(temp);
-					}
-
-					if(i <= 2500)
-					{
-						LODVector2500.push_back(temp);
-					}
-
-					if(i <= 5000)
-					{
-						LODVector5000.push_back(temp);
-					}
-
-					LODVector10000.push_back(temp);
-				}
-			}
-			else
-			{
-				if(randValue <= 5)
-				{
-					textureID = 2; //Some kind of leaf branch that I've turned into a plant quad.
-				}
-				else if(randValue <= 96) //By far biggest chance that we get normal grass
-				{
-					textureID = 1; //Normal grass.
-				}
-				else if(randValue <= 98) //If 97-98
-				{
-					textureID = 4; //Bush.
-				}
-				else //If 99-100.
-				{
-					textureID = 3; //Flower.
-				}
-
-				//Place texture ID in .w channel
-				XMFLOAT4 temp = XMFLOAT4(x, y, z, (float)textureID);
-
-				//We use i to control how many should be added to each LOD vector
-				if(i <= 500)
-				{
-					LODVector500.push_back(temp);
-				}
-
-				if(i <= 2500)
-				{
-					LODVector2500.push_back(temp);
-				}
-
-				if(i <= 5000)
-				{
-					LODVector5000.push_back(temp);
-				}
-
-				LODVector10000.push_back(temp);
-			}
-		}
-
-		vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector500);
-	}
-	#pragma endregion
-
-	#pragma region LOD stuff
+#pragma region LOD stuff
 	//Distance between camera and middle of mcube chunk. We'll have to do this for each chunk, and keep an individual lodState for each chunk.
 	if(timer >= 0.5f)
 	{
-		int distance = (int)utility->VectorDistance(camera->GetPosition(), XMFLOAT3(30.0f, 60.0f, 30.0f));
+		int distance = (int)utility->VectorDistance(camera->GetPosition(), XMFLOAT3(30.0f, 40.0f, 30.0f));
 
 		if(distance <= 100)
 		{
@@ -941,9 +645,44 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		timer = 0.0f;
 	}
 
-	//If the lod state has changed since last update, switch and rebuild vegetation instance buffers
-	if(lodState != previousLodState)
+		//If the lod state has changed since last update, switch and rebuild vegetation instance buffers
+		if(lodState != previousLodState)
+		{
+			switch (lodState)
+			{
+			case 0:
+				vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector500);
+				break;
+
+			case 1:
+				vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector2500);
+				break;
+
+			case 2:
+				vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector5000);
+				break;
+
+			case 3:
+				vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector10000);
+				break;
+			}
+		}
+
+
+#pragma endregion
+
+#pragma region Generate new marching cubes world
+	if(inputManager->WasKeyPressed(DIK_N))
 	{
+		previousLodState = 0; //We set previous lod state to something != lodState so that it'll trigger an instancebuffer rebuild
+		lodState = 3;
+
+		marchingCubes->Reset();
+		marchingCubes->GetTerrain()->Noise3D();
+		marchingCubes->CalculateMesh(d3D->GetDevice());
+
+		GenerateVegetation(d3D->GetDevice(), false);
+
 		switch (lodState)
 		{
 		case 0:
@@ -962,7 +701,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 			vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector10000);
 		}
 	}
-	#pragma endregion
+#pragma endregion
 
 	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
 
@@ -988,18 +727,18 @@ bool Renderer::Render()
 	context = d3D->GetDeviceContext();
 
 	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, scalingMatrix, viewProjection, invertedViewProjection, invertedView, 
-		lightView, lightProj, lightViewProj, baseView, worldBaseViewOrthoProj, identityWorldViewProj, lightWorldViewProj, untransposedViewProj;
+		lightView, lightProj, lightViewProj, baseView, worldBaseViewOrthoProj, identityWorldViewProj, lightWorldViewProj, 
+		invertedProjection, untransposedViewProj;
 
 	XMFLOAT3 camPos;
 	bool result;
-	int modelCount, renderCount;
 	ID3D11RenderTargetView* gbufferRenderTargets[3] = { NULL, NULL, NULL }; //render targets for GBuffer pass
 	ID3D11RenderTargetView* lightTarget[1] = { NULL };
 	ID3D11RenderTargetView* shadowTarget[1] = { NULL };
 	ID3D11RenderTargetView* gaussianBlurPingPongRTView[1] = { NULL };
 
 	ID3D11ShaderResourceView* gbufferTextures[3] = { NULL, NULL, NULL };
-	ID3D11ShaderResourceView* dirLightTextures[3] = { NULL, NULL, NULL };
+	ID3D11ShaderResourceView* dirLightTextures[4] = { NULL, NULL, NULL, NULL };
 	ID3D11ShaderResourceView* finalTextures[4] = { NULL, NULL, NULL, NULL };
 	ID3D11ShaderResourceView* gaussianBlurTexture[1] = { NULL };
 
@@ -1033,6 +772,7 @@ bool Renderer::Render()
 	dirLightTextures[0] = normalRT->SRView;
 	dirLightTextures[1] = depthRT->SRView;
 	dirLightTextures[2] = shadowRT->SRView;
+	dirLightTextures[3] = colorRT->SRView;
 
 	//For the the final composition pass
 	finalTextures[0] = colorRT->SRView;
@@ -1041,12 +781,6 @@ bool Renderer::Render()
 	finalTextures[3] = normalRT->SRView;
 
 	gaussianBlurTexture[0] = gaussianBlurPingPongRT->SRView;
-
-	// Get the number of models that will be rendered.
-	modelCount = modelList->GetModelCount();
-
-	// Initialize the count of models that have been rendered.
-	renderCount = 0;
 #pragma endregion
 
 #pragma region Matrix preparations
@@ -1068,12 +802,14 @@ bool Renderer::Render()
 
 	// Construct the frustum.
 	frustum->ConstructFrustum(screenFar, &projectionMatrix, &viewMatrix);
+	frustum->CalculateXZBounds(XMLoadFloat3(&camera->GetPosition()), camera->ForwardVector(), camera->UpVector());
 
 	XMVECTOR nullVec;
 	lightViewProj = XMMatrixMultiply(lightView, lightProj);
 	viewProjection = XMMatrixMultiply(viewMatrix, projectionMatrix);
 
 	invertedView = XMMatrixInverse(&nullVec, viewMatrix);
+	invertedProjection = XMMatrixInverse(&nullVec, projectionMatrix);
 	invertedViewProjection = XMMatrixInverse(&nullVec, viewProjection);
 
 	identityWorldViewProj = ((worldMatrix*viewMatrix ) * projectionMatrix);
@@ -1086,7 +822,7 @@ bool Renderer::Render()
 	lightViewProj =				XMMatrixTranspose(lightViewProj);
 	invertedViewProjection =	XMMatrixTranspose(invertedViewProjection);
 	baseView =					XMMatrixTranspose(XMLoadFloat4x4(&baseViewMatrix));
-
+	invertedProjection =		XMMatrixTranspose(invertedProjection);
 	worldBaseViewOrthoProj = ((baseView * worldMatrix)* orthoMatrix); //Do it post-transpose
 #pragma endregion
 
@@ -1105,6 +841,8 @@ bool Renderer::Render()
 	{
 		return false;
 	}
+
+	//////////////////////////////////////////////Uncomment to enable vegetation quad shadows...
 
 	//d3D->TurnOnShadowBlendState();
 	//vegetationManager->RenderBuffers(context);
@@ -1151,7 +889,7 @@ bool Renderer::Render()
 	worldMatrix = (XMMatrixTranslation(camPos.x, camPos.y, camPos.z)*viewMatrix)*projectionMatrix;
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
-	skySphere->Render(context, &worldMatrix, timeOfDay);
+	skySphere->Render(context, &worldMatrix, &dayNightCycle->GetAmbientLightColor(), timeOfDay);
 
 	d3D->SetBackFaceCullingRasterizer();
 	d3D->TurnZBufferOn();
@@ -1161,24 +899,18 @@ bool Renderer::Render()
 	worldMatrix = XMMatrixIdentity(); 
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
-	marchingCubes->Render(context);
-	result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
-		&worldMatrix, &identityWorldViewProj, textureAndMaterialHandler->GetTerrainTextureArray());
+	if(frustum->Check2DAABB(&testBoundingbox))
+	{
+		marchingCubes->Render(context);
+		result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
+			&worldMatrix, &identityWorldViewProj, textureAndMaterialHandler->GetTerrainTextureArray());
+
+	}
 
 	d3D->SetNoCullRasterizer();
 	d3D->TurnOnAlphaBlending();
 	vegetationManager->Render(context, &identityWorldViewProj, textureAndMaterialHandler->GetVegetationTextureArray());
 	d3D->TurnOffAlphaBlending();
-#pragma endregion
-
-#pragma region Point light stage
-	context->OMSetRenderTargets(1, lightTarget, ds);
-	context->ClearRenderTargetView(lightTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
-	context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-	//Phase one, draw sphere with vertex-only shader.
-	d3D->TurnOnLightBlending();
-
 #pragma endregion
 
 #pragma region Point light stage
@@ -1203,7 +935,7 @@ bool Renderer::Render()
 		d3D->SetLightStencilMethod1Phase2();
 		d3D->SetFrontFaceCullingRasterizer();
 
-		sphereModel->Render(context);
+		//sphereModel->Render(context);
 
 		result = pointLightShader->Render(context, sphereModel->GetIndexCount(), &worldViewProj, &invertedViewProjection, 
 			pointLights[i], gbufferTextures, textureAndMaterialHandler->GetMaterialTextureArray(), camPos);
@@ -1227,7 +959,7 @@ bool Renderer::Render()
 	fullScreenQuad.Render(context, 0, 0);
 
 	result = dirLightShader->Render(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &invertedViewProjection, 
-		dirLightTextures, textureAndMaterialHandler->GetMaterialTextureArray(), camPos, dirLight, ambientLight, &lightViewProj);
+		dirLightTextures, textureAndMaterialHandler->GetMaterialTextureArray(), camPos, dirLight, dayNightCycle->GetAmbientLightColor(), &lightViewProj);
 	if(!result)
 	{
 		return false;
@@ -1240,7 +972,8 @@ bool Renderer::Render()
 
 	fullScreenQuad.Render(context, 0, 0);
 
-	composeShader->Render(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &invertedViewProjection, finalTextures, ssaoRandomTextureSRV);
+	composeShader->Render(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &invertedViewProjection, 
+		&dayNightCycle->GetAmbientLightColor(), finalTextures, ssaoRandomTextureSRV);
 #pragma endregion
 
 #pragma region Debug and text stage
@@ -1459,32 +1192,11 @@ void Renderer::Shutdown()
 		gaussianBlurPingPongRT  = 0;
 	}
 
-	if(modelList)
-	{
-		modelList->Shutdown();
-		delete modelList;
-		modelList = 0;
-	}
-
-	if(groundModel)
-	{
-		groundModel->Shutdown();
-		delete groundModel;
-		groundModel = 0;
-	}
-
 	if(sphereModel)
 	{
 		sphereModel->Shutdown();
 		delete sphereModel;
 		sphereModel = 0;
-	}
-
-	if(otherModel)
-	{
-		otherModel->Shutdown();
-		delete otherModel;
-		otherModel = 0;
 	}
 
 	if(skySphere)
@@ -1552,4 +1264,111 @@ void Renderer::Shutdown()
 	}
 
 	return;
+}
+
+void Renderer::GenerateVegetation( ID3D11Device* device, bool IfSetupThenTrue_IfUpdateThenFalse)
+{
+	float x,z,y;
+	int textureID, randValue;
+
+	LODVector500.clear();
+	LODVector500.reserve(500);
+	LODVector2500.clear();
+	LODVector2500.reserve(2500);
+	LODVector5000.clear();
+	LODVector5000.reserve(5000);
+	LODVector10000.clear();
+	LODVector10000.reserve(10000);
+
+	for(int i = 0; i < 10000; i++)
+	{
+		x = (2.0f + (utility->RandomFloat() * 56.0f));
+		z = (2.0f + (utility->RandomFloat() * 56.0f));
+
+		//Extract highest Y at this point
+		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate((int)x, (int)z);
+
+		randValue = rand()%100;
+
+		//If we are above "snow level", we only want yellow grass
+		if(y >= 45.0f)
+		{
+			//But the grass should be sparse, so there is
+			//95% chance that we won't actually add this to the instance list.
+			if(randValue > 95)
+			{
+				textureID = 0;
+
+				//Place texture ID in .w channel
+				XMFLOAT4 temp = XMFLOAT4(x, y, z, (float)textureID);
+
+				//We use i to control how many should be added to each LOD vector
+				if(i <= 500)
+				{
+					LODVector500.push_back(temp);
+				}
+
+				if(i <= 2500)
+				{
+					LODVector2500.push_back(temp);
+				}
+
+				if(i <= 5000)
+				{
+					LODVector5000.push_back(temp);
+				}
+
+				LODVector10000.push_back(temp);
+			}
+		}
+		else
+		{
+			if(randValue <= 5)
+			{
+				textureID = 2; //Some kind of leaf branch that I've turned into a plant quad.
+			}
+			else if(randValue <= 96) //By far biggest chance that we get normal grass
+			{
+				textureID = 1; //Normal grass.
+			}
+			else if(randValue <= 98) //If 97-98
+			{
+				textureID = 4; //Bush.
+			}
+			else //If 99-100.
+			{
+				textureID = 3; //Flower.
+			}
+
+			//Place texture ID in .w channel
+			XMFLOAT4 temp = XMFLOAT4(x, y, z, (float)textureID);
+
+			//We use i to control how many should be added to each LOD vector
+			if(i <= 500)
+			{
+				LODVector500.push_back(temp);
+			}
+
+			if(i <= 2500)
+			{
+				LODVector2500.push_back(temp);
+			}
+
+			if(i <= 5000)
+			{
+				LODVector5000.push_back(temp);
+			}
+
+			LODVector10000.push_back(temp);
+		}
+	}
+
+	if(IfSetupThenTrue_IfUpdateThenFalse)
+	{
+		vegetationManager->SetupQuads(d3D->GetDevice(), &LODVector500);
+	}
+	else
+	{
+		vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector10000);
+	}
 }

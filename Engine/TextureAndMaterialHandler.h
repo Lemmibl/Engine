@@ -6,7 +6,7 @@
 #include <d3dx11tex.h>
 #include <vector>
 #include "MCTerrainClass.h"
-#include "structs.h"
+#include "StructsAndEnums.h"
 #include "Utility.h"
 
 class TextureAndMaterialHandler

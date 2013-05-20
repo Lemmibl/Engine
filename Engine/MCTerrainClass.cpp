@@ -300,22 +300,21 @@ void MCTerrainClass::Noise3D()
 //}
 void MCTerrainClass::CreateMCVerts()
 {
-	this->marchingCubeVertices[idx].normalX = this->densityArray1D[idx - 1]/2 - this->densityArray1D[idx+1];
 	this->marchingCubeVertices[idx].normalY = this->densityArray1D[idx - this->sizeY] - this->densityArray1D[idx + this->sizeY];
 	this->marchingCubeVertices[idx].normalZ = this->densityArray1D[idx - (this->sizeY * this->sizeZ)] - this->densityArray1D[idx + (this->sizeY * this->sizeZ)];
 }
 
 float MCTerrainClass::GetHighestPositionOfCoordinate(int x, int z)
 {
+	float j = 0.0f;
+	int i = 0;
 
-
-	float j,i = 0;
 	bool tempBool = false;
 	for (i = sizeY; !tempBool; i--)
 	{
 		idx = x + i*this->sizeY + z * this->sizeY * this->sizeZ;
 
-		if(this->getMarchingCubeVertices()[idx].inside)
+		if(this->GetMarchingCubeVertices()[idx].inside)
 		{
 			tempBool = true;
 		} 
@@ -326,9 +325,9 @@ float MCTerrainClass::GetHighestPositionOfCoordinate(int x, int z)
 
 	//bool b1 = this->getMarchingCubeVertices()[idx].inside;
 	//bool b2 = this->getMarchingCubeVertices()[idx2].inside;
-	float j1 = this->getMarchingCubeVertices()[idx].density;
-	float j2 = this->getMarchingCubeVertices()[idx2].density;
-	j = (j1 + j2)*.50f;
+	float j1 = this->GetMarchingCubeVertices()[idx].density;
+	float j2 = this->GetMarchingCubeVertices()[idx2].density;
+	j = (j1 + j2)*0.5f;
 
 
 	//j = 0;
@@ -337,44 +336,49 @@ float MCTerrainClass::GetHighestPositionOfCoordinate(int x, int z)
 
 float MCTerrainClass::GetHighestPositionOfCoordinateBruteforce(float x, float z)
 {
-	float j,i = 0;
+	float j = 0.0f;
+	int i = 0;
 	bool tempBool = false;
+
+	int xAsInt = (int)x;
+	int zAsInt = (int)z;
+
 	for (i = sizeY; !tempBool; i--)
 	{
-		idx = x + i*this->sizeY + z * this->sizeY * this->sizeZ;
-		if(this->getMarchingCubeVertices()[idx].inside)
+		idx = xAsInt + i*this->sizeY + zAsInt * this->sizeY * this->sizeZ;
+		if(this->GetMarchingCubeVertices()[idx].inside)
 		{
 			tempBool = true;
 		} 
 	}
 
-	float decimalX = x - int(x);
-	float decimalY = y - int(x);
-	float totalDensity = 0;
-	float densityX = 0;
-	float densityZ = 0;
-	float densityXZ = 0;
+	float decimalX = (x - int(x));
+	//float decimalY = (y - int(y)); //????
+	float totalDensity = 0.0f;
+	float densityX = 0.0f;
+	float densityZ = 0.0f;
+	float densityXZ = 0.0f;
 
-	int idx = x + (i+1)*this->sizeY + z * this->sizeY * this->sizeZ;
-	int idx2 = x + (i+2)*this->sizeY + z * this->sizeY * this->sizeZ;
-	int idxX1 = (x +1) + (i+1)*this->sizeY + z * this->sizeY * this->sizeZ;
-	int idxZ1 = x + (i+1)*this->sizeY + (z + 1) * this->sizeY * this->sizeZ;
-	int idxXZ = (x +1) + (i+1)*this->sizeY + (z + 1) * this->sizeY * this->sizeZ;
+	int idx = xAsInt + (i+1)*this->sizeY + zAsInt * this->sizeY * this->sizeZ;
+	int idx2 = xAsInt + (i+2)*this->sizeY + zAsInt * this->sizeY * this->sizeZ;
+	int idxX1 = (xAsInt +1) + (i+1)*this->sizeY + zAsInt * this->sizeY * this->sizeZ;
+	int idxZ1 = xAsInt + (i+1)*this->sizeY + (zAsInt + 1) * this->sizeY * this->sizeZ;
+	int idxXZ = (xAsInt +1) + (i+1)*this->sizeY + (zAsInt + 1) * this->sizeY * this->sizeZ;
 
 	//bool b1 = this->getMarchingCubeVertices()[idx].inside;
 	//bool b2 = this->getMarchingCubeVertices()[idx2].inside;
-	float j1 = this->getMarchingCubeVertices()[idx].density;
-	float j2 = this->getMarchingCubeVertices()[idx2].density;
+	float j1 = this->GetMarchingCubeVertices()[idx].density;
+	float j2 = this->GetMarchingCubeVertices()[idx2].density;
 	
-	densityX = (this->getMarchingCubeVertices()[idx].density + this->getMarchingCubeVertices()[idxX1].density);
-	densityZ = (this->getMarchingCubeVertices()[idx].density + this->getMarchingCubeVertices()[idxZ1].density);
-	densityXZ = (this->getMarchingCubeVertices()[idx].density + this->getMarchingCubeVertices()[idxXZ].density);
+	densityX = (this->GetMarchingCubeVertices()[idx].density + this->GetMarchingCubeVertices()[idxX1].density);
+	densityZ = (this->GetMarchingCubeVertices()[idx].density + this->GetMarchingCubeVertices()[idxZ1].density);
+	densityXZ = (this->GetMarchingCubeVertices()[idx].density + this->GetMarchingCubeVertices()[idxXZ].density);
 
 
 
-	j = (j1 + j2)*.50f;
+	j = (j1 + j2)*0.5f;
 
 
 	//j = 0;
-	return (i + 1.0f + j);
+	return ((float)i + 1.0f + j);
 }

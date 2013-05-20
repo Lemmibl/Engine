@@ -79,9 +79,6 @@
     <ClCompile Include="VertexShaderOnly.cpp">
       <Filter>Rendering\Shader wrappers</Filter>
     </ClCompile>
-    <ClCompile Include="structs.cpp">
-      <Filter>General Code</Filter>
-    </ClCompile>
     <ClCompile Include="textureshaderclass.cpp">
       <Filter>Rendering\Shader wrappers</Filter>
     </ClCompile>
@@ -138,6 +135,15 @@
     </ClCompile>
     <ClCompile Include="DRCompose.cpp">
       <Filter>Rendering\Shader wrappers\Post processing</Filter>
+    </ClCompile>
+    <ClCompile Include="StructsAndEnums.cpp">
+      <Filter>General Code</Filter>
+    </ClCompile>
+    <ClCompile Include="LemmiQuadtree.h">
+      <Filter>General Code\Data classes</Filter>
+    </ClCompile>
+    <ClCompile Include="Lemmi3DAABB.h">
+      <Filter>General Code\Data classes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -222,9 +228,6 @@
     <ClInclude Include="VertexShaderOnly.h">
       <Filter>Rendering\Shader wrappers</Filter>
     </ClInclude>
-    <ClInclude Include="structs.h">
-      <Filter>General Code</Filter>
-    </ClInclude>
     <ClInclude Include="textureshaderclass.h">
       <Filter>Rendering\Shader wrappers</Filter>
     </ClInclude>
@@ -287,6 +290,15 @@
     </ClInclude>
     <ClInclude Include="DRCompose.h">
       <Filter>Rendering\Shader wrappers\Post processing</Filter>
+    </ClInclude>
+    <ClInclude Include="StructsAndEnums.h">
+      <Filter>General Code</Filter>
+    </ClInclude>
+    <ClInclude Include="LemmiLinkedList.h">
+      <Filter>General Code\Data classes</Filter>
+    </ClInclude>
+    <ClInclude Include="Lemmi2DAABB.h">
+      <Filter>General Code\Data classes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -418,6 +430,9 @@
     </Filter>
     <Filter Include="Procedural generation\LSystem">
       <UniqueIdentifier>{d7a6d75b-5b8d-4413-9b4b-adcd086ff366}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="General Code\Data classes">
+      <UniqueIdentifier>{bc5a4fa4-dd48-4d65-bc01-3a92785c764c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

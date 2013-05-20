@@ -302,6 +302,10 @@ bool VegetationShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, X
 	MatrixBufferType* dataPtr;
 	unsigned int bufferNumber;
 
+	/************************************************************************/
+	/* Vertex buffer #1                                                     */
+	/************************************************************************/
+
 	// Lock the constant buffer so it can be written to.
 	result = deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if(FAILED(result))

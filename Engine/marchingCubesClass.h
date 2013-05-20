@@ -5,13 +5,13 @@
 #include "MCTerrainClass.h"
 #include "types.h"
 #include <windows.h>
-
+#include "Utility.h"
 
 
 class MarchingCubesClass
 {
+private:
 	ID3D11Buffer *vertexBuffer, *indexBuffer;
-	private:
 	int vertexCount, indexCount;
 	int x,y,z, idx;
 
@@ -48,7 +48,6 @@ class MarchingCubesClass
 
 	MCTerrainClass *Terrain;
 
-
 	/* Tables for edge cases and triangle lookup */
 	const static int edgeTable[256];
 	const static int triTable[256][16];
@@ -61,7 +60,8 @@ class MarchingCubesClass
 	/* Stores the points from a simple cube */
 	MarchingCubeVertex verts[12];
 
-
+	//To be able to reach texture/material ID packing functions
+	Utility utility;
 
 public:
 	MarchingCubesClass(	float startX, float startY, float startZ, float endX, float endY, float endZ,
@@ -105,9 +105,6 @@ public:
 	{
 		return Terrain;
 	}
-
-
-
 
 //private:
 	

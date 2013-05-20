@@ -31,6 +31,7 @@ private:
 	struct PixelMatrixBuffer
 	{
 		XMMATRIX InvViewProjection;
+		XMFLOAT4 FogColor;
 	};
 
 
@@ -42,7 +43,7 @@ public:
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
 	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldViewProjection, 	XMMATRIX* invViewProjection,
-		ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView* randomTexture);
+		XMFLOAT4* fogColor, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView* randomTexture);
 
 private:
 	bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
@@ -50,7 +51,7 @@ private:
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
 
 	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, XMMATRIX* invViewProjection, 
-		ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView* randomTexture);
+		XMFLOAT4* fogColor, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView* randomTexture);
 	void RenderShader(ID3D11DeviceContext*, int);
 
 private:

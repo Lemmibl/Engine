@@ -4,6 +4,7 @@ struct VertexShaderOutput
 	float3 WorldNormal : NORMAL;
 	float4 WorldPosition : TEXCOORD0;
 	float Depth : TEXCOORD1;
+	uint4 IDValues : TEXCOORD2;
 };
 
 struct PixelShaderOutput
@@ -16,13 +17,24 @@ struct PixelShaderOutput
 Texture2DArray shaderTextures;
 SamplerState textureSampler;
 
+//http://aras-p.info/texts/CompactNormalStorage.html#method04spheremap
 //Normal Encoding Function
-float3 Encode(float3 n)
+half3 Encode(half3 n)
 {
-	n = 0.5f * (n + 1.0f);
+	half p = sqrt(n.z*8+8);
+	return half3(n.xy/p + 0.5f, 0);
 
 	return n;
 }
+
+//void ExtractMaterialAndTextureID(int encodedValue, out int texture1, out int texture2, out int material1, out int material2)
+//{
+//	//http://stackoverflow.com/questions/7787423/c-get-nth-byte-of-integer
+//	texture1  =		(encodedValue >> 24	) & 0xff;
+//	texture2 =		(encodedValue >> 16	) & 0xff;
+//	material1 =		(encodedValue >> 8	) & 0xff;
+//	material2 =		(encodedValue >> 0	) & 0xff;
+//}
 
 //When it gets read in other shaders it gets multiplied back to 255.
 float EncodeMaterialID(float id)
@@ -37,7 +49,7 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 	float3 UpNormal = float3(0.0f, 1.0f, 0.0f);
 
 	//Create weights for color interpolation based on world-space normal of surface
-	float tighten = 0.2f; 
+	float tighten = 0.3f; 
 	float3 NormalizedWorldNormal = normalize(input.WorldNormal.xyz);
 
 	float3 blend_weights = abs(NormalizedWorldNormal);     
@@ -52,123 +64,125 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 	float3 XZCoord;
 	float3 XYCoord;
 
-	float4 XZColor;
 	float4 YZColor;
+	float4 XZColor;
 	float4 XYColor;
 
-	float worldPosY = input.WorldPosition.y;
+	YZCoord = float3(input.WorldPosition.yz * scale, 2.0f);  
+	XYCoord = float3(input.WorldPosition.xy * scale, 2.0f);
 
-	//if(worldPosY <= 25.0f)
+	YZColor = shaderTextures.Sample(textureSampler, YZCoord);
+	XYColor = shaderTextures.Sample(textureSampler, XYCoord);
+
+	//enum MaterialID
 	//{
-	//	YZCoord = float3(input.WorldPosition.yz * scale, 2.0f);  
-	//	XZCoord = float3(input.WorldPosition.xz * scale, 2.0f);  
-	//	XYCoord = float3(input.WorldPosition.xy * scale, 2.0f);
+	//MATERIAL_GRASS,
+	//MATERIAL_ROCK,
+	//MATERIAL_SNOW,
+	//MATERIAL_DIRT,
+	//MATERIAL_GRASSQUADS,
+	//MATERIAL_UNDERGROUND
+	//};
+	
+	//enum TextureID
+	//{
+	//TEXTURE_DIRT,
+	//TEXTURE_GRASS,
+	//TEXTURE_ROCK,
+	//TEXTURE_SAND,
+	//TEXTURE_SNOW,
+	//TEXTURE_TILEDSTONE
+	//};
 
-	//	output.Normal.w = EncodeMaterialID(0.0f); //Set and save material to underground
-	//}
-	if(worldPosY <= 45.0f)
+	float lerpVal = 0.0f;
+	float worldY = input.WorldPosition.y;
+
+	int texture1, texture2, material1, material2;
+	
+	if(worldY <= 29.0f)
 	{
-		YZCoord = float3(input.WorldPosition.yz * scale, 2.0f);  
-		XZCoord = float3(input.WorldPosition.xz * scale, 1.0f);  
-		XYCoord = float3(input.WorldPosition.xy * scale, 2.0f);
+		texture1 = 0;
+		texture2 = 0;
 
-		output.Normal.w = EncodeMaterialID(0.0f); //Set and save material to grass
+		material1 = 3;
+		material2 = 3;
+	}
+	else if(worldY <= 31.0f)
+	{
+		lerpVal = (worldY-29.0f)*0.5f;
+
+		texture1 = 0;
+		texture2 = 1;
+
+		material1 = 3;
+		material2 = 0;
+	}
+	else if(worldY <= 43.0f)
+	{
+		texture1 = 1;
+		texture2 = 1;
+
+		material1 = 0;
+		material2 = 0;
+	}
+	else if( worldY <= 45.0f)
+	{
+		lerpVal = (worldY-43.0f)*0.5f;
+
+		texture1 = 1;
+		texture2 = 2;
+
+		material1 = 0;
+		material2 = 1;
+	}
+	else if(worldY <= 47.0f)
+	{
+		lerpVal = (worldY-45.0f)*0.5f;
+
+		texture1 = 2;
+		texture2 = 4;
+
+		material1 = 1;
+		material2 = 2;
 	}
 	else
 	{
-		YZCoord = float3(input.WorldPosition.yz * scale, 2.0f);  
-		XZCoord = float3(input.WorldPosition.xz * scale, 4.0f);  
-		XYCoord = float3(input.WorldPosition.xy * scale, 2.0f);
-		
-		output.Normal.w = EncodeMaterialID(0.0f); //Set and save material to snow
+		texture1 = 4; 
+		texture2 = 4;
+
+		material1 = 2;
+		material2 = 2;	
+	}
+	
+	//If surface is facing downwards, change textures but not materials
+	if(dotResult <= 0.0f)
+	{
+		texture1 = 2;
+		texture2 = 2;
 	}
 
-	if(dotResult <= 0.0f) //If surface is facing downwards
+	//If there are two different textures to lerp.
+	if(texture1 != texture2)
 	{
-		XZCoord.z = 2.0f; //Then change surface texture to rock.
-		
-		//Set and save material to .. grass... Temporary material change until we get it tweaked properly
-		output.Normal.w = EncodeMaterialID(0.0f); 
-	}
+		float3 firstCoords = float3(input.WorldPosition.xz * scale, texture1);
+		float3 secondCoords = float3(input.WorldPosition.xz * scale, texture2);
 
-	//We want to have a transitional phase between snow and grass.
-	if(worldPosY >= 45.0f && worldPosY <= 46.0f)
-	{
-		float lerpModifier = (input.WorldPosition.y - 45.0f); //Meaning it goes from 0.0f to 1.0f
-		float3 grassCoords = float3(input.WorldPosition.xz * scale, 1.0f);
-		float3 snowCoords = float3(input.WorldPosition.xz * scale, 4.0f);
-
-		YZColor = shaderTextures.Sample(textureSampler, YZCoord);
-		XZColor = lerp(shaderTextures.Sample(textureSampler, grassCoords), shaderTextures.Sample(textureSampler, snowCoords), lerpModifier);
-		XYColor = shaderTextures.Sample(textureSampler, XYCoord);
-
-		output.Normal.w = EncodeMaterialID(0.0f);
+		XZColor = lerp(shaderTextures.Sample(textureSampler, firstCoords), shaderTextures.Sample(textureSampler, secondCoords), lerpVal);
 	}
 	else
 	{
-		YZColor = shaderTextures.Sample(textureSampler, YZCoord);
+		XZCoord = float3(input.WorldPosition.xz * scale, texture1);
 		XZColor = shaderTextures.Sample(textureSampler, XZCoord);
-		XYColor = shaderTextures.Sample(textureSampler, XYCoord);
 	}
 	
 	output.Color = ((XZColor * blend_weights.y) + (YZColor * blend_weights.x) + (XYColor * blend_weights.z));
-	output.Color.w = 1.0f;
+	output.Color.w = (lerpVal);//Convert our [0,1] range lerp value to [0,255] to preserve data
 
-	output.Normal.xyz = Encode(NormalizedWorldNormal); //revert the normal output to [0,1] space then assign it to the output normal map's RGB channel
+	output.Normal.xy = Encode(NormalizedWorldNormal);
+	output.Normal.z = EncodeMaterialID(material1);
+	output.Normal.w = EncodeMaterialID(material2);
+
 	output.Depth = (input.Depth);
 
 	return output;
 }
-
-/*
-// Determine the blend weights for the 3 planar projections.  
-// N_orig is the vertex-interpolated normal vector.  
-float3 blend_weights = abs( N_orig.xyz );   // Tighten up the blending zone:  
-blend_weights = (blend_weights - 0.2) * 7;  
-blend_weights = max(blend_weights, 0);      // Force weights to sum to 1.0 (very important!)  
-blend_weights /= (blend_weights.x + blend_weights.y + blend_weights.z ).xxx;   
-
-// Now determine a color value and bump vector for each of the 3  
-// projections, blend them, and store blended results in these two  
-// vectors:  
-float4 blended_color; // .w hold spec value  
-
-float3 blended_bump_vec;  
-{ 
-// Compute the UV coords for each of the 3 planar projections.  
-// tex_scale (default ~ 1.0) determines how big the textures appear.  
-float2 coord1 = v2f.wsCoord.yz * tex_scale;  
-float2 coord2 = v2f.wsCoord.zx * tex_scale;  
-float2 coord3 = v2f.wsCoord.xy * tex_scale; 
- 
-// This is where you would apply conditional displacement mapping.  
-//if (blend_weights.x > 0) coord1 = . . .  
-//if (blend_weights.y > 0) coord2 = . . .  
-//if (blend_weights.z > 0) coord3 = . . .  
-
-// Sample color maps for each projection, at those UV coords.  
-float4 col1 = colorTex1.Sample(coord1);  
-float4 col2 = colorTex2.Sample(coord2);  
-float4 col3 = colorTex3.Sample(coord3);  
-
-// Sample bump maps too, and generate bump vectors.  
-// (Note: this uses an oversimplified tangent basis.)  
-float2 bumpFetch1 = bumpTex1.Sample(coord1).xy - 0.5;  
-float2 bumpFetch2 = bumpTex2.Sample(coord2).xy - 0.5;  
-float2 bumpFetch3 = bumpTex3.Sample(coord3).xy - 0.5;  
-float3 bump1 = float3(0, bumpFetch1.x, bumpFetch1.y);  
-float3 bump2 = float3(bumpFetch2.y, 0, bumpFetch2.x);  
-float3 bump3 = float3(bumpFetch3.x, bumpFetch3.y, 0);
-  
- // Finally, blend the results of the 3 planar projections.  
-blended_color = col1.xyzw * blend_weights.xxxx +  
-				col2.xyzw * blend_weights.yyyy +  
-				col3.xyzw * blend_weights.zzzz;
-
-blended_bump_vec = bump1.xyz * blend_weights.xxx +  
-				   bump2.xyz * blend_weights.yyy +  
-				   bump3.xyz * blend_weights.zzz;  
-}  
-// Apply bump vector to vertex-interpolated normal vector.  
-float3 N_for_lighting = normalize(N_orig + blended_bump);  
-*/

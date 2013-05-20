@@ -28,7 +28,7 @@ bool Engine::Initialize()
 	bool result;
 
 	// Initialize values.
-	toggleDebug = true;
+	toggleDebug = false;
 	screenWidth = 0;
 	screenHeight = 0;
 	shadowMapWidth = 1024;
@@ -108,7 +108,8 @@ bool Engine::Initialize()
 	}
 
 	// Initialize the renderer.
-	result = renderer->Initialize(hwnd, camera, input, d3D, screenWidth, screenHeight, shadowMapWidth, shadowMapHeight, SCREEN_FAR, SCREEN_NEAR);
+	result = renderer->Initialize(hwnd, camera, input, d3D, screenWidth, screenHeight, 
+		shadowMapWidth, shadowMapHeight, SCREEN_FAR, SCREEN_NEAR, toggleDebug);
 	if(!result)
 	{
 		return false;

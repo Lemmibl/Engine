@@ -51,12 +51,12 @@ void DRCompose::Shutdown()
 }
 
 bool DRCompose::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldViewProjection, XMMATRIX* invViewProjection,
-	ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView* randomTexture)
+	XMFLOAT4* fogColor, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView* randomTexture)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldViewProjection, invViewProjection, textureArray, randomTexture);
+	result = SetShaderParameters(deviceContext, worldViewProjection, invViewProjection, fogColor, textureArray, randomTexture);
 	if(!result)
 	{
 		return false;
@@ -336,7 +336,7 @@ void DRCompose::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WC
 }
 
 bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, XMMATRIX* invViewProjection,
-	ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView* randomTexture)
+	XMFLOAT4* fogColor, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView* randomTexture)
 {		
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -380,6 +380,7 @@ bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRI
 	dataPtr2 = (PixelMatrixBuffer*)mappedResource.pData;
 
 	dataPtr2->InvViewProjection = *invViewProjection;
+	dataPtr2->FogColor = *fogColor;
 
 	deviceContext->Unmap(pixelMatrixBuffer, 0);
 

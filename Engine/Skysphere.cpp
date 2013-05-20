@@ -110,12 +110,12 @@ void Skysphere::Shutdown()
 	return;
 }
 
-void Skysphere::Render(ID3D11DeviceContext* context, XMMATRIX* worldViewProjection, float time)
+void Skysphere::Render(ID3D11DeviceContext* context, XMMATRIX* worldViewProjection, XMFLOAT4* fogColor, float time)
 {
 	// Render the sky dome.
 	RenderBuffers(context);
 
-	skysphereShader->Render(context, GetIndexCount(), worldViewProjection, apexColor, centerColor, XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f), time);
+	skysphereShader->Render(context, GetIndexCount(), worldViewProjection, apexColor, centerColor, *fogColor, time);
 
 	return;
 }

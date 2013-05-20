@@ -10,14 +10,13 @@ float2 ComputeMoments(float depth)
 	 
 	// First moment is normal depth.  
 	moments.x = depth;
-	moments.y = moments.x*moments.x;//depth*depth;
 
-	//// Compute partial derivatives of depth.  
-	//float dx = ddx(depth);  
-	//float dy = ddy(depth);
+	// Compute partial derivatives of depth.  
+	float dx = ddx(depth);  
+	float dy = ddy(depth);
 
-	//// Compute second moment over the pixel extents.  
-	//moments.y += 0.25*(dx*dx + dy*dy);
+	// Compute second moment over the pixel extents.  
+	moments.y = depth*depth + 0.25*(dx*dx + dy*dy);
 
 	return moments;
 };
