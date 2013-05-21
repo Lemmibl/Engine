@@ -213,8 +213,6 @@ protected:
 	}
 };
 
-
-
 /*
 public enum OctreeContainmentModes
 {
@@ -227,7 +225,9 @@ Contains,
 /// </summary>
 Intersects
 }
+*/
 
+/*
 /// <summary>
 /// Octree class
 /// </summary>
@@ -256,6 +256,11 @@ root.Propagate();
 root.CleanUpSubNodes();
 }
 
+~Octree()
+{
+	root.CleanUpSubNodes();
+	delete root;
+}
 
 /// <summary>
 /// Get a list of objects from nodes intersecting a box

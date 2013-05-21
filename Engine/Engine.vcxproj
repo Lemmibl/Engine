@@ -78,6 +78,7 @@
     <ClInclude Include="frustumclass.h" />
     <ClInclude Include="DRGBuffer.h" />
     <ClInclude Include="GaussianBlur.h" />
+    <ClInclude Include="interfacepointers.h" />
     <ClInclude Include="Lemmi2DAABB.h" />
     <ClInclude Include="LemmiLinkedList.h" />
     <ClInclude Include="TextureAndMaterialHandler.h" />
@@ -88,7 +89,6 @@
     <ClInclude Include="MCubesGBufferShader.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="inputclass.h" />
-    <ClInclude Include="interfacepointers.h" />
     <ClInclude Include="marchingCubesClass.h" />
     <ClInclude Include="MCTerrainClass.h" />
     <ClInclude Include="metaballsClass.h" />
@@ -113,6 +113,7 @@
     <ClInclude Include="VertexShaderOnly.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="TODO.txt" />
     <None Include="DepthOnlyQuadShader.psh" />
     <None Include="DepthOnlyQuadShader.vsh" />
     <None Include="DepthOnlyShader.psh" />

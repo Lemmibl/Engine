@@ -621,7 +621,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 #pragma region LOD stuff
 	//Distance between camera and middle of mcube chunk. We'll have to do this for each chunk, and keep an individual lodState for each chunk.
-	if(timer >= 0.5f)
+	if(timer >= 0.2f)
 	{
 		int distance = (int)utility->VectorDistance(camera->GetPosition(), XMFLOAT3(30.0f, 40.0f, 30.0f));
 
@@ -645,28 +645,28 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		timer = 0.0f;
 	}
 
-		//If the lod state has changed since last update, switch and rebuild vegetation instance buffers
-		if(lodState != previousLodState)
+	//If the lod state has changed since last update, switch and rebuild vegetation instance buffers
+	if(lodState != previousLodState)
+	{
+		switch (lodState)
 		{
-			switch (lodState)
-			{
-			case 0:
-				vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector500);
-				break;
+		case 0:
+			vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector500);
+			break;
 
-			case 1:
-				vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector2500);
-				break;
+		case 1:
+			vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector2500);
+			break;
 
-			case 2:
-				vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector5000);
-				break;
+		case 2:
+			vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector5000);
+			break;
 
-			case 3:
-				vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector10000);
-				break;
-			}
+		case 3:
+			vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector10000);
+			break;
 		}
+	}
 
 
 #pragma endregion
@@ -905,12 +905,13 @@ bool Renderer::Render()
 		result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
 			&worldMatrix, &identityWorldViewProj, textureAndMaterialHandler->GetTerrainTextureArray());
 
+		d3D->SetNoCullRasterizer();
+		d3D->TurnOnAlphaBlending();
+		vegetationManager->Render(context, &identityWorldViewProj, textureAndMaterialHandler->GetVegetationTextureArray());
+		d3D->TurnOffAlphaBlending();
+
 	}
 
-	d3D->SetNoCullRasterizer();
-	d3D->TurnOnAlphaBlending();
-	vegetationManager->Render(context, &identityWorldViewProj, textureAndMaterialHandler->GetVegetationTextureArray());
-	d3D->TurnOffAlphaBlending();
 #pragma endregion
 
 #pragma region Point light stage

@@ -180,9 +180,6 @@
     <ClInclude Include="inputclass.h">
       <Filter>General Code\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="interfacepointers.h">
-      <Filter>General Code\Utility</Filter>
-    </ClInclude>
     <ClInclude Include="MCubesGBufferShader.h">
       <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClInclude>
@@ -300,6 +297,9 @@
     <ClInclude Include="Lemmi2DAABB.h">
       <Filter>General Code\Data classes</Filter>
     </ClInclude>
+    <ClInclude Include="interfacepointers.h">
+      <Filter>General Code\Utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader-error.txt" />
@@ -381,6 +381,7 @@
     <None Include="DRCompose.psh">
       <Filter>Rendering\Shaders\Post processing</Filter>
     </None>
+    <None Include="TODO.txt" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Rendering">
