@@ -20,6 +20,7 @@ private:
 	struct MatrixBufferType
 	{
 		XMMATRIX WorldViewProjection;
+		XMMATRIX World;
 	};
 
 public:
@@ -29,14 +30,14 @@ public:
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
-	bool Render(ID3D11DeviceContext* deviceContext, int vertexCount, int instanceCount, XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textures);
+	bool Render(ID3D11DeviceContext* deviceContext, int vertexCount, int instanceCount, XMMATRIX* worldViewProjection, XMMATRIX* World, ID3D11ShaderResourceView** textures);
 
 private:
 	bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
 	void ShutdownShader();
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
 
-	bool SetShaderParameters(ID3D11DeviceContext*, XMMATRIX* worldViewProjection, ID3D11ShaderResourceView**);
+	bool SetShaderParameters(ID3D11DeviceContext*, XMMATRIX* worldViewProjection, XMMATRIX* World, ID3D11ShaderResourceView**);
 	void RenderShader(ID3D11DeviceContext*, int vertexCount, int instanceCount);
 
 private:

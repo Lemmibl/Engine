@@ -21,8 +21,8 @@ SamplerState textureSampler;
 //Normal Encoding Function
 half3 Encode(half3 n)
 {
-	half p = sqrt(n.z*8+8);
-	return half3(n.xy/p + 0.5f, 0);
+	half p = sqrt(n.z*8.0f+8.0f);
+	return half3(n.xy/p + 0.5f, 0.0f);
 
 	return n;
 }
@@ -49,11 +49,11 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 	float3 UpNormal = float3(0.0f, 1.0f, 0.0f);
 
 	//Create weights for color interpolation based on world-space normal of surface
-	float tighten = 0.3f; 
+	float tighten = 0.35f; 
 	float3 NormalizedWorldNormal = normalize(input.WorldNormal.xyz);
 
 	float3 blend_weights = abs(NormalizedWorldNormal);     
-	blend_weights = (blend_weights - tighten) * 7;  // Tighten up the blending zone
+	blend_weights = (blend_weights - tighten) * 7.0f;  // Tighten up the blending zone
 	blend_weights = max(blend_weights, 0);
 	blend_weights /= (blend_weights.x + blend_weights.y + blend_weights.z).xxx; // Force weights to sum to 1.0 (very important!)  
 

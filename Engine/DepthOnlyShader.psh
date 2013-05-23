@@ -21,6 +21,18 @@ float2 ComputeMoments(float depth)
 	return moments;
 };
 
+/*
+I’ve stored my depth in linear view space using viewpos.z / farClip and retrieving viewspace position with the viewRay * Depth,
+ but my point lights still move around with the camera and appear/vanish when I get closer/farther away. 
+ Normals are in view space. Works flawless when I use z/w depth but I can’t get it to work with linear view space depth. Any suggestions ?
+
+ Answer: Multiply your result with the inverse view matrix.
+
+ http://mynameismjp.wordpress.com/2010/09/05/position-from-depth-3/
+ http://msdn.microsoft.com/en-us/library/windows/desktop/cc627119(v=vs.85).aspx
+*/
+
+
 float2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 {
 	return ComputeMoments(input.Depth);
