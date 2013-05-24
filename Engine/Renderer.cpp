@@ -907,7 +907,7 @@ bool Renderer::Render()
 
 		d3D->SetNoCullRasterizer();
 		d3D->TurnOnAlphaBlending();
-		vegetationManager->Render(context, &identityWorldViewProj, textureAndMaterialHandler->GetVegetationTextureArray());
+	vegetationManager->Render(context, &identityWorldViewProj, &worldMatrix, textureAndMaterialHandler->GetVegetationTextureArray());
 		d3D->TurnOffAlphaBlending();
 
 	}

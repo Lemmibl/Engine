@@ -48,12 +48,12 @@ void VegetationShader::Shutdown()
 }
 
 
-bool VegetationShader::Render(ID3D11DeviceContext* deviceContext, int vertexCount, int instanceCount, XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textures)
+bool VegetationShader::Render(ID3D11DeviceContext* deviceContext, int vertexCount, int instanceCount, XMMATRIX* worldViewProjection, XMMATRIX* world, ID3D11ShaderResourceView** textures)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldViewProjection, textures);
+	result = SetShaderParameters(deviceContext, worldViewProjection, world, textures);
 	if(!result)
 	{
 		return false;
@@ -295,7 +295,7 @@ void VegetationShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND h
 	return;
 }
 
-bool VegetationShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textures)
+bool VegetationShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, XMMATRIX* world, ID3D11ShaderResourceView** textures)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -318,6 +318,7 @@ bool VegetationShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, X
 
 	// Copy the matrices into the constant buffer.
 	dataPtr->WorldViewProjection = *worldViewProjection;
+	dataPtr->World = *world;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(matrixBuffer, 0);
