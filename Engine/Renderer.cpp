@@ -344,7 +344,7 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 	XMStoreFloat3(&dirLight->Direction, direction);
 
 	//XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(((float)D3DX_PI/2.0f), 1.0f, 10.0f, 300.0f)); //Generate perspective light projection matrix and store it as float4x4
-	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(100.0f, 100.0f, 1.0f, 200.0f)); //Generate orthogonal light projection matrix and store it as float4x4
+	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(140.0f, 140.0f, 5.0f, 200.0f)); //Generate orthogonal light projection matrix and store it as float4x4
 
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix and store it as float4x4.
 #pragma endregion
@@ -357,7 +357,7 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 	bool result;
 
 	metaBalls = new MetaballsClass();
-	marchingCubes = new MarchingCubesClass(0.0f, 0.0f, 0.0f, 60.0f, 60.0f, 60.0f, 1.0f, 1.0f, 1.0f);
+	marchingCubes = new MarchingCubesClass(0.0f, 0.0f, 0.0f, 180.0f, 180.0f, 180.0f, 1.0f, 1.0f, 1.0f);
 	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
 
 	marchingCubes->GetTerrain()->Noise3D();
@@ -625,22 +625,23 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 	{
 		int distance = (int)utility->VectorDistance(camera->GetPosition(), XMFLOAT3(30.0f, 40.0f, 30.0f));
 
-		if(distance <= 100)
-		{
-			lodState = 3;
-		}
-		else if(distance <= 150)
-		{
-			lodState = 2;
-		}
-		else if(distance <= 200)
-		{
-			lodState = 1;
-		}
-		else
-		{
-			lodState = 0;
-		}
+		//if(distance <= 100)
+		//{
+		//	lodState = 3;
+		//}
+		//else if(distance <= 150)
+		//{
+		//	lodState = 2;
+		//}
+		//else if(distance <= 200)
+		//{
+		//	lodState = 1;
+		//}
+		//else
+		//{
+		//	lodState = 0;
+		//}
+		lodState = 3;
 
 		timer = 0.0f;
 	}
@@ -705,9 +706,9 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
 
-	XMVECTOR lookAt = XMVectorSet(30.0f, 20.0f, 30.0f, 1.0f);//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition())+(camera->ForwardVector()*30.0f);//XMLoadFloat3(&camera->GetPosition());//
+	XMVECTOR lookAt = XMLoadFloat3(&camera->GetPosition())+(camera->ForwardVector()*3.0f);//XMVectorSet(30.0f, 20.0f, 30.0f, 1.0f);//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition())+(camera->ForwardVector()*30.0f);//XMLoadFloat3(&camera->GetPosition());//
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
-	XMVECTOR currentLightPos = XMLoadFloat3(&dirLight->Position);//XMLoadFloat3(&camera->GetPosition())-(camera->ForwardVector()*30.0f);
+	XMVECTOR currentLightPos = (XMLoadFloat3(&camera->GetPosition())+XMLoadFloat3(&dirLight->Position));//XMLoadFloat3(&camera->GetPosition())-(camera->ForwardVector()*30.0f);
 
 	XMStoreFloat3(&dirLight->Direction, XMVector3Normalize((lookAt - currentLightPos)));//XMLoadFloat3(&dirLight->Position)
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(currentLightPos, lookAt, up)); //Generate light view matrix
@@ -899,8 +900,8 @@ bool Renderer::Render()
 	worldMatrix = XMMatrixIdentity(); 
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
-	if(frustum->Check2DAABB(&testBoundingbox))
-	{
+	/*if(frustum->Check2DAABB(&testBoundingbox))
+	{*/
 		marchingCubes->Render(context);
 		result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
 			&worldMatrix, &identityWorldViewProj, textureAndMaterialHandler->GetTerrainTextureArray());
@@ -1281,10 +1282,10 @@ void Renderer::GenerateVegetation( ID3D11Device* device, bool IfSetupThenTrue_If
 	LODVector10000.clear();
 	LODVector10000.reserve(10000);
 
-	for(int i = 0; i < 10000; i++)
+	for(int i = 0; i < 90000; i++)
 	{
-		x = (2.0f + (utility->RandomFloat() * 56.0f));
-		z = (2.0f + (utility->RandomFloat() * 56.0f));
+		x = (2.0f + (utility->RandomFloat() * 176.0f));
+		z = (2.0f + (utility->RandomFloat() * 176.0f));
 
 		//Extract highest Y at this point
 		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate((int)x, (int)z);
