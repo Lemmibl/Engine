@@ -128,6 +128,8 @@ private:
 	bool returning;
 	bool toggleDebugInfo;
 	bool toggleTextureShader;
+
+	float fogMinimum;
 	
 	MetaballsClass* metaBalls;
 	MCubesGBufferShader* mcubeShader;
@@ -147,7 +149,7 @@ private:
 	vector<XMFLOAT4> LODVector2500;
 	vector<XMFLOAT4> LODVector5000;
 	vector<XMFLOAT4> LODVector10000;
-	int lodState, previousLodState;
+	int lodState, previousLodState, toggleSSAO, toggleColorMode;
 	ID3D11ShaderResourceView* lSystemSRV;
 	ID3D11ShaderResourceView* ssaoRandomTextureSRV;
 

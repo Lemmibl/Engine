@@ -112,6 +112,10 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	this->d3D = d3D;
 	this->camera = camera;
 
+	toggleSSAO = 0;
+	toggleColorMode = 0;
+	fogMinimum = 0.0f;
+
 	utility = new Utility();
 
 	XMStoreFloat4x4(&baseViewMatrix, camera->GetView());
@@ -619,7 +623,75 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		seconds = timeOfDay += frameTime;
 	}
 
+	if(inputManager->WasKeyPressed(DIK_2))
+	{
+		toggleColorMode++;
+
+		if(toggleColorMode > 1)
+		{
+			toggleColorMode = 0;
+		}
+	}
+
+	if(inputManager->WasKeyPressed(DIK_3))
+	{                  
+		fogMinimum += 0.1f;
+
+		//fogMinimum = max(150.0f, fogMinimum);
+	}
+
+	if(inputManager->WasKeyPressed(DIK_4))
+	{
+		fogMinimum -= 0.1f;
+
+		//fogMinimum = min(0.0f, fogMinimum);
+	}
+
+	if(inputManager->WasKeyPressed(DIK_5))
+	{
+		toggleSSAO++;
+
+		if(toggleSSAO > 3)
+		{
+			toggleSSAO = 0;
+		}
+	}
+
+	
 	if(inputManager->WasKeyPressed(DIK_NUMPAD1))
+	{
+		toggleColorMode++;
+
+		if(toggleColorMode > 1)
+		{
+			toggleColorMode = 0;
+		}
+	}
+
+	if(inputManager->WasKeyPressed(DIK_3))
+	{                  
+		fogMinimum += 0.1f;
+
+		//fogMinimum = max(150.0f, fogMinimum);
+	}
+
+	if(inputManager->WasKeyPressed(DIK_4))
+	{
+		fogMinimum -= 0.1f;
+
+		//fogMinimum = min(0.0f, fogMinimum);
+	}
+
+	if(inputManager->WasKeyPressed(DIK_5))
+	{
+		toggleSSAO++;
+
+		if(toggleSSAO > 3)
+		{
+			toggleSSAO = 0;
+		}
+	}
+
 	{
 		marchingCubes->GetTerrain()->setTerrainType(1);
 	}
@@ -950,11 +1022,11 @@ bool Renderer::Render()
 	{*/
 	marchingCubes->Render(context);
 	result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
-		&worldMatrix, &identityWorldViewProj, textureAndMaterialHandler->GetTerrainTextureArray());
+			&worldMatrix, &identityWorldViewProj, textureAndMaterialHandler->GetTerrainTextureArray(), toggleColorMode);
 
 	d3D->SetNoCullRasterizer();
 	d3D->TurnOnAlphaBlending();
-	vegetationManager->Render(context, &identityWorldViewProj, &worldMatrix, textureAndMaterialHandler->GetVegetationTextureArray());
+		vegetationManager->Render(context, &identityWorldViewProj, &worldMatrix, textureAndMaterialHandler->GetVegetationTextureArray());
 	d3D->TurnOffAlphaBlending();
 
 	//}
@@ -1021,7 +1093,7 @@ bool Renderer::Render()
 	fullScreenQuad.Render(context, 0, 0);
 
 	composeShader->Render(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &invertedViewProjection, 
-		&dayNightCycle->GetAmbientLightColor(), finalTextures, ssaoRandomTextureSRV);
+		&dayNightCycle->GetAmbientLightColor(), fogMinimum, finalTextures, ssaoRandomTextureSRV, toggleSSAO);
 #pragma endregion
 
 #pragma region Debug and text stage

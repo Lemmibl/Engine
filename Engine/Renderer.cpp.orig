@@ -624,7 +624,6 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 	if(timer >= 0.2f)
 	{
 		int distance = (int)utility->VectorDistance(camera->GetPosition(), XMFLOAT3(30.0f, 40.0f, 30.0f));
-
 		//if(distance <= 100)
 		//{
 		//	lodState = 3;
@@ -642,13 +641,40 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		//	lodState = 0;
 		//}
 		lodState = 3;
-
 		timer = 0.0f;
 	}
-
 	//If the lod state has changed since last update, switch and rebuild vegetation instance buffers
 	if(lodState != previousLodState)
 	{
+		switch (lodState)
+		{
+		case 0:
+			vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector500);
+			break;
+		case 1:
+			vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector2500);
+			break;
+		case 2:
+			vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector5000);
+			break;
+		case 3:
+			vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector10000);
+			break;
+		}
+	}
+#pragma endregion
+#pragma region Generate new marching cubes world
+	if(inputManager->WasKeyPressed(DIK_N))
+	{
+		previousLodState = 0; //We set previous lod state to something != lodState so that it'll trigger an instancebuffer rebuild
+		lodState = 3;
+
+		marchingCubes->Reset();
+		marchingCubes->GetTerrain()->Noise3D();
+		marchingCubes->CalculateMesh(d3D->GetDevice());
+
+		GenerateVegetation(d3D->GetDevice(), false);
+
 		switch (lodState)
 		{
 		case 0:
@@ -707,7 +733,6 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
 
 	XMVECTOR lookAt = XMLoadFloat3(&camera->GetPosition())+(camera->ForwardVector()*3.0f);//XMVectorSet(30.0f, 20.0f, 30.0f, 1.0f);//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition())+(camera->ForwardVector()*30.0f);//XMLoadFloat3(&camera->GetPosition());//
-	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 	XMVECTOR currentLightPos = (XMLoadFloat3(&camera->GetPosition())+XMLoadFloat3(&dirLight->Position));//XMLoadFloat3(&camera->GetPosition())-(camera->ForwardVector()*30.0f);
 
 	XMStoreFloat3(&dirLight->Direction, XMVector3Normalize((lookAt - currentLightPos)));//XMLoadFloat3(&dirLight->Position)
@@ -917,6 +942,10 @@ bool Renderer::Render()
 	//}
 >>>>>>> Stashed changes
 
+	d3D->TurnOnAlphaBlending();
+	vegetationManager->Render(context, &identityWorldViewProj, &worldMatrix, textureAndMaterialHandler->GetVegetationTextureArray());
+	d3D->TurnOffAlphaBlending();
+>>>>>>> a0d97d6b7ec8f881286898508a825e12fe8dc502
 #pragma endregion
 
 #pragma region Point light stage

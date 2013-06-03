@@ -46,7 +46,7 @@ PixelShaderOutput VegetationQuadPixelShader(PixelInputType input)
 {
 	PixelShaderOutput output;
 
-	float fadeFactor = saturate(((input.TexCoord.w*150.0f) - 148.0f) / (150.0f - 148.0f));
+	float fadeFactor = saturate(((input.TexCoord.w*150.0f) - 149.0f) / (150.0f - 149.0f));
 
 	//No branching cuz texture array. Yay. To clarify -- our texCoord.z channel contains texture ID, which we extract from each instance of vegetation.
 	output.Color = lerp(float4(0.3f, 0.3f, 0.3f, 0.3f), shaderTexture.Sample(linearSampler, input.TexCoord.xyz), 1.0f-fadeFactor);
@@ -58,7 +58,7 @@ PixelShaderOutput VegetationQuadPixelShader(PixelInputType input)
 
 	output.Depth = (input.TexCoord.w); //We stored postProj.z/w in TexCoord.z to save one register slot of space.
 
-	output.Normal.xyz = Encode(normalize(input.Normal)); //TODO: Change.
+	output.Normal.xyz = Encode(normalize(input.Normal));
 
 	//This is our material ID. Our normal map is R8G8B8A8, so our z and w channels each have 8 bits == 255 possible values.
 	output.Normal.z = EncodeMaterialID(4.0f);

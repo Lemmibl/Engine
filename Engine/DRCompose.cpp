@@ -51,12 +51,13 @@ void DRCompose::Shutdown()
 }
 
 bool DRCompose::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldViewProjection, XMMATRIX* invViewProjection,
-	XMFLOAT4* fogColor, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView* randomTexture)
+	XMFLOAT4* fogColor, float fogMinimum, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView* randomTexture, int toggle)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldViewProjection, invViewProjection, fogColor, textureArray, randomTexture);
+	result = SetShaderParameters(deviceContext, worldViewProjection, invViewProjection, fogColor, fogMinimum, 
+		textureArray, randomTexture, toggle);
 	if(!result)
 	{
 		return false;
@@ -336,7 +337,7 @@ void DRCompose::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WC
 }
 
 bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, XMMATRIX* invViewProjection,
-	XMFLOAT4* fogColor, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView* randomTexture)
+	XMFLOAT4* fogColor, float fogMinimum, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView* randomTexture, int toggle)
 {		
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -380,7 +381,8 @@ bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRI
 	dataPtr2 = (PixelMatrixBuffer*)mappedResource.pData;
 
 	dataPtr2->InvViewProjection = *invViewProjection;
-	dataPtr2->FogColor = *fogColor;
+	dataPtr2->FogColor = XMFLOAT4(fogColor->x, fogColor->y, fogColor->z, fogMinimum);
+	dataPtr2->toggleSSAO = toggle;
 
 	deviceContext->Unmap(pixelMatrixBuffer, 0);
 

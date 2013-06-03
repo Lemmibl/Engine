@@ -14,6 +14,11 @@ struct PixelShaderOutput
 	float Depth : SV_TARGET2; //R32
 };
 
+cbuffer ColorTypeBuffer
+{
+	float4 toggleColorMode;
+}
+
 Texture2DArray shaderTextures;
 SamplerState textureSampler;
 
@@ -98,6 +103,8 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 	float worldY = input.WorldPosition.y;
 
 	int texture1, texture2, material1, material2;
+
+	float3 finalTempColor = float3(0.0f, 0.0f, 0.0f);
 	
 	if(worldY <= 29.0f)
 	{
@@ -106,6 +113,8 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 
 		material1 = 3;
 		material2 = 3;
+
+		finalTempColor.x += 255.0f;
 	}
 	else if(worldY <= 31.0f)
 	{
@@ -116,6 +125,8 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 
 		material1 = 3;
 		material2 = 0;
+
+		finalTempColor.y += 255.0f;
 	}
 	else if(worldY <= 43.0f)
 	{
@@ -124,6 +135,8 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 
 		material1 = 0;
 		material2 = 0;
+
+		finalTempColor.z += 255.0f;
 	}
 	else if( worldY <= 45.0f)
 	{
@@ -134,6 +147,9 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 
 		material1 = 0;
 		material2 = 1;
+
+		finalTempColor.x += 128.0f;
+		finalTempColor.y += 128.0f;
 	}
 	else if(worldY <= 47.0f)
 	{
@@ -144,6 +160,9 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 
 		material1 = 1;
 		material2 = 2;
+
+		finalTempColor.y += 128.0f;
+		finalTempColor.z += 128.0f;
 	}
 	else
 	{
@@ -151,7 +170,10 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 		texture2 = 4;
 
 		material1 = 2;
-		material2 = 2;	
+		material2 = 2;
+
+		finalTempColor.x += 128.0f;
+		finalTempColor.z += 128.0f;
 	}
 	
 	//If surface is facing downwards, change textures but not materials
@@ -175,7 +197,15 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 		XZColor = shaderTextures.Sample(textureSampler, XZCoord);
 	}
 	
-	output.Color = ((XZColor * blend_weights.y) + (YZColor * blend_weights.x) + (XYColor * blend_weights.z));
+	if((int)toggleColorMode.x == 0)
+	{
+		output.Color.xyz = finalTempColor.xyz; // ((XZColor * blend_weights.y) + (YZColor * blend_weights.x) + (XYColor * blend_weights.z));
+	}
+	else
+	{
+		output.Color = ((XZColor * blend_weights.y) + (YZColor * blend_weights.x) + (XYColor * blend_weights.z));
+	}
+	
 	output.Color.w = (lerpVal);//Convert our [0,1] range lerp value to [0,255] to preserve data
 
 	output.Normal.xy = Encode(NormalizedWorldNormal);

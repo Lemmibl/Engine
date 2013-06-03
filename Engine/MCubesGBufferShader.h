@@ -19,6 +19,11 @@ private:
 		XMMATRIX WorldViewProjection;
 	};
 
+	struct ColorTypeBuffer
+	{
+		XMFLOAT4 toggleColorMode;
+	};
+
 public:
 	MCubesGBufferShader();
 	MCubesGBufferShader(const MCubesGBufferShader&);
@@ -26,7 +31,8 @@ public:
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
-	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** texture);
+	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, XMMATRIX* worldViewProjection, 
+		ID3D11ShaderResourceView** texture, int toggleColor);
 
 private:
 	bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
@@ -34,7 +40,7 @@ private:
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
 
 	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, 
-		XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** texture);
+		XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** texture, int toggleColor);
 
 	void RenderShader(ID3D11DeviceContext*, int);
 
@@ -44,6 +50,7 @@ private:
 	ID3D11InputLayout* layout;
 
 	ID3D11Buffer* matrixBuffer;
+	ID3D11Buffer* colorTypeBuffer;
 
 	ID3D11SamplerState* sampler;
 };
