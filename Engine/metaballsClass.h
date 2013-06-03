@@ -76,8 +76,8 @@ public:
 		return v;
 	}
 
-	/* henter ut density-verdi for et gitt punkt i gridden */
-	// ???
+	
+	//gets the densety value of a point in the grid
 	inline float Get_vertex_value(MarchingCubeVertex v)
 	{
 		float density = 0.0;

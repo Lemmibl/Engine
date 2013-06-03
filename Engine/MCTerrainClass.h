@@ -11,6 +11,9 @@ using std::vector;
 class MCTerrainClass
 {
 private:
+
+	//Terrain modes
+
 	int sizeX;
 	int sizeY;
 	int sizeZ;
@@ -19,11 +22,11 @@ private:
 	int x,y,z, idx;
 	int worldArraySize;
 	int *marchingCubesFluxArray;
-	
+	int terrainMode;
 	float densityToBeInside;
 	float maxDensity, minDensity, densityRangeUpper,densityRangeLower;
 
-	
+
 	MarchingCubeVertex *marchingCubeVertices;
 	SimplexNoise *noise;
 
@@ -58,7 +61,7 @@ public:
 	{
 		return marchingCubeVertices;
 	}
-	
+
 	float GetDensityRangeUpper()
 	{
 		return densityRangeUpper;
@@ -73,27 +76,31 @@ public:
 	{
 		return densityArray1D;
 	}
+	
+	void setTerrainType(int terrainMode)
+	{
+		this->terrainMode = terrainMode;
+	}
+
+	int getTerrainType()
+	{
+		return terrainMode;
+	}
 
 	vector<vector<vector<float>>> const &getDensityArray3D() const
-{
-	return densityArray3D;
-}
+	{
+		return densityArray3D;
+	}
 
-	
-	
+
+
 	float GetHighestPositionOfCoordinate(int x, int z);
-	
+
 	float GetHighestPositionOfCoordinateBruteforce(float x, float z);
-
-	
-
-
-
-	//float* getDensityArray(){;}
 
 private:
 	void CreateMCVerts();
-	
+
 
 
 };

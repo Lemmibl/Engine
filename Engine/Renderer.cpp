@@ -278,7 +278,7 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 	//z = 2.0f;
 	//y = 40.0f;
 
-	for(int i = 0; i < 200; i++)
+	for(int i = 0; i < 500; i++)
 	{
 		x = utility->RandomFloat();
 		y = utility->RandomFloat();
@@ -286,9 +286,9 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 
 		pointLights.push_back(new PointLight());
 		pointLights[i]->Color = XMFLOAT3(x, y, z);
-		pointLights[i]->Position = XMFLOAT3(utility->RandomFloat() * 60.0f, 40.0f, utility->RandomFloat() * 60.0f);
+		pointLights[i]->Position = XMFLOAT3(2.0f+(utility->RandomFloat() * 176.0f), 40.0f, 2.0f + (utility->RandomFloat() * 176.0f));
 		pointLights[i]->Radius = 3.0f; //Used to both scale the actual point light model and is a factor in the attenuation
-		pointLights[i]->Intensity = 2.0f; //Is used to control the attenuation
+		pointLights[i]->Intensity = 1.0f; //Is used to control the attenuation
 
 		//x += 12.0f;
 
@@ -619,6 +619,52 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		seconds = timeOfDay += frameTime;
 	}
 
+	if(inputManager->WasKeyPressed(DIK_NUMPAD1))
+	{
+		marchingCubes->GetTerrain()->setTerrainType(1);
+	}
+
+	if(inputManager->WasKeyPressed(DIK_NUMPAD2))
+	{
+		marchingCubes->GetTerrain()->setTerrainType(2);
+	}
+
+	if(inputManager->WasKeyPressed(DIK_NUMPAD3))
+	{
+		marchingCubes->GetTerrain()->setTerrainType(3);
+	}
+
+	if(inputManager->WasKeyPressed(DIK_NUMPAD4))
+	{
+		marchingCubes->GetTerrain()->setTerrainType(4);
+	}
+
+	if(inputManager->WasKeyPressed(DIK_NUMPAD5))
+	{
+		marchingCubes->GetTerrain()->setTerrainType(5);
+	}
+
+	if(inputManager->WasKeyPressed(DIK_NUMPAD6))
+	{
+		marchingCubes->GetTerrain()->setTerrainType(6);
+	}
+
+	if(inputManager->WasKeyPressed(DIK_NUMPAD7))
+	{
+		marchingCubes->GetTerrain()->setTerrainType(7);
+	}
+
+	if(inputManager->WasKeyPressed(DIK_NUMPAD8))
+	{
+		marchingCubes->GetTerrain()->setTerrainType(8);
+	}
+
+	if(inputManager->WasKeyPressed(DIK_NUMPAD9))
+	{
+		marchingCubes->GetTerrain()->setTerrainType(9);
+	}
+
+
 #pragma region LOD stuff
 	//Distance between camera and middle of mcube chunk. We'll have to do this for each chunk, and keep an individual lodState for each chunk.
 	if(timer >= 0.2f)
@@ -902,16 +948,16 @@ bool Renderer::Render()
 
 	/*if(frustum->Check2DAABB(&testBoundingbox))
 	{*/
-		marchingCubes->Render(context);
-		result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
-			&worldMatrix, &identityWorldViewProj, textureAndMaterialHandler->GetTerrainTextureArray());
+	marchingCubes->Render(context);
+	result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
+		&worldMatrix, &identityWorldViewProj, textureAndMaterialHandler->GetTerrainTextureArray());
 
-		d3D->SetNoCullRasterizer();
-		d3D->TurnOnAlphaBlending();
+	d3D->SetNoCullRasterizer();
+	d3D->TurnOnAlphaBlending();
 	vegetationManager->Render(context, &identityWorldViewProj, &worldMatrix, textureAndMaterialHandler->GetVegetationTextureArray());
-		d3D->TurnOffAlphaBlending();
+	d3D->TurnOffAlphaBlending();
 
-	}
+	//}
 
 #pragma endregion
 
@@ -1293,7 +1339,11 @@ void Renderer::GenerateVegetation( ID3D11Device* device, bool IfSetupThenTrue_If
 		randValue = rand()%100;
 
 		//If we are above "snow level", we only want yellow grass
-		if(y >= 45.0f)
+		if(y <= 30.0f)
+		{
+
+		}
+		else if(y >= 45.0)
 		{
 			//But the grass should be sparse, so there is
 			//95% chance that we won't actually add this to the instance list.
