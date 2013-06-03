@@ -230,14 +230,17 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//We cull a large part of the light and shadow calculations if it's outside of the light frustum.
 	if
 	(		
-		!(	sampleLightScreen.x > 1 || sampleLightScreen.x	< 0	|| 
-			sampleLightScreen.y > 1 || sampleLightScreen.y	< 0	)
-		&& UpDotL >= 0.0f
+		!(	sampleLightScreen.x >= 1.0f || sampleLightScreen.x	<= 0.0f	|| 
+			sampleLightScreen.y >= 1.0f || sampleLightScreen.y	<= 0.0f	)
 	)
 	{
 		/*Variance shadow mapping. http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html */
 		shadowMultiplier = ShadowContribution(sampleLightScreen, realDistanceToLight);
+	}
 
+
+	if(UpDotL > 0.0f)
+	{
 		//Reflection vector
 		float3 reflectionVector = normalize(reflect(lightVector, normal));
 
@@ -250,6 +253,7 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		//Calculate specular light 
 		finalSpecularProduct += specularCoefficient * pow( saturate( dot(reflectionVector, directionToCamera)), surfaceSmoothness);
 	}
+
 
 	//Essentially I save a float in the normal render target's .w channel that decides if the object should be shaded or not.
 	//I do this because of how the vegatation quads are built -- they each consist of three different quads, and they all shade eachother.
