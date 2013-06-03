@@ -274,7 +274,7 @@ bool Engine::Update()
 	camera->Update();
 	
 	// Do update renderer.
-	result = renderer->Update(fpsMeter->GetFps(), cpuMeter->GetCpuPercentage(), timer->GetFrameTimeMilliseconds(), timer->GetFrameTimeSeconds());
+	result = renderer->Update(hwnd, fpsMeter->GetFps(), cpuMeter->GetCpuPercentage(), timer->GetFrameTimeMilliseconds(), timer->GetFrameTimeSeconds());
 	if(!result)
 	{
 		return false;

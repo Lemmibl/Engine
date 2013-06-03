@@ -64,7 +64,6 @@ bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
 	*/
 
 	/************************************************************************/
-	//Should light colors / skysphere colors be kept here?
 	//Moonshine: 217 206 190
 	//Yellow sunshine: 231 187 65                                                            
 	/************************************************************************/
@@ -148,8 +147,8 @@ bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
 	
 	night.StartPosition =	evening.EndPosition;
 	night.EndPosition =		dawn.StartPosition;
-	night.DurationOfStage = timePerStage*3.0f; //Make night three times as long as the other stages
-	night.LightIntensity = 0.45f;
+	night.DurationOfStage = timePerStage*3.0f; //Make night five times as long as the other stages
+	night.LightIntensity = 0.5f;
 
 	stagesOfDay.push_back(night);
 
@@ -169,7 +168,11 @@ float DayNightCycle::Update( float deltaTime, DirLight* directionalLight, Skysph
 	currentVector =  XMLoadFloat3(&directionalLight->Position); //Save current position in XMVECTOR format, needed when calculating sum of each frame's lerping
 
 	this->elapsedTime += deltaTime;
-	lerpAmountThisStage += (deltaTime / stagesOfDay[currentStageOfDay].DurationOfStage); //Calculate amount we'll be moving by this frame
+
+	if(lerpAmountThisStage < 1.0f)
+	{
+		lerpAmountThisStage += (deltaTime / timePerStage); //Calculate amount we'll be moving by this frame //stagesOfDay[currentStageOfDay].DurationOfStage
+	}
 
 
 	//See if we should change stage of day

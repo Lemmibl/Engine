@@ -112,9 +112,9 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	this->d3D = d3D;
 	this->camera = camera;
 
-	toggleSSAO = 0;
-	toggleColorMode = 0;
-	fogMinimum = 0.0f;
+	toggleSSAO = 1;
+	toggleColorMode = 1;
+	fogMinimum = 1.0f;
 
 	utility = new Utility();
 
@@ -282,7 +282,7 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 	//z = 2.0f;
 	//y = 40.0f;
 
-	for(int i = 0; i < 500; i++)
+	for(int i = 0; i < 501; i++)
 	{
 		x = utility->RandomFloat();
 		y = utility->RandomFloat();
@@ -313,6 +313,13 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 		XMMATRIX tempTranslation = XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z);
 		XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale * tempTranslation));
 	}
+
+	pointLights.push_back(new PointLight());
+	pointLights[501]->Color = XMFLOAT3(0.9f, 0.9f, 0.2f);
+	pointLights[501]->Position = camera->GetPosition();
+	pointLights[501]->Radius = 30.0f; //Used to both scale the actual point light model and is a factor in the attenuation
+	pointLights[501]->Intensity = 1.0f; //Is used to control the attenuation
+
 #pragma endregion
 
 #pragma region Directional light initialization
@@ -348,7 +355,7 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 	XMStoreFloat3(&dirLight->Direction, direction);
 
 	//XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(((float)D3DX_PI/2.0f), 1.0f, 10.0f, 300.0f)); //Generate perspective light projection matrix and store it as float4x4
-	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(140.0f, 140.0f, 5.0f, 200.0f)); //Generate orthogonal light projection matrix and store it as float4x4
+	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(160.0f, 160.0f, 5.0f, 200.0f)); //Generate orthogonal light projection matrix and store it as float4x4
 
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix and store it as float4x4.
 #pragma endregion
@@ -509,7 +516,7 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 	return true;
 }
 
-bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
+bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float seconds)
 {
 	bool result;
 
@@ -550,7 +557,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 	{
 		XMMATRIX tempScale = XMMatrixScaling(pointLights[0]->Radius, pointLights[0]->Radius, pointLights[0]->Radius);
 
-		for(int i = 0; i < (int)pointLights.size(); i++)
+		for(int i = 0; i < (int)(pointLights.size()-1); i++)
 		{
 			pointLights[i]->Position.y += frameTime*0.01f;
 
@@ -562,14 +569,14 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 	{
 		XMMATRIX tempScale = XMMatrixScaling(pointLights[0]->Radius, pointLights[0]->Radius, pointLights[0]->Radius);
 
-		for(int i = 0; i < (int)pointLights.size(); i++)
+		for(int i = 0; i < (int)(pointLights.size()-1); i++)
 		{
 			pointLights[i]->Position.y -= frameTime*0.01f;
 
 			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale*XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y-0.5f, pointLights[i]->Position.z)));
 		}
 	}
-
+	
 	if(inputManager->WasKeyPressed(DIK_U))
 	{
 		if(FAILED(textureAndMaterialHandler->CreateRandom2DTexture(d3D->GetDevice(), d3D->GetDeviceContext(), &ssaoRandomTextureSRV)))
@@ -612,8 +619,10 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		fileName = (temp).c_str();
 
 
+		//Call save-to-hdd function. If it returns false we break the update loop and the game dies hard.
 		if(!textureAndMaterialHandler->SaveLTreeTextureToFile(d3D->GetDeviceContext(), D3DX11_IFF_BMP, fileName))
 		{
+			MessageBox(NULL, L"Could not save random texture to hdd. Look in textureAndMaterialHandler.SaveLTreeTextureToFile()", L"Error", MB_OK);
 			return false;
 		}
 	}
@@ -634,17 +643,25 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 	}
 
 	if(inputManager->WasKeyPressed(DIK_3))
-	{                  
-		fogMinimum += 0.1f;
-
-		//fogMinimum = max(150.0f, fogMinimum);
-	}
-
-	if(inputManager->WasKeyPressed(DIK_4))
 	{
 		fogMinimum -= 0.1f;
 
-		//fogMinimum = min(0.0f, fogMinimum);
+		if(fogMinimum < 0.2f)
+		{
+			fogMinimum = 0.2f;
+		}
+	}
+
+	if(inputManager->WasKeyPressed(DIK_4))
+	{                  
+		fogMinimum *= 1.1f;
+
+		if(fogMinimum > 1.0f)
+		{
+			fogMinimum = 1.0f;
+		}
+
+		//fogMinimum = max(150.0f, fogMinimum);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_5))
@@ -657,83 +674,49 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		}
 	}
 
-	
 	if(inputManager->WasKeyPressed(DIK_NUMPAD1))
 	{
-		toggleColorMode++;
-
-		if(toggleColorMode > 1)
-		{
-			toggleColorMode = 0;
-		}
-	}
-
-	if(inputManager->WasKeyPressed(DIK_3))
-	{                  
-		fogMinimum += 0.1f;
-
-		//fogMinimum = max(150.0f, fogMinimum);
-	}
-
-	if(inputManager->WasKeyPressed(DIK_4))
-	{
-		fogMinimum -= 0.1f;
-
-		//fogMinimum = min(0.0f, fogMinimum);
-	}
-
-	if(inputManager->WasKeyPressed(DIK_5))
-	{
-		toggleSSAO++;
-
-		if(toggleSSAO > 3)
-		{
-			toggleSSAO = 0;
-		}
-	}
-
-	{
-		marchingCubes->GetTerrain()->setTerrainType(1);
+		marchingCubes->GetTerrain()->SetTerrainType(1);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD2))
 	{
-		marchingCubes->GetTerrain()->setTerrainType(2);
+		marchingCubes->GetTerrain()->SetTerrainType(2);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD3))
 	{
-		marchingCubes->GetTerrain()->setTerrainType(3);
+		marchingCubes->GetTerrain()->SetTerrainType(3);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD4))
 	{
-		marchingCubes->GetTerrain()->setTerrainType(4);
+		marchingCubes->GetTerrain()->SetTerrainType(4);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD5))
 	{
-		marchingCubes->GetTerrain()->setTerrainType(5);
+		marchingCubes->GetTerrain()->SetTerrainType(5);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD6))
 	{
-		marchingCubes->GetTerrain()->setTerrainType(6);
+		marchingCubes->GetTerrain()->SetTerrainType(6);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD7))
 	{
-		marchingCubes->GetTerrain()->setTerrainType(7);
+		marchingCubes->GetTerrain()->SetTerrainType(7);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD8))
 	{
-		marchingCubes->GetTerrain()->setTerrainType(8);
+		marchingCubes->GetTerrain()->SetTerrainType(8);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD9))
 	{
-		marchingCubes->GetTerrain()->setTerrainType(9);
+		marchingCubes->GetTerrain()->SetTerrainType(9);
 	}
 
 
@@ -830,6 +813,15 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 	XMStoreFloat3(&dirLight->Direction, XMVector3Normalize((lookAt - currentLightPos)));//XMLoadFloat3(&dirLight->Position)
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(currentLightPos, lookAt, up)); //Generate light view matrix
+
+	
+	//Camera point light updates
+	XMMATRIX tempScale = XMMatrixScaling(pointLights[501]->Radius, pointLights[501]->Radius, pointLights[501]->Radius);
+	XMStoreFloat3(&pointLights[501]->Position, XMLoadFloat3(&camera->GetPosition())+(camera->ForwardVector()*8.0f));
+	//pointLights[501]->Position.y = ;camera->GetPosition().y;
+
+	XMStoreFloat4x4(&pointLights[501]->World, XMMatrixTranspose(tempScale*XMMatrixTranslation(pointLights[501]->Position.x, pointLights[501]->Position.y, pointLights[501]->Position.z)));
+
 
 	previousLodState = lodState;
 
@@ -1055,7 +1047,7 @@ bool Renderer::Render()
 		d3D->SetLightStencilMethod1Phase2();
 		d3D->SetFrontFaceCullingRasterizer();
 
-		//sphereModel->Render(context);
+		sphereModel->Render(context);
 
 		result = pointLightShader->Render(context, sphereModel->GetIndexCount(), &worldViewProj, &invertedViewProjection, 
 			pointLights[i], gbufferTextures, textureAndMaterialHandler->GetMaterialTextureArray(), camPos);

@@ -77,7 +77,7 @@ public:
 		return densityArray1D;
 	}
 	
-	void setTerrainType(int terrainMode)
+	void SetTerrainType(int terrainMode)
 	{
 		this->terrainMode = terrainMode;
 	}

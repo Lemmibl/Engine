@@ -804,7 +804,7 @@ const int MarchingCubesClass::edgeTable[256] = {
 
 		this->Terrain = new MCTerrainClass();
 		this->Terrain->Initialize(sizeX,sizeY,sizeZ,this->marchingCubeVertices);
-		this->Terrain->setTerrainType(tempTerrainType);
+		this->Terrain->SetTerrainType(tempTerrainType);
 		Terrain->Noise3D();
 	}
 

@@ -77,7 +77,7 @@ public:
 	bool InitializeModels(HWND hwnd, ID3D11Device* device);
 	void Shutdown();
 
-	bool Update(int, int, float, float seconds);
+	bool Update(HWND hwnd, int, int, float, float seconds);
 	bool Render();
 	bool RenderToTexture(RenderToTextureClass* const);
 	bool RenderScene();

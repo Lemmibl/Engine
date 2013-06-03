@@ -67,7 +67,7 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		float fogFactor = 0.0f;
 		float3 baseColor = shaderTextures[0].Sample(samplers[0], input.TexCoord).rgb;
 		float FogEnd = 150.0f;
-		float FogStart = (FogColor.a*149.5f);//149.5f;//
+		float FogStart = (FogColor.a*149.9f);//149.5f;//
 		float2 screenSize = float2(1024.0f, 768.0f);
 		float2 randomSize = float2(256.0f, 256.0f);
 
