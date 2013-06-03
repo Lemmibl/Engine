@@ -95,6 +95,7 @@ private:
 	DRGBuffer* gbufferShader;
 	DRPointLight* pointLightShader;
 	vector<PointLight*> pointLights;
+	PointLight cameraPointLight;
 
 	VertexShaderOnly* vertexOnlyShader;
 	DepthOnlyShader* depthOnlyShader;
@@ -125,10 +126,7 @@ private:
 	UINT shadowMapWidth, shadowMapHeight, screenWidth, screenHeight;
 	float screenFar, screenNear, timer, timeOfDay;
 
-	bool returning;
-	bool toggleDebugInfo;
-	bool toggleTextureShader;
-
+	bool returning, toggleDebugInfo, toggleTextureShader, toggleCameraPointLight;
 	float fogMinimum;
 	
 	MetaballsClass* metaBalls;
