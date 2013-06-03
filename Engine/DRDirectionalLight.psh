@@ -228,10 +228,11 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	float shadowMultiplier = 1.0f;
 
 	//We cull a large part of the light and shadow calculations if it's outside of the light frustum.
+	//Using 0.99 and 0.01 because if I use 1.0 and 0.0, I get black lines along the extreme edge of the light frustum
 	if
 	(		
-		!(	sampleLightScreen.x >= 1.0f || sampleLightScreen.x	<= 0.0f	|| 
-			sampleLightScreen.y >= 1.0f || sampleLightScreen.y	<= 0.0f	)
+		!(	sampleLightScreen.x > 0.99f || sampleLightScreen.x	< 0.01f	|| 
+			sampleLightScreen.y > 0.99f || sampleLightScreen.y	< 0.01f	)
 	)
 	{
 		/*Variance shadow mapping. http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html */
