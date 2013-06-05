@@ -79,7 +79,8 @@ Renderer::Renderer()
 
 	toggleTextureShader = false;
 	returning = false;
-	toggleCameraPointLight = true;
+	toggleCameraPointLight = false;
+	toggleOtherPointLights = false;
 }
 
 
@@ -283,7 +284,7 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 	//z = 2.0f;
 	//y = 40.0f;
 
-	for(int i = 0; i < 500; i++)
+	for(int i = 0; i < 300; i++)
 	{
 		x = utility->RandomFloat();
 		y = utility->RandomFloat();
@@ -355,7 +356,7 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 	XMStoreFloat3(&dirLight->Direction, direction);
 
 	//XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(((float)D3DX_PI/2.0f), 1.0f, 10.0f, 300.0f)); //Generate perspective light projection matrix and store it as float4x4
-	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(160.0f, 160.0f, 5.0f, 200.0f)); //Generate orthogonal light projection matrix and store it as float4x4
+	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(200.0f, 200.0f, 5.0f, 200.0f)); //Generate orthogonal light projection matrix and store it as float4x4
 
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix and store it as float4x4.
 #pragma endregion
@@ -576,7 +577,7 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale*XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y-0.5f, pointLights[i]->Position.z)));
 		}
 	}
-	
+
 	if(inputManager->WasKeyPressed(DIK_U))
 	{
 		if(FAILED(textureAndMaterialHandler->CreateRandom2DTexture(d3D->GetDevice(), d3D->GetDeviceContext(), &ssaoRandomTextureSRV)))
@@ -664,19 +665,30 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 		//fogMinimum = max(150.0f, fogMinimum);
 	}
 
+	//if(inputManager->WasKeyPressed(DIK_5))
+	//{
+	//	toggleSSAO++;
+
+	//	if(toggleSSAO > 3)
+	//	{
+	//		toggleSSAO = 0;
+	//	}
+	//}
+
 	if(inputManager->WasKeyPressed(DIK_5))
 	{
-		toggleSSAO++;
-
-		if(toggleSSAO > 3)
-		{
-			toggleSSAO = 0;
-		}
+		toggleOtherPointLights = !toggleOtherPointLights;
 	}
 
 	if(inputManager->WasKeyPressed(DIK_6))
 	{
 		toggleCameraPointLight = !toggleCameraPointLight;
+
+	}
+
+	if(inputManager->WasKeyPressed(DIK_NUMPAD0))
+	{
+		marchingCubes->GetTerrain()->PulvirizeWorldToggle();
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD1))
@@ -819,10 +831,10 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 	XMStoreFloat3(&dirLight->Direction, XMVector3Normalize((lookAt - currentLightPos)));//XMLoadFloat3(&dirLight->Position)
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(currentLightPos, lookAt, up)); //Generate light view matrix
 
-	
+
 	//Camera point light updates
 	XMMATRIX tempScale = XMMatrixScaling(cameraPointLight.Radius, cameraPointLight.Radius, cameraPointLight.Radius);
-	XMStoreFloat3(&cameraPointLight.Position, XMLoadFloat3(&camera->GetPosition())+(camera->ForwardVector()*8.0f));
+	XMStoreFloat3(&cameraPointLight.Position, XMLoadFloat3(&camera->GetPosition())+(camera->ForwardVector()*6.0f));
 	//pointLights[501]->Position.y = ;camera->GetPosition().y;
 
 	XMStoreFloat4x4(&cameraPointLight.World, XMMatrixTranspose(tempScale*XMMatrixTranslation(cameraPointLight.Position.x, cameraPointLight.Position.y, cameraPointLight.Position.z)));
@@ -1019,11 +1031,11 @@ bool Renderer::Render()
 	{*/
 	marchingCubes->Render(context);
 	result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
-			&worldMatrix, &identityWorldViewProj, textureAndMaterialHandler->GetTerrainTextureArray(), toggleColorMode);
+		&worldMatrix, &identityWorldViewProj, textureAndMaterialHandler->GetTerrainTextureArray(), toggleColorMode);
 
 	d3D->SetNoCullRasterizer();
 	d3D->TurnOnAlphaBlending();
-		vegetationManager->Render(context, &identityWorldViewProj, &worldMatrix, textureAndMaterialHandler->GetVegetationTextureArray());
+	vegetationManager->Render(context, &identityWorldViewProj, &worldMatrix, textureAndMaterialHandler->GetVegetationTextureArray());
 	d3D->TurnOffAlphaBlending();
 
 	//}
@@ -1037,31 +1049,33 @@ bool Renderer::Render()
 
 	//Phase one, draw sphere with vertex-only shader.
 	d3D->TurnOnLightBlending();
+	if(toggleOtherPointLights)
+	{
+		for(unsigned int i = 0; i < pointLights.size(); i++)
+		{	
+			XMMATRIX worldViewProj = viewProjection * (XMLoadFloat4x4(&pointLights[i]->World));
 
-	for(unsigned int i = 0; i < pointLights.size(); i++)
-	{	
-		XMMATRIX worldViewProj = viewProjection * (XMLoadFloat4x4(&pointLights[i]->World));
+			d3D->SetLightStencilMethod1Phase1();
+			d3D->SetNoCullRasterizer();
 
-		d3D->SetLightStencilMethod1Phase1();
-		d3D->SetNoCullRasterizer();
+			sphereModel->Render(context);
+			result = vertexOnlyShader->Render(context, sphereModel->GetIndexCount(), &worldViewProj);
 
-		sphereModel->Render(context);
-		result = vertexOnlyShader->Render(context, sphereModel->GetIndexCount(), &worldViewProj);
+			//Phase two, draw sphere with light algorithm
+			d3D->SetLightStencilMethod1Phase2();
+			d3D->SetFrontFaceCullingRasterizer();
 
-		//Phase two, draw sphere with light algorithm
-		d3D->SetLightStencilMethod1Phase2();
-		d3D->SetFrontFaceCullingRasterizer();
+			sphereModel->Render(context);
 
-		sphereModel->Render(context);
+			result = pointLightShader->Render(context, sphereModel->GetIndexCount(), &worldViewProj, &invertedViewProjection, 
+				pointLights[i], gbufferTextures, textureAndMaterialHandler->GetMaterialTextureArray(), camPos);
+			if(!result)
+			{
+				return false;
+			}
 
-		result = pointLightShader->Render(context, sphereModel->GetIndexCount(), &worldViewProj, &invertedViewProjection, 
-			pointLights[i], gbufferTextures, textureAndMaterialHandler->GetMaterialTextureArray(), camPos);
-		if(!result)
-		{
-			return false;
+			context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
 		}
-
-		context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
 	}
 
 	if(toggleCameraPointLight)
@@ -1423,7 +1437,7 @@ void Renderer::GenerateVegetation( ID3D11Device* device, bool IfSetupThenTrue_If
 	LODVector10000.clear();
 	LODVector10000.reserve(10000);
 
-	for(int i = 0; i < 90000; i++)
+	for(int i = 0; i < 70000; i++)
 	{
 		x = (2.0f + (utility->RandomFloat() * 176.0f));
 		z = (2.0f + (utility->RandomFloat() * 176.0f));

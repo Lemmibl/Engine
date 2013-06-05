@@ -26,6 +26,8 @@ private:
 	float densityToBeInside;
 	float maxDensity, minDensity, densityRangeUpper,densityRangeLower;
 
+	bool pulvirize;
+
 
 	MarchingCubeVertex *marchingCubeVertices;
 	SimplexNoise *noise;
@@ -80,6 +82,24 @@ public:
 	void SetTerrainType(int terrainMode)
 	{
 		this->terrainMode = terrainMode;
+	}
+
+	void PulvirizeWorldToggle()
+	{
+		if (pulvirize)
+		pulvirize = false;
+		else
+		pulvirize = true;
+	}
+
+	bool GetPulverizeWorld()
+	{
+		return pulvirize;
+	}
+
+	void SetPulverizeWorld(bool pulverize)
+	{
+		this->pulvirize = pulverize;
 	}
 
 	int getTerrainType()

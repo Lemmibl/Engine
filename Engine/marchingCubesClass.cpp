@@ -798,6 +798,7 @@ const int MarchingCubesClass::edgeTable[256] = {
 				}
 			}
 		}
+		bool tempPulverize = Terrain->GetPulverizeWorld();
 		int tempTerrainType	= Terrain->getTerrainType();
 		delete this->Terrain;
 		this->Terrain = 0;
@@ -805,6 +806,7 @@ const int MarchingCubesClass::edgeTable[256] = {
 		this->Terrain = new MCTerrainClass();
 		this->Terrain->Initialize(sizeX,sizeY,sizeZ,this->marchingCubeVertices);
 		this->Terrain->SetTerrainType(tempTerrainType);
+		this->Terrain->SetPulverizeWorld(tempPulverize);
 		Terrain->Noise3D();
 	}
 

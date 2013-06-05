@@ -73,7 +73,7 @@ bool Engine::Initialize()
 		return false;
 	}
 
-	result = cameraController->Initialize(input, 0.01f, 0.05f);
+	result = cameraController->Initialize(input, 0.05f, 0.05f);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the camera controller object.", L"Error", MB_OK);

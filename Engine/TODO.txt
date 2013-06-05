@@ -10,6 +10,7 @@
 * Marching cube chunks
 * L-systems
 * Vatten
+* Lägg till en sorts pointlights som inte använder spekulärer
 /********************************************************************************/
 
 

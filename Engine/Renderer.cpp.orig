@@ -79,6 +79,7 @@ Renderer::Renderer()
 
 	toggleTextureShader = false;
 	returning = false;
+	toggleCameraPointLight = true;
 }
 
 
@@ -282,7 +283,7 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 	//z = 2.0f;
 	//y = 40.0f;
 
-	for(int i = 0; i < 501; i++)
+	for(int i = 0; i < 500; i++)
 	{
 		x = utility->RandomFloat();
 		y = utility->RandomFloat();
@@ -314,11 +315,10 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 		XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale * tempTranslation));
 	}
 
-	pointLights.push_back(new PointLight());
-	pointLights[501]->Color = XMFLOAT3(0.9f, 0.9f, 0.2f);
-	pointLights[501]->Position = camera->GetPosition();
-	pointLights[501]->Radius = 30.0f; //Used to both scale the actual point light model and is a factor in the attenuation
-	pointLights[501]->Intensity = 1.0f; //Is used to control the attenuation
+	cameraPointLight.Color = XMFLOAT3(0.9f, 0.9f, 0.2f);
+	cameraPointLight.Position = camera->GetPosition();
+	cameraPointLight.Radius = 30.0f; //Used to both scale the actual point light model and is a factor in the attenuation
+	cameraPointLight.Intensity = 1.0f; //Is used to control the attenuation
 
 #pragma endregion
 
@@ -632,7 +632,6 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 		seconds = timeOfDay += frameTime;
 	}
 
-<<<<<<< Updated upstream
 	if(inputManager->WasKeyPressed(DIK_2))
 	{
 		toggleColorMode++;
@@ -673,10 +672,16 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 		{
 			toggleSSAO = 0;
 		}
+	}
+
+<<<<<<< Updated upstream
+	if(inputManager->WasKeyPressed(DIK_6))
+	{
+		toggleCameraPointLight = !toggleCameraPointLight;
 =======
 	if(inputManager->WasKeyPressed(DIK_NUMPAD0))
 	{
-		marchingCubes->GetTerrain()->setTerrainType(0);
+		marchingCubes->GetTerrain()->SetTerrainType(0);
 >>>>>>> Stashed changes
 	}
 
@@ -822,11 +827,11 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 
 	
 	//Camera point light updates
-	XMMATRIX tempScale = XMMatrixScaling(pointLights[501]->Radius, pointLights[501]->Radius, pointLights[501]->Radius);
-	XMStoreFloat3(&pointLights[501]->Position, XMLoadFloat3(&camera->GetPosition())+(camera->ForwardVector()*8.0f));
+	XMMATRIX tempScale = XMMatrixScaling(cameraPointLight.Radius, cameraPointLight.Radius, cameraPointLight.Radius);
+	XMStoreFloat3(&cameraPointLight.Position, XMLoadFloat3(&camera->GetPosition())+(camera->ForwardVector()*8.0f));
 	//pointLights[501]->Position.y = ;camera->GetPosition().y;
 
-	XMStoreFloat4x4(&pointLights[501]->World, XMMatrixTranspose(tempScale*XMMatrixTranslation(pointLights[501]->Position.x, pointLights[501]->Position.y, pointLights[501]->Position.z)));
+	XMStoreFloat4x4(&cameraPointLight.World, XMMatrixTranspose(tempScale*XMMatrixTranslation(cameraPointLight.Position.x, cameraPointLight.Position.y, cameraPointLight.Position.z)));
 
 
 	previousLodState = lodState;
@@ -1057,6 +1062,32 @@ bool Renderer::Render()
 
 		result = pointLightShader->Render(context, sphereModel->GetIndexCount(), &worldViewProj, &invertedViewProjection, 
 			pointLights[i], gbufferTextures, textureAndMaterialHandler->GetMaterialTextureArray(), camPos);
+		if(!result)
+		{
+			return false;
+		}
+
+		context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
+	}
+
+	if(toggleCameraPointLight)
+	{	
+		XMMATRIX worldViewProj = viewProjection * (XMLoadFloat4x4(&cameraPointLight.World));
+
+		d3D->SetLightStencilMethod1Phase1();
+		d3D->SetNoCullRasterizer();
+
+		sphereModel->Render(context);
+		result = vertexOnlyShader->Render(context, sphereModel->GetIndexCount(), &worldViewProj);
+
+		//Phase two, draw sphere with light algorithm
+		d3D->SetLightStencilMethod1Phase2();
+		d3D->SetFrontFaceCullingRasterizer();
+
+		sphereModel->Render(context);
+
+		result = pointLightShader->Render(context, sphereModel->GetIndexCount(), &worldViewProj, &invertedViewProjection, 
+			&cameraPointLight, gbufferTextures, textureAndMaterialHandler->GetMaterialTextureArray(), camPos);
 		if(!result)
 		{
 			return false;
