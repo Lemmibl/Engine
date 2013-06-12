@@ -54,13 +54,13 @@ void DRDirLight::Shutdown()
 
 bool DRDirLight::Render( ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldViewProjection, 
 	XMMATRIX* invertedViewProj, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** materialTextureArray, 
-	XMFLOAT3 cameraPosition, DirLight* dirLight, XMFLOAT4 ambienceColor, XMMATRIX* lightViewProj )
+	XMFLOAT3 cameraPosition, XMFLOAT3 cameraViewDir, DirLight* dirLight, XMFLOAT4 ambienceColor, XMMATRIX* lightViewProj )
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
 	result = SetShaderParameters(deviceContext, worldViewProjection, invertedViewProj, textureArray, materialTextureArray, 
-		cameraPosition, dirLight, ambienceColor, lightViewProj);
+		cameraPosition, cameraViewDir, dirLight, ambienceColor, lightViewProj);
 	if(!result)
 	{
 		return false;
@@ -414,7 +414,7 @@ void DRDirLight::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, W
 }
 
 bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, XMMATRIX* invertedViewProj, 
-	ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** materialTextureArray, XMFLOAT3 cameraPosition, 
+	ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** materialTextureArray, XMFLOAT3 cameraPosition, XMFLOAT3 cameraViewDir, 
 	DirLight* dirLight, XMFLOAT4 ambienceColor,XMMATRIX* lightViewProj)
 {		
 	HRESULT result;
@@ -462,6 +462,7 @@ bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATR
 	dataPtr2->LightDirection = XMFLOAT4(dirLight->Direction.x, dirLight->Direction.y, dirLight->Direction.z, 1.0f);
 	dataPtr2->LightPosition = XMFLOAT4(dirLight->Position.x, dirLight->Position.y, dirLight->Position.z, dirLight->Intensity);
 	dataPtr2->CameraPosition = XMFLOAT4(cameraPosition.x, cameraPosition.y, cameraPosition.z, 1.0f);
+	dataPtr2->ViewDirection = XMFLOAT4(cameraViewDir.x, cameraViewDir.y, cameraViewDir.z, 1.0f);
 
 	deviceContext->Unmap(positionalBuffer, 0);
 

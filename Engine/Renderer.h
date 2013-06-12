@@ -79,8 +79,16 @@ public:
 
 	bool Update(HWND hwnd, int, int, float, float seconds);
 	bool Render();
-	bool RenderToTexture(RenderToTextureClass* const);
-	bool RenderScene();
+
+	bool RenderShadowmap();
+	bool RenderTwoPassGaussianBlur();
+
+	bool RenderGBuffer();
+	bool RenderDirectionalLight();
+	bool RenderPointLight();
+	bool RenderFinalScene();
+
+	bool RenderDebugInfoAndText();
 
 	//And the winner for worst parameter name 2013 goes to.....
 	void GenerateVegetation(ID3D11Device* device, bool IfSetupThenTrue_IfUpdateThenFalse);

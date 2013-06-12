@@ -122,7 +122,7 @@ void MCTerrainClass::Noise3D()
 		{
 			for (x = 1; x < (this->sizeX -1); x++)
 			{
-				idx = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
+				idx = x + (y*this->sizeY) + (z * this->sizeY * this->sizeZ);
 
 
 				const unsigned int terrainTypesSeaBottom = 1;
@@ -333,9 +333,9 @@ void MCTerrainClass::Noise3D()
 
 	for (z = 1; z < (this->sizeZ -1); z++)
 	{
-		for (y = 0; y < (this->sizeY -0); y++)
+		for (y = 1; y < (this->sizeY -1); y++)
 		{
-			for (x = 0; x < (this->sizeX -0); x++)
+			for (x = 1; x < (this->sizeX -1); x++)
 			{
 				idx = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
 
@@ -360,18 +360,30 @@ void MCTerrainClass::Noise3D()
 
 				if(this->marchingCubeVertices[idx].density < 0)
 				{
-					this->densityArray1D[idx] = 0 ;
+					this->densityArray1D[idx] = 0.0f;
+					densityArray3D[x][y][z] = 0.0f;
 				}
 				else if(this->marchingCubeVertices[idx].density > 1)
 				{
-					this->densityArray1D[idx] = 1;
+					this->densityArray1D[idx] = 1.0f;
+					densityArray3D[x][y][z] = 1.0f;
 				}
 				else
 				{
 					this->densityArray1D[idx] = this->marchingCubeVertices[idx].density;
+					densityArray3D[x][y][z] = this->marchingCubeVertices[idx].density;
 				}
 
-				densityArray3D[z][y][x] = this->marchingCubeVertices[idx].density;
+				densityArray3D[x][y][z] = this->marchingCubeVertices[idx].density;
+				/*
+				static float XFactor = 1.0f / (2.0f*sizeX);
+				static float YFactor = 1.0f / (2.0f*sizeY);
+				static float ZFactor = 1.0f / (2.0f*sizeZ);
+
+				this->marchingCubeVertices[idx].normalX = ((densityArray3D[x-1][y][z]	- densityArray3D[x+1][y][z])) * XFactor;
+				this->marchingCubeVertices[idx].normalY = ((densityArray3D[x][y-1][z]	- densityArray3D[x][y+1][z])) * YFactor;
+				this->marchingCubeVertices[idx].normalZ = ((densityArray3D[x][y][z-1]	- densityArray3D[x][y][z+1])) * ZFactor;
+				*/
 
 
 				CreateMCVerts();

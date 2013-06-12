@@ -336,12 +336,12 @@ bool VegetationManager::BuildInstanceBuffer( ID3D11Device* device, std::vector<X
 
 XMFLOAT3 VegetationManager::CalculateVertexNormals( XMFLOAT3 topLeft, XMFLOAT3 topRight, XMFLOAT3 bottomLeft)
 {
-	XMVECTOR v1 = XMLoadFloat3(&topLeft);
-	XMVECTOR v2 = XMLoadFloat3(&topRight);
-	XMVECTOR v3 = XMLoadFloat3(&bottomLeft);
+	XMVECTOR v1 = XMVector3Normalize(XMLoadFloat3(&topLeft));
+	XMVECTOR v2 = XMVector3Normalize(XMLoadFloat3(&topRight));
+	XMVECTOR v3 = XMVector3Normalize(XMLoadFloat3(&bottomLeft));
 	XMVECTOR resultVec;
 
-	resultVec = XMVector3Cross((v2-v1), (v3-v1));
+	resultVec = XMVector3Normalize(XMVector3Cross((v2-v1), (v3-v1)));
 
 	XMFLOAT3 result;
 

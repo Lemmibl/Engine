@@ -371,9 +371,12 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 	metaBalls = new MetaballsClass();
 	marchingCubes = new MarchingCubesClass(0.0f, 0.0f, 0.0f, 180.0f, 180.0f, 180.0f, 1.0f, 1.0f, 1.0f);
 	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
+	marchingCubes->GetTerrain()->SetTerrainType(2);
+
 
 	marchingCubes->GetTerrain()->Noise3D();
 	marchingCubes->CalculateMesh(device);
+
 
 	lSystem = new LSystemClass();
 	lSystem->initialize();
@@ -665,16 +668,6 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 		//fogMinimum = max(150.0f, fogMinimum);
 	}
 
-	//if(inputManager->WasKeyPressed(DIK_5))
-	//{
-	//	toggleSSAO++;
-
-	//	if(toggleSSAO > 3)
-	//	{
-	//		toggleSSAO = 0;
-	//	}
-	//}
-
 	if(inputManager->WasKeyPressed(DIK_5))
 	{
 		toggleOtherPointLights = !toggleOtherPointLights;
@@ -684,6 +677,16 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 	{
 		toggleCameraPointLight = !toggleCameraPointLight;
 
+	}
+
+	if(inputManager->WasKeyPressed(DIK_7))
+	{
+		toggleSSAO++;
+
+		if(toggleSSAO > 3)
+		{
+			toggleSSAO = 0;
+		}
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD0))
@@ -858,7 +861,7 @@ bool Renderer::Render()
 		lightView, lightProj, lightViewProj, baseView, worldBaseViewOrthoProj, identityWorldViewProj, lightWorldViewProj, 
 		invertedProjection, untransposedViewProj;
 
-	XMFLOAT3 camPos;
+	XMFLOAT3 camPos, camDir;
 	bool result;
 	ID3D11RenderTargetView* gbufferRenderTargets[3] = { NULL, NULL, NULL }; //render targets for GBuffer pass
 	ID3D11RenderTargetView* lightTarget[1] = { NULL };
@@ -877,6 +880,7 @@ bool Renderer::Render()
 
 	// Generate the view matrix based on the camera's position.
 	camPos = camera->GetPosition();
+	XMStoreFloat3(&camDir, XMVector3Normalize(camera->ForwardVector()));
 
 	gbufferRenderTargets[0] = colorRT->RTView;
 	gbufferRenderTargets[1] = normalRT->RTView;
@@ -1116,7 +1120,7 @@ bool Renderer::Render()
 	fullScreenQuad.Render(context, 0, 0);
 
 	result = dirLightShader->Render(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &invertedViewProjection, 
-		dirLightTextures, textureAndMaterialHandler->GetMaterialTextureArray(), camPos, dirLight, dayNightCycle->GetAmbientLightColor(), &lightViewProj);
+		dirLightTextures, textureAndMaterialHandler->GetMaterialTextureArray(), camPos, camDir, dirLight, dayNightCycle->GetAmbientLightColor(), &lightViewProj);
 	if(!result)
 	{
 		return false;
@@ -1532,4 +1536,46 @@ void Renderer::GenerateVegetation( ID3D11Device* device, bool IfSetupThenTrue_If
 	{
 		vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector10000);
 	}
+}
+
+bool Renderer::RenderShadowmap()
+{
+
+	return true;
+}
+
+bool Renderer::RenderTwoPassGaussianBlur()
+{
+
+	return true;
+}
+
+bool Renderer::RenderGBuffer()
+{
+
+	return true;
+}
+
+bool Renderer::RenderDirectionalLight()
+{
+
+	return true;
+}
+
+bool Renderer::RenderPointLight()
+{
+
+	return true;
+}
+
+bool Renderer::RenderFinalScene()
+{
+
+	return true;
+}
+
+bool Renderer::RenderDebugInfoAndText()
+{
+
+	return true;
 }

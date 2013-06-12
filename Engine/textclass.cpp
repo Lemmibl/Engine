@@ -419,7 +419,7 @@ bool TextClass::InitializeSentence(SentenceType** sentence, int maxLength, ID3D1
 	return true;
 }
 
-bool TextClass::UpdateSentence(SentenceType* sentence, char* text, int positionX, int positionY, float red, float green, float blue,
+bool TextClass::UpdateSentence(SentenceType* sentence, const char* text, int positionX, int positionY, float red, float green, float blue,
 	ID3D11DeviceContext* deviceContext)
 {
 	int numLetters;
@@ -579,34 +579,25 @@ bool TextClass::RenderSentence(SentenceType* sentence, ID3D11DeviceContext* devi
 
 bool TextClass::SetMousePosition(int mouseX, int mouseY, ID3D11DeviceContext* deviceContext)
 {
-	char tempString[16];
-	char mouseString[16];
+	string finalStringX, finalStringY;
 	bool result;
 
 
-	// Convert the mouseX integer to string format.
-	_itoa_s(mouseX, tempString, 10);
-
 	// Setup the mouseX string.
-	strcpy_s(mouseString, "Mouse X: ");
-	strcat_s(mouseString, tempString);
+	finalStringX += "Mouse X: " + std::to_string((long double)mouseX);
 
 	// Update the sentence vertex buffer with the new string information.
-	result = UpdateSentence(mousePosX, mouseString, 20, 20, 1.0f, 1.0f, 1.0f, deviceContext);
+	result = UpdateSentence(mousePosX, finalStringX.c_str(), 20, 20, 1.0f, 1.0f, 1.0f, deviceContext);
 	if(!result)
 	{
 		return false;
 	}
 
 	// Convert the mouseY integer to string format.
-	_itoa_s(mouseY, tempString, 10);
-
-	// Setup the mouseY string.
-	strcpy_s(mouseString, "Mouse Y: ");
-	strcat_s(mouseString, tempString);
+	finalStringY += "Mouse Y: " + std::to_string((long double)mouseY);
 
 	// Update the sentence vertex buffer with the new string information.
-	result = UpdateSentence(mousePosY, mouseString, 20, 40, 1.0f, 1.0f, 1.0f, deviceContext);
+	result = UpdateSentence(mousePosY, finalStringY.c_str(), 20, 40, 1.0f, 1.0f, 1.0f, deviceContext);
 	if(!result)
 	{
 		return false;
@@ -617,8 +608,7 @@ bool TextClass::SetMousePosition(int mouseX, int mouseY, ID3D11DeviceContext* de
 
 bool TextClass::SetFps(int fps, ID3D11DeviceContext* deviceContext)
 {
-	char tempString[32];
-	char fpsString[32];
+	string fpsString;
 	float red, green, blue;
 	bool result;
 
@@ -629,12 +619,7 @@ bool TextClass::SetFps(int fps, ID3D11DeviceContext* deviceContext)
 		fps = 9999;
 	}
 
-	// Convert the fps integer to string format.
-	_itoa_s(fps, tempString, 10);
-
-	// Setup the fps string.
-	strcpy_s(fpsString, "Fps: ");
-	strcat_s(fpsString, tempString);
+	fpsString += "Fps: " + std::to_string((long double)fps);
 
 	// If fps is 60 or above set the fps color to green.
 	if(fps >= 60)
@@ -661,7 +646,7 @@ bool TextClass::SetFps(int fps, ID3D11DeviceContext* deviceContext)
 	}
 
 	// Update the sentence vertex buffer with the new string information.
-	result = UpdateSentence(fpsCount, fpsString, 10, 20, red, green, blue, deviceContext);
+	result = UpdateSentence(fpsCount, fpsString.c_str(), 10, 20, red, green, blue, deviceContext);
 	if(!result)
 	{
 		return false;
@@ -672,20 +657,13 @@ bool TextClass::SetFps(int fps, ID3D11DeviceContext* deviceContext)
 
 bool TextClass::SetCpu(int cpu, ID3D11DeviceContext* deviceContext)
 {
-	char tempString[16];
-	char cpuString[16];
+	string cpuString;
 	bool result;
 	float red, green, blue;
 
-	// Convert the cpu integer to string format.
-	_itoa_s(cpu, tempString, 10);
+	cpuString += "CPU Load is at: " + std::to_string((long double)cpu) + "%";
 
-	// Setup the cpu string.
-	strcpy_s(cpuString, "Cpu: ");
-	strcat_s(cpuString, tempString);
-	strcat_s(cpuString, "%");
-
-	if(cpu >= 60)
+	if(cpu >= 70)
 	{
 		red = 1.0f;
 		green = 0.0f;
@@ -707,7 +685,7 @@ bool TextClass::SetCpu(int cpu, ID3D11DeviceContext* deviceContext)
 	}
 
 	// Update the sentence vertex buffer with the new string information.
-	result = UpdateSentence(cpuLoad, cpuString, 10, 40, red, green, blue, deviceContext);
+	result = UpdateSentence(cpuLoad, cpuString.c_str(), 10, 40, red, green, blue, deviceContext);
 	if(!result)
 	{
 		return false;
@@ -718,19 +696,13 @@ bool TextClass::SetCpu(int cpu, ID3D11DeviceContext* deviceContext)
 
 bool TextClass::SetRendercount(int count, ID3D11DeviceContext* deviceContext)
 {
-	char tempString[32];
-	char countString[32];
+	string countString;
 	bool result;
 
-	// Convert the cpu integer to string format.
-	_itoa_s(count, tempString, 10);
-
-	// Setup the cpu string.
-	strcpy_s(countString, "Amount of spheres rendered: ");
-	strcat_s(countString, tempString);
+	countString += "Amount of objects rendered: " + std::to_string((long double)count);
 
 	// Update the sentence vertex buffer with the new string information.
-	result = UpdateSentence(numberOfModelsDrawn, countString, 10, 40, 0.0f, 1.0f, 0.0f, deviceContext);
+	result = UpdateSentence(numberOfModelsDrawn, countString.c_str(), 10, 40, 0.0f, 1.0f, 0.0f, deviceContext);
 	if(!result)
 	{
 		return false;
@@ -741,45 +713,34 @@ bool TextClass::SetRendercount(int count, ID3D11DeviceContext* deviceContext)
 
 bool TextClass::SetCameraPosition(int X, int Y, int Z, ID3D11DeviceContext* deviceContext)
 {
-	char xString[32];
-	char yString[32];
-	char zString[32];
-	char finalResultX[32];
-	char finalResultY[32];
-	char finalResultZ[32];
+	string finalResultX;
+	string finalResultY;
+	string finalResultZ;
 	bool result;
 
-	// Convert the float to string format.
-	_itoa_s(X, xString, 10);
-	_itoa_s(Y, yString, 10);
-	_itoa_s(Z, zString, 10);
-
 	// Setup the cpu string.
-	strcpy_s(finalResultX, "Camera position X: ");
-	strcat_s(finalResultX, xString);
+	finalResultX += "Camera position X: " + std::to_string((long double)X);
 
 	// Update the sentence vertex buffer with the new string information.
-	result = UpdateSentence(cameraPosX, finalResultX, 10, 60, 0.0f, 1.0f, 0.0f, deviceContext);
+	result = UpdateSentence(cameraPosX, finalResultX.c_str(), 10, 60, 0.0f, 1.0f, 0.0f, deviceContext);
 	if(!result)
 	{
 		return false;
 	}
 
-	strcpy_s(finalResultY, "Camera position Y: ");
-	strcat_s(finalResultY, yString);
+	finalResultY += "Camera position Y: " + std::to_string((long double)Y);
 
 	// Update the sentence vertex buffer with the new string information.
-	result = UpdateSentence(cameraPosY, finalResultY, 10, 80, 0.0f, 1.0f, 0.0f, deviceContext);
+	result = UpdateSentence(cameraPosY, finalResultY.c_str(), 10, 80, 0.0f, 1.0f, 0.0f, deviceContext);
 	if(!result)
 	{
 		return false;
 	}
 
-	strcpy_s(finalResultZ, "Camera position Z: ");
-	strcat_s(finalResultZ, zString);
+	finalResultZ += "Camera position Z: " + std::to_string((long double)Z);
 
 	// Update the sentence vertex buffer with the new string information.
-	result = UpdateSentence(cameraPosZ, finalResultZ, 10, 100, 0.0f, 1.0f, 0.0f, deviceContext);
+	result = UpdateSentence(cameraPosZ, finalResultZ.c_str(), 10, 100, 0.0f, 1.0f, 0.0f, deviceContext);
 	if(!result)
 	{
 		return false;
@@ -791,75 +752,31 @@ bool TextClass::SetCameraPosition(int X, int Y, int Z, ID3D11DeviceContext* devi
 
 bool TextClass::SetCameraRotation(int X, int Y, int Z, ID3D11DeviceContext* deviceContext)
 {
-	char xString[32];
-	char yString[32];
-	char zString[32];
-	char finalResultX[32];
-	char finalResultY[32];
-	char finalResultZ[32];
+	string finalX, finalY, finalZ;
 	bool result;
 
-	// Convert the float to string format.
-	_itoa_s(X, xString, 10);
-	_itoa_s(Y, yString, 10);
-	_itoa_s(Z, zString, 10);
-
-	// Setup the cpu string.
-	strcpy_s(finalResultX, "Camera rotation X: ");
-	strcat_s(finalResultX, xString);
+	finalX += "Camera rotation X: " + std::to_string((long double)X);
 
 	// Update the sentence vertex buffer with the new string information.
-	result = UpdateSentence(cameraRotX, finalResultX, 10, 120, 0.0f, 1.0f, 0.0f, deviceContext);
+	result = UpdateSentence(cameraRotX, finalX.c_str(), 10, 120, 0.0f, 1.0f, 0.0f, deviceContext);
 	if(!result)
 	{
 		return false;
 	}
 
-	strcpy_s(finalResultY, "Camera rotation Y: ");
-	strcat_s(finalResultY, yString);
+	finalY += "Camera rotation Y: " + std::to_string((long double)Y);
 
 	// Update the sentence vertex buffer with the new string information.
-	result = UpdateSentence(cameraRotY, finalResultY, 10, 140, 0.0f, 1.0f, 0.0f, deviceContext);
+	result = UpdateSentence(cameraRotY, finalY.c_str(), 10, 140, 0.0f, 1.0f, 0.0f, deviceContext);
 	if(!result)
 	{
 		return false;
 	}
 
-	strcpy_s(finalResultZ, "Camera rotation Z: ");
-	strcat_s(finalResultZ, zString);
+	finalZ += "Camera rotation Z: " + std::to_string((long double)Z);
 
 	// Update the sentence vertex buffer with the new string information.
-	result = UpdateSentence(cameraRotZ, finalResultZ, 10, 160, 0.0f, 1.0f, 0.0f, deviceContext);
-	if(!result)
-	{
-		return false;
-	}
-
-	return true;
-}
-
-bool TextClass::SetRenderCount(int count, ID3D11DeviceContext* deviceContext)
-{
-	char tempString[16];
-	char renderString[32];
-	bool result;
-
-
-	// Truncate the render count if it gets to large to prevent a buffer overflow.
-	if(count > 999999999)
-	{
-		count = 999999999;
-	}
-
-	// Convert the cpu integer to string format.
-	_itoa_s(count, tempString, 10);
-
-	// Setup the cpu string.
-	strcpy_s(renderString, "Render Count: ");
-	strcat_s(renderString, tempString);
-
-	// Update the sentence vertex buffer with the new string information.
-	result = UpdateSentence(numberOfTrianglesRendered, renderString, 10, 180, 0.0f, 1.0f, 0.0f, deviceContext);
+	result = UpdateSentence(cameraRotZ, finalZ.c_str(), 10, 160, 0.0f, 1.0f, 0.0f, deviceContext);
 	if(!result)
 	{
 		return false;
@@ -870,15 +787,13 @@ bool TextClass::SetRenderCount(int count, ID3D11DeviceContext* deviceContext)
 
 bool TextClass::SetLastChar(char text, ID3D11DeviceContext* deviceContext)
 {
-	char renderString[32];
+	string stringThing;
 	bool result;
 
-	// Setup the cpu string.
-	strcpy_s(renderString, "Last key pressed: ");
-	strcat_s(renderString, &text);
+	stringThing += "Last key pressed: " + text;
 
 	// Update the sentence vertex buffer with the new string information.
-	result = UpdateSentence(lastCharPressed, renderString, 10, 200, 0.0f, 1.0f, 0.0f, deviceContext);
+	result = UpdateSentence(lastCharPressed, stringThing.c_str(), 10, 200, 0.0f, 1.0f, 0.0f, deviceContext);
 	if(!result)
 	{
 		return false;

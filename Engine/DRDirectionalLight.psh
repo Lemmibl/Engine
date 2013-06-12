@@ -7,6 +7,7 @@ cbuffer PositionalBuffer //Whatever, idk what else to name it
 	float4 LightDirection;
 	float4 LightPosition;
 	float4 CameraPosition;
+	float4 ViewDirection;
 };
 
 cbuffer PixelMatrixBuffer
@@ -241,19 +242,30 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	}
 
 
-	if(UpDotL > 0.0f)
+	if(UpDotL > (-0.1f))
 	{
+				/*PHONG*/
 		//Reflection vector
 		float3 reflectionVector = normalize(reflect(lightVector, normal));
 
 		//Camera-to-surface vector
 		float3 directionToCamera = normalize(position - CameraPosition);
 
-		//Calculate diffuse light
-		finalDiffuseProduct += diffuseCoefficient * (NdL * DiffuseColor.rgb);
-
 		//Calculate specular light 
 		finalSpecularProduct += specularCoefficient * pow( saturate( dot(reflectionVector, directionToCamera)), surfaceSmoothness);
+		/*End of phong*/
+
+
+
+				/*BLINN-PHONG*/
+		//float3 H = normalize( LightDirection + ViewDirection );
+
+		////Calculate specular light 
+		//finalSpecularProduct += specularCoefficient * pow( saturate( dot(normal, H)), surfaceSmoothness);
+		/*End of blinn phong*/
+
+		//Calculate diffuse light
+		finalDiffuseProduct += diffuseCoefficient * (NdL * DiffuseColor.rgb);
 	}
 
 

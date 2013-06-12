@@ -40,6 +40,7 @@ private:
 		XMFLOAT4 LightDirection;
 		XMFLOAT4 LightPosition;
 		XMFLOAT4 CameraPosition;
+		XMFLOAT4 ViewDirection;
 	};
 
 	struct LightBuffer
@@ -56,7 +57,7 @@ public:
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
 	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldViewProjection, XMMATRIX* invertedViewProj, 
-		ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** materialTextureArray, XMFLOAT3 cameraPosition, 
+		ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** materialTextureArray, XMFLOAT3 cameraPosition, XMFLOAT3 cameraViewDir,  
 		DirLight* dirLight, XMFLOAT4 ambienceColor, XMMATRIX* lightViewProj);
 
 private:
@@ -65,7 +66,7 @@ private:
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
 
 	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, XMMATRIX* invertedViewProj, 
-		ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** materialTextureArray, XMFLOAT3 cameraPosition, 
+		ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** materialTextureArray, XMFLOAT3 cameraPosition, XMFLOAT3 cameraViewDir, 
 		DirLight* dirLight, XMFLOAT4 ambienceColor, XMMATRIX* lightViewProj);
 
 	void RenderShader(ID3D11DeviceContext*, int);

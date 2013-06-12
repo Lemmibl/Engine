@@ -10,8 +10,8 @@ Texture2D randomTexture : register(ps_5_0, t0);
 Texture2D shaderTextures[4] : register(ps_5_0, t1); // 0 = color, light = 1, 2 = depth, 3 = normal
 
 static const float sampleRadius = 0.75f;
-static const float intensity = 0.5f;
-static const float scale = 0.3f;
+static const float intensity = 1.0f;
+static const float scale = 0.5f;
 static const float bias = 0.3f;
 
 cbuffer PixelMatrixBufferType
@@ -135,12 +135,12 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		}
 		else if(toggleSSAO == 1)
 		{
-			return lerp(float4((baseColor) * ao * (diffuseLight + specularLight), 1.0f),  FogColor, fogFactor); // + (fogFactor * FogColor)
+			return lerp(float4((baseColor) * ao * (specularLight + diffuseLight), 1.0f),  FogColor, fogFactor); // + (fogFactor * FogColor)
 		}
 		else if(toggleSSAO == 2)
 		{
 
-			return ao * lerp(float4((baseColor) * (diffuseLight + specularLight), 1.0f),  FogColor, fogFactor);
+			return ao * lerp(float4((baseColor) * (specularLight + diffuseLight), 1.0f),  FogColor, fogFactor);
 		}
 		else
 		{

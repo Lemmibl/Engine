@@ -12,6 +12,9 @@
 #include <vector>
 #include <windows.h>
 #include <xnamath.h> 
+#include <string>
+#include <iosfwd>
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -48,12 +51,11 @@ public:
 	bool SetRendercount(int, ID3D11DeviceContext*);
 	bool SetCameraPosition(int, int, int, ID3D11DeviceContext*);
 	bool SetCameraRotation(int, int, int, ID3D11DeviceContext*);
-	bool SetRenderCount(int, ID3D11DeviceContext*);
 	bool SetLastChar(char, ID3D11DeviceContext*);
 
 private:
 	bool InitializeSentence(SentenceType**, int, ID3D11Device*);
-	bool UpdateSentence(SentenceType* sentence, char*, int, int, float, float, float, ID3D11DeviceContext*);
+	bool UpdateSentence(SentenceType* sentence, const char*, int, int, float, float, float, ID3D11DeviceContext*);
 	void ReleaseSentence(SentenceType**);
 	void ReleaseSentences(vector<SentenceType*> sentences);
 	bool RenderSentence(SentenceType*, ID3D11DeviceContext*, XMMATRIX* worldViewProjection);
