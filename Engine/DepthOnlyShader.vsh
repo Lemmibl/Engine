@@ -21,7 +21,6 @@ VertexShaderOutput DepthOnlyVertexShader(VertexShaderInput input)
 
 	output.Position = mul(input.Position, WorldViewProjection);
 
-	//output.Depth = output.Position.z / output.Position.w;
 	output.ViewPosition = mul(input.Position, WorldView).xyz;
 
 	return output;

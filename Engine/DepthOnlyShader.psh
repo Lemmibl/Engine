@@ -28,51 +28,51 @@ float2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 
 
 /*
-From Matt Perineo's blog: http://mynameismjp.wordpress.com/2010/09/05/position-from-depth-3/
+From Matt Perineo's (MJP's) blog:
 
-Here’s what the code might look like for doing it in world space (since people seem to like sticking to world space, despite the advantages of view space):
+This time instead of using a normalized direction vector for the view ray, we extrapolate the ray all the way back until it intersects with the far clip plane.  
+When we do this, it means that the position at the end of the view ray is at a known depth relative to the camera position and the direction the camera is looking (the depth is the far clip plane distance).  
+In view space it means that the view ray has a Z component equal to the far clip plane.  Since the Z component is a known value we no longer need to normalize the view ray vector.  
+Instead we can multiply by a value that scales along the camera’s z-axis to get the final reconstructed position.  
+In the case where Z = FarClipDistance, we want to scale by a ratio of the original surface depth relative to the far clip plane.  
+In other words, the surface’s view space Z divided by the far clip distance.  In code it looks like this:
 
-***************************
 // G-Buffer vertex shader
-***************************
 // Calculate view space position of the vertex and pass it to the pixel shader
 output.PositionVS = mul(input.PositionOS, WorldViewMatrix).xyz;
 
-***************************
+
+
 // G-Buffer pixel shader
-***************************
-// Calculate the length of the view space position to get the distance from camera->surface
-output.Distance.x = length(input.PositionVS);
+// Divide view space Z by the far clip distance
+output.Depth.x = input.PositionVS.z / FarClipDistance;
 
 
-***************************
+
 // Light vertex shader
-***************************
 #if PointLight || SpotLight
-
-// Calculate the world space position for a light volume
-float3 positionWS = mul(input.PositionOS, WorldMatrix);
-
+// Calculate the view space vertex position
+output.PositionVS = mul(input.PositionOS, WorldViewMatrix);
 #elif DirectionalLight
-
-// Calculate the world space position for a full-screen quad (assume input vertex coordinates are in [-1,1] post-projection space)
-float3 positionWS = mul(input.PositionOS, InvViewProjMatrix);
+// Calculate the view space vertex position (you can also just directly map the vertex to a frustum corner to avoid the transform)
+output.PositionVS = mul(input.PositionOS, InvProjMatrix);
 #endif
 
 
-// Calculate the view ray
-output.ViewRay = positionWS - CameraPositionWS;
 
-
-***************************
 // Light Pixel shader
-***************************
-// Normalize the view ray, and apply the original distance to reconstruct position
-float3 viewRay = normalize(input.ViewRay);
+#if PointLight || SpotLight
+// Extrapolate the view space position to the  far clip plane
+float3 viewRay = float3(input.PositionVS.xy * (FarClipDistance / input.PositionVS.z), FarClipDistance);
+#elif DirectionalLight
+// For a directional light, the vertices were already on the far clip plane so we don't need to extrapolate
+float3 viewRay = input.PositionVS.xyz;
+#endif
 
-float viewDistance = DistanceTexture.Sample(PointSampler, texCoord);
-
-float3 positionWS = CameraPositionWS + viewRay * viewDistance;Like I said it’s piece of cake, and I suspect that for a lot of people it’s efficient enough. 
-But we’re not done yet, since we can still optimize things further if we stick to view space. We also want  may want to use a hardware depth buffer as opposed to manually storing a distance value.
-
+// Sample the depth and scale the view ray to reconstruct view space position
+float normalizedDepth = DepthTexture.Sample(PointSampler, texCoord).x;
+float3 positionVS = viewRay * normalizedDepth;As you can see this is a bit cheaper, especially for the full-screen quad case.  
+One thing to be aware of is that since with this we store normalized depth, it’s always in the range [0,1].  
+This means you can store it in a normalized integer format (such as DXGI_FORMAT_R16_UNORM) without having to do any rescaling after you sample it.  
+A floating point format will obviously handle it just fine as well.
 */
