@@ -538,7 +538,8 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 	{
 		return false;
 	}
-
+	
+	//Move all point lights upward
 	if(inputManager->IsKeyPressed(DIK_R))
 	{
 		XMMATRIX tempScale = XMMatrixScaling(pointLights[0]->Radius, pointLights[0]->Radius, pointLights[0]->Radius);
@@ -551,6 +552,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 		}
 	}
 
+	//Move all point lights downwarf
 	if(inputManager->IsKeyPressed(DIK_F))
 	{
 		XMMATRIX tempScale = XMMatrixScaling(pointLights[0]->Radius, pointLights[0]->Radius, pointLights[0]->Radius);
@@ -702,6 +704,7 @@ bool Renderer::Update(int fps, int cpu, float frameTime, float seconds)
 
 	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
 
+
 	XMVECTOR lookAt = XMVectorSet(30.0f, 20.0f, 30.0f, 1.0f);//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition())+(camera->ForwardVector()*30.0f);//XMLoadFloat3(&camera->GetPosition());//
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 	XMVECTOR currentLightPos = XMLoadFloat3(&dirLight->Position);//XMLoadFloat3(&camera->GetPosition())-(camera->ForwardVector()*30.0f);
@@ -725,7 +728,7 @@ bool Renderer::Render()
 
 	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, scalingMatrix, viewProjection, invertedViewProjection, invertedView, 
 		lightView, lightProj, lightViewProj, baseView, worldBaseViewOrthoProj, identityWorldViewProj, lightWorldViewProj, 
-		invertedProjection, untransposedViewProj;
+		invertedProjection, untransposedViewProj, worldView, lightWorldView;
 
 	XMFLOAT3 camPos;
 	bool result;
@@ -810,8 +813,10 @@ bool Renderer::Render()
 
 	identityWorldViewProj = ((worldMatrix*viewMatrix ) * projectionMatrix);
 	lightWorldViewProj = worldMatrix*lightViewProj;
+	lightWorldView = XMMatrixMultiply(lightView, worldMatrix);
 
 	lightWorldViewProj =		XMMatrixTranspose(lightWorldViewProj);
+	lightWorldView =			XMMatrixTranspose(lightWorldView);
 	identityWorldViewProj =		XMMatrixTranspose(identityWorldViewProj);
 	worldMatrix =				XMMatrixTranspose(worldMatrix);
 	viewProjection =			XMMatrixTranspose(viewProjection);
@@ -819,7 +824,8 @@ bool Renderer::Render()
 	invertedViewProjection =	XMMatrixTranspose(invertedViewProjection);
 	baseView =					XMMatrixTranspose(XMLoadFloat4x4(&baseViewMatrix));
 	invertedProjection =		XMMatrixTranspose(invertedProjection);
-	worldBaseViewOrthoProj = ((baseView * worldMatrix)* orthoMatrix); //Do it post-transpose
+	worldBaseViewOrthoProj =	((baseView * worldMatrix)* orthoMatrix); //Do it post-transpose
+
 #pragma endregion
 
 #pragma region Early depth pass for shadowmap
@@ -832,13 +838,13 @@ bool Renderer::Render()
 
 	marchingCubes->Render(context);
 
-	result = depthOnlyShader->Render(context, marchingCubes->GetIndexCount(), &lightWorldViewProj);
+	result = depthOnlyShader->Render(context, marchingCubes->GetIndexCount(), &lightWorldViewProj, &lightWorldView);
 	if(!result)
 	{
 		return false;
 	}
 
-	//////////////////////////////////////////////Uncomment to enable vegetation quad shadows...
+	/************************ Uncomment to enable vegetation quad shadows ************************/
 
 	//d3D->TurnOnShadowBlendState();
 	//vegetationManager->RenderBuffers(context);
@@ -848,6 +854,7 @@ bool Renderer::Render()
 
 	//d3D->ResetBlendState();
 
+	/*********************************************************************************************/
 #pragma endregion
 
 #pragma region Shadow map blur stage
@@ -894,10 +901,11 @@ bool Renderer::Render()
 
 	worldMatrix = XMMatrixIdentity(); 
 	worldMatrix = XMMatrixTranspose(worldMatrix);
+	worldView = XMMatrixTranspose(worldMatrix*viewMatrix);
 
 	marchingCubes->Render(context);
 	result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
-		&worldMatrix, &identityWorldViewProj, textureAndMaterialHandler->GetTerrainTextureArray());
+		&worldMatrix, &worldView, &identityWorldViewProj, textureAndMaterialHandler->GetTerrainTextureArray());
 
 	d3D->SetNoCullRasterizer();
 	d3D->TurnOnAlphaBlending();
@@ -951,7 +959,8 @@ bool Renderer::Render()
 	fullScreenQuad.Render(context, 0, 0);
 
 	result = dirLightShader->Render(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &invertedViewProjection, 
-		dirLightTextures, textureAndMaterialHandler->GetMaterialTextureArray(), camPos, dirLight, dayNightCycle->GetAmbientLightColor(), &lightViewProj);
+		dirLightTextures, textureAndMaterialHandler->GetMaterialTextureArray(), camPos, dirLight, 
+		dayNightCycle->GetAmbientLightColor(), &lightViewProj, &worldMatrix);
 	if(!result)
 	{
 		return false;

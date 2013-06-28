@@ -42,13 +42,14 @@ void MCubesGBufferShader::Shutdown()
 	return;
 }
 
-bool MCubesGBufferShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textures)
+bool MCubesGBufferShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, 
+	XMMATRIX* worldViewMatrix, XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textures)
 {
 	bool result;
 
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldMatrix, worldViewProjection, textures);
+	result = SetShaderParameters(deviceContext, worldMatrix, worldViewMatrix, worldViewProjection, textures);
 	if(!result)
 	{
 		return false;
@@ -293,7 +294,7 @@ void MCubesGBufferShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWN
 }
 
 bool MCubesGBufferShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, 
-	XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textures)
+	XMMATRIX* worldViewMatrix, XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textures)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -312,6 +313,7 @@ bool MCubesGBufferShader::SetShaderParameters(ID3D11DeviceContext* deviceContext
 
 	// Copy the matrices into the constant buffer.
 	dataPtr->World = *worldMatrix;
+	dataPtr->WorldView = *worldViewMatrix;
 	dataPtr->WorldViewProjection = *worldViewProjection;
 
 	// Unlock the matrix constant buffer.

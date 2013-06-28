@@ -54,13 +54,13 @@ void DRDirLight::Shutdown()
 
 bool DRDirLight::Render( ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldViewProjection, 
 	XMMATRIX* invertedViewProj, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** materialTextureArray, 
-	XMFLOAT3 cameraPosition, DirLight* dirLight, XMFLOAT4 ambienceColor, XMMATRIX* lightViewProj )
+	XMFLOAT3 cameraPosition, DirLight* dirLight, XMFLOAT4 ambienceColor, XMMATRIX* lightViewProj, XMMATRIX* world)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
 	result = SetShaderParameters(deviceContext, worldViewProjection, invertedViewProj, textureArray, materialTextureArray, 
-		cameraPosition, dirLight, ambienceColor, lightViewProj);
+		cameraPosition, dirLight, ambienceColor, lightViewProj, world);
 	if(!result)
 	{
 		return false;
@@ -415,7 +415,7 @@ void DRDirLight::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, W
 
 bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, XMMATRIX* invertedViewProj, 
 	ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** materialTextureArray, XMFLOAT3 cameraPosition, 
-	DirLight* dirLight, XMFLOAT4 ambienceColor,XMMATRIX* lightViewProj)
+	DirLight* dirLight, XMFLOAT4 ambienceColor,XMMATRIX* lightViewProj, XMMATRIX* world)
 {		
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -439,6 +439,8 @@ bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATR
 	dataPtr1 = (VertexMatrixBuffer*)mappedResource.pData;
 
 	dataPtr1->WorldViewProjection = *worldViewProjection;
+	dataPtr1->World = *world;
+	dataPtr1->CameraPosition = XMFLOAT4(cameraPosition.x, cameraPosition.y, cameraPosition.z, 1.0f);
 
 	deviceContext->Unmap(vertexMatrixBuffer, 0);
 

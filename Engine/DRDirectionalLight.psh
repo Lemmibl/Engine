@@ -32,7 +32,7 @@ struct VertexShaderOutput
 {
 	float4 Position : SV_POSITION;
 	float2 TexCoord : TEXCOORD0;
-	float4 ScreenPosition : TEXCOORD1;
+	float3 ViewRay : TEXCOORD1;
 };
 
 /////////////////////////////////////////////
@@ -81,18 +81,25 @@ half3 DecodeNormal(half2 enc)
 	return n;
 }
 
-float4 ReconstructPositionFromDepth(float depth, float2 ScreenPosition)
+float4 ReconstructPositionFromDepth(float3 viewPosition, float2 texCoord)
 {
-	//Create a clip space position (I think?)
-	float4 position;
-	position.xy = ScreenPosition;
-	position.z = depth; //With depth from camera
-	position.w = 1.0f;
+	////Create a clip space position (I think?)
+	//float4 position;
+	//// Normalize the view ray, and apply the original distance to reconstruct position
+	//float3 normalizedViewRay = normalize(viewRay);
+	//float viewDistance = shaderTextures[1].Sample(linearSampler, texCoord);
+	//position.xyz = CameraPosition.xyz + normalizedViewRay * viewDistance;
+	//position.w = 1.0f;
 
-	position = mul(position, InverseViewProjection); //And revert it back to world position
-	position /= position.w;
+	//return position;
 
-	return position;
+
+	float3 viewRay = float3(viewPosition.xy * (150.0f / viewPosition.z), 150.0f);
+	
+	// Sample the depth and scale the view ray to reconstruct view space position
+	float normalizedDepth = shaderTextures[1].Sample(linearSampler, texCoord);
+
+	return float4(viewRay * normalizedDepth, 1.0f); //float4 positionVS =
 }
 
 //Linear stepping function used when reducing light bleeding for variance shadowmaps
@@ -205,11 +212,8 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 
 	float UpDotL = dot(lightVector, float3(0.0f, 1.0f, 0.0f));
 
-	//Adjust value
-	input.ScreenPosition /= input.ScreenPosition.w;
-	
 	//Reconstructing position
-	float4 position = ReconstructPositionFromDepth(depth, input.ScreenPosition.xy);
+	float4 position = ReconstructPositionFromDepth(input.ViewRay, input.TexCoord);
 
 	//Extract pixel position as seen from light POV for shadow map extraction.
 	float4 lightScreenPos = mul(position, LightViewProjection);

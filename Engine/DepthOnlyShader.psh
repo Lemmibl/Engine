@@ -1,7 +1,7 @@
 struct VertexShaderOutput
 {
 	float4 Position : SV_POSITION;
-	float Depth : TEXCOORD0;
+	float3 ViewPosition : TEXCOORD0;
 };
 
 float2 ComputeMoments(float depth)  
@@ -21,19 +21,58 @@ float2 ComputeMoments(float depth)
 	return moments;
 };
 
-/*
-I’ve stored my depth in linear view space using viewpos.z / farClip and retrieving viewspace position with the viewRay * Depth,
- but my point lights still move around with the camera and appear/vanish when I get closer/farther away. 
- Normals are in view space. Works flawless when I use z/w depth but I can’t get it to work with linear view space depth. Any suggestions ?
-
- Answer: Multiply your result with the inverse view matrix.
-
- http://mynameismjp.wordpress.com/2010/09/05/position-from-depth-3/
- http://msdn.microsoft.com/en-us/library/windows/desktop/cc627119(v=vs.85).aspx
-*/
-
-
 float2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 {
-	return ComputeMoments(input.Depth);
+	return ComputeMoments((input.ViewPosition.z / 150.0f));
 };
+
+
+/*
+From Matt Perineo's blog: http://mynameismjp.wordpress.com/2010/09/05/position-from-depth-3/
+
+Here’s what the code might look like for doing it in world space (since people seem to like sticking to world space, despite the advantages of view space):
+
+***************************
+// G-Buffer vertex shader
+***************************
+// Calculate view space position of the vertex and pass it to the pixel shader
+output.PositionVS = mul(input.PositionOS, WorldViewMatrix).xyz;
+
+***************************
+// G-Buffer pixel shader
+***************************
+// Calculate the length of the view space position to get the distance from camera->surface
+output.Distance.x = length(input.PositionVS);
+
+
+***************************
+// Light vertex shader
+***************************
+#if PointLight || SpotLight
+
+// Calculate the world space position for a light volume
+float3 positionWS = mul(input.PositionOS, WorldMatrix);
+
+#elif DirectionalLight
+
+// Calculate the world space position for a full-screen quad (assume input vertex coordinates are in [-1,1] post-projection space)
+float3 positionWS = mul(input.PositionOS, InvViewProjMatrix);
+#endif
+
+
+// Calculate the view ray
+output.ViewRay = positionWS - CameraPositionWS;
+
+
+***************************
+// Light Pixel shader
+***************************
+// Normalize the view ray, and apply the original distance to reconstruct position
+float3 viewRay = normalize(input.ViewRay);
+
+float viewDistance = DistanceTexture.Sample(PointSampler, texCoord);
+
+float3 positionWS = CameraPositionWS + viewRay * viewDistance;Like I said it’s piece of cake, and I suspect that for a lot of people it’s efficient enough. 
+But we’re not done yet, since we can still optimize things further if we stick to view space. We also want  may want to use a hardware depth buffer as opposed to manually storing a distance value.
+
+*/

@@ -57,7 +57,7 @@ float DoAmbientOcclusion(float2 TexCoord, float2 Offset, float2 ScreenPos, float
 	float3 v = normalize(diff);
 	float d = length(diff)*scale;
 
-	return max(0.0, dot(Normal, v)-bias)*(1.0/(1.0+d))*intensity;
+	return max(0.0, dot(Normal, v)-bias) * (1.0/(1.0+d))*intensity;
 }
 
 float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
@@ -128,7 +128,7 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		float specularLight = light.a;
 		
 		//Not going to apply specular here, it'll be applied in the final composition stage.
-		return ao*lerp(float4((baseColor) * (diffuseLight + specularLight), 1.0f),  FogColor, fogFactor); // + (fogFactor * FogColor)
+		return lerp(float4((baseColor) * (ao*diffuseLight + specularLight), 1.0f),  FogColor, fogFactor); // + (fogFactor * FogColor)
 }
 
 /*
