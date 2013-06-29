@@ -85,7 +85,7 @@ bool InputClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidth, int
 	}
 
 	// Set the cooperative level of the mouse to share with other programs.
-	result = mouse->SetCooperativeLevel(hwnd, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE);
+	result = mouse->SetCooperativeLevel(hwnd, DISCL_NONEXCLUSIVE|DISCL_BACKGROUND);
 	if(FAILED(result))
 	{
 		return false;
@@ -271,64 +271,3 @@ UINT InputClass::WndProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 	return uMsg;
 }
-
-/*
-	private:
-	IDirectInput8* p_Object;
-	IDirectInputDevice8* p_KeyboardDevice;
-	unsigned char p_KeyStates[2][256];
-	unsigned char *p_CurKeyStates;
-	unsigned char *p_PrevKeyStates;
-	char p_LastChar;
-
-	bool Update(void)
-	{
-	if (!p_KeyboardDevice)
-	{
-	if (FAILED(p_Object->CreateDevice(GUID_SysKeyboard, &p_KeyboardDevice, 0))) return false;
-	if (FAILED(p_KeyboardDevice->SetDataFormat(&c_dfDIKeyboard))) return false;
-	if (FAILED(p_KeyboardDevice->SetCooperativeLevel(hWnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE))) return false;
-	if (FAILED(p_KeyboardDevice->Acquire())) return false;
-	}
-
-	unsigned char *tempKeyStates = p_PrevKeyStates;
-	p_PrevKeyStates = p_CurKeyStates;
-	p_CurKeyStates = tempKeyStates;
-
-	if (FAILED(p_KeyboardDevice->GetDeviceState(256, p_CurKeyStates)))
-	{
-	if (FAILED(p_KeyboardDevice->Acquire())) return false;
-	}
-
-	return true;
-	};
-	
-	public:
-	char GetLastChar(void) const
-	{
-		return p_LastChar;
-	};
-	
-	bool IsKeyDown(Keys key) const
-	{
-		return (p_CurKeyStates[key] & 0x80) ? true : false;
-	};
-	
-	bool IsKeyUp(Keys key) const
-	{
-		return (p_CurKeyStates[key] & 0x80) ? false : true;
-	};
-	
-	bool IsKeyPressed(Keys key) const
-	{
-		return ((p_CurKeyStates[key] & 0x80) && !(p_PrevKeyStates[key] & 0x80)) ? true : false;
-	};
-
-	UINT WndProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
-	{
-		if (uMsg == WM_CHAR) 
-		p_LastChar = static_cast<char>(wParam);
-
-		return uMsg;
-	};
-*/

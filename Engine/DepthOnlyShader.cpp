@@ -47,13 +47,13 @@ void DepthOnlyShader::Shutdown()
 }
 
 
-bool DepthOnlyShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldViewProjection)
+bool DepthOnlyShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldViewProjection, XMMATRIX* worldView)
 {
 	bool result;
 
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldViewProjection);
+	result = SetShaderParameters(deviceContext, worldViewProjection, worldView);
 	if(!result)
 	{
 		return false;
@@ -246,7 +246,7 @@ void DepthOnlyShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hw
 }
 
 
-bool DepthOnlyShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection)
+bool DepthOnlyShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, 		XMMATRIX* worldView)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -265,6 +265,7 @@ bool DepthOnlyShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XM
 
 	// Copy the matrices into the constant buffer.
 	dataPtr->worldViewProjection = *worldViewProjection;
+	dataPtr->worldView = *worldView;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(matrixBuffer, 0);

@@ -3,7 +3,7 @@ struct VertexShaderOutput
 	float4 Position : SV_POSITION;
 	float3 WorldNormal : NORMAL;
 	float4 WorldPosition : TEXCOORD0;
-	float Depth : TEXCOORD1;
+	float3 ViewPosition : TEXCOORD1;
 	uint4 IDValues : TEXCOORD2;
 };
 
@@ -212,7 +212,7 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 	output.Normal.z = EncodeMaterialID(material1);
 	output.Normal.w = EncodeMaterialID(material2);
 
-	output.Depth = (input.Depth);
+	output.Depth = input.ViewPosition.z / 150.0f;
 
 	return output;
 }

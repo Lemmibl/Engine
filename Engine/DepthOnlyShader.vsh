@@ -1,6 +1,7 @@
 cbuffer MatrixBuffer
 {
 	float4x4 WorldViewProjection;
+	float4x4 WorldView;
 };
 
 struct VertexShaderInput
@@ -11,7 +12,7 @@ struct VertexShaderInput
 struct VertexShaderOutput
 {
 	float4 Position : SV_POSITION;
-	float Depth : TEXCOORD0;
+	float3 ViewPosition : TEXCOORD0;
 };
 
 VertexShaderOutput DepthOnlyVertexShader(VertexShaderInput input)
@@ -20,7 +21,7 @@ VertexShaderOutput DepthOnlyVertexShader(VertexShaderInput input)
 
 	output.Position = mul(input.Position, WorldViewProjection);
 
-	output.Depth = output.Position.z / output.Position.w;
+	output.ViewPosition = mul(input.Position, WorldView).xyz;
 
 	return output;
 }

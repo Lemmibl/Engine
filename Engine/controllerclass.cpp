@@ -98,7 +98,7 @@ void ControllerClass::Update(float frameTime, XMFLOAT4X4* cameraMatrix)
 
 	if(inputManager->IsKeyPressed(DIK_LSHIFT))
 	{
-		movementValue = (moveSpeed*3) * frameTime;
+		movementValue = (moveSpeed*3.0f) * frameTime;
 	}
 	else
 	{
@@ -113,7 +113,7 @@ void ControllerClass::Update(float frameTime, XMFLOAT4X4* cameraMatrix)
 	rotationalForce = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
 
 	mousePos = inputManager->GetMousePos();
-	SetCursorPos(0, 0);
+	//SetCursorPos(0, 0);
 
 	rotationalForce.y -= (prevMousePos.x - mousePos.x)*0.06f;
 	rotationalForce.x -= (prevMousePos.y - mousePos.y)*0.06f;

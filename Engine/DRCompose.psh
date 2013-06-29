@@ -58,7 +58,7 @@ float DoAmbientOcclusion(float2 TexCoord, float2 Offset, float2 ScreenPos, float
 	float3 v = normalize(diff);
 	float d = length(diff)*scale;
 
-	return max(0.0, dot(Normal, v)-bias)*(1.0/(1.0+d))*intensity;
+	return max(0.0, dot(Normal, v)-bias) * (1.0/(1.0+d))*intensity;
 }
 
 float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0

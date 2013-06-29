@@ -5,36 +5,28 @@
 //http://devmaster.net/forums/topic/7934-aabb-collision/
 struct Lemmi2DAABB
 {
-	XMFLOAT2 MinPoint, MaxPoint, CenterPosition;
 	float Radius;
-
 	Lemmi2DAABB(){}
+	~Lemmi2DAABB(){}
 
 	Lemmi2DAABB(XMFLOAT2 minPoint, XMFLOAT2 maxPoint)
 	{
-		this->MinPoint = minPoint;
-		this->MaxPoint = maxPoint;
+		MinPoint = minPoint;
+		MaxPoint = maxPoint;
 		XMStoreFloat(&(this->Radius), XMVector2Length(XMVectorSet(((MaxPoint.x-MinPoint.x)*0.5f), ((MaxPoint.y-MinPoint.y)*0.5f), 0.0f, 1.0f)));
 
-		this->CenterPosition = XMFLOAT2(((MinPoint.x+MaxPoint.x)*0.5f), ((MinPoint.y+MaxPoint.y)*0.5f));
+		xSize = maxPoint.x - minPoint.x;
+		ySize = maxPoint.y - minPoint.y;
 	}
-
-	~Lemmi2DAABB(){}
 
 	bool Intersects(const Lemmi2DAABB& otherAABB)
 	{
-		XMFLOAT2 otherMinPoint, otherMaxPoint;
-
-		//I do this to minimize fetches. 2 vs 4
-		otherMinPoint = otherAABB.MinPoint;
-		otherMaxPoint = otherAABB.MaxPoint;
-
-		if(otherMinPoint.x > MaxPoint.x || MinPoint.x > otherMaxPoint.x)
+		if(otherAABB.MinPoint.x > MaxPoint.x || MinPoint.x > otherAABB.MaxPoint.x)
 		{
 			return false;
 		}
 
-		if(otherMinPoint.y > MaxPoint.y || MinPoint.y > otherMaxPoint.y)
+		if(otherAABB.MinPoint.y > MaxPoint.y || MinPoint.y > otherAABB.MaxPoint.y)
 		{
 			return false;
 		}
@@ -116,4 +108,18 @@ struct Lemmi2DAABB
 
 		return negativeVertex;
 	}
+
+	//Moves the minPoint and moves the maxPoint to minPoint+size
+	void Move(float x, float y)
+	{
+		MinPoint.x = x;
+		MinPoint.y = y;
+		MaxPoint.x = x+xSize;
+		MaxPoint.y = y+ySize;
+	}
+
+	private:
+	XMFLOAT2 MinPoint, MaxPoint, CenterPosition;
+	float xSize, ySize;
+
 };

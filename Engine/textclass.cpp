@@ -30,6 +30,7 @@ TextClass::TextClass(const TextClass& other)
 {
 }
 
+//TODO: http://stackoverflow.com/questions/15734465/resizing-dynamic-string-array
 
 TextClass::~TextClass()
 {
