@@ -1127,7 +1127,7 @@ bool Renderer::Render()
 	fullScreenQuad.Render(context, 0, 0);
 
 	result = dirLightShader->Render(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &invertedViewProjection, 
-		dirLightTextures, textureAndMaterialHandler->GetMaterialTextureArray(), camPos, camDir, dirLight, dayNightCycle->GetAmbientLightColor(), &lightViewProj);
+		dirLightTextures, textureAndMaterialHandler->GetMaterialTextureArray(), camPos, camDir, dirLight,
 		dayNightCycle->GetAmbientLightColor(), &lightViewProj, &worldMatrix);
 	if(!result)
 	{
