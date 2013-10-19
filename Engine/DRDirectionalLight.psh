@@ -33,7 +33,7 @@ struct VertexShaderOutput
 {
 	float4 Position : SV_POSITION;
 	float2 TexCoord : TEXCOORD0;
-	float3 ViewRay : TEXCOORD1;
+	float3 ViewPosition : TEXCOORD1;
 };
 
 /////////////////////////////////////////////
@@ -84,17 +84,6 @@ half3 DecodeNormal(half2 enc)
 
 float4 ReconstructPositionFromDepth(float3 viewPosition, float2 texCoord)
 {
-	////Create a clip space position (I think?)
-	//float4 position;
-	//// Normalize the view ray, and apply the original distance to reconstruct position
-	//float3 normalizedViewRay = normalize(viewRay);
-	//float viewDistance = shaderTextures[1].Sample(linearSampler, texCoord);
-	//position.xyz = CameraPosition.xyz + normalizedViewRay * viewDistance;
-	//position.w = 1.0f;
-
-	//return position;
-
-
 	float3 viewRay = float3(viewPosition.xy * (150.0f / viewPosition.z), 150.0f);
 	
 	// Sample the depth and scale the view ray to reconstruct view space position
@@ -214,7 +203,7 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	float UpDotL = dot(lightVector, float3(0.0f, 1.0f, 0.0f));
 
 	//Reconstructing position
-	float4 position = ReconstructPositionFromDepth(input.ViewRay, input.TexCoord);
+	float4 position = ReconstructPositionFromDepth(input.ViewPosition, input.TexCoord);
 
 	//Extract pixel position as seen from light POV for shadow map extraction.
 	float4 lightScreenPos = mul(position, LightViewProjection);

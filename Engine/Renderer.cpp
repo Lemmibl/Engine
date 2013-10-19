@@ -946,12 +946,14 @@ bool Renderer::Render()
 	invertedProjection = XMMatrixInverse(&nullVec, projectionMatrix);
 	invertedViewProjection = XMMatrixInverse(&nullVec, viewProjection);
 
-	identityWorldViewProj = ((worldMatrix*viewMatrix ) * projectionMatrix);
+	worldView = (worldMatrix*viewMatrix);
+	identityWorldViewProj = (worldView * projectionMatrix);
 	lightWorldViewProj = worldMatrix*lightViewProj;
 	lightWorldView = XMMatrixMultiply(lightView, worldMatrix);
 
 	lightWorldViewProj =		XMMatrixTranspose(lightWorldViewProj);
 	lightWorldView =			XMMatrixTranspose(lightWorldView);
+	worldView =					XMMatrixTranspose(worldView);
 	identityWorldViewProj =		XMMatrixTranspose(identityWorldViewProj);
 	worldMatrix =				XMMatrixTranspose(worldMatrix);
 	viewProjection =			XMMatrixTranspose(viewProjection);
@@ -1128,7 +1130,7 @@ bool Renderer::Render()
 
 	result = dirLightShader->Render(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &invertedViewProjection, 
 		dirLightTextures, textureAndMaterialHandler->GetMaterialTextureArray(), camPos, camDir, dirLight,
-		dayNightCycle->GetAmbientLightColor(), &lightViewProj, &worldMatrix);
+		dayNightCycle->GetAmbientLightColor(), &lightViewProj, &worldView);
 	if(!result)
 	{
 		return false;

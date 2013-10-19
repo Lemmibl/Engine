@@ -37,19 +37,27 @@ Instead we can multiply by a value that scales along the camera’s z-axis to get 
 In the case where Z = FarClipDistance, we want to scale by a ratio of the original surface depth relative to the far clip plane.  
 In other words, the surface’s view space Z divided by the far clip distance.  In code it looks like this:
 
+
+
+
 // G-Buffer vertex shader
+
 // Calculate view space position of the vertex and pass it to the pixel shader
 output.PositionVS = mul(input.PositionOS, WorldViewMatrix).xyz;
 
 
 
+
 // G-Buffer pixel shader
+
 // Divide view space Z by the far clip distance
 output.Depth.x = input.PositionVS.z / FarClipDistance;
 
 
 
+
 // Light vertex shader
+
 #if PointLight || SpotLight
 // Calculate the view space vertex position
 output.PositionVS = mul(input.PositionOS, WorldViewMatrix);
@@ -60,9 +68,11 @@ output.PositionVS = mul(input.PositionOS, InvProjMatrix);
 
 
 
+
 // Light Pixel shader
+
 #if PointLight || SpotLight
-// Extrapolate the view space position to the  far clip plane
+// Extrapolate the view space position to the far clip plane
 float3 viewRay = float3(input.PositionVS.xy * (FarClipDistance / input.PositionVS.z), FarClipDistance);
 #elif DirectionalLight
 // For a directional light, the vertices were already on the far clip plane so we don't need to extrapolate
@@ -71,7 +81,11 @@ float3 viewRay = input.PositionVS.xyz;
 
 // Sample the depth and scale the view ray to reconstruct view space position
 float normalizedDepth = DepthTexture.Sample(PointSampler, texCoord).x;
-float3 positionVS = viewRay * normalizedDepth;As you can see this is a bit cheaper, especially for the full-screen quad case.  
+float3 positionVS = viewRay * normalizedDepth;
+
+
+
+As you can see this is a bit cheaper, especially for the full-screen quad case.  
 One thing to be aware of is that since with this we store normalized depth, it’s always in the range [0,1].  
 This means you can store it in a normalized integer format (such as DXGI_FORMAT_R16_UNORM) without having to do any rescaling after you sample it.  
 A floating point format will obviously handle it just fine as well.

@@ -33,7 +33,7 @@ private:
 	struct VertexMatrixBuffer
 	{
 		XMMATRIX WorldViewProjection;
-		XMMATRIX World;
+		XMMATRIX WorldView;
 		XMFLOAT4 CameraPosition;
 	};
 
@@ -60,7 +60,7 @@ public:
 	void Shutdown();
 	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldViewProjection, XMMATRIX* invertedViewProj, 
 		ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** materialTextureArray, XMFLOAT3 cameraPosition, XMFLOAT3 cameraViewDir,  
-		DirLight* dirLight, XMFLOAT4 ambienceColor, XMMATRIX* lightViewProj, XMMATRIX* world);
+		DirLight* dirLight, XMFLOAT4 ambienceColor, XMMATRIX* lightViewProj, XMMATRIX* worldView);
 
 private:
 	bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
@@ -69,7 +69,7 @@ private:
 
 	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, XMMATRIX* invertedViewProj, 
 		ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** materialTextureArray, XMFLOAT3 cameraPosition, XMFLOAT3 cameraViewDir, 
-		DirLight* dirLight, XMFLOAT4 ambienceColor, XMMATRIX* lightViewProj, XMMATRIX* world);
+		DirLight* dirLight, XMFLOAT4 ambienceColor, XMMATRIX* lightViewProj, XMMATRIX* worldView);
 
 	void RenderShader(ID3D11DeviceContext*, int);
 

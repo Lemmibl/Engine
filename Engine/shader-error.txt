@@ -7,8 +7,3 @@ C:\Users\Lemmi\Documents\GitHub\Engine\Engine\DRCompose.psh(95,29): warning X320
 C:\Users\Lemmi\Documents\GitHub\Engine\Engine\DRCompose.psh(143,16): error X3013: 'lerp': intrinsic function does not take 2 parameters
 C:\Users\Lemmi\Documents\GitHub\Engine\Engine\DRCompose.psh(143,16): error X3013: Possible intrinsic functions are:
 C:\Users\Lemmi\Documents\GitHub\Engine\Engine\DRCompose.psh(143,16): error X3013:     lerp(float, float, float)
-C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Engine\DRDirectionalLight.psh(166,8): warning X3206: implicit truncation of vector type
-C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Engine\DRDirectionalLight.psh(204,28): warning X3205: 'DecodeNormal': conversion from larger type to smaller, possible loss of data
-C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Engine\DRDirectionalLight.psh(207,9): warning X3206: implicit truncation of vector type
-C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Engine\DRDirectionalLight.psh(248,10): warning X3206: implicit truncation of vector type
-C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Engine\DRDirectionalLight.psh(84,8): error X3507: 'ReconstructPositionFromDepth': Not all control paths return a value
