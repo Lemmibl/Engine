@@ -9,8 +9,8 @@ DRCompose::DRCompose()
 	vertexShader = 0;
 	pixelShader = 0;
 	layout = 0;
+	samplers[0] = 0;
 	samplers[1] = 0;
-	samplers[2] = 0;
 
 	vertexMatrixBuffer = 0;
 	pixelMatrixBuffer = 0;
@@ -50,13 +50,13 @@ void DRCompose::Shutdown()
 	return;
 }
 
-bool DRCompose::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldViewProjection, XMMATRIX* invViewProjection,
+bool DRCompose::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldViewProjection, XMMATRIX* worldView, XMMATRIX* view, XMMATRIX* invertedProjection, XMMATRIX* invViewProjection,
 	XMFLOAT4* fogColor, float fogMinimum, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView* randomTexture, int toggle)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldViewProjection, invViewProjection, fogColor, fogMinimum, 
+	result = SetShaderParameters(deviceContext, worldViewProjection, worldView, view, invertedProjection, invViewProjection, fogColor, fogMinimum, 
 		textureArray, randomTexture, toggle);
 	if(!result)
 	{
@@ -87,7 +87,7 @@ bool DRCompose::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 	pixelShaderBuffer = 0;
 
 	// Compile the vertex shader code.
-	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "ComposeVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
+	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "ComposeVertexShader", "vs_5_0", NULL, 0, NULL, 
 		&vertexShaderBuffer, &errorMessage, NULL);
 	if(FAILED(result))
 	{
@@ -106,7 +106,7 @@ bool DRCompose::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 	}
 
 	// Compile the pixel shader code.
-	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "ComposePixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
+	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "ComposePixelShader", "ps_5_0", NULL, 0, NULL, 
 		&pixelShaderBuffer, &errorMessage, NULL);
 	if(FAILED(result))
 	{
@@ -195,9 +195,9 @@ bool DRCompose::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 
 	// Create a texture sampler state description.
 	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.MipLODBias = 0.0f;
 	samplerDesc.MaxAnisotropy = 1;
 	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
@@ -336,7 +336,7 @@ void DRCompose::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WC
 	return;
 }
 
-bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, XMMATRIX* invViewProjection,
+bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, XMMATRIX* worldView, XMMATRIX* view, XMMATRIX* invertedProjection, XMMATRIX* invViewProjection,
 	XMFLOAT4* fogColor, float fogMinimum, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView* randomTexture, int toggle)
 {		
 	HRESULT result;
@@ -359,6 +359,7 @@ bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRI
 	dataPtr1 = (VertexMatrixBuffer*)mappedResource.pData;
 
 	dataPtr1->WorldViewProjection = *worldViewProjection;
+	dataPtr1->WorldView = *worldView;
 
 	deviceContext->Unmap(vertexMatrixBuffer, 0);
 
@@ -380,7 +381,8 @@ bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRI
 	// Get a pointer to the data in the constant buffer.
 	dataPtr2 = (PixelMatrixBuffer*)mappedResource.pData;
 
-	dataPtr2->InvViewProjection = *invViewProjection;
+	dataPtr2->View = *view;
+	dataPtr2->InvertedProjection = *invertedProjection;
 	dataPtr2->FogColor = XMFLOAT4(fogColor->x, fogColor->y, fogColor->z, fogMinimum);
 	dataPtr2->toggleSSAO = toggle;
 

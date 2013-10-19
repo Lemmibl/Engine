@@ -11,7 +11,8 @@ struct VertexShaderOutput
 	float2 TexCoord : TEXCOORD0;
 	float4 WorldPosition : TEXCOORD1;
 	float2 Depth : TEXCOORD2;
-	float3x3 TangentToWorld : TEXCOORD3;
+	float4 ViewPosition : TEXCOORD3;
+	float3x3 TangentToWorld : TEXCOORD4;
 };
 
 struct PixelShaderOutput
@@ -38,10 +39,10 @@ PixelShaderOutput GBufferPixelShader(VertexShaderOutput input)
 	PixelShaderOutput output;
 
 	//Create weights for color interpolation based on world-space normal of surface
-	float tighten = 0.2f; 
+	float tighten = 0.45f; 
 	float3 NormalizedWorldNormal = normalize(input.TangentToWorld[2].xyz);
 
-	float3 blend_weights = abs(NormalizedWorldNormal);     
+	float3 blend_weights = abs(input.Normal);     
 	blend_weights = (blend_weights - tighten) * 7;  // Tighten up the blending zone
 	blend_weights = max(blend_weights, 0);
 	blend_weights /= (blend_weights.x + blend_weights.y + blend_weights.z).xxx; // Force weights to sum to 1.0 (very important!)  
@@ -49,7 +50,7 @@ PixelShaderOutput GBufferPixelShader(VertexShaderOutput input)
 	float scale = 0.2f;
 
 	float2 YZCoord = input.WorldPosition.yz * scale;  
-	float2 ZXCoord = input.WorldPosition.zx * scale;  
+	float2 ZXCoord = input.WorldPosition.xz * scale;  
 	float2 XYCoord = input.WorldPosition.xy * scale; 
 
 	float4 YZColor = shaderTextures[0].Sample(samplers[1], YZCoord);
@@ -58,28 +59,29 @@ PixelShaderOutput GBufferPixelShader(VertexShaderOutput input)
 	
 	output.Color = ((XZColor * blend_weights.y) + (YZColor * blend_weights.x) + (XYColor * blend_weights.z));
 
-	/* Use this instead if you want "pure" texturing -- no blending.
-	*
-	*	float x = abs(input.TangentToWorld[2].x);
-	*	float y = abs(input.TangentToWorld[2].y);
-	*	float z = abs(input.TangentToWorld[2].z);
-	*	
-	*	if(x > y && x > z)
-	*	{
-	*		output.Color = cYZ;
-	*	}
-	*	else if(y > x && y > z)
-	*	{
-	*		output.Color = cXZ;
-	*	}
-	*	else if(z > y && z > x)
-	*	{
-	*		output.Color = cXY;
-	*	} 
-	*
-	*/
+	//Use this instead if you want "pure" texturing -- no blending.
+	//float x = abs(input.TangentToWorld[2].x);
+	//float y = abs(input.TangentToWorld[2].y);
+	//float z = abs(input.TangentToWorld[2].z);
+	//float maxVal = max(x, y);
+	//maxVal = max(maxVal, z);
+	//
+	//if(maxVal == x)
+	//{
+	//	output.Color = YZColor;
+	//}
+	//else if(maxVal == y)
+	//{
+	//	output.Color = XZColor;
+	//}
+	//else
+	//{
+	//	output.Color = XYColor;
+	//} 
+	
+	
 
-	float3 normalFromMap =				shaderTextures[1].Sample(samplers[0], input.TexCoord);
+	float3 normalFromMap =			shaderTextures[1].Sample(samplers[0], input.TexCoord);
 	float4 specularAttributes =		shaderTextures[2].Sample(samplers[0], input.TexCoord);
 
 	//if(output.Color.a < 0.45f) //Crude alpha testing
@@ -93,9 +95,9 @@ PixelShaderOutput GBufferPixelShader(VertexShaderOutput input)
 
 	output.Color.w = specularAttributes.x; //store specular intensity value in color target's alpha value
 
-	normalFromMap = normalFromMap * 2.0f - 1.0f;				//tranform the normal data from [0,1] to [-1,1]
-	normalFromMap = mul(normalFromMap, input.TangentToWorld);	//transform it into world space
-	normalFromMap = normalize(normalFromMap);					//then normalize the result
+	//normalFromMap = normalFromMap * 2.0f - 1.0f;				//tranform the normal data from [0,1] to [-1,1]
+	//normalFromMap = mul(normalFromMap, input.TangentToWorld);	//transform it into world space
+	//normalFromMap = normalize(normalFromMap);					//then normalize the result
 
 	//output.Normal.xyz = encode(normalFromMap);	//normalFromMap;//		//revert the normal output to [0,1] space then assign it to the output normal map's RGB channel
 	//output.Normal.xyz = normalize(input.Normal);
@@ -103,8 +105,8 @@ PixelShaderOutput GBufferPixelShader(VertexShaderOutput input)
 
 	output.Normal.w = 1.0f;//specularAttributes.y; //specular power stored in normal map's alpha channel
 
-	//output.Depth.x = (input.ViewPosition.z / FarZ); //Store depth linearly. Doesn't quite work with current shadowmapping technique.
-	output.Depth = (input.Depth.x / input.Depth.y);
+	output.Depth.x = (input.ViewPosition.z / FarZ); //Store depth linearly. Doesn't quite work with current shadowmapping technique.
+	//output.Depth = (input.Depth.x / input.Depth.y);
 
 	return output;
 }

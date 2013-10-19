@@ -1,6 +1,7 @@
 cbuffer MatrixBufferType
 {
 	float4x4 WorldViewProjection;
+	float4x4 WorldView;
 }
 
 struct VertexInputType
@@ -31,7 +32,7 @@ PixelInputType DepthOnlyVertexShader(VertexInputType input)
 
 	output.TexCoord.xyz = float3(input.TexCoord, input.InstancePosition.w); //InstancePosition.w contains texture ID for this instance.
 
-	output.TexCoord.w = (output.Position.z / output.Position.w); //Store depth in texcoord. I pack everything into a float4 to save space.
+	output.TexCoord.w = (mul(input.Position, WorldView).z / 500.0f); //Store depth in texcoord. I pack everything into a float4 to save space.
 	
 	return output;
 }

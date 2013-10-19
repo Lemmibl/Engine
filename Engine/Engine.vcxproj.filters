@@ -109,9 +109,6 @@
     <ClCompile Include="renderToTextureClass.cpp">
       <Filter>Rendering\Rendering utility</Filter>
     </ClCompile>
-    <ClCompile Include="VegetationManager.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="SimplexNoise.cpp">
       <Filter>Procedural generation\Noise</Filter>
     </ClCompile>
@@ -144,6 +141,9 @@
     </ClCompile>
     <ClCompile Include="Lemmi3DAABB.h">
       <Filter>General Code\Data classes</Filter>
+    </ClCompile>
+    <ClCompile Include="VegetationManager.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

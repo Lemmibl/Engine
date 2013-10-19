@@ -79,7 +79,6 @@ Renderer::Renderer()
 
 	toggleTextureShader = false;
 	returning = false;
-	toggleCameraPointLight = false;
 	toggleOtherPointLights = false;
 }
 
@@ -114,7 +113,7 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	this->d3D = d3D;
 	this->camera = camera;
 
-	toggleSSAO = 1;
+	toggleSSAO = 0;
 	toggleColorMode = 1;
 	fogMinimum = 1.0f;
 
@@ -122,38 +121,34 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 
 	XMStoreFloat4x4(&baseViewMatrix, camera->GetView());
 
-	ID3D11Device* device = d3D->GetDevice();
-
-	result = InitializeShaders(hwnd, device);
+	result = InitializeShaders(hwnd);
 	if(!result)
 	{
 		return false;
 	}
 
-	result = InitializeLights(hwnd, device);
+	result = InitializeLights(hwnd);
 	if(!result)
 	{
 		return false;
 	}
 
-	result = InitializeModels(hwnd, device);
+	result = InitializeModels(hwnd);
 	if(!result)
 	{
 		return false;
 	}
 
-	result = InitializeEverythingElse(hwnd, device);
+	result = InitializeEverythingElse(hwnd);
 	if(!result)
 	{
 		return false;
 	}
-
-	device = 0;
 
 	return true;
 }
 
-bool Renderer::InitializeShaders(HWND hwnd, ID3D11Device* device)
+bool Renderer::InitializeShaders( HWND hwnd )
 {
 	bool result;
 
@@ -163,7 +158,7 @@ bool Renderer::InitializeShaders(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	result = gbufferShader->Initialize(device, hwnd);
+	result = gbufferShader->Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"GBuffer shader couldn't be initialized.", L"Error", MB_OK);
@@ -176,7 +171,7 @@ bool Renderer::InitializeShaders(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	result = pointLightShader->Initialize(device, hwnd);
+	result = pointLightShader->Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Pointlight shader couldn't be initialized.", L"Error", MB_OK);
@@ -189,7 +184,7 @@ bool Renderer::InitializeShaders(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	result = vertexOnlyShader->Initialize(device, hwnd);
+	result = vertexOnlyShader->Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Vertex only shader couldn't be initialized.", L"Error", MB_OK);
@@ -202,7 +197,7 @@ bool Renderer::InitializeShaders(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	result = depthOnlyShader->Initialize(device, hwnd);
+	result = depthOnlyShader->Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Depth only shader couldn't be initialized.", L"Error", MB_OK);
@@ -215,7 +210,7 @@ bool Renderer::InitializeShaders(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	result = depthOnlyQuadShader->Initialize(device, hwnd);
+	result = depthOnlyQuadShader->Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Depth only quad shader couldn't be initialized.", L"Error", MB_OK);
@@ -228,7 +223,7 @@ bool Renderer::InitializeShaders(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	result = composeShader->Initialize(device, hwnd);
+	result = composeShader->Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Compose shader couldn't be initialized.", L"Error", MB_OK);
@@ -241,7 +236,7 @@ bool Renderer::InitializeShaders(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	result = gaussianBlurShader->Initialize(device, hwnd);
+	result = gaussianBlurShader->Initialize(d3D->GetDevice(), hwnd);
 
 
 
@@ -251,7 +246,7 @@ bool Renderer::InitializeShaders(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	result = textureShader->Initialize(device, hwnd);
+	result = textureShader->Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Texture shader couldn't be initialized.", L"Error", MB_OK);
@@ -264,7 +259,7 @@ bool Renderer::InitializeShaders(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	result = mcubeShader->Initialize(device, hwnd);
+	result = mcubeShader->Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Marching cubes gbuffer shader couldn't be initialized.", L"Error", MB_OK);
@@ -274,52 +269,50 @@ bool Renderer::InitializeShaders(HWND hwnd, ID3D11Device* device)
 	return true;
 }
 
-bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
+bool Renderer::InitializeLights( HWND hwnd )
 {
 	bool result;
 
 #pragma region Point light initialization
-	float x, y, z;
-	//x = 2.0f;
-	//z = 2.0f;
-	//y = 40.0f;
+	float x, y, z, red, green, blue;
+	x = 2.0f;
+	z = 2.0f;
+	y = 15.0f;
 
-	for(int i = 0; i < 300; i++)
+	for(int i = 0; i < 100; i++)
 	{
-		x = utility->RandomFloat();
-		y = utility->RandomFloat();
-		z = utility->RandomFloat();
+		red = utility->RandomFloat();
+		green = utility->RandomFloat();
+		blue = utility->RandomFloat();
+		// pointLights[i].Position = XMFLOAT3(2.0f+(x * 176.0f), 15.0f, 2.0f + (y * 176.0f));
 
-		pointLights.push_back(new PointLight());
-		pointLights[i]->Color = XMFLOAT3(x, y, z);
-		pointLights[i]->Position = XMFLOAT3(2.0f+(utility->RandomFloat() * 176.0f), 40.0f, 2.0f + (utility->RandomFloat() * 176.0f));
-		pointLights[i]->Radius = 3.0f; //Used to both scale the actual point light model and is a factor in the attenuation
-		pointLights[i]->Intensity = 1.0f; //Is used to control the attenuation
+		PointLight pointLight;
+		pointLights.push_back(pointLight);
 
-		//x += 12.0f;
+		pointLights[i].Color = XMFLOAT3(red, green, blue);
+		pointLights[i].Position = XMFLOAT3(x, y, z);
+		pointLights[i].Radius = 4.0f + (5.0f*utility->RandomFloat()); //Used to both scale the actual point light model and is a factor in the attenuation
+		pointLights[i].Intensity = 1.0f;//3.0f*utility->RandomFloat(); //Is used to control the attenuation
 
-		//if(x > 60.0f) //Every 10th light gets reseted in x and z plane.
-		//{
-		//	x = 0.0f;
-		//	z += 6.0f;
-		//}
+		x += 18.0f;
 
-		//if(i != 0 && i % 100 == 0) //Every 100 pointlights we reset and make another layer that is (y+8) higher up.
-		//{
-		//	x = -10.0f;
-		//	z = -10.0f;
-		//	y += 8.0f;
-		//}
+		if(x >= 178.0f) //Every 10th light gets reseted in x and z plane.
+		{
+			x = 2.0f;
+			z += 18.0f;
+		}
 
-		XMMATRIX tempScale = XMMatrixScaling(pointLights[0]->Radius, pointLights[0]->Radius, pointLights[0]->Radius);
-		XMMATRIX tempTranslation = XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z);
-		XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale * tempTranslation));
+		if(i != 0 && i % 100 == 0) //Every 100 pointlights we reset and make another layer that is (y+8) higher up.
+		{
+			x = 2.0f;
+			z = 2.0f;
+			y += 8.0f;
+		}
+
+		XMMATRIX tempScale = XMMatrixScaling(pointLights[0].Radius, pointLights[0].Radius, pointLights[0].Radius);
+		XMMATRIX tempTranslation = XMMatrixTranslation(pointLights[i].Position.x, pointLights[i].Position.y, pointLights[i].Position.z);
+		XMStoreFloat4x4(&pointLights[i].World, (tempScale * tempTranslation));
 	}
-
-	cameraPointLight.Color = XMFLOAT3(0.9f, 0.9f, 0.2f);
-	cameraPointLight.Position = camera->GetPosition();
-	cameraPointLight.Radius = 30.0f; //Used to both scale the actual point light model and is a factor in the attenuation
-	cameraPointLight.Intensity = 1.0f; //Is used to control the attenuation
 
 #pragma endregion
 
@@ -337,46 +330,43 @@ bool Renderer::InitializeLights(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	result = dirLightShader->Initialize(device, hwnd);
+	result = dirLightShader->Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Dir light shader couldn't be initialized.", L"Error", MB_OK);
 		return false;
 	}
 
-	XMVECTOR lookAt = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);//LookAt for dir light. We always want thi0s to be (0,0,0), because it's the easiest to visualize.
+	XMVECTOR lookAt = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);//LookAt for dir light. We always want this to be (0,0,0), because it's the easiest to visualize.
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 
 	// Initialize the directional light.
-	dirLight->Color = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+	dirLight->Color = XMFLOAT4(0.6f, 0.4f, 0.4f, 1.0f);
 	dirLight->Intensity = 1.0f;
 	dirLight->Position = XMFLOAT3(150.0f, 0.0f, 0.0f);
 
 	XMVECTOR direction = XMVector3Normalize(lookAt - XMLoadFloat3(&dirLight->Position));
 	XMStoreFloat3(&dirLight->Direction, direction);
 
-	//XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(((float)D3DX_PI/2.0f), 1.0f, 10.0f, 300.0f)); //Generate perspective light projection matrix and store it as float4x4
-	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(200.0f, 200.0f, 5.0f, 200.0f)); //Generate orthogonal light projection matrix and store it as float4x4
-
-	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up)); //Generate light view matrix and store it as float4x4.
+	//XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(((float)D3DX_PI/2.0f), 1.0f, 5.0f, 500.0f));	//Generate PERSPECTIVE light projection matrix and store it as float4x4
+	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(300.0f, 300.0f, 5.0f, 500.0f));					//Generate ORTHOGONAL light projection matrix and store it as float4x4
+	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up));				//Generate light view matrix and store it as float4x4.
 #pragma endregion
 
 	return true;
 }
 
-bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
+bool Renderer::InitializeModels( HWND hwnd )
 {
 	bool result;
 
 	metaBalls = new MetaballsClass();
 	marchingCubes = new MarchingCubesClass(0.0f, 0.0f, 0.0f, 180.0f, 180.0f, 180.0f, 1.0f, 1.0f, 1.0f);
 	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
-	marchingCubes->GetTerrain()->SetTerrainType(2);
-
-
+	marchingCubes->GetTerrain()->SetTerrainType(7);
+	//marchingCubes->Reset();
 	marchingCubes->GetTerrain()->Noise3D();
-	marchingCubes->CalculateMesh(device);
-
+	marchingCubes->CalculateMesh(d3D->GetDevice());
 
 	lSystem = new LSystemClass();
 	lSystem->initialize();
@@ -387,7 +377,7 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	result = skySphere->Initialize(device, hwnd);
+	result = skySphere->Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		return false;
@@ -399,13 +389,13 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	result = vegetationManager->Initialize(device, hwnd);
+	result = vegetationManager->Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		return false;
 	}
 
-	GenerateVegetation(device, true);
+	GenerateVegetation(d3D->GetDevice(), true);
 
 	// Create the model object.
 	sphereModel = new ModelClass();
@@ -415,7 +405,7 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 	}
 
 	// Initialize the model object. It really doesn't matter what textures it has because it's only used for point light volume culling.
-	result = sphereModel->Initialize(device, "../Engine/data/skydome.txt", L"../Engine/data/grass.dds", L"../Engine/data/dirt.dds", L"../Engine/data/rock.dds");
+	result = sphereModel->Initialize(d3D->GetDevice(), "../Engine/data/skydome.txt", L"../Engine/data/grass.dds", L"../Engine/data/dirt.dds", L"../Engine/data/rock.dds");
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
@@ -425,7 +415,7 @@ bool Renderer::InitializeModels(HWND hwnd, ID3D11Device* device)
 	return true;
 }
 
-bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
+bool Renderer::InitializeEverythingElse( HWND hwnd )
 {
 	bool result;
 
@@ -435,7 +425,7 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	result = textureAndMaterialHandler->Initialize(device, d3D->GetDeviceContext());
+	result = textureAndMaterialHandler->Initialize(d3D->GetDevice(), d3D->GetDeviceContext());
 	if(!result)
 	{
 		return false;
@@ -447,7 +437,7 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	if(FAILED(textureAndMaterialHandler->CreateSimplex2DTexture(device, d3D->GetDeviceContext(), noise, &lSystemSRV)))
+	if(FAILED(textureAndMaterialHandler->CreateSimplex2DTexture(d3D->GetDevice(), d3D->GetDeviceContext(), noise, &lSystemSRV)))
 	{
 		return false;
 	}
@@ -463,7 +453,7 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 		return false;
 	}
 
-	result = dayNightCycle->Initialize(300.0f, DAY); //86400.0f/6
+	result = dayNightCycle->Initialize(1000.0f, DAY); //86400.0f/6
 	if(!result)
 	{
 		return false;
@@ -479,7 +469,7 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 	}
 
 	// Initialize the text object.
-	result = text->Initialize(device, d3D->GetDeviceContext(), hwnd, screenWidth, screenHeight);
+	result = text->Initialize(d3D->GetDevice(), d3D->GetDeviceContext(), hwnd, screenWidth, screenHeight);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the text object. Look in graphicsclass.", L"Error", MB_OK);
@@ -488,10 +478,10 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 
 	for(int i = 0; i < 6; i++)
 	{
-		debugWindows[i].Initialize(device, screenWidth, screenHeight, 200, 200);
+		debugWindows[i].Initialize(d3D->GetDevice(), screenWidth, screenHeight, 200, 200);
 	}
 
-	fullScreenQuad.Initialize(device, screenWidth, screenHeight, screenWidth, screenHeight);
+	fullScreenQuad.Initialize(d3D->GetDevice(), screenWidth, screenHeight, screenWidth, screenHeight);
 
 	colorRT = new RenderTarget2D();
 	normalRT = new RenderTarget2D();
@@ -500,15 +490,15 @@ bool Renderer::InitializeEverythingElse(HWND hwnd, ID3D11Device* device)
 	lightRT = new RenderTarget2D();
 	gaussianBlurPingPongRT = new RenderTarget2D();
 
-	colorRT->Initialize(device, screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
-	normalRT->Initialize(device, screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
-	depthRT->Initialize(device, screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
-	lightRT->Initialize(device, screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
-	shadowRT->Initialize(device, shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R32G32_FLOAT);
-	gaussianBlurPingPongRT->Initialize(device, shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R32G32_FLOAT); //Needs to be identical to shadowRT
+	colorRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
+	normalRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
+	depthRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
+	lightRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
+	shadowRT->Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R32G32_FLOAT);
+	gaussianBlurPingPongRT->Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R32G32_FLOAT); //Needs to be identical to shadowRT
 
 	// Create the frustum object.
-	frustum = new FrustumClass;
+	frustum = new FrustumClass();
 	if(!frustum)
 	{
 		return false;
@@ -556,30 +546,30 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 	{
 		return false;
 	}
-	
+
 	//Move all point lights upward
 	if(inputManager->IsKeyPressed(DIK_R))
 	{
-		XMMATRIX tempScale = XMMatrixScaling(pointLights[0]->Radius, pointLights[0]->Radius, pointLights[0]->Radius);
+		XMMATRIX tempScale = XMMatrixScaling(pointLights[0].Radius, pointLights[0].Radius, pointLights[0].Radius);
 
-		for(int i = 0; i < (int)(pointLights.size()-1); i++)
+		for(int i = 0; i < (int)(pointLights.size()); i++)
 		{
-			pointLights[i]->Position.y += frameTime*0.01f;
+			pointLights[i].Position.y += frameTime*0.01f;
 
-			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale*XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y-0.5f, pointLights[i]->Position.z)));
+			XMStoreFloat4x4(&pointLights[i].World, (tempScale*XMMatrixTranslation(pointLights[i].Position.x, pointLights[i].Position.y, pointLights[i].Position.z)));
 		}
 	}
 
-	//Move all point lights downwarf
+	//Move all point lights downward
 	if(inputManager->IsKeyPressed(DIK_F))
 	{
-		XMMATRIX tempScale = XMMatrixScaling(pointLights[0]->Radius, pointLights[0]->Radius, pointLights[0]->Radius);
+		XMMATRIX tempScale = XMMatrixScaling(pointLights[0].Radius, pointLights[0].Radius, pointLights[0].Radius);
 
-		for(int i = 0; i < (int)(pointLights.size()-1); i++)
+		for(int i = 0; i < (int)(pointLights.size()); i++)
 		{
-			pointLights[i]->Position.y -= frameTime*0.01f;
+			pointLights[i].Position.y -= frameTime*0.01f;
 
-			XMStoreFloat4x4(&pointLights[i]->World, XMMatrixTranspose(tempScale*XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y-0.5f, pointLights[i]->Position.z)));
+			XMStoreFloat4x4(&pointLights[i].World, (tempScale*XMMatrixTranslation(pointLights[i].Position.x, pointLights[i].Position.y, pointLights[i].Position.z)));
 		}
 	}
 
@@ -666,8 +656,6 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 		{
 			fogMinimum = 1.0f;
 		}
-
-		//fogMinimum = max(150.0f, fogMinimum);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_5))
@@ -677,15 +665,9 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 
 	if(inputManager->WasKeyPressed(DIK_6))
 	{
-		toggleCameraPointLight = !toggleCameraPointLight;
-
-	}
-
-	if(inputManager->WasKeyPressed(DIK_7))
-	{
 		toggleSSAO++;
 
-		if(toggleSSAO > 3)
+		if(toggleSSAO > 2)
 		{
 			toggleSSAO = 0;
 		}
@@ -829,73 +811,158 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 
 	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
 
-	XMVECTOR lookAt = XMLoadFloat3(&camera->GetPosition())+(camera->ForwardVector()*3.0f);//XMVectorSet(30.0f, 20.0f, 30.0f, 1.0f);//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition())+(camera->ForwardVector()*30.0f);//XMLoadFloat3(&camera->GetPosition());//
+	XMVECTOR lookAt = XMLoadFloat3(&camera->GetPosition());//XMVectorSet(30.0f, 20.0f, 30.0f, 1.0f);//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition())+(camera->ForwardVector()*30.0f);//XMLoadFloat3(&camera->GetPosition());//
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 	XMVECTOR currentLightPos = (XMLoadFloat3(&camera->GetPosition())+XMLoadFloat3(&dirLight->Position));//XMLoadFloat3(&camera->GetPosition())-(camera->ForwardVector()*30.0f);
 
 	XMStoreFloat3(&dirLight->Direction, XMVector3Normalize((lookAt - currentLightPos)));//XMLoadFloat3(&dirLight->Position)
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(currentLightPos, lookAt, up)); //Generate light view matrix
 
-
-	//Camera point light updates
-	XMMATRIX tempScale = XMMatrixScaling(cameraPointLight.Radius, cameraPointLight.Radius, cameraPointLight.Radius);
-	XMStoreFloat3(&cameraPointLight.Position, XMLoadFloat3(&camera->GetPosition())+(camera->ForwardVector()*6.0f));
-	//pointLights[501]->Position.y = ;camera->GetPosition().y;
-
-	XMStoreFloat4x4(&cameraPointLight.World, XMMatrixTranspose(tempScale*XMMatrixTranslation(cameraPointLight.Position.x, cameraPointLight.Position.y, cameraPointLight.Position.z)));
-
-
 	previousLodState = lodState;
 
 	return true;
 }
 
-bool Renderer::Render()
+//THIS SHOULD BE INSIDE VEGETATION MANAGER
+void Renderer::GenerateVegetation( ID3D11Device* device, bool IfSetupThenTrue_IfUpdateThenFalse)
+{
+	float x,z,y;
+	int textureID, randValue;
+
+	LODVector500.clear();
+	LODVector500.reserve(500);
+	LODVector2500.clear();
+	LODVector2500.reserve(2500);
+	LODVector5000.clear();
+	LODVector5000.reserve(5000);
+	LODVector10000.clear();
+	LODVector10000.reserve(10000);
+
+	for(int i = 0; i < 70000; i++)
+	{
+		x = (2.0f + (utility->RandomFloat() * 176.0f));
+		z = (2.0f + (utility->RandomFloat() * 176.0f));
+
+		//Extract highest Y at this point
+		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate((int)x, (int)z);
+
+		randValue = rand()%100;
+
+		//No vegetation below Y:30
+		if(y <= 30.0f)
+		{
+			continue;
+		}
+		else if(y >= 45.0)
+		{
+			//But the grass should be sparse, so there is
+			//95% chance that we won't actually add this to the instance list.
+			if(randValue > 95)
+			{
+				textureID = 0;
+
+				//Place texture ID in .w channel
+				XMFLOAT4 temp = XMFLOAT4(x, y, z, (float)textureID);
+
+				//We use i to control how many should be added to each LOD vector
+				if(i <= 500)
+				{
+					LODVector500.push_back(temp);
+				}
+
+				if(i <= 2500)
+				{
+					LODVector2500.push_back(temp);
+				}
+
+				if(i <= 5000)
+				{
+					LODVector5000.push_back(temp);
+				}
+
+				LODVector10000.push_back(temp);
+			}
+		}
+		else
+		{
+			if(randValue <= 5)
+			{
+				textureID = 2; //Some kind of leaf branch that I've turned into a plant quad.
+			}
+			else if(randValue <= 96) //By far biggest chance that we get normal grass
+			{
+				textureID = 1; //Normal grass.
+			}
+			else if(randValue <= 98) //If 97-98
+			{
+				textureID = 4; //Bush.
+			}
+			else //If 99-100.
+			{
+				textureID = 3; //Flower.
+			}
+
+			//Place texture ID in .w channel
+			XMFLOAT4 temp = XMFLOAT4(x, y, z, (float)textureID);
+
+			//We use i to control how many should be added to each LOD vector
+			if(i <= 500)
+			{
+				LODVector500.push_back(temp);
+			}
+
+			if(i <= 2500)
+			{
+				LODVector2500.push_back(temp);
+			}
+
+			if(i <= 5000)
+			{
+				LODVector5000.push_back(temp);
+			}
+
+			LODVector10000.push_back(temp);
+		}
+	}
+
+	if(IfSetupThenTrue_IfUpdateThenFalse)
+	{
+		vegetationManager->SetupQuads(d3D->GetDevice(), &LODVector500);
+	}
+	else
+	{
+		vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector10000);
+	}
+}
+
+bool Renderer::Render(HWND hwnd)
 {
 	// Clear the scene.
-	d3D->BeginScene(0.0f, 0.0f, 0.0f, 0.0f);
+	d3D->BeginScene(0.1f, 0.1f, 0.45f, 0.0f);
+
+	ID3D11DeviceContext* deviceContext = d3D->GetDeviceContext();
+	ID3D11Device* device = d3D->GetDevice();
 
 #pragma region Preparation
-	ID3D11DeviceContext* context;
-	context = d3D->GetDeviceContext();
-
-	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, scalingMatrix, viewProjection, invertedViewProjection, invertedView, 
-		lightView, lightProj, lightViewProj, baseView, worldBaseViewOrthoProj, identityWorldViewProj, lightWorldViewProj, 
-		invertedProjection, untransposedViewProj, worldView, lightWorldView;
-
-	XMFLOAT3 camPos, camDir;
-	bool result;
-	ID3D11RenderTargetView* gbufferRenderTargets[3] = { NULL, NULL, NULL }; //render targets for GBuffer pass
-	ID3D11RenderTargetView* lightTarget[1] = { NULL };
-	ID3D11RenderTargetView* shadowTarget[1] = { NULL };
-	ID3D11RenderTargetView* gaussianBlurPingPongRTView[1] = { NULL };
-
-	ID3D11ShaderResourceView* gbufferTextures[3] = { NULL, NULL, NULL };
-	ID3D11ShaderResourceView* dirLightTextures[4] = { NULL, NULL, NULL, NULL };
-	ID3D11ShaderResourceView* finalTextures[4] = { NULL, NULL, NULL, NULL };
-	ID3D11ShaderResourceView* gaussianBlurTexture[1] = { NULL };
-
-	ID3D11ShaderResourceView* lightMap = NULL;
-
-	ID3D11DepthStencilView* shadowDS = d3D->GetShadowmapDSV();
-	ID3D11DepthStencilView* ds; //We set it later on when we need it. Calling d3D->GetDepthStencilView() also calls a reset on DS settings to default, hence we wait with calling it.
+	shadowDepthStencil = d3D->GetShadowmapDSV();
 
 	// Generate the view matrix based on the camera's position.
 	camPos = camera->GetPosition();
 	XMStoreFloat3(&camDir, XMVector3Normalize(camera->ForwardVector()));
-
-	gbufferRenderTargets[0] = colorRT->RTView;
-	gbufferRenderTargets[1] = normalRT->RTView;
-	gbufferRenderTargets[2] = depthRT->RTView;
-
-	//For lighting pass
-	lightTarget[0] = lightRT->RTView; 
 
 	//For shadow pre-gbuffer pass
 	shadowTarget[0] = shadowRT->RTView;
 
 	//Name should be pretty self-explanatory
 	gaussianBlurPingPongRTView[0] = gaussianBlurPingPongRT->RTView;
+
+	//For gbuffer pass
+	gbufferRenderTargets[0] = colorRT->RTView;
+	gbufferRenderTargets[1] = normalRT->RTView;
+	gbufferRenderTargets[2] = depthRT->RTView;
+
+	//For lighting pass
+	lightTarget[0] = lightRT->RTView; 
 
 	//For GBuffer pass
 	gbufferTextures[0] = colorRT->SRView; 
@@ -918,6 +985,10 @@ bool Renderer::Render()
 #pragma endregion
 
 #pragma region Matrix preparations
+	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, scalingMatrix, viewProjection, invertedViewProjection, invertedView, 
+		lightView, lightProj, lightViewProj, baseView, worldBaseViewOrthoProj, identityWorldViewProj, lightWorldViewProj, 
+		invertedProjection, untransposedViewProj, lightWorldView, lightWorld, invertedWorldView, worldView, worldBaseView;
+
 	//XMMATRIX shadowScaleBiasMatrix = new XMMATRIX
 	//	(
 	//	0.5f, 0.0f, 0.0f, 0.5f,
@@ -933,225 +1004,319 @@ bool Renderer::Render()
 	camera->GetProjectionMatrix(projectionMatrix);
 	lightView = XMLoadFloat4x4(&dirLight->View);
 	lightProj = XMLoadFloat4x4(&dirLight->Projection);
+	lightWorld = XMMatrixTranslationFromVector(XMLoadFloat3(&dirLight->Position));
 
 	// Construct the frustum.
 	frustum->ConstructFrustum(screenFar, &projectionMatrix, &viewMatrix);
-	frustum->CalculateXZBounds(XMLoadFloat3(&camera->GetPosition()), camera->ForwardVector(), camera->UpVector());
 
-	XMVECTOR nullVec;
-	lightViewProj = XMMatrixMultiply(lightView, lightProj);
+	XMVECTOR nullVec = XMVectorSplatOne();
 	viewProjection = XMMatrixMultiply(viewMatrix, projectionMatrix);
 
 	invertedView = XMMatrixInverse(&nullVec, viewMatrix);
 	invertedProjection = XMMatrixInverse(&nullVec, projectionMatrix);
 	invertedViewProjection = XMMatrixInverse(&nullVec, viewProjection);
+	invertedWorldView = XMMatrixInverse(&nullVec, worldMatrix*viewMatrix);
 
-	worldView = (worldMatrix*viewMatrix);
-	identityWorldViewProj = (worldView * projectionMatrix);
-	lightWorldViewProj = worldMatrix*lightViewProj;
-	lightWorldView = XMMatrixMultiply(lightView, worldMatrix);
 
-	lightWorldViewProj =		XMMatrixTranspose(lightWorldViewProj);
+	lightViewProj =	XMMatrixMultiply(lightView, lightProj);
+	lightWorldView = worldMatrix * lightView;
+	lightWorldViewProj = worldMatrix * lightView * lightProj;
+
+	identityWorldViewProj = worldMatrix * viewMatrix * projectionMatrix;
+	worldView = worldMatrix * viewMatrix;
+	worldBaseView = worldMatrix * baseView;
+
+
 	lightWorldView =			XMMatrixTranspose(lightWorldView);
-	worldView =					XMMatrixTranspose(worldView);
-	identityWorldViewProj =		XMMatrixTranspose(identityWorldViewProj);
-	worldMatrix =				XMMatrixTranspose(worldMatrix);
-	viewProjection =			XMMatrixTranspose(viewProjection);
 	lightViewProj =				XMMatrixTranspose(lightViewProj);
-	invertedViewProjection =	XMMatrixTranspose(invertedViewProjection);
-	baseView =					XMMatrixTranspose(XMLoadFloat4x4(&baseViewMatrix));
-	invertedProjection =		XMMatrixTranspose(invertedProjection);
-	worldBaseViewOrthoProj =	((baseView * worldMatrix)* orthoMatrix); //Do it post-transpose
+	lightWorldViewProj =		XMMatrixTranspose(lightWorldViewProj);
+	lightView =					XMMatrixTranspose(lightView);
+	lightProj =					XMMatrixTranspose(lightProj);
 
+	invertedView =				XMMatrixTranspose(invertedView);
+	invertedWorldView =			XMMatrixTranspose(invertedWorldView);
+	invertedProjection =		XMMatrixTranspose(invertedProjection);
+	invertedViewProjection =	XMMatrixTranspose(invertedViewProjection);
+
+	worldMatrix =				XMMatrixTranspose(worldMatrix);
+	//viewMatrix =				XMMatrixTranspose(viewMatrix);
+	//projectionMatrix =		XMMatrixTranspose(projectionMatrix);
+	baseView =					XMMatrixTranspose(XMLoadFloat4x4(&baseViewMatrix));
+
+	worldView =					XMMatrixTranspose(worldView);
+	worldBaseView =				XMMatrixTranspose(worldBaseView);
+	//viewProjection =			XMMatrixTranspose(viewProjection);
+	identityWorldViewProj =		XMMatrixTranspose(identityWorldViewProj);
+
+	//Post-transpose matrix multiplications for the calculations that contain orthogonal projections
+	worldBaseViewOrthoProj =	(worldMatrix * baseView * orthoMatrix);
+
+	baseView = XMMatrixTranspose(baseView);
 #pragma endregion
 
-#pragma region Early depth pass for shadowmap
-	context->OMSetRenderTargets(1, shadowTarget, shadowDS);
-	context->ClearDepthStencilView(shadowDS, D3D11_CLEAR_DEPTH, 1.0f, 0);
-	context->ClearRenderTargetView(shadowTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
+	assert(RenderShadowmap(deviceContext, &lightWorldViewProj, &lightWorldView));
+	assert(RenderTwoPassGaussianBlur(deviceContext, &worldBaseViewOrthoProj));
+	assert(RenderGBuffer(deviceContext, &viewMatrix, &projectionMatrix, &identityWorldViewProj));
+	
+	assert(RenderPointLight(deviceContext, &viewMatrix, &invertedView, &viewProjection));
+	assert(RenderDirectionalLight(deviceContext, &viewMatrix, &worldBaseViewOrthoProj, &lightView, &lightProj, &invertedProjection));
+
+	assert(RenderComposedScene(deviceContext, &worldBaseViewOrthoProj, &worldBaseView, &baseView, &invertedProjection, &invertedViewProjection));
+	assert(RenderDebugInfoAndText(deviceContext, &worldBaseViewOrthoProj));
+
+	// Present the rendered scene to the screen.
+	d3D->EndScene();
+
+	return true;
+}
+
+bool Renderer::RenderShadowmap( ID3D11DeviceContext* deviceContext, XMMATRIX* lightWorldViewProj, XMMATRIX* lightWorldView)
+{
+	//Early depth pass for shadowmap
+	deviceContext->OMSetRenderTargets(1, shadowTarget, shadowDepthStencil);
+	deviceContext->ClearDepthStencilView(shadowDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	deviceContext->ClearRenderTargetView(shadowTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 	d3D->SetShadowViewport();
 
 	d3D->SetNoCullRasterizer();
 
-	marchingCubes->Render(context);
+	marchingCubes->Render(deviceContext);
 
-	result = depthOnlyShader->Render(context, marchingCubes->GetIndexCount(), &lightWorldViewProj, &lightWorldView);
-	if(!result)
+	if(!depthOnlyShader->Render(deviceContext, marchingCubes->GetIndexCount(), lightWorldViewProj, lightWorldView))
 	{
 		return false;
 	}
 
-	/************************ Uncomment to enable vegetation quad shadows ************************/
+	//Uncomment to enable vegetation quad shadows
+	 //Just doesn't look good right now. Will have to wait for cascaded shadowmaps or something similar before this is even worth it.
+	 /*********************************************************************************************/
 
 	//d3D->TurnOnShadowBlendState();
-	//vegetationManager->RenderBuffers(context);
+	//vegetationManager->RenderBuffers(deviceContext);
 
-	//depthOnlyQuadShader->Render(context, vegetationManager->GetVertexCount(), vegetationManager->GetInstanceCount(),
-	//	&lightWorldViewProj, textureAndMaterialHandler->GetVegetationTextureArray());
+	//depthOnlyQuadShader->Render(deviceContext, vegetationManager->GetVertexCount(), vegetationManager->GetInstanceCount(),
+	//	lightWorldViewProj, lightWorldView, textureAndMaterialHandler->GetVegetationTextureArray());
 
 	//d3D->ResetBlendState();
 
 	/*********************************************************************************************/
-#pragma endregion
 
-#pragma region Shadow map blur stage
+	return true;
+}
+
+bool Renderer::RenderTwoPassGaussianBlur(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj )
+{
+	//Shadow map blur stage
 	//Change render target to prepare for ping-ponging
-	context->OMSetRenderTargets(1, gaussianBlurPingPongRTView, shadowDS);
-	context->ClearRenderTargetView(gaussianBlurPingPongRTView[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 1.0f));
-	context->ClearDepthStencilView(shadowDS, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
+	deviceContext->OMSetRenderTargets(1, gaussianBlurPingPongRTView, shadowDepthStencil);
+	deviceContext->ClearRenderTargetView(gaussianBlurPingPongRTView[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 1.0f));
+	deviceContext->ClearDepthStencilView(shadowDepthStencil, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	//Blur shadow map texture horizontally
-	fullScreenQuad.Render(context, 0, 0);
-	gaussianBlurShader->RenderBlurX(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &dirLightTextures[2]);
+	if(!fullScreenQuad.Render(deviceContext, 0, 0))
+	{
+		return false;
+	}
+
+	if(!gaussianBlurShader->RenderBlurX(deviceContext, fullScreenQuad.GetIndexCount(), worldBaseViewOrthoProj, &dirLightTextures[2]))
+	{
+		return false;
+	}
 
 	//Change render target back to our shadow map to render the second blur and get the final result
-	context->OMSetRenderTargets(1, shadowTarget, shadowDS);
-	context->ClearDepthStencilView(shadowDS, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
+	deviceContext->OMSetRenderTargets(1, shadowTarget, shadowDepthStencil);
+	deviceContext->ClearDepthStencilView(shadowDepthStencil, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	//Blur shadow map texture vertically
-	fullScreenQuad.Render(context, 0, 0);
-	gaussianBlurShader->RenderBlurY(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &gaussianBlurTexture[0]);
-#pragma endregion
+	if(!fullScreenQuad.Render(deviceContext, 0, 0))
+	{
+		return false;
+	}
 
-#pragma region GBuffer building stage
+	if(!gaussianBlurShader->RenderBlurY(deviceContext, fullScreenQuad.GetIndexCount(), worldBaseViewOrthoProj, &gaussianBlurTexture[0]))
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, XMMATRIX* identityWorldViewProj )
+{
+	XMMATRIX worldViewProjMatrix, worldMatrix, worldView;
+
+	//GBuffer building stage
 	d3D->SetDefaultViewport();
-	ds = d3D->GetDepthStencilView();
-	context->OMSetRenderTargets(3, gbufferRenderTargets, ds);
-	context->ClearDepthStencilView(ds, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
+	depthStencil = d3D->GetDepthStencilView();
+	deviceContext->OMSetRenderTargets(3, gbufferRenderTargets, depthStencil);
+	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	context->ClearRenderTargetView(gbufferRenderTargets[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
-	context->ClearRenderTargetView(gbufferRenderTargets[1], D3DXVECTOR4(0.5f, 0.5f, 0.5f, 0.0f));
-	context->ClearRenderTargetView(gbufferRenderTargets[2], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
+	deviceContext->ClearRenderTargetView(gbufferRenderTargets[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
+	deviceContext->ClearRenderTargetView(gbufferRenderTargets[1], D3DXVECTOR4(0.5f, 0.5f, 0.5f, 0.5f));
+	deviceContext->ClearRenderTargetView(gbufferRenderTargets[2], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 
 	d3D->SetNoCullRasterizer();
 	d3D->TurnZBufferOff();
 
-	worldMatrix = (XMMatrixTranslation(camPos.x, camPos.y, camPos.z)*viewMatrix)*projectionMatrix;
-	worldMatrix = XMMatrixTranspose(worldMatrix);
+	worldViewProjMatrix = XMMatrixTranslation(camPos.x, camPos.y, camPos.z) * ((*viewMatrix) * (*projectionMatrix));
+	worldViewProjMatrix = XMMatrixTranspose(worldViewProjMatrix);
 
-	skySphere->Render(context, &worldMatrix, &dayNightCycle->GetAmbientLightColor(), timeOfDay);
+	skySphere->Render(deviceContext, &worldViewProjMatrix, &dayNightCycle->GetAmbientLightColor(), timeOfDay);
 
 	d3D->SetBackFaceCullingRasterizer();
 	d3D->TurnZBufferOn();
 
-	context->ClearDepthStencilView(ds, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
+	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	worldMatrix = XMMatrixIdentity(); 
+	worldMatrix = XMMatrixIdentity();
+	worldView = XMMatrixTranspose(worldMatrix * (*viewMatrix));
 	worldMatrix = XMMatrixTranspose(worldMatrix);
-	worldView = XMMatrixTranspose(worldMatrix*viewMatrix);
 
-	/*if(frustum->Check2DAABB(&testBoundingbox))
-	{*/
-	marchingCubes->Render(context);
-	result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
-		&worldMatrix, &worldView, &identityWorldViewProj, textureAndMaterialHandler->GetTerrainTextureArray(), toggleColorMode);
+	//if(frustum->Check2DAABB(&testBoundingbox))
+	//{
+	if(!marchingCubes->Render(deviceContext))
+	{
+		return false;
+	}
+
+	if(!mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), &worldMatrix, &worldView, 
+		identityWorldViewProj, textureAndMaterialHandler->GetTerrainTextureArray(), toggleColorMode))
+	{
+		return false;
+	}
 
 	d3D->SetNoCullRasterizer();
 	d3D->TurnOnAlphaBlending();
-	vegetationManager->Render(context, &identityWorldViewProj, &worldMatrix, textureAndMaterialHandler->GetVegetationTextureArray());
+	if(!vegetationManager->Render(deviceContext, identityWorldViewProj, &worldView, &worldMatrix, textureAndMaterialHandler->GetVegetationTextureArray()))
+	{
+		return false;
+	}
 	d3D->TurnOffAlphaBlending();
-
 	//}
 
-#pragma endregion
+	return true;
+}
 
-#pragma region Point light stage
-	context->OMSetRenderTargets(1, lightTarget, ds);
-	context->ClearRenderTargetView(lightTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
-	context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
+bool Renderer::RenderPointLight( ID3D11DeviceContext* deviceContext, XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* viewProjection )
+{
+	XMMATRIX world, worldView, worldViewProj;
 
-	//Phase one, draw sphere with vertex-only shader.
+	//Point light stage
+	deviceContext->OMSetRenderTargets(1, lightTarget, depthStencil);
+	deviceContext->ClearRenderTargetView(lightTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
+	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_STENCIL, 1.0f, 0);
+
 	d3D->TurnOnLightBlending();
+
 	if(toggleOtherPointLights)
 	{
 		for(unsigned int i = 0; i < pointLights.size(); i++)
 		{	
-			XMMATRIX worldViewProj = viewProjection * (XMLoadFloat4x4(&pointLights[i]->World));
+			world = XMLoadFloat4x4(&pointLights[i].World);
+			worldView = world * (*view);
+			worldViewProj =  world * (*viewProjection);
 
+			world = XMMatrixTranspose(world);
+			worldView = XMMatrixTranspose(worldView);
+			worldViewProj = XMMatrixTranspose(worldViewProj);
+
+			//Phase one, draw sphere with vertex-only shader.
 			d3D->SetLightStencilMethod1Phase1();
 			d3D->SetNoCullRasterizer();
 
-			sphereModel->Render(context);
-			result = vertexOnlyShader->Render(context, sphereModel->GetIndexCount(), &worldViewProj);
+			sphereModel->Render(deviceContext);
+
+			if(!vertexOnlyShader->Render(deviceContext, sphereModel->GetIndexCount(), &worldViewProj))
+			{
+				return false;
+			}
 
 			//Phase two, draw sphere with light algorithm
 			d3D->SetLightStencilMethod1Phase2();
 			d3D->SetFrontFaceCullingRasterizer();
 
-			sphereModel->Render(context);
+			sphereModel->Render(deviceContext);
 
-			result = pointLightShader->Render(context, sphereModel->GetIndexCount(), &worldViewProj, &invertedViewProjection, 
-				pointLights[i], gbufferTextures, textureAndMaterialHandler->GetMaterialTextureArray(), camPos);
-			if(!result)
+			if(!pointLightShader->Render(deviceContext, sphereModel->GetIndexCount(), &worldViewProj, &worldView, &world, invertedView, 
+				&pointLights[i], gbufferTextures, textureAndMaterialHandler->GetMaterialTextureArray(), camPos))
 			{
 				return false;
 			}
+		 
+			//if(!textureShader->Render(deviceContext, sphereModel->GetIndexCount(), &worldViewProj, sphereModel->GetTexture()))
+			//{
+			//	return false;
+			//}
 
-			context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
+			deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_STENCIL, 1.0f, 0);
 		}
 	}
 
-	if(toggleCameraPointLight)
-	{	
-		XMMATRIX worldViewProj = viewProjection * (XMLoadFloat4x4(&cameraPointLight.World));
+	return true;
+}
 
-		d3D->SetLightStencilMethod1Phase1();
-		d3D->SetNoCullRasterizer();
 
-		sphereModel->Render(context);
-		result = vertexOnlyShader->Render(context, sphereModel->GetIndexCount(), &worldViewProj);
+bool Renderer::RenderDirectionalLight( ID3D11DeviceContext* deviceContext, XMMATRIX* viewMatrix, XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* lightView, XMMATRIX* lightProj, XMMATRIX* invertedProjection )
+{
+	XMMATRIX worldMatrix, worldView, invertedWorldView, invertedView;
 
-		//Phase two, draw sphere with light algorithm
-		d3D->SetLightStencilMethod1Phase2();
-		d3D->SetFrontFaceCullingRasterizer();
-
-		sphereModel->Render(context);
-
-		result = pointLightShader->Render(context, sphereModel->GetIndexCount(), &worldViewProj, &invertedViewProjection, 
-			&cameraPointLight, gbufferTextures, textureAndMaterialHandler->GetMaterialTextureArray(), camPos);
-		if(!result)
-		{
-			return false;
-		}
-
-		context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL, 1.0f, 0);
-	}
-#pragma endregion
-
-#pragma region Directional light stage
-	///*TODO: Create a directional light stencilstate that does a NOTEQUAL==0 stencil check.*/
-	ds = d3D->GetDepthStencilView();
-	context->ClearDepthStencilView(ds, D3D11_CLEAR_STENCIL|D3D11_CLEAR_DEPTH, 1.0f, 0);
+	//Directional light stage
+	/*TODO: Create a directional light stencilstate that does a NOTEQUAL==0 stencil check.*/
+	depthStencil = d3D->GetDepthStencilView();
+	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_STENCIL|D3D11_CLEAR_DEPTH, 1.0f, 0);
 	d3D->SetBackFaceCullingRasterizer();
-	d3D->GetWorldMatrix(worldMatrix);
+
+	XMVECTOR det = XMVectorSplatOne();
+	worldMatrix = XMMatrixIdentity();
+	worldView = (worldMatrix * (*viewMatrix));
+	invertedView = XMMatrixInverse(&det, (*viewMatrix));
+	invertedWorldView = XMMatrixInverse(&det, worldView);
+
+	invertedView = XMMatrixTranspose(invertedView);
 	worldMatrix = XMMatrixTranspose(worldMatrix);
+	worldView = XMMatrixTranspose(worldView);
+	invertedWorldView = XMMatrixTranspose(invertedWorldView);
 
-	fullScreenQuad.Render(context, 0, 0);
-
-	result = dirLightShader->Render(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &invertedViewProjection, 
-		dirLightTextures, textureAndMaterialHandler->GetMaterialTextureArray(), camPos, camDir, dirLight,
-		dayNightCycle->GetAmbientLightColor(), &lightViewProj, &worldView);
-	if(!result)
+	if(!fullScreenQuad.Render(deviceContext, 0, 0))
 	{
 		return false;
 	}
-#pragma endregion
 
-#pragma region Final compose stage
+	if(!dirLightShader->Render(deviceContext, fullScreenQuad.GetIndexCount(), worldBaseViewOrthoProj, &worldView, &worldMatrix, viewMatrix, 
+		&invertedView, invertedProjection, lightView, lightProj, dirLightTextures, textureAndMaterialHandler->GetMaterialTextureArray(), 
+		camPos, dirLight, dayNightCycle->GetAmbientLightColor()))
+	{
+		return false;
+	}
+
+	return true;
+}
+
+/* worldView or worldBASEView ??? TODO! */
+
+bool Renderer::RenderComposedScene(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* worldView, XMMATRIX* view, XMMATRIX* invertedProjection, XMMATRIX* invertedViewProjection )
+{
+	//Render final composed scene that is the sum of all the previous scene
 	d3D->SetBackBufferRenderTarget();
-	context->ClearDepthStencilView(ds,  D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
+	d3D->ResetBlendState();
+	d3D->GetDeviceContext()->ClearDepthStencilView(depthStencil,  D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	fullScreenQuad.Render(context, 0, 0);
+	fullScreenQuad.Render(deviceContext, 0, 0);
 
-	composeShader->Render(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &invertedViewProjection, 
-		&dayNightCycle->GetAmbientLightColor(), fogMinimum, finalTextures, ssaoRandomTextureSRV, toggleSSAO);
-#pragma endregion
+	composeShader->Render(deviceContext, fullScreenQuad.GetIndexCount(), worldBaseViewOrthoProj, worldView, view, invertedProjection, 
+		invertedViewProjection, &dayNightCycle->GetAmbientLightColor(), fogMinimum, finalTextures, ssaoRandomTextureSRV, toggleSSAO);
 
-#pragma region Debug and text stage
+	return true;
+}
+
+bool Renderer::RenderDebugInfoAndText(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj )
+{
+	XMMATRIX worldMatrix;
+
 	d3D->ResetRasterizerState();
 	d3D->ResetBlendState();
-	ds = d3D->GetDepthStencilView(); //This also resets the depth stencil state to "default".
-	context->ClearDepthStencilView(ds,  D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
+	depthStencil = d3D->GetDepthStencilView(); //This also resets the depth stencil state to "default".
+	deviceContext->ClearDepthStencilView(depthStencil,  D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	d3D->GetWorldMatrix(worldMatrix);
 	worldMatrix = XMMatrixTranspose(worldMatrix);
@@ -1160,55 +1325,47 @@ bool Renderer::Render()
 	{
 		for(int i = 0; i < 3; i++)
 		{
-			result = debugWindows[i].Render(d3D->GetDeviceContext(), 200+200*i, 0);
-			if(!result)
+			if(!debugWindows[i].Render(d3D->GetDeviceContext(), 200+200*i, 0))
 			{
 				return false;
 			}
 
-			result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[i].GetIndexCount(), 
-				&worldBaseViewOrthoProj, gbufferTextures[i]);
-			if(!result)
+			if(!textureShader->Render(d3D->GetDeviceContext(), debugWindows[i].GetIndexCount(), 
+				worldBaseViewOrthoProj, gbufferTextures[i]))
 			{
 				return false;
 			}
 		}
 
-		result = debugWindows[3].Render(d3D->GetDeviceContext(), 200, 200);
-		if(!result)
+		if(!debugWindows[4].Render(d3D->GetDeviceContext(), 800, 0))
 		{
 			return false;
 		}
 
-		result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[3].GetIndexCount(), 
-			&worldBaseViewOrthoProj, lightRT->SRView);
-		if(!result)
+		if(!textureShader->Render(d3D->GetDeviceContext(), debugWindows[4].GetIndexCount(), 
+			worldBaseViewOrthoProj, shadowRT->SRView))
 		{
 			return false;
 		}
 
-		result = debugWindows[4].Render(d3D->GetDeviceContext(), 800, 0);
-		if(!result)
+		if(!debugWindows[3].Render(d3D->GetDeviceContext(), 200, 200))
 		{
 			return false;
 		}
 
-		result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[4].GetIndexCount(), 
-			&worldBaseViewOrthoProj, shadowRT->SRView);
-		if(!result)
+		if(!textureShader->Render(d3D->GetDeviceContext(), debugWindows[3].GetIndexCount(), 
+			worldBaseViewOrthoProj, lightRT->SRView))
 		{
 			return false;
 		}
 
-		result = debugWindows[5].Render(d3D->GetDeviceContext(), 400, 200);
-		if(!result)
+		if(!debugWindows[5].Render(d3D->GetDeviceContext(), 400, 200))
 		{
 			return false;
 		}
 
-		result = textureShader->Render(d3D->GetDeviceContext(), debugWindows[5].GetIndexCount(), 
-			&worldBaseViewOrthoProj, lSystemSRV);
-		if(!result)
+		if(!textureShader->Render(d3D->GetDeviceContext(), debugWindows[5].GetIndexCount(), 
+			worldBaseViewOrthoProj, lSystemSRV))
 		{
 			return false;
 		}
@@ -1218,8 +1375,7 @@ bool Renderer::Render()
 		d3D->TurnOnAlphaBlending();
 
 		// Render the text user interface elements.
-		result = text->Render(d3D->GetDeviceContext(), &worldBaseViewOrthoProj);
-		if(!result)
+		if(!text->Render(d3D->GetDeviceContext(), worldBaseViewOrthoProj))
 		{
 			return false;
 		}
@@ -1230,10 +1386,6 @@ bool Renderer::Render()
 		// Turn the Z buffer back on now that all 2D rendering has completed.
 		d3D->TurnZBufferOn();
 	}
-#pragma endregion
-
-	// Present the rendered scene to the screen.
-	d3D->EndScene();
 
 	return true;
 }
@@ -1384,20 +1536,6 @@ void Renderer::Shutdown()
 		vegetationManager = 0;
 	}
 
-	for(std::vector<PointLight*>::iterator tmp = pointLights.begin(); tmp != pointLights.end(); tmp++) 
-	{
-		PointLight* light = 0;
-		swap(light, *tmp); //Added for extra safety.
-
-		if(light)
-		{
-			// Release the sentence.
-			delete light;
-			light = 0;
-		}
-	}
-	pointLights.clear();
-
 	if(marchingCubes)
 	{
 		delete marchingCubes;
@@ -1435,157 +1573,4 @@ void Renderer::Shutdown()
 	}
 
 	return;
-}
-
-void Renderer::GenerateVegetation( ID3D11Device* device, bool IfSetupThenTrue_IfUpdateThenFalse)
-{
-	float x,z,y;
-	int textureID, randValue;
-
-	LODVector500.clear();
-	LODVector500.reserve(500);
-	LODVector2500.clear();
-	LODVector2500.reserve(2500);
-	LODVector5000.clear();
-	LODVector5000.reserve(5000);
-	LODVector10000.clear();
-	LODVector10000.reserve(10000);
-
-	for(int i = 0; i < 70000; i++)
-	{
-		x = (2.0f + (utility->RandomFloat() * 176.0f));
-		z = (2.0f + (utility->RandomFloat() * 176.0f));
-
-		//Extract highest Y at this point
-		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate((int)x, (int)z);
-
-		randValue = rand()%100;
-
-		//If we are above "snow level", we only want yellow grass
-		if(y <= 30.0f)
-		{
-
-		}
-		else if(y >= 45.0)
-		{
-			//But the grass should be sparse, so there is
-			//95% chance that we won't actually add this to the instance list.
-			if(randValue > 95)
-			{
-				textureID = 0;
-
-				//Place texture ID in .w channel
-				XMFLOAT4 temp = XMFLOAT4(x, y, z, (float)textureID);
-
-				//We use i to control how many should be added to each LOD vector
-				if(i <= 500)
-				{
-					LODVector500.push_back(temp);
-				}
-
-				if(i <= 2500)
-				{
-					LODVector2500.push_back(temp);
-				}
-
-				if(i <= 5000)
-				{
-					LODVector5000.push_back(temp);
-				}
-
-				LODVector10000.push_back(temp);
-			}
-		}
-		else
-		{
-			if(randValue <= 5)
-			{
-				textureID = 2; //Some kind of leaf branch that I've turned into a plant quad.
-			}
-			else if(randValue <= 96) //By far biggest chance that we get normal grass
-			{
-				textureID = 1; //Normal grass.
-			}
-			else if(randValue <= 98) //If 97-98
-			{
-				textureID = 4; //Bush.
-			}
-			else //If 99-100.
-			{
-				textureID = 3; //Flower.
-			}
-
-			//Place texture ID in .w channel
-			XMFLOAT4 temp = XMFLOAT4(x, y, z, (float)textureID);
-
-			//We use i to control how many should be added to each LOD vector
-			if(i <= 500)
-			{
-				LODVector500.push_back(temp);
-			}
-
-			if(i <= 2500)
-			{
-				LODVector2500.push_back(temp);
-			}
-
-			if(i <= 5000)
-			{
-				LODVector5000.push_back(temp);
-			}
-
-			LODVector10000.push_back(temp);
-		}
-	}
-
-	if(IfSetupThenTrue_IfUpdateThenFalse)
-	{
-		vegetationManager->SetupQuads(d3D->GetDevice(), &LODVector500);
-	}
-	else
-	{
-		vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector10000);
-	}
-}
-
-bool Renderer::RenderShadowmap()
-{
-
-	return true;
-}
-
-bool Renderer::RenderTwoPassGaussianBlur()
-{
-
-	return true;
-}
-
-bool Renderer::RenderGBuffer()
-{
-
-	return true;
-}
-
-bool Renderer::RenderDirectionalLight()
-{
-
-	return true;
-}
-
-bool Renderer::RenderPointLight()
-{
-
-	return true;
-}
-
-bool Renderer::RenderFinalScene()
-{
-
-	return true;
-}
-
-bool Renderer::RenderDebugInfoAndText()
-{
-
-	return true;
 }

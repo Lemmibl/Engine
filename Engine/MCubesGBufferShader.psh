@@ -3,7 +3,7 @@ struct VertexShaderOutput
 	float4 Position : SV_POSITION;
 	float3 WorldNormal : NORMAL;
 	float4 WorldPosition : TEXCOORD0;
-	float3 ViewPosition : TEXCOORD1;
+	float4 ViewPosition : TEXCOORD1;
 	uint4 IDValues : TEXCOORD2;
 };
 
@@ -26,8 +26,8 @@ SamplerState textureSampler;
 //Normal Encoding Function
 half3 Encode(half3 n)
 {
-	half p = sqrt(n.z*8.0f+8.0f);
-	return half3(n.xy/p + 0.5f, 0.0f);
+	half p = sqrt(n.z*8.0+8.0);
+	return half3(n.xy/p + 0.5, 0.0);
 
 	return n;
 }
@@ -51,18 +51,18 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 {
 	PixelShaderOutput output;
 
-	float3 UpNormal = float3(0.0f, 1.0f, 0.0f);
+	float3 UpNormal = normalize(float3(0.0f, 1.0f, 0.0f));
 
 	//Create weights for color interpolation based on world-space normal of surface
-	float tighten = 0.2f; 
+	float tighten = 0.4f; 
 	float3 NormalizedWorldNormal = normalize(input.WorldNormal.xyz);
 
-	float3 blend_weights = abs(NormalizedWorldNormal);     
-	blend_weights = (blend_weights - tighten);  // Tighten up the blending zone
+	float3 blend_weights = abs(input.WorldNormal.xyz);     
+	blend_weights = (blend_weights - tighten) * 7.0f;  // Tighten up the blending zone
 	blend_weights = max(blend_weights, 0);
 	blend_weights /= (blend_weights.x + blend_weights.y + blend_weights.z).xxx; // Force weights to sum to 1.0 (very important!)  
 
-	float scale = 0.3f;
+	float scale = 0.2f;
 	float dotResult = dot(UpNormal, NormalizedWorldNormal);
 
 	float3 YZCoord;
@@ -94,14 +94,13 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 	//TEXTURE_DIRT,
 	//TEXTURE_GRASS,
 	//TEXTURE_ROCK,
-	//TEXTURE_SAND,
+	//TEXTURE_SAND,R
 	//TEXTURE_SNOW,
 	//TEXTURE_TILEDSTONE
 	//};
 
 	float lerpVal = 0.0f;
 	float worldY = input.WorldPosition.y;
-
 	int texture1, texture2, material1, material2;
 
 	float3 finalTempColor = float3(0.0f, 0.0f, 0.0f);
@@ -206,13 +205,13 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 		output.Color = ((XZColor * blend_weights.y) + (YZColor * blend_weights.x) + (XYColor * blend_weights.z));
 	}
 	
-	output.Color.w = (lerpVal);//Convert our [0,1] range lerp value to [0,255] to preserve data
+	output.Color.w = lerpVal;
 
 	output.Normal.xy = Encode(NormalizedWorldNormal);
 	output.Normal.z = EncodeMaterialID(material1);
 	output.Normal.w = EncodeMaterialID(material2);
 
-	output.Depth = input.ViewPosition.z / 150.0f;
+	output.Depth = (input.ViewPosition.z/500.0f);
 
 	return output;
 }

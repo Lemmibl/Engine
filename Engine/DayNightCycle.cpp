@@ -68,8 +68,6 @@ bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
 	//Yellow sunshine: 231 187 65                                                            
 	/************************************************************************/
 
-	stagesOfDay.reserve(6);
-
 	StageOfDayStruct dawn;
 	dawn.AmbientColor =		XMFLOAT4(0.3f,	0.3f,	0.3f,	1.0f);
 	dawn.DirectionalLightColor = dawn.AmbientColor;
@@ -95,7 +93,6 @@ bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
 	morning.LightIntensity = 0.85f;
 
 	stagesOfDay.push_back(morning);
-
 
 
 	StageOfDayStruct day;
@@ -231,7 +228,7 @@ float DayNightCycle::Update( float deltaTime, DirLight* directionalLight, Skysph
 
 
 /************************************************************************/
-/*					             BACKUP                                 */
+/*					      BACKUP / OLD VERSION                          */
 /************************************************************************/
 
 /*

@@ -20,20 +20,13 @@ void BoundingSphere::SetPosition(const D3DXVECTOR3& position)
 	this->position = position;
 }
 
-
-
-BoundingSphere::BoundingSphere(float radius, D3DXVECTOR3 position)
+BoundingSphere::BoundingSphere(float extRadius, D3DXVECTOR3 extPosition)
+:	position(extPosition),
+	radius(extRadius)
 {
-	radius = 0;
-	position = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 
 	this->position = position;
 	this->radius = radius;
-}
-
-BoundingSphere::BoundingSphere(const BoundingSphere& other)
-{
-
 }
 
 BoundingSphere::~BoundingSphere()

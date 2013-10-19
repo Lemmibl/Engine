@@ -1,8 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Filename: graphicsclass.h
 ////////////////////////////////////////////////////////////////////////////////
-#ifndef _GRAPHICSCLASS_H_
-#define _GRAPHICSCLASS_H_
 
 ///////////////////////
 // MY CLASS INCLUDES //
@@ -18,6 +16,7 @@
 #include <sstream>
 #include <iosfwd>
 #include <string>
+#include <cassert>
 
 //Utility
 #include "Utility.h"
@@ -71,24 +70,23 @@ public:
 
 	bool Initialize(HWND hwnd, CameraClass* camera, InputClass* inputManager, D3DClass* d3D, UINT screenWidth, 
 		UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear, bool toggleDebug);
-	bool InitializeShaders(HWND hwnd, ID3D11Device* device);
-	bool InitializeLights(HWND hwnd, ID3D11Device* device);
-	bool InitializeEverythingElse(HWND hwnd, ID3D11Device* device);
-	bool InitializeModels(HWND hwnd, ID3D11Device* device);
+
+	bool InitializeShaders(HWND hwnd);
+	bool InitializeLights(HWND hwnd);
+	bool InitializeEverythingElse(HWND hwnd);
+	bool InitializeModels(HWND hwnd);
 	void Shutdown();
 
 	bool Update(HWND hwnd, int, int, float, float seconds);
-	bool Render();
+	bool Render(HWND hwnd);
 
-	bool RenderShadowmap();
-	bool RenderTwoPassGaussianBlur();
-
-	bool RenderGBuffer();
-	bool RenderDirectionalLight();
-	bool RenderPointLight();
-	bool RenderFinalScene();
-
-	bool RenderDebugInfoAndText();
+	bool RenderShadowmap(ID3D11DeviceContext* deviceContext, XMMATRIX* lightWorldViewProj, XMMATRIX* lightWorldView);
+	bool RenderTwoPassGaussianBlur(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj);
+	bool RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, XMMATRIX* identityWorldViewProj);
+	bool RenderDirectionalLight(ID3D11DeviceContext* deviceContext, XMMATRIX* viewMatrix, XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* lightView, XMMATRIX* lightProj, XMMATRIX* invertedProjection);
+	bool RenderPointLight(ID3D11DeviceContext* deviceContext, XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* viewProjection);
+	bool RenderComposedScene(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* worldView, XMMATRIX* view, XMMATRIX* invertedProjection, XMMATRIX* invertedViewProjection);
+	bool RenderDebugInfoAndText(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj);
 
 	//And the winner for worst parameter name 2013 goes to.....
 	void GenerateVegetation(ID3D11Device* device, bool IfSetupThenTrue_IfUpdateThenFalse);
@@ -102,8 +100,7 @@ private:
 
 	DRGBuffer* gbufferShader;
 	DRPointLight* pointLightShader;
-	vector<PointLight*> pointLights;
-	PointLight cameraPointLight;
+	vector<PointLight> pointLights;
 
 	VertexShaderOnly* vertexOnlyShader;
 	DepthOnlyShader* depthOnlyShader;
@@ -134,7 +131,7 @@ private:
 	UINT shadowMapWidth, shadowMapHeight, screenWidth, screenHeight;
 	float screenFar, screenNear, timer, timeOfDay;
 
-	bool returning, toggleDebugInfo, toggleTextureShader, toggleCameraPointLight, toggleOtherPointLights;
+	bool returning, toggleDebugInfo, toggleTextureShader, toggleOtherPointLights;
 	float fogMinimum;
 	
 	MetaballsClass* metaBalls;
@@ -156,10 +153,31 @@ private:
 	vector<XMFLOAT4> LODVector5000;
 	vector<XMFLOAT4> LODVector10000;
 	int lodState, previousLodState, toggleSSAO, toggleColorMode;
+
+	Lemmi2DAABB testBoundingbox;
+
+	/************************************************************************/
+	/* Actual rendering related variables                                   */
+	/************************************************************************/
+	XMFLOAT3 camPos, camDir;
+	ID3D11RenderTargetView* gbufferRenderTargets[3]; //render targets for GBuffer pass
+	ID3D11RenderTargetView* lightTarget[1];
+	ID3D11RenderTargetView* shadowTarget[1];
+	ID3D11RenderTargetView* gaussianBlurPingPongRTView[1];
+
 	ID3D11ShaderResourceView* lSystemSRV;
 	ID3D11ShaderResourceView* ssaoRandomTextureSRV;
 
-	Lemmi2DAABB testBoundingbox;
-};
+	ID3D11ShaderResourceView* gbufferTextures[3];
+	ID3D11ShaderResourceView* dirLightTextures[4];
+	ID3D11ShaderResourceView* finalTextures[4];
+	ID3D11ShaderResourceView* gaussianBlurTexture[1];
+	ID3D11ShaderResourceView* lightMap;
 
-#endif
+	ID3D11DepthStencilView* shadowDepthStencil;
+	ID3D11DepthStencilView* depthStencil; //We set it later on when we need it. Calling d3D->GetDepthStencilView() also calls a reset on DS settings to default, hence we wait with calling it.
+
+	/************************************************************************/
+	/* End of rendering related variables									*/
+	/************************************************************************/
+};

@@ -10,20 +10,21 @@ SamplerState linearSampler;
 struct PixelInputType
 {
 	float4 Position : SV_POSITION;
-	float3 Normal : NORMAL;
+	float3 Normal :	NORMAL;
 	float4 TexCoord : TEXCOORD0;
 };
 
 struct PixelShaderOutput
 {
 	half4 Color : SV_TARGET0; //R8G8B8A8
-	half4 Normal : SV_TARGET1; //R8G8B8A8
+	float4 Normal : SV_TARGET1; //R8G8B8A8
 	float Depth : SV_TARGET2; //R32
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 // Functions
 ////////////////////////////////////////////////////////////////////////////////
+//Since it's an 8bit UNORM channel, it means every value will end up in the 0..1 spectrum, so we have to do some trickery to save it and unload it properly.
 float EncodeMaterialID(float id)
 {
 	return (id / 255.0f);
@@ -31,12 +32,10 @@ float EncodeMaterialID(float id)
 
 //http://aras-p.info/texts/CompactNormalStorage.html#method04spheremap
 //Normal Encoding Function
-half3 Encode(half3 n)
+float2 Encode(float3 n)
 {
-	half p = sqrt(n.z*8.0f+8.0f);
-	return half3(n.xy/p + 0.5f, 0.0f);
-
-	return n;
+	float p = sqrt(n.z*8.0f+8.0f);
+	return float2(n.xy/p + 0.5f);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -46,19 +45,27 @@ PixelShaderOutput VegetationQuadPixelShader(PixelInputType input)
 {
 	PixelShaderOutput output;
 
-	float fadeFactor = saturate(((input.TexCoord.w*150.0f) - 149.0f) / (150.0f - 149.0f));
+	//Viewspace depth is saved in the .w channel. Divide it by screen's farClip.
+	float depth = (input.TexCoord.w / 500.0f);
 
-	//No branching cuz texture array. Yay. To clarify -- our texCoord.z channel contains texture ID, which we extract from each instance of vegetation.
-	output.Color = lerp(float4(0.3f, 0.3f, 0.3f, 0.3f), shaderTexture.Sample(linearSampler, input.TexCoord.xyz), 1.0f-fadeFactor);
-
-	if(output.Color.w <= 0.7f) //Alpha testing and tiny optimization for the break-early cases, I guess.
+	if(depth > 0.7f)
 	{
 		discard;
 	}
 
-	output.Depth = (input.TexCoord.w); //We stored postProj.z/w in TexCoord.z to save one register slot of space.
+	//No branching cuz texture array. Yay. To clarify -- our texCoord.z channel contains texture ID, which we extract from each instance of vegetation.
+	//output.Color = lerp(shaderTexture.Sample(linearSampler, input.TexCoord.xyz), float4(0.2f, 0.3f, 0.2f, 0.3f), depth);
+	output.Color = shaderTexture.Sample(linearSampler, input.TexCoord.xyz);
+	
+	//I fade in the alpha depending on depth, to make the vegetation appear smoothly. Works pretty well despite its' simplicity.
+	if((output.Color.w-(depth-0.4f)) <= 0.7f) //Alpha testing and tiny optimization for the break-early cases.
+	{
+		discard;
+	}
 
-	output.Normal.xyz = Encode(normalize(input.Normal));
+	output.Depth = depth;
+
+	output.Normal.xy = Encode(normalize(input.Normal));
 
 	//This is our material ID. Our normal map is R8G8B8A8, so our z and w channels each have 8 bits == 255 possible values.
 	output.Normal.z = EncodeMaterialID(4.0f);

@@ -671,7 +671,7 @@ bool TextClass::SetCpu(int cpu, ID3D11DeviceContext* deviceContext)
 		blue = 0.0f;
 	}
 
-	if(cpu < 60)
+	if(cpu < 70)
 	{
 		red = 1.0f;
 		green = 1.0f;

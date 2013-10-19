@@ -1,7 +1,7 @@
 struct VertexShaderOutput
 {
 	float4 Position : SV_POSITION;
-	float3 ViewPosition : TEXCOORD0;
+	float4 ViewPosition : TEXCOORD0;
 };
 
 float2 ComputeMoments(float depth)  
@@ -23,70 +23,5 @@ float2 ComputeMoments(float depth)
 
 float2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 {
-	return ComputeMoments((input.ViewPosition.z / 150.0f));
+	return ComputeMoments(input.ViewPosition.z/500.0f);
 };
-
-
-/*
-From Matt Perineo's (MJP's) blog:
-
-This time instead of using a normalized direction vector for the view ray, we extrapolate the ray all the way back until it intersects with the far clip plane.  
-When we do this, it means that the position at the end of the view ray is at a known depth relative to the camera position and the direction the camera is looking (the depth is the far clip plane distance).  
-In view space it means that the view ray has a Z component equal to the far clip plane.  Since the Z component is a known value we no longer need to normalize the view ray vector.  
-Instead we can multiply by a value that scales along the camera’s z-axis to get the final reconstructed position.  
-In the case where Z = FarClipDistance, we want to scale by a ratio of the original surface depth relative to the far clip plane.  
-In other words, the surface’s view space Z divided by the far clip distance.  In code it looks like this:
-
-
-
-
-// G-Buffer vertex shader
-
-// Calculate view space position of the vertex and pass it to the pixel shader
-output.PositionVS = mul(input.PositionOS, WorldViewMatrix).xyz;
-
-
-
-
-// G-Buffer pixel shader
-
-// Divide view space Z by the far clip distance
-output.Depth.x = input.PositionVS.z / FarClipDistance;
-
-
-
-
-// Light vertex shader
-
-#if PointLight || SpotLight
-// Calculate the view space vertex position
-output.PositionVS = mul(input.PositionOS, WorldViewMatrix);
-#elif DirectionalLight
-// Calculate the view space vertex position (you can also just directly map the vertex to a frustum corner to avoid the transform)
-output.PositionVS = mul(input.PositionOS, InvProjMatrix);
-#endif
-
-
-
-
-// Light Pixel shader
-
-#if PointLight || SpotLight
-// Extrapolate the view space position to the far clip plane
-float3 viewRay = float3(input.PositionVS.xy * (FarClipDistance / input.PositionVS.z), FarClipDistance);
-#elif DirectionalLight
-// For a directional light, the vertices were already on the far clip plane so we don't need to extrapolate
-float3 viewRay = input.PositionVS.xyz;
-#endif
-
-// Sample the depth and scale the view ray to reconstruct view space position
-float normalizedDepth = DepthTexture.Sample(PointSampler, texCoord).x;
-float3 positionVS = viewRay * normalizedDepth;
-
-
-
-As you can see this is a bit cheaper, especially for the full-screen quad case.  
-One thing to be aware of is that since with this we store normalized depth, it’s always in the range [0,1].  
-This means you can store it in a normalized integer format (such as DXGI_FORMAT_R16_UNORM) without having to do any rescaling after you sample it.  
-A floating point format will obviously handle it just fine as well.
-*/

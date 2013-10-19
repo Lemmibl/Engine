@@ -90,7 +90,7 @@ bool Engine::Initialize()
 
 	camera->Initialize(cameraController);
 
-	// Initialize a base view matrix with the camera for 2D user interface rendering.
+	// Initialize a base view matrix with the camera for 2D UI rendering.
 	camera->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
 	camera->Update();
 
@@ -281,7 +281,7 @@ bool Engine::Update()
 	}
 
 	// Finally render the graphics to the screen.
-	result = renderer->Render();
+	result = renderer->Render(hwnd);
 	if(!result)
 	{
 		return false;

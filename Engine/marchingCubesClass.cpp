@@ -767,10 +767,10 @@ const int MarchingCubesClass::edgeTable[256] = {
 		vertexCount = (this->sizeX * this->sizeY * this->sizeZ);
 		indexCount = vertexCount;
 
-		delete marchingCubeVertices;
-		marchingCubeVertices = 0;
+		//delete marchingCubeVertices;
+		//marchingCubeVertices = 0;
 
-		this->marchingCubeVertices = new MarchingCubeVertex[vertexCount];
+		//this->marchingCubeVertices = new MarchingCubeVertex[vertexCount];
 
 
 		/* setter default-verdier */

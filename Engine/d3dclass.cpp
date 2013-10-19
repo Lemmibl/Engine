@@ -1143,7 +1143,6 @@ void D3DClass::TurnOnLightBlending()
 {
 	float blendFactor[4];
 
-
 	// Setup the blend factor.
 	blendFactor[0] = 1.0f;
 	blendFactor[1] = 1.0f;

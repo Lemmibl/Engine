@@ -52,16 +52,15 @@ void DRDirLight::Shutdown()
 	return;
 }
 
-bool DRDirLight::Render( ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldViewProjection, 
-	XMMATRIX* invertedViewProj, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** materialTextureArray, 
-	XMFLOAT3 cameraPosition, DirLight* dirLight, XMFLOAT4 ambienceColor, XMMATRIX* lightViewProj, XMMATRIX* worldView)
-	, XMMATRIX* world )
+bool DRDirLight::Render( ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldViewProjection, XMMATRIX* worldView, 
+XMMATRIX* world, XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* invertedProjection, XMMATRIX* lightView, XMMATRIX* lightProj, 
+ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** materialTextureArray, XMFLOAT3 cameraPosition, DirLight* dirLight, XMFLOAT4 ambienceColor)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldViewProjection, invertedViewProj, textureArray, materialTextureArray, 
-		cameraPosition, dirLight, ambienceColor, lightViewProj, worldView);
+	result = SetShaderParameters(deviceContext, worldViewProjection, worldView, world, view, invertedView, invertedProjection, lightView, lightProj, textureArray, materialTextureArray, 
+		cameraPosition, dirLight, ambienceColor);
 	if(!result)
 	{
 		return false;
@@ -94,7 +93,7 @@ bool DRDirLight::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFile
 	pixelShaderBuffer = 0;
 
 	// Compile the vertex shader code.
-	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "LightVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
+	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "LightVertexShader", "vs_5_0", NULL, 0, NULL, 
 		&vertexShaderBuffer, &errorMessage, NULL);
 	if(FAILED(result))
 	{
@@ -113,7 +112,7 @@ bool DRDirLight::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFile
 	}
 
 	// Compile the pixel shader code.
-	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "LightPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
+	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "LightPixelShader", "ps_5_0", NULL, 0, NULL, 
 		&pixelShaderBuffer, &errorMessage, NULL);
 	if(FAILED(result))
 	{
@@ -406,7 +405,6 @@ void DRDirLight::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, W
 
 	// Release the error message.
 	errorMessage->Release();
-	errorMessage = 0;
 
 	// Pop a message up on the screen to notify the user to check the text file for compile errors.
 	MessageBox(hwnd, L"Error compiling shader.  Check shader-error.txt for message.", shaderFilename, MB_OK);
@@ -414,9 +412,9 @@ void DRDirLight::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, W
 	return;
 }
 
-bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, XMMATRIX* invertedViewProj, 
-	ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** materialTextureArray, XMFLOAT3 cameraPosition, XMFLOAT3 cameraViewDir, 
-	DirLight* dirLight, XMFLOAT4 ambienceColor,XMMATRIX* lightViewProj, XMMATRIX* worldView)
+bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, XMMATRIX* worldView, XMMATRIX* world, 
+XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* invertedProjection, XMMATRIX* lightView, XMMATRIX* lightProj, ID3D11ShaderResourceView** textureArray, 
+	ID3D11ShaderResourceView** materialTextureArray, XMFLOAT3 cameraPosition, DirLight* dirLight, XMFLOAT4 ambienceColor)
 {		
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -441,6 +439,8 @@ bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATR
 
 	dataPtr1->WorldViewProjection = *worldViewProjection;
 	dataPtr1->WorldView = *worldView;
+	dataPtr1->World = *world;
+	dataPtr1->InvertedViewProjection = XMMatrixMultiplyTranspose(*invertedView, *invertedProjection);
 	dataPtr1->CameraPosition = XMFLOAT4(cameraPosition.x, cameraPosition.y, cameraPosition.z, 1.0f);
 
 	deviceContext->Unmap(vertexMatrixBuffer, 0);
@@ -462,10 +462,9 @@ bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATR
 	// Get a pointer to the data in the constant buffer.
 	dataPtr2 = (PositionalBuffer*)mappedResource.pData;
 
-	dataPtr2->LightDirection = XMFLOAT4(dirLight->Direction.x, dirLight->Direction.y, dirLight->Direction.z, 1.0f);
-	dataPtr2->LightPosition = XMFLOAT4(dirLight->Position.x, dirLight->Position.y, dirLight->Position.z, dirLight->Intensity);
+	dataPtr2->LightDirection = XMFLOAT4(dirLight->Direction.x, dirLight->Direction.y, dirLight->Direction.z, dirLight->Intensity);
 	dataPtr2->CameraPosition = XMFLOAT4(cameraPosition.x, cameraPosition.y, cameraPosition.z, 1.0f);
-	dataPtr2->ViewDirection = XMFLOAT4(cameraViewDir.x, cameraViewDir.y, cameraViewDir.z, 1.0f);
+	//dataPtr2->ViewDirection = XMFLOAT4(cameraViewDir.x, cameraViewDir.y, cameraViewDir.z, 1.0f);
 
 	deviceContext->Unmap(positionalBuffer, 0);
 
@@ -484,8 +483,10 @@ bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATR
 
 	dataPtr3 = (PixelMatrixBuffer*)mappedResource.pData;
 
-	dataPtr3->InvertedViewProjection = *invertedViewProj;
-	dataPtr3->LightViewProjection = *lightViewProj;
+	dataPtr3->InvertedView = *invertedView;
+	dataPtr3->InvertedProjection = *invertedProjection;
+	dataPtr3->LightView = *lightView;
+	dataPtr3->LightProjection = *lightProj;
 
 	deviceContext->Unmap(pixelMatrixBuffer, 0);
 

@@ -829,12 +829,7 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 
 	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
 
-<<<<<<< HEAD
 	XMVECTOR lookAt = XMLoadFloat3(&camera->GetPosition())+(camera->ForwardVector()*3.0f);//XMVectorSet(30.0f, 20.0f, 30.0f, 1.0f);//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition())+(camera->ForwardVector()*30.0f);//XMLoadFloat3(&camera->GetPosition());//
-=======
-
-	XMVECTOR lookAt = XMVectorSet(30.0f, 20.0f, 30.0f, 1.0f);//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition())+(camera->ForwardVector()*30.0f);//XMLoadFloat3(&camera->GetPosition());//
->>>>>>> 2fd54ae2fdc0b221ce797517ea28042978c96a6e
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 	XMVECTOR currentLightPos = (XMLoadFloat3(&camera->GetPosition())+XMLoadFloat3(&dirLight->Position));//XMLoadFloat3(&camera->GetPosition())-(camera->ForwardVector()*30.0f);
 
@@ -951,12 +946,14 @@ bool Renderer::Render()
 	invertedProjection = XMMatrixInverse(&nullVec, projectionMatrix);
 	invertedViewProjection = XMMatrixInverse(&nullVec, viewProjection);
 
-	identityWorldViewProj = ((worldMatrix*viewMatrix ) * projectionMatrix);
+	worldView = (worldMatrix*viewMatrix);
+	identityWorldViewProj = (worldView * projectionMatrix);
 	lightWorldViewProj = worldMatrix*lightViewProj;
 	lightWorldView = XMMatrixMultiply(lightView, worldMatrix);
 
 	lightWorldViewProj =		XMMatrixTranspose(lightWorldViewProj);
 	lightWorldView =			XMMatrixTranspose(lightWorldView);
+	worldView =					XMMatrixTranspose(worldView);
 	identityWorldViewProj =		XMMatrixTranspose(identityWorldViewProj);
 	worldMatrix =				XMMatrixTranspose(worldMatrix);
 	viewProjection =			XMMatrixTranspose(viewProjection);
@@ -1047,11 +1044,7 @@ bool Renderer::Render()
 	{*/
 	marchingCubes->Render(context);
 	result = mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), 
-<<<<<<< HEAD
-		&worldMatrix, &identityWorldViewProj, textureAndMaterialHandler->GetTerrainTextureArray(), toggleColorMode);
-=======
-		&worldMatrix, &worldView, &identityWorldViewProj, textureAndMaterialHandler->GetTerrainTextureArray());
->>>>>>> 2fd54ae2fdc0b221ce797517ea28042978c96a6e
+		&worldMatrix, &worldView, &identityWorldViewProj, textureAndMaterialHandler->GetTerrainTextureArray(), toggleColorMode);
 
 	d3D->SetNoCullRasterizer();
 	d3D->TurnOnAlphaBlending();
@@ -1136,12 +1129,13 @@ bool Renderer::Render()
 	fullScreenQuad.Render(context, 0, 0);
 
 	result = dirLightShader->Render(context, fullScreenQuad.GetIndexCount(), &worldBaseViewOrthoProj, &invertedViewProjection, 
-<<<<<<< HEAD
-		dirLightTextures, textureAndMaterialHandler->GetMaterialTextureArray(), camPos, camDir, dirLight, dayNightCycle->GetAmbientLightColor(), &lightViewProj);
+<<<<<<< Updated upstream
+		dirLightTextures, textureAndMaterialHandler->GetMaterialTextureArray(), camPos, camDir, dirLight,
+		dayNightCycle->GetAmbientLightColor(), &lightViewProj, &worldMatrix);
 =======
 		dirLightTextures, textureAndMaterialHandler->GetMaterialTextureArray(), camPos, dirLight, 
-		dayNightCycle->GetAmbientLightColor(), &lightViewProj, &worldMatrix);
->>>>>>> 2fd54ae2fdc0b221ce797517ea28042978c96a6e
+		dayNightCycle->GetAmbientLightColor(), &lightViewProj, &worldView);
+>>>>>>> Stashed changes
 	if(!result)
 	{
 		return false;

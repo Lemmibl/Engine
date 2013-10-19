@@ -2,29 +2,31 @@ cbuffer VertexMatrixBuffer
 {
 	float4x4 WorldViewProjection;
 	float4x4 WorldView;
-	float3 CameraPosition;
+	float4x4 World;
+	float4x4 InvertedViewProjection;
+	float4 CameraPosition;
 };
 
 struct VertexShaderInput
 {
-		float4 Position : POSITION;
-		float2 tex : TEXCOORD;
+	float4 Position : POSITION;
+	float2 tex : TEXCOORD;
 };
 
 struct VertexShaderOutput
 {
 	float4 Position : SV_POSITION;
-	float2 TexCoord : TEXCOORD0;
-	float3 ViewPosition : TEXCOORD1;
+	float4 ScreenPosition : TEXCOORD0;
+	float2 TexCoord : TEXCOORD1;
 };
 
 VertexShaderOutput LightVertexShader(VertexShaderInput input)
 {
 		VertexShaderOutput output;
 
-		output.Position =	mul(input.Position, WorldViewProjection);
+		output.Position = mul(input.Position, WorldViewProjection);
+		output.ScreenPosition = output.Position;
 		output.TexCoord = input.tex;
-		output.ViewPosition = mul(input.Position, WorldView).xyz;
 
 		return output;
 }

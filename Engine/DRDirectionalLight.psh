@@ -5,15 +5,15 @@
 cbuffer PositionalBuffer //Whatever, idk what else to name it
 {
 	float4 LightDirection;
-	float4 LightPosition;
 	float4 CameraPosition;
-	float4 ViewDirection;
 };
 
 cbuffer PixelMatrixBuffer
 {
-	float4x4 InverseViewProjection;
-	float4x4 LightViewProjection;
+	float4x4 InvertedView;
+	float4x4 InvertedProjection;
+	float4x4 LightView;
+	float4x4 LightProjection;
 };
 
 cbuffer LightBuffer
@@ -21,6 +21,8 @@ cbuffer LightBuffer
 	float4 DiffuseColor;
 	float4 AmbientColor;
 };
+
+static const float CameraFarClip = 500.0f;
 
 SamplerState linearSampler : register(s0);
 SamplerState anisotropicSampler : register(s1);
@@ -32,8 +34,8 @@ Texture2D shaderTextures[4]; // 0 = normal, 1 = standard depth, 2 = shadowmap de
 struct VertexShaderOutput
 {
 	float4 Position : SV_POSITION;
-	float2 TexCoord : TEXCOORD0;
-	float3 ViewPosition : TEXCOORD1;
+	float4 ScreenPosition : TEXCOORD0;
+	float2 TexCoord : TEXCOORD1;
 };
 
 /////////////////////////////////////////////
@@ -50,7 +52,7 @@ void RetrieveMaterialData(int materialID, out float ambienceCoefficient, out flo
 
 	int3 LoadingCoordinates = int3(0, materialID, 0);
 
-	//Load all of the objects and assign them to local variables
+	//Load all of the coefficients and assign them to local variables
 	ambienceCoefficient = materialArray.Load(LoadingCoordinates);
 	LoadingCoordinates.x += 1;
 
@@ -71,39 +73,46 @@ void RetrieveMaterialData(int materialID, out float ambienceCoefficient, out flo
 //Decoding of GBuffer Normals
 half3 DecodeNormal(half2 enc)
 {
-	half2 fenc = (enc*4.0f)-2.0f;
+	half2 fenc = (enc*4.0)-2.0;
 	half f = dot(fenc,fenc);
-	half g = sqrt(1.0f-(f*0.25f));
+	half g = sqrt(1.0-(f*0.25));
 	
 	half3 n;
 	n.xy = fenc*g;
-	n.z = 1.0f-(f*0.5f);
+	n.z = 1.0-(f*0.5);
 
 	return n;
 }
 
-float4 ReconstructPositionFromDepth(float3 viewPosition, float2 texCoord)
-{
-	float3 viewRay = float3(viewPosition.xy * (150.0f / viewPosition.z), 150.0f);
-	
-	// Sample the depth and scale the view ray to reconstruct view space position
-	float normalizedDepth = shaderTextures[1].Sample(linearSampler, texCoord);
+//float3 ReconstructViewPositionFromDepth(float3 viewRay, float depth)
+//{
+//	// Sample the depth and scale the view ray to reconstruct view space position
+//	return float3(viewRay.xy * (CameraFarClip / viewRay.z), CameraFarClip) * depth;
+//}
+//
+//float3 ReconstructWorldPositionFromDepth(float3 viewRay, float depth)
+//{
+//	//Multiply by invertedView to reconstruct world position.
+//	return CameraPosition.xyz * viewRay+(CameraFarClip*depth);
+//}
 
-	return float4(viewRay * normalizedDepth, 1.0f); //float4 positionVS =
+float3 DepthToPosition2(float iDepth, float3 vPos)
+{
+	float3 vViewRay = float3(vPos.xy * (CameraFarClip / vPos.z), CameraFarClip);
+	return vViewRay * iDepth;
 }
 
-//Linear stepping function used when reducing light bleeding for variance shadowmaps
-float Linstep(float minVal, float maxVal, float value)  
+float3 DepthToPosition(float depth, float4 ScreenPosition)
 {
-	return clamp( ((value - minVal) / (maxVal - minVal)), 0, 1);
+	float3 viewPosition = mul(ScreenPosition, InvertedProjection).xyz;
+	float3 viewRay = float3(viewPosition.xy * (CameraFarClip / viewPosition.z), CameraFarClip);
+	return viewRay * depth;
 }
 
-float ReduceLightBleeding(float p_max, float amount)  
-{
-	// Remove the [0, Amount] tail and linearly rescale (Amount, 1].  
-   return Linstep(amount, 1, p_max);
-}
-  
+/////////////////////////////////////////////
+/////////////SHADOW FUNCTIONS////////////////
+/////////////////////////////////////////////
+
 //Calculate shadow contribution using chevyshev's inequality.
 float ChebyshevUpperBound(float2 moments, float t)  
 {
@@ -133,11 +142,7 @@ float ShadowContribution(float2 lightTexCoord, float distanceToLight)
 	}
 
 	// Compute the Chebyshev upper bound.
-	float shadowContribution = ChebyshevUpperBound(moments, distanceToLight);
-
-	//shadowContribution = ReduceLightBleeding(shadowContribution, distanceToLight);
-
-	return shadowContribution;
+	return ChebyshevUpperBound(moments, distanceToLight);
 }
 
 
@@ -149,23 +154,19 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 {
 	//http://gamedev.stackexchange.com/questions/29447/could-someone-explain-why-my-world-reconstructed-from-depth-position-is-incorrec
 
-	//I pre-declare all values so that I can still return the same variables if we break before light calculations. 
-	//It's neater this way.
-	float4 finalAmbienceProduct = float4(0.0f, 0.0f, 0.0f, 0.0f);
-
 	//Sample camera depth
 	float depth = shaderTextures[1].Sample(linearSampler, input.TexCoord);
 
-	if(depth <= 0.0f)
+	if(depth <= 0.001f)
 	{
-		return finalAmbienceProduct; //0 0 0 0. We break really early for optimization + sky sphere
+		return float4(0.0f, 0.0f, 0.0f, 0.0f); //0 0 0 0. We break really early for optimization, and to not apply directional light to the sky sphere...
 	}
-	
+
 	float ambienceCoefficient, diffuseCoefficient, specularCoefficient, surfaceSmoothness;
 	bool recieveShadows = false; //Used to combat self-shadowing.
 	float3 finalDiffuseProduct = float3(0.0f, 0.0f, 0.0f);
 	float finalSpecularProduct = 0.0f;
-	float LightIntensity = LightPosition.w;
+	float LightIntensity = LightDirection.w;
 
 	float4 encodedNormal = shaderTextures[0].Sample(anisotropicSampler, input.TexCoord);
 	
@@ -179,7 +180,7 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//If there's a difference between our two materials, we have to lerp!
 	if(materialID != materialID2) 
 	{
-		float lerpVal = (shaderTextures[3].Sample(linearSampler, input.TexCoord).w);
+		float lerpVal = shaderTextures[3].Sample(linearSampler, input.TexCoord).w;
 		float ambienceCoefficient2, diffuseCoefficient2, specularCoefficient2, surfaceSmoothness2;
 
 		RetrieveMaterialData(materialID2, ambienceCoefficient2, diffuseCoefficient2, specularCoefficient2, surfaceSmoothness2, recieveShadows);
@@ -190,7 +191,7 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		surfaceSmoothness = lerp(surfaceSmoothness, surfaceSmoothness2, lerpVal);
 	}
 
-	finalAmbienceProduct += ambienceCoefficient * AmbientColor;
+	float4 finalAmbienceProduct = ambienceCoefficient * AmbientColor;
 
 	float3 normal = normalize(DecodeNormal(encodedNormal.xy));
 
@@ -200,77 +201,136 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//Calculate diffuse intensity, the usual
 	float NdL = dot(lightVector, normal);
 
-	float UpDotL = dot(lightVector, float3(0.0f, 1.0f, 0.0f));
+	//Reconstructing world position
+	float4 position = mul(float4(DepthToPosition(depth, input.ScreenPosition), 1.0f), InvertedView);
+	position /= position.w;
 
-	//Reconstructing position
-	float4 position = ReconstructPositionFromDepth(input.ViewPosition, input.TexCoord);
-
-	//Extract pixel position as seen from light POV for shadow map extraction.
-	float4 lightScreenPos = mul(position, LightViewProjection);
-
-	//Adjust this value too.
-	lightScreenPos /= lightScreenPos.w;
-
-	float realDistanceToLight = lightScreenPos.z;
-
-	float2 sampleLightScreen;
 	
-	//Adjust from [-1,1] range to [0,1] range
-	sampleLightScreen.x = ((lightScreenPos.x * 0.5f) + 0.5f);
-	sampleLightScreen.y = ((-lightScreenPos.y * 0.5f) + 0.5f);
+	//Extract pixel position as seen from light POV for shadow map extraction.
+	float4 lightScreenPos = mul(position,  mul(LightView, LightProjection));
+
+	float realDistanceToLight = mul(position, LightView).z/CameraFarClip;
+
+	lightScreenPos.xy = 0.5 * lightScreenPos.xy / lightScreenPos.w + float2(0.5f, 0.5f);
+	lightScreenPos.y = 1.0f - lightScreenPos.y;
 
 	float shadowMultiplier = 1.0f;
 
 	//We cull a large part of the light and shadow calculations if it's outside of the light frustum.
-	//Using 0.99 and 0.01 because if I use 1.0 and 0.0, I get black lines along the extreme edge of the light frustum
 	if
 	(		
-		!(	sampleLightScreen.x >= 0.99f || sampleLightScreen.x	<= 0.01f	|| 
-			sampleLightScreen.y >= 0.99f || sampleLightScreen.y	<= 0.01f	||
-			realDistanceToLight >= 0.99f || realDistanceToLight <= 0.01f		)
+		!(	lightScreenPos.x > 0.99f || lightScreenPos.x	< 0.01f	|| 
+			lightScreenPos.y > 0.99f || lightScreenPos.y	< 0.01f	)
 	)
 	{
 		/*Variance shadow mapping. http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html */
-		shadowMultiplier = ShadowContribution(sampleLightScreen, realDistanceToLight);
-	}
+		shadowMultiplier = ShadowContribution(lightScreenPos.xy, realDistanceToLight);
+	}	
+	
+	//Calculate diffuse light
+	finalDiffuseProduct += diffuseCoefficient * (NdL * DiffuseColor.rgb);
 
-
-	if(UpDotL > (-0.1f))
+	if(NdL > 0.0f)
 	{
-				/*PHONG*/
 		//Reflection vector
 		float3 reflectionVector = normalize(reflect(lightVector, normal));
 
-		//Camera-to-surface vector
+		//surface-to-camera vector
 		float3 directionToCamera = normalize(position - CameraPosition);
 
 		//Calculate specular light 
 		finalSpecularProduct += specularCoefficient * pow( saturate( dot(reflectionVector, directionToCamera)), surfaceSmoothness);
-		/*End of phong*/
-
-
-
-				/*BLINN-PHONG*/
-		//float3 H = normalize( LightDirection + ViewDirection );
-
-		////Calculate specular light 
-		//finalSpecularProduct += specularCoefficient * pow( saturate( dot(normal, H)), surfaceSmoothness);
-		/*End of blinn phong*/
-
-		//Calculate diffuse light
-		finalDiffuseProduct += diffuseCoefficient * (NdL * DiffuseColor.rgb);
 	}
-
 
 	//Essentially I save a float in the normal render target's .w channel that decides if the object should be shaded or not.
 	//I do this because of how the vegatation quads are built -- they each consist of three different quads, and they all shade eachother.
 	//This results in the quads looking really ass and they start flickering when the light moves and shit. Bad.
 	if(recieveShadows)
 	{
-		return (LightIntensity*float4(finalAmbienceProduct.rgb + (finalDiffuseProduct * shadowMultiplier), (finalSpecularProduct * shadowMultiplier)));
+		return LightIntensity*float4(finalAmbienceProduct.rgb + (finalDiffuseProduct * shadowMultiplier), (finalSpecularProduct * shadowMultiplier));
 	}
-	else //Don't shade if it shouldn't recieve any shadows.
+	else //Don't shade if it shouldn't recieve any shadows. This also includes the empty space where nothing exists, seeing as we clear the normal rendertarget alpha channel to 0.0f in gbuffer stage.
 	{
-		return (LightIntensity*float4(finalAmbienceProduct.rgb + finalDiffuseProduct, finalSpecularProduct));
+		return LightIntensity*float4(finalAmbienceProduct.rgb + finalDiffuseProduct, finalSpecularProduct);
 	}
 }
+
+/*
+http://www.gamedev.net/topic/544909-view-space-directional-light/
+*/
+
+
+	//float4 finalAmbienceProduct = ambienceCoefficient * AmbientColor;
+
+	//float3 worldNormal = DecodeNormal(encodedNormal.xy);
+	//float3 normalVS = normalize(mul(worldNormal, View));
+
+	////Surface-to-light vector
+	//float3 LightDirectionVS = normalize(mul(-LightDirection, View));
+
+	////Calculate diffuse intensity, the usual
+	//float NdL = saturate(dot(normalVS, LightDirectionVS));
+	//float UpDotN = dot(worldNormal, float3(0.0f, 1.0f, 0.0f));
+
+	//float4 viewPosition = float4(ReconstructViewPositionFromDepth(input.ViewPosition.xyz, depth), 1.0f);
+
+	////Reconstructing position in worldspace
+	//float4 worldPosition = mul(viewPosition, InvertedView);
+
+	////Extract pixel position as seen from light POV for shadow map extraction.
+	//float4 lightScreenPos = mul(worldPosition, LightView);
+
+	////Adjust from [-1,1] range to [0,1] range
+	//lightScreenPos.x = ((lightScreenPos.x * 0.5f) + 0.5f);
+	//lightScreenPos.y = ((-lightScreenPos.y * 0.5f) + 0.5f);
+
+	//float shadowMultiplier = 1.0f;
+
+	////We cull a large part of the light and shadow calculations if it's outside of the light frustum.
+	////Using 0.99 and 0.01 because if I use 1.0 and 0.0, I get black lines along the extreme edge of the light frustum
+	//if
+	//(		
+	//	!(	lightScreenPos.x >= 0.99f || lightScreenPos.x <= 0.01f	|| 
+	//		lightScreenPos.y >= 0.99f || lightScreenPos.y <= 0.01f	)
+	//)
+	//{
+	//	/*Variance shadow mapping. http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html */
+	//	shadowMultiplier = ShadowContribution(lightScreenPos.xy, viewPosition.z);
+	//}
+
+
+	//if(UpDotN > 0.0f)
+	//{
+	//	///*PHONG*/
+	//	////Reflection vector
+	//	////DONOT USE -lightDir since the reflection returns a ray from the surface
+	//	//float3 reflectionVector = normalize(reflect(LightDirectionVS, normalVS));
+
+	//	////Calculate specular light 
+	//	//finalSpecularProduct += specularCoefficient * pow( saturate( dot(reflectionVector, -normalize(input.ViewRay))), surfaceSmoothness);
+	//	///*End of phong*/
+
+	//	/*BLINN-PHONG*/
+	//	float3 H = normalize( LightDirectionVS + input.ViewPosition.xyz );
+
+	//	//Calculate specular light 
+	//	finalSpecularProduct += specularCoefficient * pow( saturate( dot(normalVS, H)), surfaceSmoothness);
+	//	/*End of blinn phong*/
+
+	//	//Calculate diffuse light
+	//	finalDiffuseProduct += diffuseCoefficient * (NdL * DiffuseColor.rgb);
+	//}
+
+
+	////Essentially I save a float in the normal render target's .w channel that decides if the object should be shaded or not.
+	////I do this because of how the vegatation quads are built -- they each consist of three different quads, and they all shade eachother.
+	////This results in the quads looking really ass, and they also start flickering when the light moves and shit. Bad.
+
+	//if(recieveShadows)
+	//{
+	//	return (LightIntensity*float4(finalAmbienceProduct.rgb + (finalDiffuseProduct * shadowMultiplier), (finalSpecularProduct * shadowMultiplier)));
+	//}
+	//else //Don't shade if it shouldn't recieve any shadows.
+	//{
+	//	return (LightIntensity*float4(finalAmbienceProduct.rgb + finalDiffuseProduct, finalSpecularProduct));
+	//}

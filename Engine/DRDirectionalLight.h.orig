@@ -33,7 +33,7 @@ private:
 	struct VertexMatrixBuffer
 	{
 		XMMATRIX WorldViewProjection;
-		XMMATRIX World;
+		XMMATRIX WorldView;
 		XMFLOAT4 CameraPosition;
 	};
 
@@ -59,13 +59,13 @@ public:
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
 	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldViewProjection, XMMATRIX* invertedViewProj, 
-<<<<<<< HEAD
+<<<<<<< Updated upstream
 		ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** materialTextureArray, XMFLOAT3 cameraPosition, XMFLOAT3 cameraViewDir,  
-		DirLight* dirLight, XMFLOAT4 ambienceColor, XMMATRIX* lightViewProj);
+		DirLight* dirLight, XMFLOAT4 ambienceColor, XMMATRIX* lightViewProj, XMMATRIX* world);
 =======
 		ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** materialTextureArray, XMFLOAT3 cameraPosition, 
-		DirLight* dirLight, XMFLOAT4 ambienceColor, XMMATRIX* lightViewProj, XMMATRIX* world);
->>>>>>> 2fd54ae2fdc0b221ce797517ea28042978c96a6e
+		DirLight* dirLight, XMFLOAT4 ambienceColor, XMMATRIX* lightViewProj, XMMATRIX* worldView);
+>>>>>>> Stashed changes
 
 private:
 	bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
@@ -73,13 +73,13 @@ private:
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
 
 	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, XMMATRIX* invertedViewProj, 
-<<<<<<< HEAD
+<<<<<<< Updated upstream
 		ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** materialTextureArray, XMFLOAT3 cameraPosition, XMFLOAT3 cameraViewDir, 
-		DirLight* dirLight, XMFLOAT4 ambienceColor, XMMATRIX* lightViewProj);
+		DirLight* dirLight, XMFLOAT4 ambienceColor, XMMATRIX* lightViewProj, XMMATRIX* world);
 =======
 		ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** materialTextureArray, XMFLOAT3 cameraPosition, 
-		DirLight* dirLight, XMFLOAT4 ambienceColor, XMMATRIX* lightViewProj, XMMATRIX* world);
->>>>>>> 2fd54ae2fdc0b221ce797517ea28042978c96a6e
+		DirLight* dirLight, XMFLOAT4 ambienceColor, XMMATRIX* lightViewProj, XMMATRIX* worldView);
+>>>>>>> Stashed changes
 
 	void RenderShader(ID3D11DeviceContext*, int);
 

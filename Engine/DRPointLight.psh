@@ -1,26 +1,30 @@
 cbuffer LightBufferType
 {
 	float4 LightPosition;
-	float3 LightColor;
-	float LightRadius;
-	float3 CameraPosition;
-	float LightPower;
+	float4 LightColor; //.w channel contains LightRadius
+	//float LightRadius;
+	float4 CameraPosition; //.w channel contains LightPower
+	//float LightPower;
 }
 
 cbuffer PixelMatrixBufferType
 {
-	float4x4 InvViewProjection;
+	float4x4 InvertedView;
 }
 
 struct VertexShaderOutput
 {
 	float4 Position : SV_Position;
 	float4 ScreenPosition : TEXCOORD0;
+	float4 ViewPosition : TEXCOORD1;
+	float3 ViewRay : TEXCOORD2;
 };
 
 Texture1DArray materialArray;
 Texture2D textures[3]; //Color, Normal, depth. In that order
 SamplerState pointSampler;
+
+static const float CameraFarClip = 500.0f;
 
 //////////////////////////////////////////////////
 //	FUNCTIONS
@@ -64,18 +68,15 @@ void RetrieveMaterialData(int materialID, out float Kd, out float Ks, out float 
 
 }
 
-float4 ReconstructPositionFromDepth(float depth, float2 ScreenPosition)
+float3 ReconstructViewPositionFromDepth(float3 viewPosition, float depth)
 {
-	//Create a clip space position (I think?)
-	float4 position;
-	position.xy = ScreenPosition;
-	position.z = depth; //With depth from camera
-	position.w = 1.0f;
+	float3 viewRay = float3(viewPosition.xy * (CameraFarClip / viewPosition.z), CameraFarClip);
+	return viewRay * depth;
+}
 
-	position = mul(position, InvViewProjection); //And revert it back to world position
-	position /= position.w;
-
-	return position;
+float3 ReconstructWorldPositionFromDepth(float3 viewRay, float depth)
+{
+	return CameraPosition.xyz + (viewRay * (depth*500.0f));
 }
 
 ///////////////////////////////////////////////////
@@ -88,6 +89,8 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	input.ScreenPosition /= input.ScreenPosition.w; //Get screen position
 
 	float2 texCoord = 0.5f * (float2(input.ScreenPosition.x, -input.ScreenPosition.y) + 1.0f);
+
+	float3 viewRay = normalize(input.ViewRay);
 
 	//get normal data from the normalMap
 	float4 normalData = textures[1].Sample(pointSampler, texCoord);
@@ -113,16 +116,19 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	float depth = textures[2].Sample(pointSampler, texCoord);
 	float3 normal = normalize(DecodeNormal(normalData.xy));
 	
-	float4 position = ReconstructPositionFromDepth(depth, input.ScreenPosition.xy);
+	float4 position = mul(float4(ReconstructViewPositionFromDepth(input.ViewPosition.xyz, depth), 1.0f), InvertedView);//float4(ReconstructWorldPositionFromDepth(viewRay, depth), 1.0f); //ReconstructPositionFromDepth(depth, input.ScreenPosition.xy);
 
 	//surface-to-light vector
-	float3 lightVector =  normalize(position-LightPosition);
+	float3 lightVector = (position-LightPosition);
 
-	float d = distance(position, LightPosition);
-	float attenuation = (LightRadius / (d*d)); //Slight offset to dampen the light
+	float d = length(lightVector);
+	float attenuation = (LightColor.w / (d*d)); //(LightColor.w / (d*d)); //Slight offset to dampen the light
+
+	//Normalize lightVector after we've used it to determine the light attenuation
+	lightVector = normalize(lightVector);
 
 	//calculate NdotL product
-	float NdL = abs(dot(normal, lightVector)); //replace abs with max( , 0); to make lights act ... realistically... ish..
+	float NdL = dot(normal, lightVector); //Potentially replace abs with max( , 0);
 
 	//compute diffuse light using NdotL product
 	float3 diffuseLight = (LightColor.rgb*NdL);
@@ -131,13 +137,13 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	float3 reflectionVector = normalize(reflect(lightVector, normal));
 
 	//camera-to-surface vector
-	float3 directionToCamera = normalize(position - CameraPosition);
+	float3 directionToCamera = viewRay;
 
 	//compute specular light
 	float specularLight = pow( saturate( dot(reflectionVector, directionToCamera)), surfaceSmoothness);
 
 	//scale final value with attenuation, take into calculation the current material of this pixel
-	return (attenuation/(LightPower+0.0001f))*half4(diffuseCoefficient*diffuseLight, specularCoefficient*specularLight);
+	return attenuation*half4(diffuseCoefficient*diffuseLight, specularCoefficient*specularLight);//(attenuation/(CameraPosition.w+0.0001f))*
 }
 
 /*

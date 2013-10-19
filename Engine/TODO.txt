@@ -1,17 +1,46 @@
 
 /********************************************************************************/
-/*													TODO AND THINGS OF THAT SORT												*/
+/*						TODO AND THINGS OF THAT SORT							*/
 /********************************************************************************/
-* Implementera färdigt quad tree
-* Fixa till marching cubes så att det går att ändra storlek i alla riktningar
-* Lägg till linjärt djup i shader koden
-* Se över så att vi lagrar normaler i rätt space för SSAO
-* Ändra in-fadningen av gräset så att det har längre range
+
+* PROCEDURELLT GENERERADE DIRT/STEN/GRÄS texturer? Randoma fram värden i RGB skalan!? Borde funka bra. Med random chans för olika inslag typ sten i dirt osv.
+* Fixa SSAO
+* Se över om det går att fixa pointlights till två stora render pass istället för 121212121212 X numPointlights
+* Shadow manager
+* Light manager
+* Expandera vegetationmanagern för att få den att täcka mer
 * Marching cube chunks
-* L-systems
-* Vatten
-* Lägg till en sorts pointlights som inte använder spekulärer
+
+
+
+
+
+* std::shared_ptr<int> sp( new int[10], std::default_delete<int[]>() );
+
 /********************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

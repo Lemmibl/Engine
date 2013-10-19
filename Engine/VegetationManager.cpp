@@ -74,11 +74,11 @@ void VegetationManager::Shutdown()
 	}
 }
 
-bool VegetationManager::Render(ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, XMMATRIX* world, ID3D11ShaderResourceView** textures)
+bool VegetationManager::Render(ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, XMMATRIX* worldView, XMMATRIX* world, ID3D11ShaderResourceView** textures)
 {
 	RenderBuffers(deviceContext);
 
-	if(!vegetationShader->Render(deviceContext, vertexCount, instanceCount, worldViewProjection, world, textures))
+	if(!vegetationShader->Render(deviceContext, vertexCount, instanceCount, worldViewProjection, worldView, world, textures))
 	{
 		return false;
 	}
@@ -195,6 +195,7 @@ bool VegetationManager::BuildVertexBuffer( ID3D11Device* device )
 	vertices[4].normal = vertexNormal;
 	vertices[5].normal = vertexNormal;
 
+	//I use i+=6 cuz I'm lazy.
 	i += 6;
 
 	//Quad #2
@@ -216,8 +217,8 @@ bool VegetationManager::BuildVertexBuffer( ID3D11Device* device )
 	vertices[11].position = XMFLOAT3(quad2Right.x, 1.0f, quad2Right.y);  // Top right.
 	vertices[11].texCoord = XMFLOAT2(1.0f, 0.0f);
 
-	//I use i+=6 cuz I'm lazy.
 	vertexNormal = CalculateVertexNormals(vertices[1+i].position, vertices[2+i].position, vertices[0+i].position);
+	//I write "0+i" for clarity
 	vertices[0+i].normal = vertexNormal;
 	vertices[1+i].normal = vertexNormal;
 	vertices[2+i].normal = vertexNormal;
@@ -225,6 +226,7 @@ bool VegetationManager::BuildVertexBuffer( ID3D11Device* device )
 	vertices[4+i].normal = vertexNormal;
 	vertices[5+i].normal = vertexNormal;
 
+	//I use i+=6 cuz I'm lazy.
 	i += 6;
 	
 	//Quad #3
@@ -246,7 +248,6 @@ bool VegetationManager::BuildVertexBuffer( ID3D11Device* device )
 	vertices[17].position = XMFLOAT3(quad3Right.x, 1.0f, quad3Right.y);  // Top right.
 	vertices[17].texCoord = XMFLOAT2(1.0f, 0.0f);
 
-	//I use i+=6 cuz I'm lazy.
 	vertexNormal = CalculateVertexNormals(vertices[1+i].position, vertices[2+i].position, vertices[0+i].position);
 	vertices[0+i].normal = vertexNormal;
 	vertices[1+i].normal = vertexNormal;

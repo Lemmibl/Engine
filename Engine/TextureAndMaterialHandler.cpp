@@ -1,5 +1,6 @@
 #include "TextureAndMaterialHandler.h"
 
+
 #pragma region Properties
 ID3D11ShaderResourceView** TextureAndMaterialHandler::GetVegetationTextureArray()
 {
@@ -46,8 +47,8 @@ TextureAndMaterialHandler::~TextureAndMaterialHandler()
 
 	if(materialTextures)
 	{
-		 materialTextures->Release();
-		 materialTextures = 0;
+		materialTextures->Release();
+		materialTextures = 0;
 	}
 
 	if(lTreeTexture)
@@ -88,7 +89,7 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 		L"../Engine/data/Vegetation/greenGrassQuad.dds",
 		L"../Engine/data/Vegetation/leafbranch.dds",
 		L"../Engine/data/Vegetation/flower.dds",
-		L"../Engine/data/Vegetation/bush.dds"
+		L"../Engine/data/Vegetation/bush3.dds"
 	};
 
 	hResult = Build2DTextureArray(device, deviceContext, vegetationFilenames, vegetationTextureCount, 
@@ -311,7 +312,7 @@ HRESULT TextureAndMaterialHandler::Build1DMaterialTextureArray( ID3D11Device* de
 /*Okay, so this function recieves PixelData, which  is a struct that contains 4 UINT8 (because we use the DXGI_FORMAT_R8G8B8A8_UNORM format.
 Then it creates a texture that is textureWidth*textureHeight big and fills it with data. Then it finally assigns the texture to an external shader resource view.*/
 HRESULT TextureAndMaterialHandler::Build2DTextureProgrammatically( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
-	PixelData* pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV )
+	const vector<PixelData>& pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV )
 {
 	HRESULT hResult;
 	D3D11_TEXTURE2D_DESC texDesc;
@@ -333,10 +334,6 @@ HRESULT TextureAndMaterialHandler::Build2DTextureProgrammatically( ID3D11Device*
 
 		index++;
 	}
-
-	//pixelData is now no longer needed
-	delete [] pixelData;
-	pixelData = 0;
 
 	//Set up texture description
 	texDesc.Width              = textureWidth;
@@ -385,7 +382,29 @@ HRESULT TextureAndMaterialHandler::Build2DTextureProgrammatically( ID3D11Device*
 	return S_OK;
 }
 
-HRESULT TextureAndMaterialHandler::Build2DSSAORandomTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, XMFLOAT2* pixelData, 
+//Actually not used atm...
+HRESULT TextureAndMaterialHandler::Create2DSSAORandomTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, Utility* utility, ID3D11ShaderResourceView** srv )
+{
+	int textureWidth, textureHeight;
+	textureWidth = 64;
+	textureHeight = 64;
+
+	std::vector<UINT16> pixelData;
+	pixelData.resize(2 * textureWidth*textureHeight);
+
+	int index = 0;
+
+	//Don't use utility.Random(). We do not want floats.
+	for(int i = 0; i < (2*textureWidth*textureHeight); i++)
+	{
+		pixelData[i]   = rand()%255; //X
+	}
+
+	return Build2DSSAORandomTexture(device, deviceContext, pixelData, textureWidth, textureHeight, srv);
+}
+
+
+HRESULT TextureAndMaterialHandler::Build2DSSAORandomTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, const std::vector<UINT16>& pixelData, 
 	int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV )
 {
 	HRESULT hResult;
@@ -394,29 +413,20 @@ HRESULT TextureAndMaterialHandler::Build2DSSAORandomTexture( ID3D11Device* devic
 	D3D11_SHADER_RESOURCE_VIEW_DESC viewDesc;
 
 	//Create an array big enough to hold the pixel data for this texture
-	float *dataArray = new float[2 * textureWidth * textureHeight]();
-
-	int index = 0;
+	UINT16 *dataArray = new UINT16[2 * textureWidth * textureHeight]();
 
 	//Populate the array with color data
-	for (int i = 0; i < (2 * textureWidth * textureHeight); i += 2)
+	for (int i = 0; i < (2 * textureWidth * textureHeight); i++)
 	{
-		dataArray[i	]	= pixelData[index].x;
-		dataArray[i+1]	= pixelData[index].y;
-
-		index++;
+		dataArray[i] = pixelData[i];
 	}
-
-	//pixelData is now no longer needed
-	delete [] pixelData;
-	pixelData = 0;
 
 	//Set up texture description
 	texDesc.Width              = textureWidth;
 	texDesc.Height             = textureHeight;
 	texDesc.MipLevels          = 1;
 	texDesc.ArraySize          = 1;
-	texDesc.Format             = DXGI_FORMAT_R16G16_FLOAT;
+	texDesc.Format             = DXGI_FORMAT_R16G16_UNORM;
 	texDesc.SampleDesc.Count   = 1;
 	texDesc.SampleDesc.Quality = 0;
 	texDesc.Usage              = D3D11_USAGE_DEFAULT;
@@ -438,7 +448,7 @@ HRESULT TextureAndMaterialHandler::Build2DSSAORandomTexture( ID3D11Device* devic
 	}
 
 	//Set up shader resource view description
-	viewDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
+	viewDesc.Format = DXGI_FORMAT_R16G16_UNORM;
 	viewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	viewDesc.Texture2DArray.MostDetailedMip = 0;
 	viewDesc.Texture2DArray.MipLevels = 1;
@@ -477,14 +487,14 @@ HRESULT TextureAndMaterialHandler::Build2DTextureArray(ID3D11Device* device, ID3
 		loadInfo.Height = texHeight;
 		loadInfo.Depth  = 0;
 		loadInfo.FirstMipLevel = 0;
-		loadInfo.MipLevels = 1;
+		loadInfo.MipLevels = D3DX11_DEFAULT;
 		loadInfo.Usage = D3D11_USAGE_STAGING;
 		loadInfo.BindFlags = 0;
 		loadInfo.CpuAccessFlags = D3D11_CPU_ACCESS_WRITE | D3D11_CPU_ACCESS_READ;
 		loadInfo.MiscFlags = 0;
 		loadInfo.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		loadInfo.Filter = D3DX11_FILTER_NONE;
-		loadInfo.MipFilter = D3DX11_FILTER_NONE;
+		loadInfo.Filter = D3DX11_FILTER_LINEAR;
+		loadInfo.MipFilter = D3DX11_FILTER_LINEAR;
 		loadInfo.pSrcInfo  = 0;
 
 		hResult = D3DX11CreateTextureFromFile(device, filenames[i],
@@ -567,6 +577,8 @@ HRESULT TextureAndMaterialHandler::Build2DTextureArray(ID3D11Device* device, ID3
 		return false;
 	}
 
+	//deviceContext->GenerateMips(*textureArraySRV);
+
 
 	// Cleanup--we only need the resource view.
 	texArray->Release();
@@ -581,33 +593,14 @@ HRESULT TextureAndMaterialHandler::Build2DTextureArray(ID3D11Device* device, ID3
 	return S_OK;
 };
 
-
-//Actually not used atm...
-HRESULT TextureAndMaterialHandler::Create2DSSAORandomTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, Utility* utility, ID3D11ShaderResourceView** srv )
-{
-	int textureWidth, textureHeight;
-	textureWidth = 64;
-	textureHeight = 64;
-
-	XMFLOAT2* pixelData = new XMFLOAT2[textureWidth*textureHeight]();
-
-	//Don't use utility.Random(). We do not want floats.
-	for(int i = 0; i < textureWidth*textureHeight; i++)
-	{
-		pixelData[i].x = utility->RandomFloat()*255.0f;//%255;
-		pixelData[i].y = utility->RandomFloat()*255.0f;//%255;
-	}
-
-	return Build2DSSAORandomTexture(device, deviceContext, pixelData, textureWidth, textureHeight, srv);
-}
-
 HRESULT TextureAndMaterialHandler::CreateRandom2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv)
 {
 	int textureWidth, textureHeight;
-	textureWidth = 256;
-	textureHeight = 256;
+	textureWidth = 128;
+	textureHeight = 128;
 
-	PixelData* pixelData = new PixelData[textureWidth*textureHeight]();
+	vector<PixelData> pixelData;
+	pixelData.resize(textureWidth*textureHeight);
 
 	//Don't use utility.Random(). We do not want floats.
 	for(int i = 0; i < textureWidth*textureHeight; i++)
@@ -615,7 +608,7 @@ HRESULT TextureAndMaterialHandler::CreateRandom2DTexture(ID3D11Device* device, I
 		pixelData[i].x = rand()%255;//%255;
 		pixelData[i].y = rand()%255;//%255;
 		pixelData[i].z = rand()%255;//%255;
-		pixelData[i].w = rand()%255; //Alpha.
+		pixelData[i].w = 1.0f; //Who gives a shit about alpha anyway AMIRITE???
 	}
 
 	return Build2DTextureProgrammatically(device, deviceContext, pixelData, textureWidth, textureHeight, srv);
@@ -629,7 +622,8 @@ HRESULT TextureAndMaterialHandler::CreateSimplex2DTexture(ID3D11Device* device, 
 	textureHeight = 512;
 	i = 0;
 
-	PixelData* pixelData = new PixelData[textureWidth*textureHeight]();
+	vector<PixelData> pixelData;
+	pixelData.resize(textureWidth*textureHeight);
 
 	noise->ReseedRandom();
 
@@ -673,7 +667,9 @@ HRESULT TextureAndMaterialHandler::CreateMirroredSimplex2DTexture(ID3D11Device* 
 	textureWidth = 512;
 	textureHeight = 512;
 	i = 0;
-	PixelData* pixelData = new PixelData[textureWidth*textureHeight]();
+
+	vector<PixelData> pixelData;
+	pixelData.resize(textureWidth*textureHeight);
 
 	noise->ReseedRandom();
 
@@ -703,7 +699,7 @@ HRESULT TextureAndMaterialHandler::CreateMirroredSimplex2DTexture(ID3D11Device* 
 bool TextureAndMaterialHandler::SaveLTreeTextureToFile( ID3D11DeviceContext* deviceContext, D3DX11_IMAGE_FILE_FORMAT format, LPCSTR fileName )
 {
 	HRESULT hResult;
-	
+
 	hResult = D3DX11SaveTextureToFileA(deviceContext, lTreeTexture, format, fileName);
 	if(FAILED(hResult))
 	{

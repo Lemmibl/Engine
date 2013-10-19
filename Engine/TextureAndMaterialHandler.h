@@ -37,10 +37,10 @@ private:
 		int materialCount, int textureWidth, ID3D11ShaderResourceView** textureSRV );
 
 	HRESULT Build2DTextureProgrammatically( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
-		PixelData* pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV );
+		const std::vector<PixelData>& pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV );
 
 	HRESULT Build2DSSAORandomTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
-		XMFLOAT2* pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV );
+		const std::vector<UINT16>& pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV );
 
 	HRESULT Build2DTextureArray(ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
 		WCHAR** filenames, int textureCount, ID3D11ShaderResourceView** textureArray, int texWidth, int texHeight);

@@ -144,7 +144,7 @@ void ControllerClass::Update(float frameTime, XMFLOAT4X4* cameraMatrix)
 
 	if(inputManager->IsKeyPressed(DIK_SPACE))
 		movementThisUpdate += movementValue*MatrixUp(cameraMatrix);
-	if(inputManager->IsKeyPressed(DIK_LCONTROL))
+	if(inputManager->IsKeyPressed(DIK_C))
 		movementThisUpdate += movementValue*MatrixDown(cameraMatrix);
 
 	tempPos = XMLoadFloat3(position);
