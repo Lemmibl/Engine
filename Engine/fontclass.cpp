@@ -6,8 +6,8 @@
 
 FontClass::FontClass()
 {
-	font = 0;
-	texture = 0;
+	//font = 0;
+	//texture = 0;
 }
 
 
@@ -62,9 +62,8 @@ bool FontClass::LoadFontData(char* filename)
 	int i;
 	char temp;
 
-
 	// Create the font spacing buffer.
-	font = new FontType[95];
+	font = unique_ptr<FontType []>(new FontType[95]);
 	if(!font)
 	{
 		return false;
@@ -105,12 +104,12 @@ bool FontClass::LoadFontData(char* filename)
 
 void FontClass::ReleaseFontData()
 {
-	// Release the font data array.
-	if(font)
-	{
-		delete [] font;
-		font = 0;
-	}
+	//// Release the font data array.
+	//if(font)
+	//{
+	//	delete [] font;
+	//	font = 0;
+	//}
 
 	return;
 }
@@ -122,7 +121,7 @@ bool FontClass::LoadTexture(ID3D11Device* device, WCHAR* filename)
 
 
 	// Create the texture object.
-	texture = new TextureClass;
+	texture = unique_ptr<TextureClass>(new TextureClass);
 	if(!texture)
 	{
 		return false;
@@ -141,13 +140,13 @@ bool FontClass::LoadTexture(ID3D11Device* device, WCHAR* filename)
 
 void FontClass::ReleaseTexture()
 {
-	// Release the texture object.
-	if(texture)
-	{
-		texture->Shutdown();
-		delete texture;
-		texture = 0;
-	}
+	//// Release the texture object.
+	//if(texture)
+	//{
+	//	texture->Shutdown();
+	//	delete texture;
+	//	texture = 0;
+	//}
 
 	return;
 }

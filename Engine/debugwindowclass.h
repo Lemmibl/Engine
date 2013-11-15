@@ -8,9 +8,13 @@
 //////////////
 // INCLUDES //
 //////////////
+#pragma once
+
 #include <d3d11.h>
 #include <windows.h>
 #include <xnamath.h>
+#include <atlcomcli.h>
+#include <vector>
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -43,7 +47,8 @@ private:
 	void RenderBuffers(ID3D11DeviceContext*);
 
 private:
-	ID3D11Buffer *vertexBuffer, *indexBuffer;
+	CComPtr<ID3D11Buffer> vertexBuffer;
+	CComPtr<ID3D11Buffer> indexBuffer;
 	int vertexCount, indexCount;
 	int screenWidth, screenHeight;
 	int bitmapWidth, bitmapHeight;

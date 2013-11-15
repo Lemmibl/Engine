@@ -21,10 +21,21 @@ DayNightCycle::~DayNightCycle()
 
 bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
 {
-	this->timePerStage = timePerStage;
-	this->currentStageOfDay = startStage;
+	//Sanity checks
+	this->timePerStage = max(1.0f, timePerStage);
 
-	if((int)startStage > 0)
+	//Other sanity checks
+	if( (int)startStage >= DAWN && (int)startStage <= NIGHT)
+	{
+		this->currentStageOfDay = startStage;
+	}
+	else
+	{
+		//Just some default value in case we go out of bounds
+		this->currentStageOfDay = DAY;
+	}
+
+	if(this->currentStageOfDay != NIGHT)
 	{
 		previousFrameStageOfDay = (StageOfDay)(currentStageOfDay-1);
 	}
@@ -138,7 +149,7 @@ bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
 
 
 	StageOfDayStruct night;
-	night.AmbientColor =	XMFLOAT4(0.05f,	0.05f,	0.1f,	0.0f);
+	night.AmbientColor =	XMFLOAT4(0.05f,	0.05f,	0.1f,	0.5f);
 	night.DirectionalLightColor = night.AmbientColor;
 	night.SkysphereColor = night.AmbientColor;
 	

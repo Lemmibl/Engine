@@ -1,17 +1,12 @@
-////////////////////////////////////////////////////////////////////////////////
-// Filename: fontclass.h
-////////////////////////////////////////////////////////////////////////////////
-#ifndef _FONTCLASS_H_
-#define _FONTCLASS_H_
-
-
 //////////////
 // INCLUDES //
 //////////////
+#pragma once
 #include <d3d11.h>
 #include <windows.h>
 #include <xnamath.h>
 #include <fstream>
+#include <memory>
 using namespace std;
 
 
@@ -56,7 +51,6 @@ private:
 	bool LoadTexture(ID3D11Device*, WCHAR*);
 	void ReleaseTexture();
 
-	FontType* font;
-	TextureClass* texture;
+	unique_ptr<FontType []> font;
+	unique_ptr<TextureClass> texture;
 };
-#endif

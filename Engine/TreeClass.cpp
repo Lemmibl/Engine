@@ -64,9 +64,9 @@ void TreeClass::CalculateLine(XMVECTOR* a, XMVECTOR* b, float size)
 				{
 					idx = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
 
-					if(	sqrt((XMVectorGetX(currentPosOnTheLine) - this->marchingCubeVertices2[idx].posX) * (XMVectorGetX(currentPosOnTheLine) - this->marchingCubeVertices2[idx].posX)) < size &&
-						sqrt((XMVectorGetY(currentPosOnTheLine) - this->marchingCubeVertices2[idx].posY) * (XMVectorGetY(currentPosOnTheLine) - this->marchingCubeVertices2[idx].posY)) < size &&
-						sqrt((XMVectorGetZ(currentPosOnTheLine) - this->marchingCubeVertices2[idx].posZ) * (XMVectorGetZ(currentPosOnTheLine) - this->marchingCubeVertices2[idx].posZ)) < size)
+					if(	sqrt((XMVectorGetX(currentPosOnTheLine) - this->marchingCubeVertices2[idx].position.x) * (XMVectorGetX(currentPosOnTheLine) - this->marchingCubeVertices2[idx].position.x)) < size &&
+						sqrt((XMVectorGetY(currentPosOnTheLine) - this->marchingCubeVertices2[idx].position.y) * (XMVectorGetY(currentPosOnTheLine) - this->marchingCubeVertices2[idx].position.y)) < size &&
+						sqrt((XMVectorGetZ(currentPosOnTheLine) - this->marchingCubeVertices2[idx].position.z) * (XMVectorGetZ(currentPosOnTheLine) - this->marchingCubeVertices2[idx].position.z)) < size)
 					{
 
 						this->marchingCubeVertices2[idx].density = 0.5f;
@@ -80,9 +80,9 @@ void TreeClass::CalculateLine(XMVECTOR* a, XMVECTOR* b, float size)
 						this->marchingCubeVertices2[idx].inside = false;
 					}
 
-					this->marchingCubeVertices2[idx].normalX = this->marchingCubeVertices2[idx - 1].density - this->marchingCubeVertices2[idx+1].density;
-					this->marchingCubeVertices2[idx].normalY = this->marchingCubeVertices2[idx - this->sizeY].density - this->marchingCubeVertices2[idx + this->sizeY].density;
-					this->marchingCubeVertices2[idx].normalZ = this->marchingCubeVertices2[idx - (this->sizeY * this->sizeZ)].density - this->marchingCubeVertices2[idx + (this->sizeY * this->sizeZ)].density; 
+					this->marchingCubeVertices2[idx].normal.x = this->marchingCubeVertices2[idx - 1].density - this->marchingCubeVertices2[idx+1].density;
+					this->marchingCubeVertices2[idx].normal.y = this->marchingCubeVertices2[idx - this->sizeY].density - this->marchingCubeVertices2[idx + this->sizeY].density;
+					this->marchingCubeVertices2[idx].normal.z = this->marchingCubeVertices2[idx - (this->sizeY * this->sizeZ)].density - this->marchingCubeVertices2[idx + (this->sizeY * this->sizeZ)].density; 
 				}
 			}
 		}

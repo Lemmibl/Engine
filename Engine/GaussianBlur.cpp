@@ -83,25 +83,25 @@ bool GaussianBlur::RenderBlurY(ID3D11DeviceContext* deviceContext, int indexCoun
 bool GaussianBlur::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilenameX, WCHAR* psFilenameY)
 {
 	HRESULT result;
-	ID3D10Blob* errorMessage;
-	ID3D10Blob* vertexShaderBuffer;
-	ID3D10Blob* pixelShaderBufferX;
-	ID3D10Blob* pixelShaderBufferY;
+	CComPtr<ID3D10Blob> errorMessage;
+	CComPtr<ID3D10Blob> vertexShaderBuffer;
+	CComPtr<ID3D10Blob> pixelShaderBufferX;
+	CComPtr<ID3D10Blob> pixelShaderBufferY;
 	D3D11_INPUT_ELEMENT_DESC polygonLayout[2];
 	unsigned int numElements;
 	D3D11_SAMPLER_DESC samplerDesc;
 
 	D3D11_BUFFER_DESC vertexMatrixBufferDesc;
 
-	// Initialize the pointers this function will use to null.
-	errorMessage = 0;
-	vertexShaderBuffer = 0;
-	pixelShaderBufferX = 0;
-	pixelShaderBufferY = 0;
+	//// Initialize the pointers this function will use to null.
+	//errorMessage = 0;
+	//vertexShaderBuffer = 0;
+	//pixelShaderBufferX = 0;
+	//pixelShaderBufferY = 0;
 
 	// Compile the vertex shader code.
 	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "StandardVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
-		&vertexShaderBuffer, &errorMessage, NULL);
+		&vertexShaderBuffer, &errorMessage.p, NULL);
 	if(FAILED(result))
 	{
 		// If the shader failed to compile it should have written something to the error message.
@@ -120,7 +120,7 @@ bool GaussianBlur::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFi
 
 	// Compile the pixel shader code.
 	result = D3DX11CompileFromFile(psFilenameX, NULL, NULL, "PSBlurX", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
-		&pixelShaderBufferX, &errorMessage, NULL);
+		&pixelShaderBufferX, &errorMessage.p, NULL);
 	if(FAILED(result))
 	{
 		// If the shader failed to compile it should have written something to the error message.
@@ -139,7 +139,7 @@ bool GaussianBlur::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFi
 
 	// Compile the pixel shader code.
 	result = D3DX11CompileFromFile(psFilenameY, NULL, NULL, "PSBlurY", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
-		&pixelShaderBufferY, &errorMessage, NULL);
+		&pixelShaderBufferY, &errorMessage.p, NULL);
 	if(FAILED(result))
 	{
 		// If the shader failed to compile it should have written something to the error message.
@@ -206,15 +206,15 @@ bool GaussianBlur::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFi
 		return false;
 	}
 
-	// Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
-	vertexShaderBuffer->Release();
-	vertexShaderBuffer = 0;
+	//// Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
+	//vertexShaderBuffer->Release();
+	//vertexShaderBuffer = 0;
 
-	pixelShaderBufferX->Release();
-	pixelShaderBufferX = 0;
+	//pixelShaderBufferX->Release();
+	//pixelShaderBufferX = 0;
 
-	pixelShaderBufferY->Release();
-	pixelShaderBufferY = 0;
+	//pixelShaderBufferY->Release();
+	//pixelShaderBufferY = 0;
 
 	// Create a texture sampler state description.
 	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
@@ -229,7 +229,7 @@ bool GaussianBlur::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFi
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
 	// Create the texture sampler state.
-	result = device->CreateSamplerState(&samplerDesc, &sampler);
+	result = device->CreateSamplerState(&samplerDesc, &sampler.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -244,7 +244,7 @@ bool GaussianBlur::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFi
 	vertexMatrixBufferDesc.StructureByteStride = 0;
 
 	// Create the camera constant buffer pointer so we can access the vertex shader constant buffer from within this class.
-	result = device->CreateBuffer(&vertexMatrixBufferDesc, NULL, &vertexMatrixBuffer);
+	result = device->CreateBuffer(&vertexMatrixBufferDesc, NULL, &vertexMatrixBuffer.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -256,47 +256,47 @@ bool GaussianBlur::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFi
 void GaussianBlur::ShutdownShader()
 {	
 
-	// Release the camera constant buffer.
-	if(vertexMatrixBuffer)
-	{
-		vertexMatrixBuffer->Release();
-		vertexMatrixBuffer = 0;
-	}
+	//// Release the camera constant buffer.
+	//if(vertexMatrixBuffer)
+	//{
+	//	vertexMatrixBuffer->Release();
+	//	vertexMatrixBuffer = 0;
+	//}
 
-	// Release the sampler state.
-	if(sampler)
-	{
-		sampler->Release();
-		sampler = 0;
-	}
+	//// Release the sampler state.
+	//if(sampler)
+	//{
+	//	sampler->Release();
+	//	sampler = 0;
+	//}
 
-	// Release the layout.
-	if(layout)
-	{
-		layout->Release();
-		layout = 0;
-	}
+	//// Release the layout.
+	//if(layout)
+	//{
+	//	layout->Release();
+	//	layout = 0;
+	//}
 
-	// Release the X pixel shader.
-	if(pixelShaderX)
-	{
-		pixelShaderX->Release();
-		pixelShaderX = 0;
-	}
+	//// Release the X pixel shader.
+	//if(pixelShaderX)
+	//{
+	//	pixelShaderX->Release();
+	//	pixelShaderX = 0;
+	//}
 
-	// Release the Y pixel shader.
-	if(pixelShaderY)
-	{
-		pixelShaderY->Release();
-		pixelShaderY = 0;
-	}
+	//// Release the Y pixel shader.
+	//if(pixelShaderY)
+	//{
+	//	pixelShaderY->Release();
+	//	pixelShaderY = 0;
+	//}
 
-	// Release the vertex shader.
-	if(vertexShader)
-	{
-		vertexShader->Release();
-		vertexShader = 0;
-	}
+	//// Release the vertex shader.
+	//if(vertexShader)
+	//{
+	//	vertexShader->Release();
+	//	vertexShader = 0;
+	//}
 
 	return;
 }
@@ -364,7 +364,7 @@ bool GaussianBlur::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMA
 	// Set the position of the constant buffer in the vertex shader.
 	bufferNumber = 0;
 
-	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &vertexMatrixBuffer);
+	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &vertexMatrixBuffer.p);
 
 	// Set shader texture resource in the pixel shader.
 	deviceContext->PSSetShaderResources(0, 1, texture);
@@ -382,7 +382,7 @@ void GaussianBlur::RenderShaderX(ID3D11DeviceContext* deviceContext, int indexCo
 	deviceContext->PSSetShader(pixelShaderX, NULL, 0);
 
 	// Set the sampler state in the pixel shader.
-	deviceContext->PSSetSamplers(0, 1, &sampler);
+	deviceContext->PSSetSamplers(0, 1, &sampler.p);
 
 	// Render the triangle.
 	deviceContext->DrawIndexed(indexCount, 0, 0);
@@ -400,7 +400,7 @@ void GaussianBlur::RenderShaderY(ID3D11DeviceContext* deviceContext, int indexCo
 	deviceContext->PSSetShader(pixelShaderY, NULL, 0);
 
 	// Set the sampler state in the pixel shader.
-	deviceContext->PSSetSamplers(0, 1, &sampler);
+	deviceContext->PSSetSamplers(0, 1, &sampler.p);
 
 	// Render the triangle.
 	deviceContext->DrawIndexed(indexCount, 0, 0);

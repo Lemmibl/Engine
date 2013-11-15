@@ -29,7 +29,7 @@ bool InputClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidth, int
 	this->screenWidth = screenWidth;
 	this->screenHeight = screenHeight;
 
-	lastChar = 'a';
+	lastChar = NULL;
 
 	// Initialize the location of the mouse on the screen.
 	mouseX = 0;
@@ -98,8 +98,8 @@ bool InputClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidth, int
 		return false;
 	}
 
-	currentKeyStates = new unsigned char[256];
-	previousKeyStates = new unsigned char[256];
+	currentKeyStates.resize(256);
+	previousKeyStates.resize(256);
 
 	return true;
 }
@@ -168,11 +168,11 @@ bool InputClass::ReadKeyboard(HWND hwnd)
 		if (FAILED(keyboard->Acquire())) return false;
 	}
 
-	unsigned char *tempKeyStates = previousKeyStates;
-	previousKeyStates = currentKeyStates;
-	currentKeyStates = tempKeyStates;
+	//Swap contents
+	previousKeyStates.swap(currentKeyStates);
 
-	if (FAILED(keyboard->GetDeviceState(256, currentKeyStates)))
+	//Assign new values to currentKeyStates
+	if(FAILED(keyboard->GetDeviceState(256, currentKeyStates.data())))
 	{
 		if (FAILED(keyboard->Acquire())) return false;
 	}

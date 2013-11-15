@@ -15,6 +15,7 @@
 #include "StructsAndEnums.h"
 #include <windows.h>
 #include <xnamath.h>
+#include <atlcomcli.h>
 using namespace std;
 
 
@@ -70,15 +71,14 @@ private:
 	void RenderShader(ID3D11DeviceContext*, int);
 
 private:
-	ID3D11VertexShader* vertexShader;
-	ID3D11PixelShader* pixelShader;
-	ID3D11InputLayout* layout;
+	CComPtr<ID3D11VertexShader> vertexShader;
+	CComPtr<ID3D11PixelShader> pixelShader;
+	CComPtr<ID3D11InputLayout> layout;
+	CComPtr<ID3D11SamplerState> samplerState;
 
-	ID3D11SamplerState* samplerState;
-
-	ID3D11Buffer* vertexMatrixBuffer;
-	ID3D11Buffer* pixelMatrixBuffer;
-	ID3D11Buffer* lightBuffer;
+	CComPtr<ID3D11Buffer> vertexMatrixBuffer;
+	CComPtr<ID3D11Buffer> pixelMatrixBuffer;
+	CComPtr<ID3D11Buffer> lightBuffer;
 };
 
 #endif

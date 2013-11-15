@@ -36,7 +36,7 @@ bool TimerClass::Initialize()
 	return true;
 }
 
-void TimerClass::Frame()
+void TimerClass::Update()
 {
 	INT64 currentTime;
 	float timeDifference;

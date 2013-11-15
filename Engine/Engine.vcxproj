@@ -28,11 +28,17 @@
     <ClCompile Include="frustumclass.cpp" />
     <ClCompile Include="GaussianBlur.cpp" />
     <ClCompile Include="Lemmi3DAABB.h" />
+    <ClCompile Include="LemmiEntity.cpp" />
+    <ClCompile Include="LemmiGridTable.cpp" />
     <ClCompile Include="LemmiQuadtree.h" />
+    <ClCompile Include="LerpInstance.cpp" />
+    <ClCompile Include="SentenceManager.cpp" />
+    <ClCompile Include="TerrainChunk.cpp" />
     <ClCompile Include="TextureAndMaterialHandler.cpp" />
     <ClCompile Include="LSystemBranch.cpp" />
     <ClCompile Include="Utility.cpp" />
     <ClCompile Include="LSystemClass.cpp" />
+    <ClCompile Include="VegetationManager.cpp" />
     <ClCompile Include="VegetationShader.cpp" />
     <ClCompile Include="MCubesGBufferShader.cpp" />
     <ClCompile Include="Renderer.cpp" />
@@ -56,7 +62,6 @@
     <ClCompile Include="textureshaderclass.cpp" />
     <ClCompile Include="timerclass.cpp" />
     <ClCompile Include="TreeClass.cpp" />
-    <ClCompile Include="VegetationManager.cpp" />
     <ClCompile Include="VertexShaderOnly.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -80,7 +85,12 @@
     <ClInclude Include="GaussianBlur.h" />
     <ClInclude Include="interfacepointers.h" />
     <ClInclude Include="Lemmi2DAABB.h" />
+    <ClInclude Include="LemmiEntity.h" />
+    <ClInclude Include="LemmiGridTable.h" />
     <ClInclude Include="LemmiLinkedList.h" />
+    <ClInclude Include="LerpInstance.h" />
+    <ClInclude Include="SentenceManager.h" />
+    <ClInclude Include="TerrainChunk.h" />
     <ClInclude Include="TextureAndMaterialHandler.h" />
     <ClInclude Include="LSystemBranch.h" />
     <ClInclude Include="Utility.h" />
@@ -113,12 +123,12 @@
     <ClInclude Include="VertexShaderOnly.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="DRCompose.hlsl" />
     <None Include="TODO.txt" />
     <None Include="DepthOnlyQuadShader.psh" />
     <None Include="DepthOnlyQuadShader.vsh" />
     <None Include="DepthOnlyShader.psh" />
     <None Include="BasicVertexShader.vsh" />
-    <None Include="DRCompose.psh" />
     <None Include="DRCompose.vsh" />
     <None Include="DepthOnlyShader.vsh" />
     <ClCompile Include="fontclass.cpp" />

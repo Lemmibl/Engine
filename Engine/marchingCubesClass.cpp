@@ -12,7 +12,8 @@ but the tables are from Cory Gene Bloyd.
 */
 
 //Contains all combinations of points inside or outside of a cube
-const int MarchingCubesClass::edgeTable[256] = {
+const int MarchingCubesClass::edgeTable[256] = 
+{
 	0x0  , 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
 	0x80c, 0x905, 0xa0f, 0xb06, 0xc0a, 0xd03, 0xe09, 0xf00,
 	0x190, 0x99 , 0x393, 0x29a, 0x596, 0x49f, 0x795, 0x69c,
@@ -44,11 +45,13 @@ const int MarchingCubesClass::edgeTable[256] = {
 	0xe90, 0xf99, 0xc93, 0xd9a, 0xa96, 0xb9f, 0x895, 0x99c,
 	0x69c, 0x795, 0x49f, 0x596, 0x29a, 0x393, 0x99 , 0x190,
 	0xf00, 0xe09, 0xd03, 0xc0a, 0xb06, 0xa0f, 0x905, 0x80c,
-	0x70c, 0x605, 0x50f, 0x406, 0x30a, 0x203, 0x109, 0x0   };
+	0x70c, 0x605, 0x50f, 0x406, 0x30a, 0x203, 0x109, 0x0   
+};
 
-	// contains the combination of points that we get from the edge table
-	const int MarchingCubesClass::triTable[256][16] = 
-	{{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+// contains the combination of points that we get from the edge table
+const int MarchingCubesClass::triTable[256][16] = 
+{
+	{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
 	{0, 8, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
 	{0, 1, 9, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
 	{1, 8, 3, 9, 8, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
@@ -304,6 +307,27 @@ const int MarchingCubesClass::edgeTable[256] = {
 	{0, 9, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
 	{0, 3, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
 	{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}
+};
+
+static const XMFLOAT3 relativeCornerPositions[8] = {
+	XMFLOAT3(0,0,1), XMFLOAT3(1,0,1), XMFLOAT3(1,0,0), XMFLOAT3(0,0,0), 
+	XMFLOAT3(0,1,1), XMFLOAT3(1,1,1), XMFLOAT3(1,1,0), XMFLOAT3(0,1,0) };
+
+	//All the  different edge pairings potentially used for triangle extraction
+	static const std::pair<unsigned int, unsigned int> edgePairs[12] = 
+	{
+		std::make_pair<unsigned int, unsigned int>(0, 1),
+		std::make_pair<unsigned int, unsigned int>(1, 2),
+		std::make_pair<unsigned int, unsigned int>(2, 3),
+		std::make_pair<unsigned int, unsigned int>(3, 0),
+		std::make_pair<unsigned int, unsigned int>(4, 5),
+		std::make_pair<unsigned int, unsigned int>(5, 6),
+		std::make_pair<unsigned int, unsigned int>(6, 7),
+		std::make_pair<unsigned int, unsigned int>(7, 4),
+		std::make_pair<unsigned int, unsigned int>(0, 4),
+		std::make_pair<unsigned int, unsigned int>(1, 5),
+		std::make_pair<unsigned int, unsigned int>(2, 6),
+		std::make_pair<unsigned int, unsigned int>(3, 7),
 	};
 
 	MarchingCubesClass::~MarchingCubesClass()
@@ -311,45 +335,40 @@ const int MarchingCubesClass::edgeTable[256] = {
 		delete marchingCubeVertices; 
 		marchingCubeVertices = 0;
 
-		delete things; 
-		things = 0;
-
 		vertexBuffer->Release();
 		vertexBuffer = 0;
 
 		indexBuffer->Release();
 		indexBuffer = 0;
 
-		Terrain->~MCTerrainClass();
+		delete terrain;
+		terrain = 0;
 	}
 
-	MarchingCubesClass::MarchingCubesClass(	float startX, float startY, float startZ, float endX, float endY, float endZ,
-		float stepX, float stepY, float stepZ)
+	MarchingCubesClass::MarchingCubesClass(	XMFLOAT3 startPos, XMFLOAT3 endPos,
+		XMFLOAT3 stepSize, SimplexNoise* simplexNoise)
 	{
-		lookup = 0;
+		this->startX = startPos.x;
+		this->startY = startPos.y;
+		this->startZ = startPos.z;
 
-		this->startX = startX;
-		this->startY = startY;
-		this->startZ = startZ;
+		this->endX = endPos.x;
+		this->endY = endPos.y;
+		this->endZ = endPos.z;
 
-		this->endX = endX;
-		this->endY = endY;
-		this->endZ = endZ;
-
-		this->stepX = stepX;
-		this->stepY = stepY;
-		this->stepZ = stepZ;
+		this->stepX = stepSize.x;
+		this->stepY = stepSize.y;
+		this->stepZ = stepSize.z;
 
 		//calculates the size of the grid
 		this->sizeX = (int) ((this->endX - this->startX) / this->stepX);
 		this->sizeY = (int) ((this->endY - this->startY) / this->stepY);
 		this->sizeZ = (int) ((this->endZ - this->startZ) / this->stepZ);
 
-		vertexCount = (this->sizeX * this->sizeY * this->sizeZ);
+		vertexCount = ((this->sizeX+1) * (this->sizeY+1) * (this->sizeZ+1));
 		indexCount = vertexCount;
 
 		this->marchingCubeVertices = new MarchingCubeVertex[vertexCount];
-		this->things = new MarchingCubeVectors[vertexCount];
 		this->wireframe = false;
 
 		//Terrain = new MCTerrainClass(sizeX, sizeY,sizeZ, marchingCubeVertices);
@@ -361,30 +380,27 @@ const int MarchingCubesClass::edgeTable[256] = {
 			{
 				for (x = 0; x < this->sizeX; x++)
 				{
-					/* regner ut idx en gang (sparer en haug med MULs) */
-					idx = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
+					/* regner ut index en gang (sparer en haug med MULs) */
+					index = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
 
 					/* setter default-verdier ut fra hvor i gridden vi befinner oss */
-					this->marchingCubeVertices[idx].posX = this->startX + this->stepX * x;
-					this->marchingCubeVertices[idx].posY = this->startY + this->stepY * y;
-					this->marchingCubeVertices[idx].posZ = this->startZ + this->stepZ * z;
-					this->marchingCubeVertices[idx].density = 0.0;
-					this->marchingCubeVertices[idx].inside = false;
-					this->marchingCubeVertices[idx].normalX = 0.0;
-					this->marchingCubeVertices[idx].normalY = 0.0;
-					this->marchingCubeVertices[idx].normalZ = 0.0;
-
-					this->things[idx].position = XMFLOAT3(this->startX + this->stepX * x, this->startY + this->stepY * y, this->startZ + this->stepZ * z);
-					this->things[idx].normal = XMFLOAT3(0.0f, 0.0f, 0.0f);
+					this->marchingCubeVertices[index].position.x = this->startX + this->stepX * x;
+					this->marchingCubeVertices[index].position.y = this->startY + this->stepY * y;
+					this->marchingCubeVertices[index].position.z = this->startZ + this->stepZ * z;
+					this->marchingCubeVertices[index].density = 0.0f;
+					this->marchingCubeVertices[index].inside = false;
+					this->marchingCubeVertices[index].normal.x = 0.0f;
+					this->marchingCubeVertices[index].normal.y = 0.0f;
+					this->marchingCubeVertices[index].normal.z = 0.0f;
 				}
 			}
 		}
 
-		this->Terrain = new MCTerrainClass();
+		terrain = new MCTerrainClass();
 
-		Terrain->Initialize(sizeX,sizeY,sizeZ,this->marchingCubeVertices);
-
-		Terrain->Noise3D();
+		terrain->Initialize(sizeX,sizeY,sizeZ,this->marchingCubeVertices, simplexNoise);
+		terrain->SetTerrainType(7); //Default.
+		terrain->Noise3D();
 		//this->Tree = new TreeClass(sizeX,sizeY,sizeZ,this->marchingCubeVertices);
 	}
 
@@ -402,298 +418,72 @@ const int MarchingCubesClass::edgeTable[256] = {
 			{
 				for (x = 1; x < (this->sizeX - 1); x++)
 				{
-					idx = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
+					index = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
 
-					//this->marchingCubeVertices[idx].density = this->mb->Get_vertex_value(this->marchingCubeVertices[idx]);
-					Ground(idx);
-					LSystemTree(idx);
+					//this->marchingCubeVertices[index].density = this->mb->Get_vertex_value(this->marchingCubeVertices[index]);
+					Ground(index);
+					//LSystemTree(index);
 
 
-					if (this->marchingCubeVertices[idx].density > this->metaballsIsoValue)
+					if (this->marchingCubeVertices[index].density > this->metaballsIsoValue)
 					{
-						this->marchingCubeVertices[idx].inside = true;
+						this->marchingCubeVertices[index].inside = true;
 					}
 					else
 					{
-						this->marchingCubeVertices[idx].inside = false;
+						this->marchingCubeVertices[index].inside = false;
 					}
 
-					this->marchingCubeVertices[idx].normalX = this->marchingCubeVertices[idx - 1].density - this->marchingCubeVertices[idx+1].density;
-					this->marchingCubeVertices[idx].normalY = this->marchingCubeVertices[idx - this->sizeY].density - this->marchingCubeVertices[idx + this->sizeY].density;
-					this->marchingCubeVertices[idx].normalZ = this->marchingCubeVertices[idx - (this->sizeY * this->sizeZ)].density - this->marchingCubeVertices[idx + (this->sizeY * this->sizeZ)].density; 
+					this->marchingCubeVertices[index].normal.x = this->marchingCubeVertices[index - 1].density - this->marchingCubeVertices[index+1].density;
+					this->marchingCubeVertices[index].normal.y = this->marchingCubeVertices[index - this->sizeY].density - this->marchingCubeVertices[index + this->sizeY].density;
+					this->marchingCubeVertices[index].normal.z = this->marchingCubeVertices[index - (this->sizeY * this->sizeZ)].density - this->marchingCubeVertices[index + (this->sizeY * this->sizeZ)].density; 
 				}
 			}
 		}
 
-	}
-
-	void  MarchingCubesClass::LSystemTree()
-	{
-		for (z = 1; z < (this->sizeZ - 1); z++)
-		{
-			for (y = 1; y < (this->sizeY - 1); y++)
-			{
-				for (x = 1; x < (this->sizeX - 1); x++)
-				{
-					idx = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
-
-					if(	sqrt((0 - this->marchingCubeVertices[idx].posX) * (0 - this->marchingCubeVertices[idx].posX)) < 2 &&
-						sqrt((0 - this->marchingCubeVertices[idx].posY) * (0 - this->marchingCubeVertices[idx].posY)) < 2 &&
-						sqrt((0 - this->marchingCubeVertices[idx].posZ) * (0 - this->marchingCubeVertices[idx].posZ)) < 2)
-					{
-
-						this->marchingCubeVertices[idx].density = 1.5f;
-					}
-
-
-					if (this->marchingCubeVertices[idx].density > 1.1f)
-					{
-						this->marchingCubeVertices[idx].inside = true;
-					}
-					else
-					{
-						this->marchingCubeVertices[idx].inside = false;
-					}
-
-					this->marchingCubeVertices[idx].normalX = this->marchingCubeVertices[idx - 1].density - this->marchingCubeVertices[idx+1].density;
-					this->marchingCubeVertices[idx].normalY = this->marchingCubeVertices[idx - this->sizeY].density - this->marchingCubeVertices[idx + this->sizeY].density;
-					this->marchingCubeVertices[idx].normalZ = this->marchingCubeVertices[idx - (this->sizeY * this->sizeZ)].density - this->marchingCubeVertices[idx + (this->sizeY * this->sizeZ)].density; 
-				}
-			}
-		}
-	}
-
-	void  MarchingCubesClass::LSystemTree(int vertexID)
-	{
-		//if(this->marchingCubeVertices[idx].posX * this->marchingCubeVertices[idx].posX)
-		if(	sqrt((0 - this->marchingCubeVertices[idx].posX) * (0 - this->marchingCubeVertices[idx].posX)) < 2 &&
-			sqrt((0 - this->marchingCubeVertices[idx].posY) * (0 - this->marchingCubeVertices[idx].posY)) < 2 &&
-			sqrt((0 - this->marchingCubeVertices[idx].posZ) * (0 - this->marchingCubeVertices[idx].posZ)) < 2)
-		{
-
-			this->marchingCubeVertices[vertexID].density = 1.5f;
-		}
-	}
-
-	void  MarchingCubesClass::Ground(int vertexID)
-	{
-
-		if(this->marchingCubeVertices[vertexID].posY < -18)
-		{
-
-			this->marchingCubeVertices[vertexID].density = 0.5f;
-		}
 	}
 
 	void MarchingCubesClass::CalculateMesh(ID3D11Device* device)
 	{
-		MarchingCubeVectors* vertices;
-		unsigned long* indices;
+		vector<MarchingCubeVectors> vertices;
+		vector<unsigned long> indices;
 		D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
 		D3D11_SUBRESOURCE_DATA vertexData, indexData;
 		HRESULT result;
+		MarchingCubeVertex cube[8];
+		unsigned int lookup = 0;
 
 		// Create the vertex array.
-		vertices = new MarchingCubeVectors[vertexCount];
+		vertices.resize(vertexCount);
 
 		// Create the index array.
-		indices = new unsigned long[indexCount];
+		indices.resize(indexCount);
 
-		int vertexCounter = 0;
-		int indexCounter = 0;
+		unsigned int vertexCounter = 0;
+		unsigned int indexCounter = 0;
 
 		lookup = 0;
 
-		for (z = 0; z < (this->sizeZ - 1); z++)
+		for (z = 0; z < sizeZ; ++z)
 		{
-			for (y = 0; y < (this->sizeY - 1); y++)
+			for (y = 0; y < sizeY; ++y)
 			{
-				for (x = 0; x < (this->sizeX - 1); x++)
+				for (x = 0; x < sizeX; ++x)
 				{
-					// Off the 256 edge cases which should we use?
-					idx = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
+					// Calculate index for where in the field we are
+					index = x + (y*this->sizeY) + (z * this->sizeY * this->sizeZ);
 
-					if (this->marchingCubeVertices[idx].inside)
-						lookup |= 128;
+					ExtractCube(cube);
 
-					if (this->marchingCubeVertices[idx+1].inside)
-						lookup |= 64;
+					// Of the 256 edge cases which should we use?
+					CalculateLookupValue(&lookup, index, cube);
 
-					if (this->marchingCubeVertices[idx + 1 + (this->sizeY * this->sizeZ)].inside)
-						lookup |= 32;
+					ProcessCube(lookup, verts, cube, indices, vertices, indexCounter, vertexCounter);
 
-					if (this->marchingCubeVertices[idx + (this->sizeY * this->sizeZ)].inside)
-						lookup |= 16;
-
-					if (this->marchingCubeVertices[idx + this->sizeY].inside)
-						lookup |= 8;
-
-					if (this->marchingCubeVertices[idx+1+this->sizeY].inside)
-						lookup |= 4;
-
-					if (this->marchingCubeVertices[idx + 1 + this->sizeY + (this->sizeY * this->sizeZ)].inside)
-						lookup |= 2;
-
-					if (this->marchingCubeVertices[idx + this->sizeY + (this->sizeY * this->sizeZ)].inside)
-						lookup |= 1;
-
-					// If not all points are inside our outside
-					if ((lookup != 0))
-					{
-						// 0 - 1
-						if (this->edgeTable[lookup] & 1) 
-							this->verts[0] = this->mb->Interpolate(	this->marchingCubeVertices[idx + this->sizeY + (this->sizeY * this->sizeZ)],
-							this->marchingCubeVertices[idx + 1 + this->sizeY + (this->sizeY * this->sizeZ)]);
-
-						// 1 - 2
-						if (this->edgeTable[lookup] & 2) 
-							this->verts[1] = this->mb->Interpolate(	this->marchingCubeVertices[idx + 1 + this->sizeY + (this->sizeY * this->sizeZ)],
-							this->marchingCubeVertices[idx + 1 + this->sizeY]);
-
-						// 2 - 3
-						if (this->edgeTable[lookup] & 4) 
-							this->verts[2] = this->mb->Interpolate(	this->marchingCubeVertices[idx + 1 + this->sizeY],
-							this->marchingCubeVertices[idx + this->sizeY]);
-
-						// 3 - 0
-						if (this->edgeTable[lookup] & 8) 
-							this->verts[3] = this->mb->Interpolate(	this->marchingCubeVertices[idx + this->sizeY],
-							this->marchingCubeVertices[idx + this->sizeY + (this->sizeY * this->sizeZ)]);
-
-						// 4 - 5
-						if (this->edgeTable[lookup] & 16) 
-							this->verts[4] = this->mb->Interpolate(	this->marchingCubeVertices[idx + (this->sizeY * this->sizeZ)],
-							this->marchingCubeVertices[idx + 1 + (this->sizeY * this->sizeZ)]);
-
-						// 5 - 6
-						if (this->edgeTable[lookup] & 32) 
-							this->verts[5] = this->mb->Interpolate(	this->marchingCubeVertices[idx + 1 + (this->sizeY * this->sizeZ)],
-							this->marchingCubeVertices[idx + 1]);
-
-						// 6 - 7
-						if (this->edgeTable[lookup] & 64) 
-							this->verts[6] = this->mb->Interpolate(	this->marchingCubeVertices[idx + 1],
-							this->marchingCubeVertices[idx]);
-
-						// 7 - 4
-						if (this->edgeTable[lookup] & 128) 
-							this->verts[7] = this->mb->Interpolate(	this->marchingCubeVertices[idx],
-							this->marchingCubeVertices[idx + (this->sizeY * this->sizeZ)]);
-
-						// 0 - 4
-						if (this->edgeTable[lookup] & 256)
-							this->verts[8] = this->mb->Interpolate(	this->marchingCubeVertices[idx + this->sizeY + (this->sizeY * this->sizeZ)],
-							this->marchingCubeVertices[idx + (this->sizeY * this->sizeZ)]);
-
-						// 1 - 5
-						if (this->edgeTable[lookup] & 512) 
-							this->verts[9] = this->mb->Interpolate(	this->marchingCubeVertices[idx + 1 + this->sizeY + (this->sizeY * this->sizeZ)],
-							this->marchingCubeVertices[idx + 1 + (this->sizeY * this->sizeZ)]);
-
-						// 2 - 6
-						if (this->edgeTable[lookup] & 1024) 
-							this->verts[10] = this->mb->Interpolate(	this->marchingCubeVertices[idx + 1 + this->sizeY],
-							this->marchingCubeVertices[idx + 1]);
-
-						// 3 - 7
-						if (this->edgeTable[lookup] & 2048) 
-							this->verts[11] = this->mb->Interpolate(	this->marchingCubeVertices[idx + this->sizeY],
-							this->marchingCubeVertices[idx]);
-
-
-						int i, j, numberOfTriangles;
-						numberOfTriangles = 0;
-
-
-						for (i = 0; this->triTable[lookup][i] != -1; i+=3)
-						{
-							for (j = i; j < (i+3); j++)
-							{
-
-								XMFLOAT3 tempPos = XMFLOAT3	
-									(	
-									this->verts[this->triTable[lookup][j]].posX,
-									this->verts[this->triTable[lookup][j]].posY,
-									this->verts[this->triTable[lookup][j]].posZ		
-									);
-
-								XMFLOAT3 tempNormal = XMFLOAT3	
-									(	
-									this->verts[this->triTable[lookup][j]].normalX, 
-									this->verts[this->triTable[lookup][j]].normalY, 
-									this->verts[this->triTable[lookup][j]].normalZ	
-									);
-
-
-								unsigned int texAndMatIDs = 0;
-								float lerpVal = 0;
-
-								utility.GenerateMaterialAndTextureData(tempPos.y, &tempNormal, lerpVal, texAndMatIDs);
-
-								//Comment this if you want the edges back. :)
-								if(x < this->sizeX-1 && z < this->sizeZ-1 && y > 10)//x > 0 && z > 0 && 
-								{
-									indices[indexCounter] = vertexCounter;
-
-									vertices[vertexCounter].position = tempPos;
-									vertices[vertexCounter].normal = tempNormal;
-									//vertices[vertexCounter].lerpValue = lerpVal;
-									vertices[vertexCounter].TextureAndMaterialIDs = texAndMatIDs;
-
-									vertexCounter++;
-									indexCounter++;
-
-									/*
-									// Allocate new vertex & index
-									indices[indexCount++] = vertexCount;
-									vertices[vertexCount++] = vertexPos;
-									*/
-								}
-							}
-
-							numberOfTriangles++;
-						}
-
-						/*
-						Vector3[] vertlist = new Vector3[12]; 
-						if (IsBitSet(edgeTable[cubeIndex], 1)) 
-						vertlist[0] = VertexInterp(isolevel, grid.p[0], grid.p[1], grid.val[0], grid.val[1]); 
-						if (IsBitSet(edgeTable[cubeIndex], 2)) 
-						vertlist[1] = VertexInterp(isolevel, grid.p[1], grid.p[2], grid.val[1], grid.val[2]); 
-						if (IsBitSet(edgeTable[cubeIndex], 4)) 
-						vertlist[2] = VertexInterp(isolevel, grid.p[2], grid.p[3], grid.val[2], grid.val[3]); 
-						if (IsBitSet(edgeTable[cubeIndex], 8)) 
-						vertlist[3] = VertexInterp(isolevel, grid.p[3], grid.p[0], grid.val[3], grid.val[0]); 
-						if (IsBitSet(edgeTable[cubeIndex], 16)) 
-						vertlist[4] = VertexInterp(isolevel, grid.p[4], grid.p[5], grid.val[4], grid.val[5]); 
-						if (IsBitSet(edgeTable[cubeIndex], 32)) 
-						vertlist[5] = VertexInterp(isolevel, grid.p[5], grid.p[6], grid.val[5], grid.val[6]); 
-						if (IsBitSet(edgeTable[cubeIndex], 64)) 
-						vertlist[6] = VertexInterp(isolevel, grid.p[6], grid.p[7], grid.val[6], grid.val[7]); 
-						if (IsBitSet(edgeTable[cubeIndex], 128)) 
-						vertlist[7] = VertexInterp(isolevel, grid.p[7], grid.p[4], grid.val[7], grid.val[4]); 
-						if (IsBitSet(edgeTable[cubeIndex], 256)) 
-						vertlist[8] = VertexInterp(isolevel, grid.p[0], grid.p[4], grid.val[0], grid.val[4]); 
-						if (IsBitSet(edgeTable[cubeIndex], 512)) 
-						vertlist[9] = VertexInterp(isolevel, grid.p[1], grid.p[5], grid.val[1], grid.val[5]); 
-						if (IsBitSet(edgeTable[cubeIndex], 1024)) 
-						vertlist[10] = VertexInterp(isolevel, grid.p[2], grid.p[6], grid.val[2], grid.val[6]); 
-						if (IsBitSet(edgeTable[cubeIndex], 2048)) 
-						vertlist[11] = VertexInterp(isolevel, grid.p[3], grid.p[7], grid.val[3], grid.val[7]); 
-
-						for (int i = 0; triTable[cubeIndex][i] != -1; i += 3) 
-						{ 
-						returnTriangles.Add(new Triangle(vertlist[triTable[cubeIndex][i]], vertlist[triTable[cubeIndex][i + 1]], vertlist[triTable[cubeIndex][i + 2]])); 
-						} 
-						*/
-
-						lookup = 0;
-					}
+					lookup = 0;
 				}
 			}
-
 		}
-
 
 		indexCount = indexCounter;
 		vertexCount = vertexCounter;
@@ -707,7 +497,7 @@ const int MarchingCubesClass::edgeTable[256] = {
 		vertexBufferDesc.StructureByteStride = 0;
 
 		// Give the sub resource texture a pointer to the vertex data.
-		vertexData.pSysMem = vertices;
+		vertexData.pSysMem = vertices.data();
 		vertexData.SysMemPitch = 0;
 		vertexData.SysMemSlicePitch = 0;
 
@@ -723,20 +513,104 @@ const int MarchingCubesClass::edgeTable[256] = {
 		indexBufferDesc.StructureByteStride = 0;
 
 		// Give the sub resource texture a pointer to the index data.
-		indexData.pSysMem = indices;
+		indexData.pSysMem = indices.data();
 		indexData.SysMemPitch = 0;
 		indexData.SysMemSlicePitch = 0;
 
 		// Create the index buffer.
 		result = device->CreateBuffer(&indexBufferDesc, &indexData, &indexBuffer);
 
-		// Release the arrays now that the vertex and index buffers have been created and loaded.
-		delete [] vertices;
-		vertices = 0;
+		//// Release the arrays now that the vertex and index buffers have been created and loaded.
+		//delete [] vertices;
+		//vertices = 0;
 
-		delete [] indices;
-		indices = 0;
+		//delete [] indices;
+		//indices = 0;
 
+	}
+
+	void MarchingCubesClass::ExtractCube( MarchingCubeVertex* cube )
+	{
+		cube[7] = marchingCubeVertices[index];
+		cube[6] = marchingCubeVertices[index+1];
+		cube[5]	= marchingCubeVertices[index + 1 + (this->sizeY * this->sizeZ)];
+		cube[4]	= marchingCubeVertices[index + (this->sizeY * this->sizeZ)];
+		cube[3]	= marchingCubeVertices[index + this->sizeY];
+		cube[2]	= marchingCubeVertices[index+1+this->sizeY];
+		cube[1]	= marchingCubeVertices[index + 1 + this->sizeY + (this->sizeY * this->sizeZ)];
+		cube[0] = marchingCubeVertices[index + this->sizeY + (this->sizeY * this->sizeZ)];
+
+	}
+
+	void MarchingCubesClass::CalculateLookupValue(unsigned int* lookup, unsigned int index, MarchingCubeVertex* cube )
+	{
+		if (cube[7].inside)
+			*lookup |= 128;
+
+		if (cube[6].inside)
+			*lookup |= 64;
+
+		if (cube[5].inside)
+			*lookup |= 32;
+
+		if (cube[4].inside)
+			*lookup |= 16;
+
+		if (cube[3].inside)
+			*lookup |= 8;
+
+		if (cube[2].inside)
+			*lookup |= 4;
+
+		if (cube[1].inside)
+			*lookup |= 2;
+
+		if (cube[0].inside)
+			*lookup |= 1;
+	}
+
+	void MarchingCubesClass::ProcessCube( unsigned int lookupValue, MarchingCubeVertex* verts, MarchingCubeVertex* cube, vector<unsigned long>& indices, 
+		vector<MarchingCubeVectors>& vertices, unsigned int& indexCounter, unsigned int& vertexCounter )
+	{
+		if(lookupValue == 0)
+			return;
+		
+		//For each potential case
+		for(int i = 0; i < 12; ++i)
+		{
+			//Check if the value corresponds with each bitfilter value. (1 << i) times 12 goes from 0 to 2048.
+			if(this->edgeTable[lookupValue] & (1 << i))
+			{
+				//If the bitwise check goes through, then interpolate between the two relevant corners of the cube.
+				verts[i] =	Interpolate(cube[edgePairs[i].first],	cube[edgePairs[i].second]);
+			}
+		}
+
+		int i, j;
+
+		for (i = 0; this->triTable[lookupValue][i] != -1; i += 3)
+		{
+			for (j = i; j < (i+3); j++)
+			{
+				int tritableLookupValue = triTable[lookupValue][j];
+
+				//Comment this if you want the edges back. :)
+				if(y > 10)
+				{
+					//And this.
+					if(x > 0 && z > 0 && x < this->sizeX-2 && z < this->sizeZ-2)
+					{
+						indices[indexCounter] = vertexCounter;
+
+						vertices[vertexCounter].position	= verts[tritableLookupValue].position;
+						vertices[vertexCounter].normal		= verts[tritableLookupValue].normal;
+
+						vertexCounter++;
+						indexCounter++;	
+					}
+				}
+			}
+		}
 	}
 
 	bool MarchingCubesClass::Render(ID3D11DeviceContext* deviceContext)
@@ -760,54 +634,84 @@ const int MarchingCubesClass::edgeTable[256] = {
 		return true;
 	}
 
-	void MarchingCubesClass::Reset()
+	void  MarchingCubesClass::LSystemTree()
 	{
-		lookup = 0;
-
-		vertexCount = (this->sizeX * this->sizeY * this->sizeZ);
-		indexCount = vertexCount;
-
-		//delete marchingCubeVertices;
-		//marchingCubeVertices = 0;
-
-		//this->marchingCubeVertices = new MarchingCubeVertex[vertexCount];
-
-
-		/* setter default-verdier */
-		for (z = 0; z < this->sizeZ; z++)
+		for (z = 1; z < (this->sizeZ - 1); z++)
 		{
-			for (y = 0; y < this->sizeY; y++)
+			for (y = 1; y < (this->sizeY - 1); y++)
 			{
-				for (x = 0; x < this->sizeX; x++)
+				for (x = 1; x < (this->sizeX - 1); x++)
 				{
-					/* regner ut idx en gang (sparer en haug med MULs) */
-					idx = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
+					index = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
 
-					/* setter default-verdier ut fra hvor i gridden vi befinner oss */
-					this->marchingCubeVertices[idx].posX = this->startX + this->stepX * x;
-					this->marchingCubeVertices[idx].posY = this->startY + this->stepY * y;
-					this->marchingCubeVertices[idx].posZ = this->startZ + this->stepZ * z;
-					this->marchingCubeVertices[idx].density = 0.0;
-					this->marchingCubeVertices[idx].inside = false;
-					this->marchingCubeVertices[idx].normalX = 0.0;
-					this->marchingCubeVertices[idx].normalY = 0.0;
-					this->marchingCubeVertices[idx].normalZ = 0.0;
+					if(	sqrt((0 - this->marchingCubeVertices[index].position.x) * (0 - this->marchingCubeVertices[index].position.x)) < 2 &&
+						sqrt((0 - this->marchingCubeVertices[index].position.y) * (0 - this->marchingCubeVertices[index].position.y)) < 2 &&
+						sqrt((0 - this->marchingCubeVertices[index].position.z) * (0 - this->marchingCubeVertices[index].position.z)) < 2)
+					{
 
-					this->things[idx].position = XMFLOAT3(this->startX + this->stepX * x, this->startY + this->stepY * y, this->startZ + this->stepZ * z);
-					this->things[idx].normal = XMFLOAT3(0.0f, 0.0f, 0.0f);
+						this->marchingCubeVertices[index].density = 1.5f;
+					}
+
+
+					if (this->marchingCubeVertices[index].density > 1.1f)
+					{
+						this->marchingCubeVertices[index].inside = true;
+					}
+					else
+					{
+						this->marchingCubeVertices[index].inside = false;
+					}
+
+					this->marchingCubeVertices[index].normal.x = this->marchingCubeVertices[index - 1].density - this->marchingCubeVertices[index+1].density;
+					this->marchingCubeVertices[index].normal.y = this->marchingCubeVertices[index - this->sizeY].density - this->marchingCubeVertices[index + this->sizeY].density;
+					this->marchingCubeVertices[index].normal.z = this->marchingCubeVertices[index - (this->sizeY * this->sizeZ)].density - this->marchingCubeVertices[index + (this->sizeY * this->sizeZ)].density; 
 				}
 			}
 		}
-		bool tempPulverize = Terrain->GetPulverizeWorld();
-		int tempTerrainType	= Terrain->getTerrainType();
-		delete this->Terrain;
-		this->Terrain = 0;
+	}
 
-		this->Terrain = new MCTerrainClass();
-		this->Terrain->Initialize(sizeX,sizeY,sizeZ,this->marchingCubeVertices);
-		this->Terrain->SetTerrainType(tempTerrainType);
-		this->Terrain->SetPulverizeWorld(tempPulverize);
-		Terrain->Noise3D();
+	void  MarchingCubesClass::LSystemTree(int vertexID)
+	{
+		//if(this->marchingCubeVertices[index].position.x * this->marchingCubeVertices[index].position.x)
+		if(	sqrt((0 - this->marchingCubeVertices[index].position.x) * (0 - this->marchingCubeVertices[index].position.x)) < 2 &&
+			sqrt((0 - this->marchingCubeVertices[index].position.y) * (0 - this->marchingCubeVertices[index].position.y)) < 2 &&
+			sqrt((0 - this->marchingCubeVertices[index].position.z) * (0 - this->marchingCubeVertices[index].position.z)) < 2)
+		{
+
+			this->marchingCubeVertices[vertexID].density = 1.5f;
+		}
+	}
+
+	void  MarchingCubesClass::Ground(int vertexID)
+	{
+
+		if(this->marchingCubeVertices[vertexID].position.y < -18)
+		{
+
+			this->marchingCubeVertices[vertexID].density = 0.5f;
+		}
+	}
+
+	void MarchingCubesClass::Reset(SimplexNoise* simplexNoise)
+	{
+		vertexCount = (this->sizeX * this->sizeY * this->sizeZ);
+		indexCount = vertexCount;
+
+		simplexNoise->ReseedRandom();
+
+		bool tempPulverize = terrain->GetPulverizeWorld();
+		int tempTerrainType	= terrain->getTerrainType();
+
+		//delete terrain;
+		//terrain = 0;
+
+		//this->terrain = new MCTerrainClass();
+		terrain->Initialize(sizeX,sizeY,sizeZ,this->marchingCubeVertices, simplexNoise);
+		terrain->SetTerrainType(tempTerrainType);
+		terrain->SetPulverizeWorld(tempPulverize);
+		terrain->Noise3D();
+
+		ComputeMetaBalls();
 	}
 
 	float MarchingCubesClass::GetHeightOfXZpos()

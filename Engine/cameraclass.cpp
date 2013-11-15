@@ -166,37 +166,17 @@ XMFLOAT3 CameraClass::MatrixDown()
 }
 #pragma endregion
 
-CameraClass::CameraClass()
+CameraClass::CameraClass(std::shared_ptr<ControllerClass> externalController)
+:	controller(externalController),
+	PITCHROOF(80.0f*DEG_TO_RAD),
+	PITCHFLOOR(-80.0f*DEG_TO_RAD)
 {
 	position = rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	yaw = pitch = roll = 0.0f;
-
-
-	PITCHROOF = 80.0f*(float)DEG_TO_RAD;
-	PITCHFLOOR = -80.0f*(float)DEG_TO_RAD;
 }
-
-
-CameraClass::CameraClass(const CameraClass& other)
-{
-}
-
 
 CameraClass::~CameraClass()
 {
-	controller = 0;
-}
-
-bool CameraClass::Initialize(ControllerClass* externalController)
-{
-	controller = externalController;
-
-	if(!controller)
-	{
-		return false;
-	}
-	
-	return true;
 }
 
 void CameraClass::SetPerspectiveProjection(int screenWidth, int screenHeight, float FOVinDegrees, float zNear, float zFar)
@@ -224,9 +204,9 @@ void CameraClass::Update()
 	tempPos = XMLoadFloat3(&position);
 	tempRot = XMLoadFloat3(&rotation);
 
-	pitch = XMVectorGetX(tempRot) * (float)DEG_TO_RAD;
-	yaw = XMVectorGetY(tempRot) * (float)DEG_TO_RAD;
-	roll = XMVectorGetZ(tempRot) * (float)DEG_TO_RAD;
+	pitch = XMVectorGetX(tempRot) * DEG_TO_RAD;
+	yaw = XMVectorGetY(tempRot) * DEG_TO_RAD;
+	roll = XMVectorGetZ(tempRot) * DEG_TO_RAD;
 
 	rotationMatrix = XMMatrixRotationRollPitchYaw(pitch, yaw, roll); //Create rotation matrix
 

@@ -3,106 +3,89 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "controllerclass.h"
 
+
 #pragma region Properties
 XMFLOAT3 ControllerClass::GetPosition() 
 { 
-	return *position;
+	return position;
 }
 XMFLOAT3 ControllerClass::GetRotation() 
 { 
-	return *rotation;
+	return rotation;
 }
 
-void ControllerClass::SetPosition(XMFLOAT3 position)
+void ControllerClass::SetPosition(const XMFLOAT3 pos)
 {
-	*this->position = position;
+	position = pos;
 }
 
-void ControllerClass::SetRotation(XMFLOAT3 rotation)
+void ControllerClass::SetRotation(const XMFLOAT3 rot)
 {
-	*this->rotation = rotation;
+	rotation = rot;
 }
 #pragma endregion
 
-#pragma region Matrix-To-WorldDirection XMFLOAT4X4
-XMVECTOR ControllerClass::MatrixForward(XMFLOAT4X4* matrix)
+#pragma region Matrix-To-Vector conversion functions
+XMVECTOR ControllerClass::MatrixForwardVector(const XMFLOAT4X4* matrix)
 {
 	return XMVectorSet(matrix->_31, matrix->_32, matrix->_33, 1.0f);
 }
 
-XMVECTOR ControllerClass::MatrixBackward(XMFLOAT4X4* matrix)
+XMVECTOR ControllerClass::MatrixBackwardVector(const XMFLOAT4X4* matrix)
 {
 	return XMVectorSet(-matrix->_31, -matrix->_32, -matrix->_33, 1.0f);
 }
 
-XMVECTOR ControllerClass::MatrixRight(XMFLOAT4X4* matrix)
+XMVECTOR ControllerClass::MatrixRightVector(const XMFLOAT4X4* matrix)
 {
 	return XMVectorSet(matrix->_11, matrix->_12, matrix->_13, 1.0f);
 }
 
-XMVECTOR ControllerClass::MatrixLeft(XMFLOAT4X4* matrix)
+XMVECTOR ControllerClass::MatrixLeftVector(const XMFLOAT4X4* matrix)
 {
 	return XMVectorSet(-matrix->_11, -matrix->_12, -matrix->_13, 1.0f);
 }
 
-XMVECTOR ControllerClass::MatrixUp(XMFLOAT4X4* matrix)
+XMVECTOR ControllerClass::MatrixUpVector(const XMFLOAT4X4* matrix)
 {
 	return XMVectorSet(matrix->_21, matrix->_22, matrix->_23, 1.0f);
 }
 
-XMVECTOR ControllerClass::MatrixDown(XMFLOAT4X4* matrix)
+XMVECTOR ControllerClass::MatrixDownVector(const XMFLOAT4X4* matrix)
 {
 	return XMVectorSet(-matrix->_21, -matrix->_22, -matrix->_23, 1.0f);
 }
 #pragma endregion
 
-ControllerClass::ControllerClass()
+ControllerClass::ControllerClass(std::shared_ptr<InputClass> input, float movespeed, float turnspeed)
+:	inputManager(input),
+	moveSpeed(movespeed),
+	rotationSpeed(turnspeed),
+	prevMousePos(input->GetMousePos()),
+	frameTime(0.0f),
+	rotation(XMFLOAT3(0.0f, 0.0f, 0.0f)),
+	position(XMFLOAT3(0.0f, 0.0f, 0.0f))
 {
-	frameTime = 0.0f;
-	moveSpeed  = 0.0f;
-	rotationSpeed = 0.0f;
-
-	rotation = new XMFLOAT3(0.0f, 0.0f, 0.0f);
-	position = new XMFLOAT3(0.0f, 0.0f, 0.0f);
-}
-
-ControllerClass::ControllerClass(const ControllerClass& other)
-{
+	SetCursorPos(0, 0);
 }
 
 ControllerClass::~ControllerClass()
 {
-	delete rotation;
-	delete position;
-	rotation = 0;
-	position = 0;
-
-	inputManager = 0;
-}
-
-bool ControllerClass::Initialize(InputClass* input, float movespeed, float turnspeed)
-{
-	inputManager = input;
-	moveSpeed = movespeed;
-	rotationSpeed = turnspeed;
-
-	SetCursorPos(0, 0);
-	prevMousePos = inputManager->GetMousePos();
-
-	return true;
 }
 
 void ControllerClass::Update(float frameTime, XMFLOAT4X4* cameraMatrix)
 {
 	float movementValue;
 
-	if(inputManager->IsKeyPressed(DIK_LSHIFT))
+	movementValue = moveSpeed * frameTime;
+
+	if(inputManager->IsKeyPressed(Keybinds::SPRINT))
 	{
 		movementValue = (moveSpeed*3.0f) * frameTime;
 	}
-	else
+	else if(inputManager->IsKeyPressed(Keybinds::CROUCH))
 	{
-		movementValue = moveSpeed * frameTime;
+		movementValue = (moveSpeed*0.3f) * frameTime;
 	}
 
 	float rotationValue = rotationSpeed * frameTime;
@@ -119,36 +102,36 @@ void ControllerClass::Update(float frameTime, XMFLOAT4X4* cameraMatrix)
 	rotationalForce.x -= (prevMousePos.y - mousePos.y)*0.06f;
 
 	//Rotate the controller with the arrow keys
-	if(inputManager->IsKeyPressed(DIK_DOWN))
+	if(inputManager->IsKeyPressed(Keybinds::DOWNKEY))
 		rotationalForce.x += rotationValue;
-	if(inputManager->IsKeyPressed(DIK_UP))
+	if(inputManager->IsKeyPressed(Keybinds::UPKEY))
 		rotationalForce.x -= rotationValue;
-	if(inputManager->IsKeyPressed(DIK_RIGHT))
+	if(inputManager->IsKeyPressed(Keybinds::RIGHTKEY))
 		rotationalForce.y += rotationValue;
-	if(inputManager->IsKeyPressed(DIK_LEFT))
+	if(inputManager->IsKeyPressed(Keybinds::LEFTKEY))
 		rotationalForce.y -= rotationValue;
 
 	//Rotate with mouse
 	rotationThisUpdate = XMLoadFloat4(&rotationalForce);
 
-	//Move the controller with WASD, LCtrl and Space.
-	if(inputManager->IsKeyPressed(DIK_W))
-		movementThisUpdate += movementValue*MatrixForward(cameraMatrix);
-	if(inputManager->IsKeyPressed(DIK_S))
-		movementThisUpdate += movementValue*MatrixBackward(cameraMatrix);
+	//Move the controller with WASD, C and Space.
+	if(inputManager->IsKeyPressed(Keybinds::FORWARD))
+		movementThisUpdate += movementValue*MatrixForwardVector(cameraMatrix);
+	if(inputManager->IsKeyPressed(Keybinds::BACKWARDS))
+		movementThisUpdate += movementValue*MatrixBackwardVector(cameraMatrix);
 
-	if(inputManager->IsKeyPressed(DIK_A))
-		movementThisUpdate += movementValue*MatrixLeft(cameraMatrix);
-	if(inputManager->IsKeyPressed(DIK_D))
-		movementThisUpdate += movementValue*MatrixRight(cameraMatrix);
+	if(inputManager->IsKeyPressed(Keybinds::LEFT))
+		movementThisUpdate += movementValue*MatrixLeftVector(cameraMatrix);
+	if(inputManager->IsKeyPressed(Keybinds::RIGHT))
+		movementThisUpdate += movementValue*MatrixRightVector(cameraMatrix);
 
-	if(inputManager->IsKeyPressed(DIK_SPACE))
-		movementThisUpdate += movementValue*MatrixUp(cameraMatrix);
-	if(inputManager->IsKeyPressed(DIK_C))
-		movementThisUpdate += movementValue*MatrixDown(cameraMatrix);
+	if(inputManager->IsKeyPressed(Keybinds::UPWARDS))
+		movementThisUpdate += movementValue*MatrixUpVector(cameraMatrix);
+	if(inputManager->IsKeyPressed(Keybinds::DOWNWARDS))
+		movementThisUpdate += movementValue*MatrixDownVector(cameraMatrix);
 
-	tempPos = XMLoadFloat3(position);
-	tempRot = XMLoadFloat3(rotation);
+	tempPos = XMLoadFloat3(&position);
+	tempRot = XMLoadFloat3(&rotation);
 
 	tempPos += movementThisUpdate;
 	tempRot += rotationThisUpdate;
@@ -165,14 +148,13 @@ void ControllerClass::Update(float frameTime, XMFLOAT4X4* cameraMatrix)
 		tempRot = XMVectorSetX(tempRot, -89.0f);
 	}
 
-	if(Y >= 360.0f || Y <= -360.0f) //We clamp Y rotation to a decent, goodhearted value that heeds the word of god.
+	if(Y >= 360.0f || Y <= -360.0f) //We clamp Y rotation to a decent, goodhearted value that heeds the word of our lord savior.
 	{
 		tempRot = XMVectorSetY(tempRot, 0.0f);
 	}
 
-
-	XMStoreFloat3(position, tempPos);
-	XMStoreFloat3(rotation, tempRot);
+	XMStoreFloat3(&position, tempPos);
+	XMStoreFloat3(&rotation, tempRot);
 
 	prevMousePos = inputManager->GetMousePos(); //Add this at the end of the update so that it's kept one step behind the fresh update.
 

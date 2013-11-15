@@ -37,17 +37,11 @@
     <ClCompile Include="MCubesGBufferShader.cpp">
       <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClCompile>
-    <ClCompile Include="TextureAndMaterialHandler.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="Engine.cpp">
       <Filter>General Code</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>General Code</Filter>
-    </ClCompile>
-    <ClCompile Include="SkySphere.cpp">
-      <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="fontshaderclass.cpp">
       <Filter>Rendering\Shader wrappers</Filter>
@@ -82,9 +76,6 @@
     <ClCompile Include="textureshaderclass.cpp">
       <Filter>Rendering\Shader wrappers</Filter>
     </ClCompile>
-    <ClCompile Include="textclass.cpp">
-      <Filter>Rendering\Rendering utility</Filter>
-    </ClCompile>
     <ClCompile Include="texturearray.cpp">
       <Filter>Rendering\Rendering utility</Filter>
     </ClCompile>
@@ -98,12 +89,6 @@
       <Filter>Rendering\Rendering utility</Filter>
     </ClCompile>
     <ClCompile Include="fontclass.cpp">
-      <Filter>Rendering\Rendering utility</Filter>
-    </ClCompile>
-    <ClCompile Include="modelclass.cpp">
-      <Filter>Rendering\Rendering utility</Filter>
-    </ClCompile>
-    <ClCompile Include="modellistclass.cpp">
       <Filter>Rendering\Rendering utility</Filter>
     </ClCompile>
     <ClCompile Include="renderToTextureClass.cpp">
@@ -142,8 +127,38 @@
     <ClCompile Include="Lemmi3DAABB.h">
       <Filter>General Code\Data classes</Filter>
     </ClCompile>
+    <ClCompile Include="LemmiGridTable.cpp">
+      <Filter>General Code\Data classes</Filter>
+    </ClCompile>
+    <ClCompile Include="LemmiEntity.cpp">
+      <Filter>General Code\Data classes</Filter>
+    </ClCompile>
+    <ClCompile Include="LerpInstance.cpp">
+      <Filter>General Code\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureAndMaterialHandler.cpp">
+      <Filter>Rendering\Managers</Filter>
+    </ClCompile>
+    <ClCompile Include="textclass.cpp">
+      <Filter>Rendering\Managers</Filter>
+    </ClCompile>
     <ClCompile Include="VegetationManager.cpp">
-      <Filter>Rendering</Filter>
+      <Filter>Rendering\Managers</Filter>
+    </ClCompile>
+    <ClCompile Include="SkySphere.cpp">
+      <Filter>Rendering\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="modellistclass.cpp">
+      <Filter>Rendering\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="modelclass.cpp">
+      <Filter>Rendering\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="SentenceManager.cpp">
+      <Filter>General Code</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainChunk.cpp">
+      <Filter>Procedural generation</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -183,14 +198,8 @@
     <ClInclude Include="MCubesGBufferShader.h">
       <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClInclude>
-    <ClInclude Include="TextureAndMaterialHandler.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="Engine.h">
       <Filter>General Code</Filter>
-    </ClInclude>
-    <ClInclude Include="SkySphere.h">
-      <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="fontshaderclass.h">
       <Filter>Rendering\Shader wrappers</Filter>
@@ -210,9 +219,6 @@
     <ClInclude Include="d3dclass.h">
       <Filter>General Code</Filter>
     </ClInclude>
-    <ClInclude Include="customStructs.h">
-      <Filter>Procedural generation</Filter>
-    </ClInclude>
     <ClInclude Include="DayNightCycle.h">
       <Filter>General Code</Filter>
     </ClInclude>
@@ -231,9 +237,6 @@
     <ClInclude Include="texturetriarray.h">
       <Filter>Rendering\Rendering utility</Filter>
     </ClInclude>
-    <ClInclude Include="textclass.h">
-      <Filter>Rendering\Rendering utility</Filter>
-    </ClInclude>
     <ClInclude Include="texturearray.h">
       <Filter>Rendering\Rendering utility</Filter>
     </ClInclude>
@@ -249,17 +252,8 @@
     <ClInclude Include="fontclass.h">
       <Filter>Rendering\Rendering utility</Filter>
     </ClInclude>
-    <ClInclude Include="modelclass.h">
-      <Filter>Rendering\Rendering utility</Filter>
-    </ClInclude>
-    <ClInclude Include="modellistclass.h">
-      <Filter>Rendering\Rendering utility</Filter>
-    </ClInclude>
     <ClInclude Include="renderToTextureClass.h">
       <Filter>Rendering\Rendering utility</Filter>
-    </ClInclude>
-    <ClInclude Include="VegetationManager.h">
-      <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="SimplexNoise.h">
       <Filter>Procedural generation\Noise</Filter>
@@ -299,6 +293,42 @@
     </ClInclude>
     <ClInclude Include="interfacepointers.h">
       <Filter>General Code\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="LemmiGridTable.h">
+      <Filter>General Code\Data classes</Filter>
+    </ClInclude>
+    <ClInclude Include="LemmiEntity.h">
+      <Filter>General Code\Data classes</Filter>
+    </ClInclude>
+    <ClInclude Include="LerpInstance.h">
+      <Filter>General Code\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureAndMaterialHandler.h">
+      <Filter>Rendering\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="textclass.h">
+      <Filter>Rendering\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="VegetationManager.h">
+      <Filter>Rendering\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="SkySphere.h">
+      <Filter>Rendering\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="modellistclass.h">
+      <Filter>Rendering\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="modelclass.h">
+      <Filter>Rendering\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="SentenceManager.h">
+      <Filter>General Code</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainChunk.h">
+      <Filter>Procedural generation</Filter>
+    </ClInclude>
+    <ClInclude Include="customStructs.h">
+      <Filter>Procedural generation\MC</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -378,10 +408,10 @@
     <None Include="DRCompose.vsh">
       <Filter>Rendering\Shaders\Post processing</Filter>
     </None>
-    <None Include="DRCompose.psh">
+    <None Include="TODO.txt" />
+    <None Include="DRCompose.hlsl">
       <Filter>Rendering\Shaders\Post processing</Filter>
     </None>
-    <None Include="TODO.txt" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Rendering">
@@ -434,6 +464,12 @@
     </Filter>
     <Filter Include="General Code\Data classes">
       <UniqueIdentifier>{bc5a4fa4-dd48-4d65-bc01-3a92785c764c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Managers">
+      <UniqueIdentifier>{0caad27d-4c85-41f6-8346-251466473ad0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Objects">
+      <UniqueIdentifier>{965eb527-364b-4c1c-9609-492d29014ef3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

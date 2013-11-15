@@ -71,17 +71,17 @@ void RetrieveMaterialData(int materialID, out float ambienceCoefficient, out flo
 }
 
 //Decoding of GBuffer Normals
-half3 DecodeNormal(half2 enc)
+float3 DecodeNormal(float2 enc)
 {
-	half2 fenc = (enc*4.0)-2.0;
-	half f = dot(fenc,fenc);
-	half g = sqrt(1.0-(f*0.25));
+	float2 fenc = (enc*4.0f)-2.0f;
+	float f = dot(fenc,fenc);
+	float g = sqrt(1.0f-(f*0.25f));
 	
-	half3 n;
-	n.xy = fenc*g;
-	n.z = 1.0-(f*0.5);
+	//float3 n;
+	//n.xy = fenc*g;
+	//n.z = 1.0f-(f*0.5f);
 
-	return n;
+	return float3(fenc*g, 1.0f - (f*0.5f));
 }
 
 //float3 ReconstructViewPositionFromDepth(float3 viewRay, float depth)
@@ -116,7 +116,7 @@ float3 DepthToPosition(float depth, float4 ScreenPosition)
 //Calculate shadow contribution using chevyshev's inequality.
 float ChebyshevUpperBound(float2 moments, float t)  
 {
-	float minVariance = 0.02f; //Scaling value.
+	float minVariance = 0.002f; //Scaling value.
 
 	// Compute variance.  
 	float variance = moments.y - (moments.x*moments.x);
@@ -126,7 +126,7 @@ float ChebyshevUpperBound(float2 moments, float t)
 	float d = (t - moments.x);
 	float p_max = (variance / (variance + d*d));
 
-	return pow(p_max, 8);
+	return pow(p_max, 24);
 }
 
 
@@ -230,7 +230,7 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//Calculate diffuse light
 	finalDiffuseProduct += diffuseCoefficient * (NdL * DiffuseColor.rgb);
 
-	if(NdL > 0.0f)
+	if(NdL > -0.1f)
 	{
 		//Reflection vector
 		float3 reflectionVector = normalize(reflect(lightVector, normal));
@@ -245,14 +245,14 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//Essentially I save a float in the normal render target's .w channel that decides if the object should be shaded or not.
 	//I do this because of how the vegatation quads are built -- they each consist of three different quads, and they all shade eachother.
 	//This results in the quads looking really ass and they start flickering when the light moves and shit. Bad.
-	if(recieveShadows)
-	{
+	//if(recieveShadows)
+	//{
 		return LightIntensity*float4(finalAmbienceProduct.rgb + (finalDiffuseProduct * shadowMultiplier), (finalSpecularProduct * shadowMultiplier));
-	}
-	else //Don't shade if it shouldn't recieve any shadows. This also includes the empty space where nothing exists, seeing as we clear the normal rendertarget alpha channel to 0.0f in gbuffer stage.
-	{
-		return LightIntensity*float4(finalAmbienceProduct.rgb + finalDiffuseProduct, finalSpecularProduct);
-	}
+	//}
+	//else //Don't shade if it shouldn't recieve any shadows. This also includes the empty space where nothing exists, seeing as we clear the normal rendertarget alpha channel to 0.0f in gbuffer stage.
+	//{
+	//	return LightIntensity*float4(finalAmbienceProduct.rgb + finalDiffuseProduct, finalSpecularProduct);
+	//}
 }
 
 /*

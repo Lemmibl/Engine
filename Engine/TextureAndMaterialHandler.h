@@ -6,30 +6,77 @@
 #include <d3dx11tex.h>
 #include <vector>
 #include "MCTerrainClass.h"
-#include "StructsAndEnums.h"
 #include "Utility.h"
+#include "StructsAndEnums.h"
+#include <random>
+#include <atlbase.h> // Contains the declaration of CComPtr.
 
 class TextureAndMaterialHandler
 {
+private:
+	//We save the pixels in R8G8B8A8. This means that each pixel can have values 1-255.
+	struct PixelData
+	{
+		UINT8 x, y, z, w;
+	};
+
+	struct MaterialStruct
+	{
+		float Kambience;
+		float Kdiffuse;
+		float Kspecular;
+		float smoothness;
+		float shouldBeShadowed; //Everything should be 1 except for grassquads, which should be 0
+	};
+
+	struct MaterialColorSpectrumUINT8
+	{
+		UINT8 RedMin, RedMax;
+		UINT8 GreenMin, GreenMax;
+		UINT8 BlueMin, BlueMax;
+	};
+
 public:
 	TextureAndMaterialHandler();
-	TextureAndMaterialHandler(const TextureAndMaterialHandler&);
 	~TextureAndMaterialHandler();
 
-	bool Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
 
-	ID3D11ShaderResourceView** GetVegetationTextureArray();
-	ID3D11ShaderResourceView** GetTerrainTextureArray();
-	ID3D11ShaderResourceView** GetMaterialTextureArray();
+public:
+	ID3D11ShaderResourceView** GetVegetationTextureArray()	{ return &vegetationTextureArraySRV.p;	};
+	ID3D11ShaderResourceView** GetTerrainTextureArray()		{ return &terrainTextureArraySRV.p;		};
+	ID3D11ShaderResourceView** GetMaterialTextureArray()	{ return &materialTextureArraySRV.p;	};
+	ID3D11ShaderResourceView** GetMaterialLookupTexture()	{ return &materialLookupTableSRV.p;		};
+	ID3D11ShaderResourceView** GetDirtTexture()				{ return &dirtTextureSRV.p;				};
+	ID3D11ShaderResourceView** GetSSAORandomTexture()		{ return &ssaoRandomTextureSRV.p;		};
+	ID3D11ShaderResourceView** GetNoiseTexture()			{ return &noiseSRV.p;					};
 
-	HRESULT Create2DSSAORandomTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, Utility* utility, ID3D11ShaderResourceView** srv);
-	HRESULT CreateRandom2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv);
-	HRESULT CreateSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, SimplexNoise*  noise, ID3D11ShaderResourceView** srv);
-	HRESULT CreateMirroredSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, SimplexNoise*  noise, ID3D11ShaderResourceView** srv);
+	bool Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, SimplexNoise* noise, Utility* utility);
+
+	//To access the texture, call GetSSAORandomTexture()
+	void RebuildSSAOTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
+
+	//To access the texture, call GetNoiseTexture()
+	void RebuildSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
+
+	//To access the texture, call GetNoiseTexture()
+	void RebuildRandom2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
+
+	//To access the texture, call GetNoiseTexture()
+	void RebuildMirroredSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
 
 	bool SaveLTreeTextureToFile(ID3D11DeviceContext* deviceContext, D3DX11_IMAGE_FILE_FORMAT format, LPCSTR fileName);
+	void SaveTextureToFile(ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView* texture, D3DX11_IMAGE_FILE_FORMAT format, LPCSTR fileName);
 
 private:
+	HRESULT Create2DSSAORandomTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv);
+	HRESULT CreateRandom2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv);
+	HRESULT CreateSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv);
+	HRESULT CreateMirroredSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv);
+	void CreateMaterialTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, unsigned int width, unsigned int height, 
+		ID3D11ShaderResourceView** textureSRV, MaterialColorSpectrumUINT8 colorSpectrum);
+
+	void CreateMaterialLookupTable(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** textureSRV, int worldMaxYValue);
+
 	HRESULT Build1DMaterialTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
 		MaterialStruct materialData, int textureWidth, ID3D11Texture1D** texture);
 
@@ -42,13 +89,29 @@ private:
 	HRESULT Build2DSSAORandomTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
 		const std::vector<UINT16>& pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV );
 
-	HRESULT Build2DTextureArray(ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
+	//TODO: Build2DTextureArrayFromMemory
+
+	HRESULT Build2DTextureArrayFromFile(ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
 		WCHAR** filenames, int textureCount, ID3D11ShaderResourceView** textureArray, int texWidth, int texHeight);
 
-private:
-	ID3D11ShaderResourceView* vegetationTextures;
-	ID3D11ShaderResourceView* terrainTextures;
-	ID3D11ShaderResourceView* materialTextures;
+	//Produce random number within defined range
+	inline UINT8 RandRange(UINT8 min, UINT8 max)
+	{
+		//Adding +1 to prevent division by zero (modulus by zero)
+		return (rand()%((max+1)-min))+min;
+	};
 
-	ID3D11Texture2D* lTreeTexture;
+private:
+	std::shared_ptr<SimplexNoise> noise;
+	std::shared_ptr<Utility> utility;
+	
+	CComPtr<ID3D11ShaderResourceView> vegetationTextureArraySRV;
+	CComPtr<ID3D11ShaderResourceView> terrainTextureArraySRV;
+	CComPtr<ID3D11ShaderResourceView> materialTextureArraySRV;
+	CComPtr<ID3D11ShaderResourceView> materialLookupTableSRV;
+	CComPtr<ID3D11ShaderResourceView> dirtTextureSRV;
+	CComPtr<ID3D11ShaderResourceView> noiseSRV;
+	CComPtr<ID3D11ShaderResourceView> ssaoRandomTextureSRV;
+
+	CComPtr<ID3D11Texture2D> placeHolderTexture;
 };

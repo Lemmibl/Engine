@@ -5,12 +5,11 @@
 
 SkysphereShader::SkysphereShader()
 {
-	vertexShader = 0;
-	pixelShader = 0;
-	layout = 0;
-	matrixBuffer = 0;
-	gradientBuffer = 0;
-	timeBuffer= 0;
+	//vertexShader = 0;
+	//pixelShader = 0;
+	//layout = 0;
+	//matrixBuffer = 0;
+	//gradientBuffer = 0;
 }
 
 
@@ -71,9 +70,9 @@ bool SkysphereShader::Render(ID3D11DeviceContext* deviceContext, int indexCount,
 bool SkysphereShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename)
 {
 	HRESULT result;
-	ID3D10Blob* errorMessage;
-	ID3D10Blob* vertexShaderBuffer;
-	ID3D10Blob* pixelShaderBuffer;
+	CComPtr<ID3D10Blob> errorMessage;
+	CComPtr<ID3D10Blob> vertexShaderBuffer;
+	CComPtr<ID3D10Blob> pixelShaderBuffer;
 	D3D11_INPUT_ELEMENT_DESC polygonLayout[1];
 	unsigned int numElements;
 	D3D11_BUFFER_DESC matrixBufferDesc;
@@ -87,7 +86,7 @@ bool SkysphereShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* v
 
 	// Compile the vertex shader code.
 	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "SkysphereVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
-		&vertexShaderBuffer, &errorMessage, NULL);
+		&vertexShaderBuffer, &errorMessage.p, NULL);
 	if(FAILED(result))
 	{
 		// If the shader failed to compile it should have writen something to the error message.
@@ -106,7 +105,7 @@ bool SkysphereShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* v
 
 	// Compile the pixel shader code.
 	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "SkyspherePixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
-		&pixelShaderBuffer, &errorMessage, NULL);
+		&pixelShaderBuffer, &errorMessage.p, NULL);
 	if(FAILED(result))
 	{
 		// If the shader failed to compile it should have writen something to the error message.
@@ -157,12 +156,12 @@ bool SkysphereShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* v
 		return false;
 	}
 
-	// Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
-	vertexShaderBuffer->Release();
-	vertexShaderBuffer = 0;
+	//// Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
+	//vertexShaderBuffer->Release();
+	//vertexShaderBuffer = 0;
 
-	pixelShaderBuffer->Release();
-	pixelShaderBuffer = 0;
+	//pixelShaderBuffer->Release();
+	//pixelShaderBuffer = 0;
 
 	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
 	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
@@ -173,7 +172,7 @@ bool SkysphereShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* v
 	matrixBufferDesc.StructureByteStride = 0;
 
 	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
-	result = device->CreateBuffer(&matrixBufferDesc, NULL, &matrixBuffer);
+	result = device->CreateBuffer(&matrixBufferDesc, NULL, &matrixBuffer.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -188,22 +187,7 @@ bool SkysphereShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* v
 	gradientBufferDesc.StructureByteStride = 0;
 
 	// Create the constant buffer pointer so we can access the pixel shader constant buffer from within this class.
-	result = device->CreateBuffer(&gradientBufferDesc, NULL, &gradientBuffer);
-	if(FAILED(result))
-	{
-		return false;
-	}
-
-	// Setup the description of the gradient constant buffer that is in the pixel shader.
-	gradientBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	gradientBufferDesc.ByteWidth = sizeof(TimeBufferType);
-	gradientBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	gradientBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	gradientBufferDesc.MiscFlags = 0;
-	gradientBufferDesc.StructureByteStride = 0;
-
-	// Create the constant buffer pointer so we can access the pixel shader constant buffer from within this class.
-	result = device->CreateBuffer(&gradientBufferDesc, NULL, &timeBuffer);
+	result = device->CreateBuffer(&gradientBufferDesc, NULL, &gradientBuffer.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -215,46 +199,41 @@ bool SkysphereShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* v
 
 void SkysphereShader::ShutdownShader()
 {
-	if(timeBuffer)
-	{
-		timeBuffer->Release();
-		timeBuffer = 0;
-	}
 
-	// Release the gradient constant buffer.
-	if(gradientBuffer)
-	{
-		gradientBuffer->Release();
-		gradientBuffer = 0;
-	}
+	//// Release the gradient constant buffer.
+	//if(gradientBuffer)
+	//{
+	//	gradientBuffer->Release();
+	//	gradientBuffer = 0;
+	//}
 
-	// Release the matrix constant buffer.
-	if(matrixBuffer)
-	{
-		matrixBuffer->Release();
-		matrixBuffer = 0;
-	}
+	//// Release the matrix constant buffer.
+	//if(matrixBuffer)
+	//{
+	//	matrixBuffer->Release();
+	//	matrixBuffer = 0;
+	//}
 
-	// Release the layout.
-	if(layout)
-	{
-		layout->Release();
-		layout = 0;
-	}
+	//// Release the layout.
+	//if(layout)
+	//{
+	//	layout->Release();
+	//	layout = 0;
+	//}
 
-	// Release the pixel shader.
-	if(pixelShader)
-	{
-		pixelShader->Release();
-		pixelShader = 0;
-	}
+	//// Release the pixel shader.
+	//if(pixelShader)
+	//{
+	//	pixelShader->Release();
+	//	pixelShader = 0;
+	//}
 
-	// Release the vertex shader.
-	if(vertexShader)
-	{
-		vertexShader->Release();
-		vertexShader = 0;
-	}
+	//// Release the vertex shader.
+	//if(vertexShader)
+	//{
+	//	vertexShader->Release();
+	//	vertexShader = 0;
+	//}
 
 	return;
 }
@@ -285,9 +264,9 @@ void SkysphereShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hw
 	// Close the file.
 	fout.close();
 
-	// Release the error message.
-	errorMessage->Release();
-	errorMessage = 0;
+	//// Release the error message.
+	//errorMessage->Release();
+	//errorMessage = 0;
 
 	// Pop a message up on the screen to notify the user to check the text file for compile errors.
 	MessageBox(hwnd, L"Error compiling shader.  Check shader-error.txt for message.", shaderFilename, MB_OK);
@@ -303,7 +282,6 @@ bool SkysphereShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XM
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	MatrixBufferType* dataPtr;
 	GradientBufferType* dataPtr2;
-	TimeBufferType* dataPtr3;
 	unsigned int bufferNumber;
 
 	// Lock the constant buffer so it can be written to.
@@ -317,7 +295,7 @@ bool SkysphereShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XM
 	dataPtr = (MatrixBufferType*)mappedResource.pData;
 
 	// Copy the matrices into the constant buffer.
-	dataPtr->WorldViewProjection =		*worldViewProjection;
+	dataPtr->WorldViewProjection =	*worldViewProjection;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(matrixBuffer, 0);
@@ -326,7 +304,7 @@ bool SkysphereShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XM
 	bufferNumber = 0;
 
 	// Finally set the constant buffer in the vertex shader with the updated values.
-	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &matrixBuffer);
+	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &matrixBuffer.p);
 
 	// Lock the gradient constant buffer so it can be written to.
 	result = deviceContext->Map(gradientBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -342,6 +320,8 @@ bool SkysphereShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XM
 	dataPtr2->ApexColor = apexColor;
 	dataPtr2->CenterColor = centerColor;
 	dataPtr2->FogColor = fogColor;
+	//Save time in the .w channel to save having to double the constant buffer size (16byte align etc)
+	dataPtr2->FogColor.w = time;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(gradientBuffer, 0);
@@ -350,29 +330,7 @@ bool SkysphereShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XM
 	bufferNumber = 0;
 
 	// Finally set the gradient constant buffer in the pixel shader with the updated values.
-	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &gradientBuffer);
-
-	// Lock the gradient constant buffer so it can be written to.
-	result = deviceContext->Map(timeBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	if(FAILED(result))
-	{
-		return false;
-	}
-
-	// Get a pointer to the data in the constant buffer.
-	dataPtr3 = (TimeBufferType*)mappedResource.pData;
-
-	// Copy the gradient color variables into the constant buffer.
-	dataPtr3->Time = time;
-
-	// Unlock the constant buffer.
-	deviceContext->Unmap(timeBuffer, 0);
-
-	// Set the position of the gradient constant buffer in the pixel shader.
-	bufferNumber = 1;
-
-	// Finally set the gradient constant buffer in the pixel shader with the updated values.
-	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &timeBuffer);
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &gradientBuffer.p);
 
 	return true;
 }

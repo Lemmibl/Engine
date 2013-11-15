@@ -5,21 +5,6 @@
 #include <windows.h>
 #include <xnamath.h>
 
-struct MaterialStruct
-{
-	float Kambience;
-	float Kdiffuse;
-	float Kspecular;
-	float smoothness;
-	float shouldBeShadowed; //Everything should be 1 except for grassquads, which should be 0
-};
-
-//We save the pixels in R8G8B8A8. This means that each pixel can have values 1-255.
-struct PixelData
-{
-	UINT8 x, y, z, w;
-};
-
 struct Grads
 {
 	int x;
@@ -44,6 +29,7 @@ enum StageOfDay
 	NIGHT
 };
 
+//IDs for different things. Potential TODO: Read these in from an XML or smth?
 enum MaterialID
 {
 	MATERIAL_GRASS,
@@ -62,19 +48,6 @@ enum TextureID
 	TEXTURE_SAND,
 	TEXTURE_SNOW,
 	TEXTURE_TILEDSTONE
-};
-
-//Struct containing all of the variables that make up a stage of the day in the day/night system
-//Was made mainly to enable more streamlined code and make lerping between the different stages easier
-struct StageOfDayStruct
-{
-	XMFLOAT4 AmbientColor;
-	XMFLOAT4 DirectionalLightColor;
-	XMFLOAT4 SkysphereColor;
-	float LightIntensity;
-	float DurationOfStage;
-	XMFLOAT3 StartPosition;
-	XMFLOAT3 EndPosition;
 };
 
 struct PointLight

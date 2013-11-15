@@ -4,12 +4,12 @@
 #include "Engine.h"
 
 Engine::Engine()
+:
+	renderer(),
+	timer(),
+	fpsMeter(),
+	cpuMeter()
 {
-	input = 0;
-	renderer = 0;
-	timer = 0;
-	cpuMeter = 0;
-	fpsMeter = 0;
 	cameraController = 0;
 	camera = 0;
 	d3D = 0;
@@ -38,7 +38,7 @@ bool Engine::Initialize()
 	InitializeWindows(screenWidth, screenHeight);
 
 	// Create the input object.  This object will be used to handle reading the keyboard input from the user.
-	input = new InputClass();
+	input = std::make_shared<InputClass>(InputClass());
 	if(!input)
 	{
 		return false;
@@ -52,7 +52,7 @@ bool Engine::Initialize()
 		return false;
 	}
 
-	d3D = new D3DClass();
+	d3D = std::make_shared<D3DClass>(D3DClass());
 	if(!d3D)
 	{
 		return false;
@@ -67,79 +67,43 @@ bool Engine::Initialize()
 		return false;
 	}
 
-	cameraController = new ControllerClass();
+	cameraController = std::make_shared<ControllerClass>(ControllerClass(input, 0.05f, 0.05f));
 	if(!cameraController)
 	{
 		return false;
 	}
 
-	result = cameraController->Initialize(input, 0.05f, 0.05f);
-	if(!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the camera controller object.", L"Error", MB_OK);
-		return false;
-	}
-
 	// Create the camera object.
-	camera = new CameraClass();
+	camera = std::make_shared<CameraClass>(CameraClass(cameraController));
 	if(!camera)
 	{
 		MessageBox(hwnd, L"Could not create the camera object. Look in engine.", L"Error", MB_OK);
 		return false;
 	}
 
-	camera->Initialize(cameraController);
-
 	// Initialize a base view matrix with the camera for 2D UI rendering.
 	camera->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
 	camera->Update();
 
-	camera->SetPosition(XMFLOAT3(-15.0f, 90.0f, -15.0f));
-	camera->SetRotation(XMFLOAT3(40.0f, 40.0f, 0.0f));
+	camera->SetPosition(XMFLOAT3(90.0f, 50.0f, 0.0f));
+	camera->SetRotation(XMFLOAT3(0.0f, 0.0f, 0.0f));
 
 	camera->SetPerspectiveProjection(screenWidth, screenHeight, XM_PIDIV4, SCREEN_NEAR, SCREEN_FAR); 
 
 
-	// Create the renderer object. This object will handle rendering all the graphics for this application. Durp.
-	renderer = new Renderer();
-	if(!renderer)
-	{
-		return false;
-	}
-
 	// Initialize the renderer.
-	result = renderer->Initialize(hwnd, camera, input, d3D, screenWidth, screenHeight, 
+	result = renderer.Initialize(hwnd, camera.get(), input.get(), d3D.get(), screenWidth, screenHeight, 
 		shadowMapWidth, shadowMapHeight, SCREEN_FAR, SCREEN_NEAR, toggleDebug);
 	if(!result)
 	{
 		return false;
 	}
 
-	fpsMeter = new FpsMeter();
-	if(!fpsMeter)
-	{
-		return false;
-	}
-
-	fpsMeter->Initialize();
-
-	cpuMeter = new CpuMeter();
-	if(!cpuMeter)
-	{
-		return false;
-	}
-
-	cpuMeter->Initialize();
-
-	// Create the timer object.
-	timer = new TimerClass();
-	if(!timer)
-	{
-		return false;
-	}
+	fpsMeter.Initialize();
+	cpuMeter.Initialize();
 
 	// Initialize the timer object.
-	result = timer->Initialize();
+	result = timer.Initialize();
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the Timer object.", L"Error", MB_OK);
@@ -151,60 +115,6 @@ bool Engine::Initialize()
 
 void Engine::Shutdown()
 {
-	if(d3D)
-	{
-		d3D->Shutdown();
-		delete d3D;
-		d3D = 0;
-	}
-
-	if(camera)
-	{
-		delete camera;
-		camera = 0;
-	}
-
-	if(cameraController)
-	{
-		delete cameraController;
-		cameraController = 0;
-	}
-	
-	if(fpsMeter)
-	{
-		delete fpsMeter;
-		fpsMeter = 0;
-	}
-
-	if(timer)
-	{
-		delete timer;
-		timer = 0;
-	}
-
-	if(cpuMeter)
-	{
-		cpuMeter->Shutdown();
-		delete cpuMeter;
-		cpuMeter = 0;
-	}
-
-	// Release the graphics object.
-	if(renderer)
-	{
-		renderer->Shutdown();
-		delete renderer;
-		renderer = 0;
-	}
-
-	// Release the input object.
-	if(input)
-	{
-		input->Shutdown();
-		delete input;
-		input = 0;
-	}
-
 	// Shutdown the window.
 	ShutdownWindows();
 
@@ -259,9 +169,9 @@ bool Engine::Update()
 {
 	bool result;
 
-	timer->Frame();
-	fpsMeter->Update();
-	cpuMeter->Update();
+	timer.Update();
+	fpsMeter.Update();
+	cpuMeter.Update();
 
 	// Do the input frame processing.
 	result = input->Update(hwnd);
@@ -270,18 +180,18 @@ bool Engine::Update()
 		return false;
 	}
 
-	cameraController->Update(timer->GetFrameTimeMilliseconds(), camera->GetWorldMatrix()); //Processes all of the movement for this controller.
+	cameraController->Update(timer.GetFrameTimeMilliseconds(), camera->GetWorldMatrix()); //Processes all of the movement for this controller.
 	camera->Update();
 	
 	// Do update renderer.
-	result = renderer->Update(hwnd, fpsMeter->GetFps(), cpuMeter->GetCpuPercentage(), timer->GetFrameTimeMilliseconds(), timer->GetFrameTimeSeconds());
+	result = renderer.Update(hwnd, fpsMeter.GetFps(), cpuMeter.GetCpuPercentage(), timer.GetFrameTimeMilliseconds(), timer.GetFrameTimeSeconds());
 	if(!result)
 	{
 		return false;
 	}
 
 	// Finally render the graphics to the screen.
-	result = renderer->Render(hwnd);
+	result = renderer.Render(hwnd);
 	if(!result)
 	{
 		return false;
@@ -308,7 +218,7 @@ void Engine::InitializeWindows(int& screenWidth, int& screenHeight)
 	hinstance = GetModuleHandle(NULL);
 
 	// Give the application a name.
-	applicationName = L"Engine";
+	applicationName = L"Lemmi's Engine";
 
 	// Setup the windows class with default settings.
 	windowClass.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;

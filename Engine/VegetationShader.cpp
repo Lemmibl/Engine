@@ -48,7 +48,8 @@ void VegetationShader::Shutdown()
 }
 
 
-bool VegetationShader::Render(ID3D11DeviceContext* deviceContext, int vertexCount, int instanceCount, XMMATRIX* worldViewProjection, XMMATRIX* worldView, XMMATRIX* world, ID3D11ShaderResourceView** textures)
+bool VegetationShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, int vertexCount, int instanceCount, 
+	XMMATRIX* worldViewProjection, XMMATRIX* worldView, XMMATRIX* world, ID3D11ShaderResourceView** textures)
 {
 	bool result;
 
@@ -60,7 +61,7 @@ bool VegetationShader::Render(ID3D11DeviceContext* deviceContext, int vertexCoun
 	}
 
 	// Now render the prepared buffers with the shader.
-	RenderShader(deviceContext, vertexCount, instanceCount);
+	RenderShader(deviceContext, indexCount, vertexCount, instanceCount);
 
 	return true;
 }
@@ -72,7 +73,7 @@ bool VegetationShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 	ID3D10Blob* errorMessage;
 	ID3D10Blob* vertexShaderBuffer;
 	ID3D10Blob* pixelShaderBuffer;
-	D3D11_INPUT_ELEMENT_DESC polygonLayout[4];
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[5];
 	unsigned int numElements;
 	D3D11_BUFFER_DESC matrixBufferDesc;
 	D3D11_SAMPLER_DESC samplerDesc;
@@ -167,6 +168,14 @@ bool VegetationShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 	polygonLayout[3].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
 	polygonLayout[3].InstanceDataStepRate = 1;
 
+	polygonLayout[4].SemanticName = "TEXCOORD";
+	polygonLayout[4].SemanticIndex = 2;
+	polygonLayout[4].Format = DXGI_FORMAT_R32_FLOAT;
+	polygonLayout[4].InputSlot = 1;
+	polygonLayout[4].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[4].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
+	polygonLayout[4].InstanceDataStepRate = 1;
+
 	// Get a count of the elements in the layout.
 	numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
 
@@ -224,38 +233,38 @@ bool VegetationShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 
 void VegetationShader::ShutdownShader()
 {
-	// Release the matrix constant buffer.
-	if(matrixBuffer)
-	{
-		matrixBuffer->Release();
-		matrixBuffer = 0;
-	}
+	//// Release the matrix constant buffer.
+	//if(matrixBuffer)
+	//{
+	//	matrixBuffer->Release();
+	//	matrixBuffer = 0;
+	//}
 
-	// Release the layout.
-	if(layout)
-	{
-		layout->Release();
-		layout = 0;
-	}
+	//// Release the layout.
+	//if(layout)
+	//{
+	//	layout->Release();
+	//	layout = 0;
+	//}
 
-	// Release the vertex shader.
-	if(vertexShader)
-	{
-		vertexShader->Release();
-		vertexShader = 0;
-	}
+	//// Release the vertex shader.
+	//if(vertexShader)
+	//{
+	//	vertexShader->Release();
+	//	vertexShader = 0;
+	//}
 
-	if(samplerState)
-	{
-		samplerState->Release();
-		samplerState = 0;
-	}
+	//if(samplerState)
+	//{
+	//	samplerState->Release();
+	//	samplerState = 0;
+	//}
 
-	if(pixelShader)
-	{
-		pixelShader->Release();
-		pixelShader = 0;
-	}
+	//if(pixelShader)
+	//{
+	//	pixelShader->Release();
+	//	pixelShader = 0;
+	//}
 
 	return;
 }
@@ -328,7 +337,7 @@ bool VegetationShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, X
 	bufferNumber = 0;
 
 	// Finanly set the constant buffer in the vertex shader with the updated values.
-	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &matrixBuffer);
+	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &matrixBuffer.p);
 
 	// Set shader texture array resource in the pixel shader.
 	deviceContext->PSSetShaderResources(0, 1, textures);
@@ -336,7 +345,7 @@ bool VegetationShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, X
 	return true;
 }
 
-void VegetationShader::RenderShader(ID3D11DeviceContext* deviceContext, int vertexCount, int instanceCount)
+void VegetationShader::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount, int vertexCount, int instanceCount)
 {
 	// Set the vertex input layout.
 	deviceContext->IASetInputLayout(layout);
@@ -346,10 +355,10 @@ void VegetationShader::RenderShader(ID3D11DeviceContext* deviceContext, int vert
 	deviceContext->PSSetShader(pixelShader, NULL, 0);
 
 	// Set the sampler state in the pixel shader.
-	deviceContext->PSSetSamplers(0, 1, &samplerState);
+	deviceContext->PSSetSamplers(0, 1, &samplerState.p);
 
 	// Render the stuff.
-	deviceContext->DrawInstanced(vertexCount, instanceCount, 0, 0);
+	deviceContext->DrawIndexedInstanced(indexCount, instanceCount, 0, 0, 0);
 
 	return;
 }

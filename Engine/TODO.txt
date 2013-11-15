@@ -3,19 +3,81 @@
 /*						TODO AND THINGS OF THAT SORT							*/
 /********************************************************************************/
 
+* Fixa marching cubes terräng
+	- MCubeChunk som innehåller: En mesh (vertices+indices), stepX+sizeY, stepY+sizeY, stepZ+sizeZ, startPos+endPos (och en vektor med positioner)?
+	- Gör om marching cubes kring mcubechunk baserat på sample
+
+
+* Geometry shader gräs?
+
+* Skysphere texture mapping!!! Clouds?
+
 * PROCEDURELLT GENERERADE DIRT/STEN/GRÄS texturer? Randoma fram värden i RGB skalan!? Borde funka bra. Med random chans för olika inslag typ sten i dirt osv.
-* Fixa SSAO
-* Se över om det går att fixa pointlights till två stora render pass istället för 121212121212 X numPointlights
+* Se över om det går att fixa pointlights till två stora render pass istället för 121212121212... X numPointlights
 * Shadow manager
 * Light manager
 * Expandera vegetationmanagern för att få den att täcka mer
 * Marching cube chunks
+* Någon sorts XML loader/reader för configs och tweaks. T.ex. keybindings eller textur/material IDs
+
+/*
+THE LINK DUNGEON
 
 
+http://hugi.scene.org/online/hugi22/pxmcbp.htm
+
+Entity system:
+http://www.gameprogblog.com/managing-entities/#more-79
+
+Geometry shader quads:
+http://www.cg.tuwien.ac.at/research/publications/2007/Habel_2007_IAG/
+http://http.developer.nvidia.com/GPUGems/gpugems_ch07.html
+http://www.braynzarsoft.net/index.php?p=D3D11BILLBOARDS
+http://rastergrid.com/blog/2010/02/instance-culling-using-geometry-shaders/
+
+Inför cleana upp kod:
+http://gamedev.stackexchange.com/questions/24615/managing-shaders-and-objects-in-directx-11
+https://graphics.stanford.edu/wikis/cs448s-11/FrontPage?action=AttachFile&do=get&target=05-GPU_Arch_I.pdf
 
 
+Directional light lens flare:
+http://www.madgamedev.com/post/2010/04/21/Article-Sun-and-Lens-Flare-as-a-Post-Process.aspx
+http://stackoverflow.com/questions/14161727/hlsl-drawing-a-centered-circle
+if cross product (cameraDirection, lightDirection) == 0 then they're both facing the same way? I think.
 
-* std::shared_ptr<int> sp( new int[10], std::default_delete<int[]>() );
+Multithreading:
+http://gamedev.stackexchange.com/questions/2116/multi-threaded-game-engine-design-resources
+http://www.gamasutra.com/view/feature/1830/multithreaded_game_engine_.php
+http://www.gamasutra.com/view/feature/2463/threading_3d_game_engine_basics.php
+http://bitsquid.blogspot.se/2010/03/task-management-practical-example.html
+
+Hash tables och dylikt:
+http://stackoverflow.com/questions/7222143/unordered-map-hash-function-c/7222212#7222212
+*/
+
+################################
+OK, så här delas världen upp just nu:
+
+En unordered_map som innehåller en vector<LemmiEntity*> i varje bucket. Man indexerar in genom en vec3 position eller två ints för att representera X axis och Z axis.  
+Dessa värden delas med 100 och castas till int, och man returnar sen vektorn från den bucketen.
+
+Möjligen i framtiden att man har olika sådana här träd. Ett för statiska objekt och ett för dynamiska. För statiska objekt kan man ha en cleanup funktion som kallas
+varje gång man stänger ner spelet eller en gång per min eller dylikt, där den tömmer hela dictionaryn på alla saker som är för långt bort, och sparar alla tömda 
+objekt till hårddisken eller dylikt.
+
+"För långt bort" kan lätt definieras genom att ta typ player position, dela med 100 och casta till int, sen kollar man bara typ om allt är inom.... 1000 units eller w/e med t.ex.:
+
+for(int i = 0; i < all of the buckets in unordered_map; i++)
+{
+	if(	playerID_X+ArbitraryRelevancyRange < unordered_map[i].GetKey.X || playerID_X-ArbitraryRelevancyRange > unordered_map[i].GetKey.X &&
+		playerID_Z+ArbitraryRelevancyRange < unordered_map[i].GetKey.Z || playerID_Z-ArbitraryRelevancyRange > unordered_map[i].GetKey.Z)
+	{
+		>bucket is not relevant, save to disk, get rid of it or w/e
+	}
+}
+
+Så här itererar man igenom maps:
+http://www.cplusplus.com/reference/unordered_map/unordered_map/begin/
 
 /********************************************************************************/
 

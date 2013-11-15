@@ -1,5 +1,6 @@
 #include "Skysphere.h"
 
+
 #pragma region Properties
 int Skysphere::GetIndexCount()
 {
@@ -28,11 +29,12 @@ void Skysphere::SetCenterColor(XMFLOAT4 val)
 #pragma endregion Properties
 
 Skysphere::Skysphere()
+:	skysphereShader()
 {
-	model = 0;
-	vertexBuffer = 0;
-	indexBuffer = 0;
-	skysphereShader = 0;
+	//model = 0;
+	//vertexBuffer = 0;
+	//indexBuffer = 0;
+	//skysphereShader = 0;
 }
 
 
@@ -48,7 +50,6 @@ Skysphere::~Skysphere()
 bool Skysphere::Initialize(ID3D11Device* device, HWND hwnd)
 {
 	bool result;
-
 
 	// Load in the sky dome model.
 	result = LoadModel("../Engine/data/sphere.txt");
@@ -76,13 +77,8 @@ bool Skysphere::Initialize(ID3D11Device* device, HWND hwnd)
 	apexColor = XMFLOAT4(0.9f, 160.0f/255, 0.9f, 1.0f);
 	centerColor =  XMFLOAT4(0.538f, 0.568f, 0.960f, 1.0f);
 
-	skysphereShader = new SkysphereShader();
-	if(!skysphereShader)
-	{
-		return false;
-	}
 
-	result = skysphereShader->Initialize(device, hwnd);
+	result = skysphereShader.Initialize(device, hwnd);
 	if(!result)
 	{
 		return false;
@@ -99,12 +95,12 @@ void Skysphere::Shutdown()
 	// Release the sky dome model.
 	ReleaseModel();
 
-	if(skysphereShader)
-	{
-		skysphereShader->Shutdown();
-		delete skysphereShader;
-		skysphereShader = 0;
-	}
+	//if(skysphereShader)
+	//{
+	//	skysphereShader->Shutdown();
+	//	delete skysphereShader;
+	//	skysphereShader = 0;
+	//}
 	
 
 	return;
@@ -115,7 +111,7 @@ void Skysphere::Render(ID3D11DeviceContext* context, XMMATRIX* worldViewProjecti
 	// Render the sky dome.
 	RenderBuffers(context);
 
-	skysphereShader->Render(context, GetIndexCount(), worldViewProjection, apexColor, centerColor, *fogColor, time);
+	skysphereShader.Render(context, GetIndexCount(), worldViewProjection, apexColor, centerColor, *fogColor, time);
 
 	return;
 }
@@ -150,7 +146,7 @@ bool Skysphere::LoadModel(char* filename)
 	indexCount = vertexCount;
 
 	// Create the model using the vertex count that was read in.
-	model = new ModelType[vertexCount];
+	model = unique_ptr<ModelType[]>(new ModelType[vertexCount]());
 	if(!model)
 	{
 		return false;
@@ -168,9 +164,9 @@ bool Skysphere::LoadModel(char* filename)
 	// Read in the vertex data.
 	for(i=0; i<vertexCount; i++)
 	{
-		fin >> model[i].position.x >> model[i].position.y >> model[i].position.z;
+		fin >> model[i].position.x	>> model[i].position.y	>> model[i].position.z;
 		fin >> model[i].texcoords.x >> model[i].texcoords.y;
-		fin >> model[i].normal.x >> model[i].normal.y >> model[i].normal.z;
+		fin >> model[i].normal.x	>> model[i].normal.y	>> model[i].normal.z;
 	}
 
 	// Close the model file.
@@ -181,19 +177,19 @@ bool Skysphere::LoadModel(char* filename)
 
 void Skysphere::ReleaseModel()
 {
-	if(model)
-	{
-		delete [] model;
-		model = 0;
-	}
+	//if(model)
+	//{
+	//	delete [] model;
+	//	model = 0;
+	//}
 
 	return;
 }
 
 bool Skysphere::InitializeBuffers(ID3D11Device* device)
 {
-	VertexType* vertices;
-	unsigned long* indices;
+	unique_ptr<VertexType []> vertices;
+	unique_ptr<unsigned long []> indices;
 	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA vertexData, indexData;
 	HRESULT result;
@@ -201,14 +197,14 @@ bool Skysphere::InitializeBuffers(ID3D11Device* device)
 
 
 	// Create the vertex array.
-	vertices = new VertexType[vertexCount];
+	vertices = unique_ptr<VertexType[]>(new VertexType[vertexCount]());
 	if(!vertices)
 	{
 		return false;
 	}
 
 	// Create the index array.
-	indices = new unsigned long[indexCount];
+	indices = unique_ptr<unsigned long[]>(new unsigned long[indexCount]());
 	if(!indices)
 	{
 		return false;
@@ -230,12 +226,12 @@ bool Skysphere::InitializeBuffers(ID3D11Device* device)
 	vertexBufferDesc.StructureByteStride = 0;
 
 	// Give the subresource structure a pointer to the vertex data.
-	vertexData.pSysMem = vertices;
+	vertexData.pSysMem = vertices.get();
 	vertexData.SysMemPitch = 0;
 	vertexData.SysMemSlicePitch = 0;
 
 	// Now finally create the vertex buffer.
-	result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &vertexBuffer);
+	result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &vertexBuffer.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -250,42 +246,42 @@ bool Skysphere::InitializeBuffers(ID3D11Device* device)
 	indexBufferDesc.StructureByteStride = 0;
 
 	// Give the subresource structure a pointer to the index data.
-	indexData.pSysMem = indices;
+	indexData.pSysMem = indices.get();
 	indexData.SysMemPitch = 0;
 	indexData.SysMemSlicePitch = 0;
 
 	// Create the index buffer.
-	result = device->CreateBuffer(&indexBufferDesc, &indexData, &indexBuffer);
+	result = device->CreateBuffer(&indexBufferDesc, &indexData, &indexBuffer.p);
 	if(FAILED(result))
 	{
 		return false;
 	}
 
 	// Release the arrays now that the vertex and index buffers have been created and loaded.
-	delete [] vertices;
-	vertices = 0;
+	//delete [] vertices;
+	//vertices = 0;
 
-	delete [] indices;
-	indices = 0;
+	//delete [] indices;
+	//indices = 0;
 
 	return true;
 }
 
 void Skysphere::ReleaseBuffers()
 {
-	// Release the index buffer.
-	if(indexBuffer)
-	{
-		indexBuffer->Release();
-		indexBuffer = 0;
-	}
+	//// Release the index buffer.
+	//if(indexBuffer)
+	//{
+	//	indexBuffer->Release();
+	//	indexBuffer = 0;
+	//}
 
-	// Release the vertex buffer.
-	if(vertexBuffer)
-	{
-		vertexBuffer->Release();
-		vertexBuffer = 0;
-	}
+	//// Release the vertex buffer.
+	//if(vertexBuffer)
+	//{
+	//	vertexBuffer->Release();
+	//	vertexBuffer = 0;
+	//}
 
 	return;
 }
@@ -300,7 +296,7 @@ void Skysphere::RenderBuffers(ID3D11DeviceContext* deviceContext)
 	offset = 0;
 
 	// Set the vertex buffer to active in the input assembler so it can be rendered.
-	deviceContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+	deviceContext->IASetVertexBuffers(0, 1, &vertexBuffer.p, &stride, &offset);
 
 	// Set the index buffer to active in the input assembler so it can be rendered.
 	deviceContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);

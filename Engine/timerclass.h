@@ -22,7 +22,7 @@ public:
 	~TimerClass();
 
 	bool Initialize();
-	void Frame();
+	void Update();
 
 	float GetFrameTimeMilliseconds();
 	float GetFrameTimeSeconds();

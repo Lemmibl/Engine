@@ -6,6 +6,7 @@
 #include <xnamath.h> 
 #include <d3dx11async.h>
 #include <fstream>
+#include <atlcomcli.h>
 using namespace std;
 
 
@@ -22,7 +23,7 @@ private:
 
 	struct ColorTypeBuffer
 	{
-		XMFLOAT4 toggleColorMode;
+		XMFLOAT4 colorModeInX_FarClipInY_ZWUnused;
 	};
 
 public:
@@ -33,23 +34,23 @@ public:
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
 	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, XMMATRIX* worldViewMatrix, 
-		XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** texture, int toggleColor);
+		XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** texAndMatLookupTable, int toggleColor, float cameraFarclip);
 
 private:
 	bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
 	void ShutdownShader();
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
 
-	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, 
-		XMMATRIX* worldViewMatrix, XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** texture, int toggleColor);
+	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, XMMATRIX* worldViewMatrix, 
+		XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** texAndMatLookupTable, int toggleColor, float cameraFarclip);
 
 	void RenderShader(ID3D11DeviceContext*, int);
 
 private:
-	ID3D11VertexShader* vertexShader;
-	ID3D11PixelShader* pixelShader;
-	ID3D11InputLayout* layout;
-	ID3D11Buffer* matrixBuffer;
-	ID3D11Buffer* colorTypeBuffer;
-	ID3D11SamplerState* sampler;
+	CComPtr<ID3D11VertexShader> vertexShader;
+	CComPtr<ID3D11PixelShader> pixelShader;
+	CComPtr<ID3D11InputLayout> layout;
+	CComPtr<ID3D11Buffer> matrixBuffer;
+	CComPtr<ID3D11Buffer> colorTypeBuffer;
+	CComPtr<ID3D11SamplerState> sampler;
 };

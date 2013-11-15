@@ -1,66 +1,35 @@
 #include "TextureAndMaterialHandler.h"
 
-
-#pragma region Properties
-ID3D11ShaderResourceView** TextureAndMaterialHandler::GetVegetationTextureArray()
-{
-	return &vegetationTextures;
-}
-
-ID3D11ShaderResourceView** TextureAndMaterialHandler::GetTerrainTextureArray()
-{
-	return &terrainTextures;
-}
-
-ID3D11ShaderResourceView** TextureAndMaterialHandler::GetMaterialTextureArray()
-{
-	return &materialTextures;
-}
-#pragma endregion
-
 TextureAndMaterialHandler::TextureAndMaterialHandler()
 {
-	vegetationTextures = 0;
-	terrainTextures = 0;
-	materialTextures = 0;
-	lTreeTexture = 0;
-}
-
-TextureAndMaterialHandler::TextureAndMaterialHandler( const TextureAndMaterialHandler& )
-{
-
 }
 
 TextureAndMaterialHandler::~TextureAndMaterialHandler()
 {
-	if(vegetationTextures)
-	{
-		vegetationTextures->Release();
-		vegetationTextures = 0;
-	}
-
-	if(terrainTextures)
-	{
-		terrainTextures->Release();
-		terrainTextures = 0;
-	}
-
-	if(materialTextures)
-	{
-		materialTextures->Release();
-		materialTextures = 0;
-	}
-
-	if(lTreeTexture)
-	{
-		lTreeTexture->Release();
-		lTreeTexture = 0;
-	}
+	//Empty, 'cause CComPtr and shared_ptr
 }
 
-bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
+bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, SimplexNoise* simplexNoise, Utility* utility)
 {
 	HRESULT hResult;
+
+	//Initialize local variable to hold our noise generating class for future use.
+	noise = std::make_shared<SimplexNoise>(*simplexNoise);
+	this->utility = std::make_shared<Utility>(*utility);
+
+	//If this SRV has been initialized before, release it first.
+	if(ssaoRandomTextureSRV)
+	{
+		ssaoRandomTextureSRV.Release();
+	}
+	CreateRandom2DTexture(device, deviceContext, &ssaoRandomTextureSRV.p);
+
+	//If this SRV has been initialized before, release it first.
+	if(noiseSRV)
+	{
+		noiseSRV.Release();
+	}
+	CreateSimplex2DTexture(device, deviceContext, &noiseSRV.p);
 
 	int terrainTextureCount = 6;
 	WCHAR* terrainFilenames[6] = 
@@ -73,14 +42,18 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 		L"../Engine/data/stone.dds"
 	};
 
-	hResult = Build2DTextureArray(device, deviceContext, terrainFilenames, terrainTextureCount, 
-		&terrainTextures, 1024, 1024);
+	//If this SRV has been initialized before, release it first.
+	if(terrainTextureArraySRV != 0)
+	{
+		terrainTextureArraySRV.Release();
+	}
+
+	hResult = Build2DTextureArrayFromFile(device, deviceContext, terrainFilenames, terrainTextureCount, 
+		&terrainTextureArraySRV.p, 1024, 1024);
 	if(FAILED(hResult))
 	{
 		return false;
 	}
-
-
 
 	int vegetationTextureCount = 5;
 	WCHAR* vegetationFilenames[5] = 
@@ -92,8 +65,14 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 		L"../Engine/data/Vegetation/bush3.dds"
 	};
 
-	hResult = Build2DTextureArray(device, deviceContext, vegetationFilenames, vegetationTextureCount, 
-		&vegetationTextures, 512, 512);
+	//If this SRV has been initialized before, release it first.
+	if(vegetationTextureArraySRV != 0)
+	{
+		vegetationTextureArraySRV.Release();
+	}
+
+	hResult = Build2DTextureArrayFromFile(device, deviceContext, vegetationFilenames, vegetationTextureCount, 
+		&vegetationTextureArraySRV.p, 512, 512);
 	if(FAILED(hResult))
 	{
 		return false;
@@ -103,30 +82,29 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 
 	//The lower the smoothness the wider/more spread out the specular is.
 	//Meaning the higher the smoothness is the more focused and intense the specular is.
-
 	MaterialStruct grass;
-	grass.Kambience = 0.8f;
+	grass.Kambience = 1.2f;
 	grass.Kdiffuse = 1.0f;
 	grass.Kspecular = 0.01f;
 	grass.smoothness = 1.0f;
 	grass.shouldBeShadowed = 10.0f;
 
 	MaterialStruct rock;
-	rock.Kambience = 0.5f;
+	rock.Kambience = 1.2f;
 	rock.Kdiffuse = 0.8f;
 	rock.Kspecular = 0.6f;
 	rock.smoothness = 1.0f;
 	rock.shouldBeShadowed = 10.0f;
 
 	MaterialStruct snow;
-	snow.Kambience = 1.0f;
+	snow.Kambience = 1.2f;
 	snow.Kdiffuse = 1.0f;
 	snow.Kspecular = 1.0f;
 	snow.smoothness = 1.0f;
 	snow.shouldBeShadowed = 10.0f;
 
 	MaterialStruct dirt;
-	dirt.Kambience = 0.8f;
+	dirt.Kambience = 1.2f;
 	dirt.Kdiffuse = 0.9f;
 	dirt.Kspecular = 0.1f;
 	dirt.smoothness = 2.0f;
@@ -140,7 +118,7 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	grassQuads.shouldBeShadowed = 10.0f;
 
 	MaterialStruct underGround;
-	underGround.Kambience = 0.2f;
+	underGround.Kambience = 0.5f;
 	underGround.Kdiffuse = 0.5f;
 	underGround.Kspecular = 0.2f;
 	underGround.smoothness = 8.0f;
@@ -153,7 +131,43 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	materials.push_back(grassQuads);
 	materials.push_back(underGround);
 
-	Build1DMaterialTextureArray(device, deviceContext, materials, materials.size(), 5, &materialTextures);
+	//If this SRV has been initialized before, release it first.
+	if(materialTextureArraySRV)
+	{
+		materialTextureArraySRV.Release();
+	}
+
+	Build1DMaterialTextureArray(device, deviceContext, materials, materials.size(), 5, &materialTextureArraySRV.p);
+
+	//Brown generally considered to be 150R, 75B and 0G.
+	MaterialColorSpectrumUINT8 dirtColor;
+
+	dirtColor.RedMin = 60;
+	dirtColor.RedMax = 110;
+	dirtColor.GreenMin = 40;
+	dirtColor.GreenMax = 70;
+	dirtColor.BlueMin = 0;
+	dirtColor.BlueMax = 15;
+
+
+	MaterialColorSpectrumUINT8 grassColor;
+
+	grassColor.RedMin = 40;
+	grassColor.RedMax = 130;
+	grassColor.GreenMin = 110;
+	grassColor.GreenMax = 130;
+	grassColor.BlueMin = 0;
+	grassColor.BlueMax = 5;
+
+	//If this SRV has been initialized before, release it first.
+	if(dirtTextureSRV)
+	{
+		dirtTextureSRV.Release();
+	}
+
+	CreateMaterialTexture(device, deviceContext, 256, 256, &dirtTextureSRV.p, grassColor);
+
+	CreateMaterialLookupTable(device, deviceContext, &materialLookupTableSRV.p, 380);
 
 	return true;
 }
@@ -190,7 +204,7 @@ HRESULT TextureAndMaterialHandler::Build1DMaterialTexture( ID3D11Device* device,
 	ZeroMemory(&texInitializeData, sizeof(D3D11_SUBRESOURCE_DATA));
 	texInitializeData.pSysMem = dataArray;
 	texInitializeData.SysMemPitch = textureWidth*sizeof(float);
-	texInitializeData.SysMemSlicePitch = textureWidth*sizeof(float); //It's the same as it's a 1D texture
+	texInitializeData.SysMemSlicePitch = texInitializeData.SysMemPitch; //They are both the same because it's a 1D texture
 
 	//Create texture object
 	hResult = device->CreateTexture1D(&texDesc, &texInitializeData, texture);
@@ -354,8 +368,13 @@ HRESULT TextureAndMaterialHandler::Build2DTextureProgrammatically( ID3D11Device*
 	texInitializeData.SysMemPitch = textureWidth*(sizeof(UINT8)*4);
 	//texInitializeData.SysMemSlicePitch = textureWidth*textureHeight*(sizeof(float)*4);
 
+	if(placeHolderTexture != 0)
+	{
+		placeHolderTexture.Release();
+	}
+
 	//Create texture with the description and the subresource that contains all the pixel data
-	hResult = device->CreateTexture2D(&texDesc, &texInitializeData, &lTreeTexture);
+	hResult = device->CreateTexture2D(&texDesc, &texInitializeData, &placeHolderTexture);
 	if(FAILED(hResult))
 	{
 		return hResult;
@@ -370,7 +389,7 @@ HRESULT TextureAndMaterialHandler::Build2DTextureProgrammatically( ID3D11Device*
 	viewDesc.Texture2DArray.ArraySize = 1;
 
 	//Initialize the texture shader resource view and fill it with data
-	hResult = device->CreateShaderResourceView(lTreeTexture, &viewDesc, textureSRV);
+	hResult = device->CreateShaderResourceView(placeHolderTexture, &viewDesc, textureSRV);
 	if(FAILED(hResult))
 	{
 		return hResult;
@@ -381,28 +400,6 @@ HRESULT TextureAndMaterialHandler::Build2DTextureProgrammatically( ID3D11Device*
 
 	return S_OK;
 }
-
-//Actually not used atm...
-HRESULT TextureAndMaterialHandler::Create2DSSAORandomTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, Utility* utility, ID3D11ShaderResourceView** srv )
-{
-	int textureWidth, textureHeight;
-	textureWidth = 64;
-	textureHeight = 64;
-
-	std::vector<UINT16> pixelData;
-	pixelData.resize(2 * textureWidth*textureHeight);
-
-	int index = 0;
-
-	//Don't use utility.Random(). We do not want floats.
-	for(int i = 0; i < (2*textureWidth*textureHeight); i++)
-	{
-		pixelData[i]   = rand()%255; //X
-	}
-
-	return Build2DSSAORandomTexture(device, deviceContext, pixelData, textureWidth, textureHeight, srv);
-}
-
 
 HRESULT TextureAndMaterialHandler::Build2DSSAORandomTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, const std::vector<UINT16>& pixelData, 
 	int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV )
@@ -440,8 +437,13 @@ HRESULT TextureAndMaterialHandler::Build2DSSAORandomTexture( ID3D11Device* devic
 	texInitializeData.SysMemPitch = textureWidth*(sizeof(float));//Technically it's sizeof two halfsized floats
 	//texInitializeData.SysMemSlicePitch = textureWidth*textureHeight*(sizeof(float)*4);
 
+	if(placeHolderTexture != 0)
+	{
+		placeHolderTexture.Release();
+	}
+
 	//Create texture with the description and the subresource that contains all the pixel data
-	hResult = device->CreateTexture2D(&texDesc, &texInitializeData, &lTreeTexture);
+	hResult = device->CreateTexture2D(&texDesc, &texInitializeData, &placeHolderTexture);
 	if(FAILED(hResult))
 	{
 		return hResult;
@@ -456,7 +458,7 @@ HRESULT TextureAndMaterialHandler::Build2DSSAORandomTexture( ID3D11Device* devic
 	viewDesc.Texture2DArray.ArraySize = 1;
 
 	//Initialize the texture shader resource view and fill it with data
-	hResult = device->CreateShaderResourceView(lTreeTexture, &viewDesc, textureSRV);
+	hResult = device->CreateShaderResourceView(placeHolderTexture, &viewDesc, textureSRV);
 	if(FAILED(hResult))
 	{
 		return hResult;
@@ -470,7 +472,7 @@ HRESULT TextureAndMaterialHandler::Build2DSSAORandomTexture( ID3D11Device* devic
 
 
 //Build 2DTextureArray and assigns it to an external shader resource view
-HRESULT TextureAndMaterialHandler::Build2DTextureArray(ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
+HRESULT TextureAndMaterialHandler::Build2DTextureArrayFromFile(ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
 	WCHAR** filenames, int textureCount, ID3D11ShaderResourceView** textureArraySRV, int texWidth, int texHeight)
 {
 	HRESULT hResult;
@@ -571,14 +573,12 @@ HRESULT TextureAndMaterialHandler::Build2DTextureArray(ID3D11Device* device, ID3
 	viewDesc.Texture2DArray.FirstArraySlice = 0;
 	viewDesc.Texture2DArray.ArraySize = textureCount;
 
+
 	hResult = device->CreateShaderResourceView(texArray, &viewDesc, textureArraySRV);
 	if(FAILED(hResult))
 	{
 		return false;
 	}
-
-	//deviceContext->GenerateMips(*textureArraySRV);
-
 
 	// Cleanup--we only need the resource view.
 	texArray->Release();
@@ -608,13 +608,13 @@ HRESULT TextureAndMaterialHandler::CreateRandom2DTexture(ID3D11Device* device, I
 		pixelData[i].x = rand()%255;//%255;
 		pixelData[i].y = rand()%255;//%255;
 		pixelData[i].z = rand()%255;//%255;
-		pixelData[i].w = 1.0f; //Who gives a shit about alpha anyway AMIRITE???
+		pixelData[i].w = 1; //Who gives a shit about alpha anyway AMIRITE???
 	}
 
 	return Build2DTextureProgrammatically(device, deviceContext, pixelData, textureWidth, textureHeight, srv);
 }
 
-HRESULT TextureAndMaterialHandler::CreateSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, SimplexNoise*  noise, ID3D11ShaderResourceView** srv)
+HRESULT TextureAndMaterialHandler::CreateSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv)
 {
 	int textureWidth, textureHeight,i;
 	float x,y;
@@ -660,7 +660,7 @@ HRESULT TextureAndMaterialHandler::CreateSimplex2DTexture(ID3D11Device* device, 
 	return Build2DTextureProgrammatically(device, deviceContext, pixelData, textureWidth, textureHeight, srv);
 }
 
-HRESULT TextureAndMaterialHandler::CreateMirroredSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, SimplexNoise*  noise, ID3D11ShaderResourceView** srv)
+HRESULT TextureAndMaterialHandler::CreateMirroredSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv)
 {
 	int textureWidth, textureHeight, i;
 	float x,y;
@@ -696,15 +696,241 @@ HRESULT TextureAndMaterialHandler::CreateMirroredSimplex2DTexture(ID3D11Device* 
 	return Build2DTextureProgrammatically(device, deviceContext, pixelData, textureWidth, textureHeight, srv);
 }
 
+//Actually not used atm...
+HRESULT TextureAndMaterialHandler::Create2DSSAORandomTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv )
+{
+	int textureWidth, textureHeight;
+	textureWidth = 64;
+	textureHeight = 64;
+
+	std::vector<UINT16> pixelData;
+	pixelData.resize(2 * textureWidth*textureHeight);
+
+	int index = 0;
+
+	//Don't use utility.Random(). We do not want floats.
+	for(size_t i = 0; i < pixelData.size(); i++)
+	{
+		pixelData[i]   = rand()%255;
+	}
+
+	return Build2DSSAORandomTexture(device, deviceContext, pixelData, textureWidth, textureHeight, srv);
+}
+
+//Sorry for the vague name. This function is for randomly creating textures for different "materials"... Grass, dirt, rock. 
+//They will hopefully look pretty much like minecraft's default textures.
+void TextureAndMaterialHandler::CreateMaterialTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, unsigned int width, unsigned int height, 
+		ID3D11ShaderResourceView** textureSRV, MaterialColorSpectrumUINT8 colorSpectrum )
+{
+	std::vector<PixelData> pixelData;
+	pixelData.resize(width * height);
+
+	for(size_t i = 0; i < pixelData.size(); i++)
+	{
+		pixelData[i].x = RandRange(colorSpectrum.RedMin, colorSpectrum.RedMax);
+		pixelData[i].y = RandRange(colorSpectrum.GreenMin, colorSpectrum.GreenMax);
+		pixelData[i].z = RandRange(colorSpectrum.BlueMin, colorSpectrum.BlueMax);
+		pixelData[i].w = 1; //Alpha.
+	}
+
+	if(FAILED(Build2DTextureProgrammatically(device, deviceContext, pixelData, width, height, textureSRV)))
+	{
+		MessageBox(GetDesktopWindow(), L"Something went wrong when calling Build2DTextureProgrammatically. Look in TextureAndMaterialHandler::CreateMaterialTexture.", L"Error", MB_OK);
+	}
+}
+
 bool TextureAndMaterialHandler::SaveLTreeTextureToFile( ID3D11DeviceContext* deviceContext, D3DX11_IMAGE_FILE_FORMAT format, LPCSTR fileName )
 {
 	HRESULT hResult;
 
-	hResult = D3DX11SaveTextureToFileA(deviceContext, lTreeTexture, format, fileName);
+	hResult = D3DX11SaveTextureToFileA(deviceContext, placeHolderTexture, format, fileName);
 	if(FAILED(hResult))
 	{
 		return false;
 	}
 
 	return true;
+}
+
+void TextureAndMaterialHandler::SaveTextureToFile( ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView* texture, D3DX11_IMAGE_FILE_FORMAT format, LPCSTR fileName )
+{
+	HRESULT hResult;
+
+	ID3D11Resource* res;
+	ID3D11Texture2D* tex;
+	texture->GetResource(&res);
+	res->QueryInterface(&tex);
+
+	hResult = D3DX11SaveTextureToFileA(deviceContext, tex, format, fileName);
+	if(FAILED(hResult))
+	{
+		MessageBox(GetDesktopWindow(), L"Something went wrong when trying to save texture to file. Look in TextureAndMaterialHandler::SaveTextureToFile.", L"Error", MB_OK);
+	}
+
+	res->Release();
+	tex->Release();
+	res = 0;
+	tex = 0;
+}
+
+void TextureAndMaterialHandler::RebuildSSAOTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext )
+{
+	//If this SRV has been initialized before, release it first.
+	if(ssaoRandomTextureSRV)
+	{
+		ssaoRandomTextureSRV.Release();
+	}
+
+	CreateRandom2DTexture(device, deviceContext, &ssaoRandomTextureSRV.p);
+}
+
+void TextureAndMaterialHandler::RebuildSimplex2DTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext )
+{
+	//If this SRV has been initialized before, release it first.
+	if(noiseSRV)
+	{
+		noiseSRV.Release();
+	}
+
+	CreateSimplex2DTexture(device, deviceContext, &noiseSRV.p);
+}
+
+void TextureAndMaterialHandler::RebuildRandom2DTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext )
+{
+	//If this SRV has been initialized before, release it first.
+	if(noiseSRV)
+	{
+		noiseSRV.Release();
+	}
+
+	CreateRandom2DTexture(device, deviceContext, &noiseSRV.p);
+}
+
+void TextureAndMaterialHandler::RebuildMirroredSimplex2DTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext )
+{
+	//If this SRV has been initialized before, release it first.
+	if(noiseSRV)
+	{
+		noiseSRV.Release();
+	}
+
+	CreateMirroredSimplex2DTexture(device, deviceContext, &noiseSRV.p);
+}
+
+void TextureAndMaterialHandler::CreateMaterialLookupTable( ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** textureSRV, int worldMaxYValue )
+{
+	//Definiera FYRA värden för varje Y-koordinat från 0 till WORLD_MAX_Y(180 atm?)
+	//Skapa 1DTexture med WORLD_MAX_Y texlar och tilldela värden.
+	
+	////IDs for different things. Potential TODO: Read these in from an XML or smth?
+	//enum MaterialID
+	//{
+	//	MATERIAL_GRASS,
+	//	MATERIAL_ROCK,
+	//	MATERIAL_SNOW,
+	//	MATERIAL_DIRT,
+	//	MATERIAL_GRASSQUADS,
+	//	MATERIAL_UNDERGROUND
+	//};
+
+	//enum TextureID
+	//{
+	//	TEXTURE_DIRT,
+	//	TEXTURE_GRASS,
+	//	TEXTURE_ROCK,
+	//	TEXTURE_SAND,
+	//	TEXTURE_SNOW,
+	//	TEXTURE_TILEDSTONE
+	//}; 
+	
+	std::vector<PixelData> pixelData;
+	pixelData.resize(worldMaxYValue);
+
+	UINT8 texture1, texture2, material1, material2;
+
+	for(size_t i = 0; i < pixelData.size(); i++)
+	{
+		if(i <= 19)
+		{
+			//Only dirt
+			texture1 = 0;
+			texture2 = 0;
+
+			material1 = 3;
+			material2 = 3;
+		}
+		else if(i <= 20)
+		{
+			//Dirt and grass
+			texture1 = 0;
+			texture2 = 1;
+
+			material1 = 3;
+			material2 = 0;
+		}
+		else if(i <= 44)
+		{
+			//Only grass
+			texture1 = 1;
+			texture2 = 1;
+
+			material1 = 0;
+			material2 = 0;
+		}
+		else if( i <= 45)
+		{
+			//Grass and rock
+			texture1 = 1;
+			texture2 = 2;
+
+			material1 = 0;
+			material2 = 1;
+		}
+		else if(i <= 46)
+		{
+			//Rock and snow
+			texture1 = 2;
+			texture2 = 4;
+
+			material1 = 1;
+			material2 = 2;
+		}
+		else if(i <= 190)
+		{
+			//Dirt and grass
+			texture1 = 4;
+			texture2 = 4;
+
+			material1 = 2;
+			material2 = 2;
+		}
+		else if(i <= 191)
+		{
+			//Dirt and grass
+			texture1 = 4;
+			texture2 = 1;
+
+			material1 = 2;
+			material2 = 0;
+		}
+		else
+		{
+			//Only snow
+			texture1 = 1; 
+			texture2 = 1;
+
+			material1 = 0;
+			material2 = 0;
+		}
+
+		pixelData[i].x = texture1;
+		pixelData[i].y = texture2;
+		pixelData[i].z = material1;
+		pixelData[i].w = material2;
+	}
+
+	if(Build2DTextureProgrammatically(device, deviceContext, pixelData, worldMaxYValue, 1, textureSRV) != S_OK)
+	{
+		MessageBox(GetDesktopWindow(), L"Something went wrong when trying to create material lookup table texture. Look in TextureAndMaterialHandler::CreateMaterialLookupTable.", L"Error", MB_OK);
+	}
 }

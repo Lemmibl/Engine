@@ -15,6 +15,10 @@ static const float intensity = 5.0f; //AO intensity. The higher this value is, t
 static const float scale = 1.2f; //Scales distance between occluders and occludee.
 static const float bias = 0.2f; //Cutoff value. The higher this value is, the harsher we are with cutting off low AO values.
 static const float CameraFarClip = 500.0f;
+static const float FogEnd = 400.0f;
+static const float FogStart = 150.0f;
+static const float2 screenSize = float2(1024.0f, 768.0f);
+static const float2 randomSize = float2(64.0f, 64.0f);
 
 cbuffer PixelMatrixBufferType
 {
@@ -41,8 +45,7 @@ float3 DecodeNormal(float2 enc)
 float3 DepthToPosition(float4 ScreenPosition, float depth)
 {
 	float3 viewPosition = mul(ScreenPosition, InvertedProjection).xyz;
-	float3 viewRay = float3(viewPosition.xy * (CameraFarClip / viewPosition.z), CameraFarClip);
-	return viewRay * depth;
+	return float3(viewPosition.xy * (CameraFarClip / viewPosition.z), CameraFarClip) * depth;
 }
 
 float3 ReconstructViewPositionFromDepth(float3 viewPosition, float depth)
@@ -77,21 +80,14 @@ float DoAmbientOcclusion(float2 TexCoord, float2 Offset, float4 ScreenPosition, 
 float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 {
 		float depth = shaderTextures[2].Sample(samplers[0], input.TexCoord);
-		float fogFactor = 0.0f;
 		float3 baseColor = shaderTextures[0].Sample(samplers[0], input.TexCoord).rgb;
-		float FogEnd = 400.0f;
-		float FogStart = 150.0f;//(FogColor.a*149.9f);//
-		float2 screenSize = float2(1024.0f, 768.0f);
-		float2 randomSize = float2(64.0f, 64.0f);
-
-		//input.ScreenPosition.xy /= input.ScreenPosition.w;
 
 		if(depth <= 0.0001f) //Skip as early as possible if this pixel isn't supposed to be lit.
 		{
 			return float4(baseColor, 1.0f);
 		}
 
-		fogFactor = saturate(((depth*CameraFarClip) - FogStart) / (FogEnd - FogStart));
+		float fogFactor = saturate(((depth*CameraFarClip) - FogStart) / (FogEnd - FogStart));
 
 		//FOG:
 		//http://www.iquilezles.org/www/articles/ssao/ssao.htm

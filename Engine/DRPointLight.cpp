@@ -6,14 +6,14 @@
 
 DRPointLight::DRPointLight()
 {
-	vertexShader = 0;
-	pixelShader = 0;
-	layout = 0;
-	samplerState = 0;
+	//vertexShader = 0;
+	//pixelShader = 0;
+	//layout = 0;
+	//samplerState = 0;
 
-	vertexMatrixBuffer = 0;
-	lightBuffer = 0;
-	pixelMatrixBuffer = 0;
+	//vertexMatrixBuffer = 0;
+	//lightBuffer = 0;
+	//pixelMatrixBuffer = 0;
 }
 
 
@@ -71,9 +71,10 @@ bool DRPointLight::Render(ID3D11DeviceContext* deviceContext, int indexCount, XM
 bool DRPointLight::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename)
 {
 	HRESULT result;
-	ID3D10Blob* errorMessage;
-	ID3D10Blob* vertexShaderBuffer;
-	ID3D10Blob* pixelShaderBuffer;
+	CComPtr<ID3D10Blob> errorMessage;
+	CComPtr<ID3D10Blob> vertexShaderBuffer;
+	CComPtr<ID3D10Blob> pixelShaderBuffer;
+
 	D3D11_INPUT_ELEMENT_DESC polygonLayout[1];
 	unsigned int numElements;
 	D3D11_SAMPLER_DESC samplerDesc;
@@ -81,14 +82,14 @@ bool DRPointLight::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFi
 	D3D11_BUFFER_DESC pixelMatrixBufferDesc;
 	D3D11_BUFFER_DESC lightBufferDesc;
 
-	// Initialize the pointers this function will use to null.
-	errorMessage = 0;
-	vertexShaderBuffer = 0;
-	pixelShaderBuffer = 0;
+	//// Initialize the pointers this function will use to null.
+	//errorMessage = 0;
+	//vertexShaderBuffer = 0;
+	//pixelShaderBuffer = 0;
 
 	// Compile the vertex shader code.
 	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "LightVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
-		&vertexShaderBuffer, &errorMessage, NULL);
+		&vertexShaderBuffer, &errorMessage.p, NULL);
 	if(FAILED(result))
 	{
 		// If the shader failed to compile it should have written something to the error message.
@@ -107,7 +108,7 @@ bool DRPointLight::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFi
 
 	// Compile the pixel shader code.
 	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "LightPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
-		&pixelShaderBuffer, &errorMessage, NULL);
+		&pixelShaderBuffer, &errorMessage.p, NULL);
 	if(FAILED(result))
 	{
 		// If the shader failed to compile it should have written something to the error message.
@@ -159,12 +160,12 @@ bool DRPointLight::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFi
 		return false;
 	}
 
-	// Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
-	vertexShaderBuffer->Release();
-	vertexShaderBuffer = 0;
+	//// Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
+	//vertexShaderBuffer->Release();
+	//vertexShaderBuffer = 0;
 
-	pixelShaderBuffer->Release();
-	pixelShaderBuffer = 0;
+	//pixelShaderBuffer->Release();
+	//pixelShaderBuffer = 0;
 
 	// Create a texture sampler state description.
 	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
@@ -182,7 +183,7 @@ bool DRPointLight::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFi
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
 	// Create the texture sampler state.
-	result = device->CreateSamplerState(&samplerDesc, &samplerState);
+	result = device->CreateSamplerState(&samplerDesc, &samplerState.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -197,7 +198,7 @@ bool DRPointLight::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFi
 	vertexMatrixBufferDesc.StructureByteStride = 0;
 
 	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
-	result = device->CreateBuffer(&vertexMatrixBufferDesc, NULL, &vertexMatrixBuffer);
+	result = device->CreateBuffer(&vertexMatrixBufferDesc, NULL, &vertexMatrixBuffer.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -213,7 +214,7 @@ bool DRPointLight::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFi
 	lightBufferDesc.StructureByteStride = 0;
 
 	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
-	result = device->CreateBuffer(&lightBufferDesc, NULL, &lightBuffer);
+	result = device->CreateBuffer(&lightBufferDesc, NULL, &lightBuffer.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -228,7 +229,7 @@ bool DRPointLight::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFi
 	pixelMatrixBufferDesc.StructureByteStride = 0;
 
 	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
-	result = device->CreateBuffer(&pixelMatrixBufferDesc, NULL, &pixelMatrixBuffer);
+	result = device->CreateBuffer(&pixelMatrixBufferDesc, NULL, &pixelMatrixBuffer.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -239,54 +240,54 @@ bool DRPointLight::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFi
 
 void DRPointLight::ShutdownShader()
 {	
-	// Release the light constant buffer.
-	if(lightBuffer)
-	{
-		lightBuffer->Release();
-		lightBuffer = 0;
-	}
+	//// Release the light constant buffer.
+	//if(lightBuffer)
+	//{
+	//	lightBuffer->Release();
+	//	lightBuffer = 0;
+	//}
 
-	// Release the matrix constant buffer.
-	if(vertexMatrixBuffer)
-	{
-		vertexMatrixBuffer->Release();
-		vertexMatrixBuffer = 0;
-	}
+	//// Release the matrix constant buffer.
+	//if(vertexMatrixBuffer)
+	//{
+	//	vertexMatrixBuffer->Release();
+	//	vertexMatrixBuffer = 0;
+	//}
 
-	// Release the matrix constant buffer.
-	if(pixelMatrixBuffer)
-	{
-		pixelMatrixBuffer->Release();
-		pixelMatrixBuffer = 0;
-	}
+	//// Release the matrix constant buffer.
+	//if(pixelMatrixBuffer)
+	//{
+	//	pixelMatrixBuffer->Release();
+	//	pixelMatrixBuffer = 0;
+	//}
 
-	// Release the sampler state.
-	if(samplerState)
-	{
-		samplerState->Release();
-		samplerState = 0;
-	}
+	//// Release the sampler state.
+	//if(samplerState)
+	//{
+	//	samplerState->Release();
+	//	samplerState = 0;
+	//}
 
-	// Release the layout.
-	if(layout)
-	{
-		layout->Release();
-		layout = 0;
-	}
+	//// Release the layout.
+	//if(layout)
+	//{
+	//	layout->Release();
+	//	layout = 0;
+	//}
 
-	// Release the pixel shader.
-	if(pixelShader)
-	{
-		pixelShader->Release();
-		pixelShader = 0;
-	}
+	//// Release the pixel shader.
+	//if(pixelShader)
+	//{
+	//	pixelShader->Release();
+	//	pixelShader = 0;
+	//}
 
-	// Release the vertex shader.
-	if(vertexShader)
-	{
-		vertexShader->Release();
-		vertexShader = 0;
-	}
+	//// Release the vertex shader.
+	//if(vertexShader)
+	//{
+	//	vertexShader->Release();
+	//	vertexShader = 0;
+	//}
 
 	return;
 }
@@ -361,7 +362,7 @@ bool DRPointLight::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMAT
 	bufferNumber = 0;
 
 	// Now set the constant buffer in the vertex shader with the updated values.
-	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &vertexMatrixBuffer);
+	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &vertexMatrixBuffer.p);
 
 	// Lock the light constant buffer so it can be written to.
 	result = deviceContext->Map(lightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -384,7 +385,7 @@ bool DRPointLight::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMAT
 	bufferNumber = 0;
 
 	// Finally set the light constant buffer in the pixel shader with the updated values.
-	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &lightBuffer);
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &lightBuffer.p);
 
 	// Lock the light constant buffer so it can be written to.
 	result = deviceContext->Map(pixelMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -407,7 +408,7 @@ bool DRPointLight::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMAT
 	
 	bufferNumber = 1;
 
-	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &pixelMatrixBuffer);
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &pixelMatrixBuffer.p);
 
 	// Set the array of textures that the shader needs to sample
 	deviceContext->PSSetShaderResources(0, 1, materialArray);
@@ -426,7 +427,7 @@ void DRPointLight::RenderShader(ID3D11DeviceContext* deviceContext, int indexCou
 	deviceContext->PSSetShader(pixelShader, NULL, 0);
 
 	// Set the sampler state in the pixel shader.
-	deviceContext->PSSetSamplers(0, 1, &samplerState);
+	deviceContext->PSSetSamplers(0, 1, &samplerState.p);
 
 	// Render the triangle.
 	deviceContext->DrawIndexed(indexCount, 0, 0);

@@ -22,6 +22,7 @@
 #include <DXGI.h>
 #include <d3dcommon.h>
 #include <d3d11.h>
+#include <atlcomcli.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: D3DClass
@@ -86,47 +87,47 @@ private:
 	char	videoCardDescription[128];
 
 	//I like doing this for readability.
-	IDXGISwapChain*				swapChain;
-	ID3D11Device*				device;
-	ID3D11DeviceContext*		deviceContext;
-	ID3D11RenderTargetView*		renderTargetView;
-	D3D11_VIEWPORT				viewport;
+	CComPtr<IDXGISwapChain>				swapChain;
+	CComPtr<ID3D11Device>				device;
+	CComPtr<ID3D11DeviceContext>		deviceContext;
+	CComPtr<ID3D11RenderTargetView>		renderTargetView;
+	D3D11_VIEWPORT						viewport;
 
-	ID3D11Texture2D*			depthStencilBuffer;
+	CComPtr<ID3D11Texture2D>			depthStencilBuffer;
 
-	ID3D11DepthStencilState*	depthStencilState;
-	ID3D11DepthStencilState*	lightDepthStencilState;
-	ID3D11DepthStencilState*	depthDisabledStencilState;
+	CComPtr<ID3D11DepthStencilState>	depthStencilState;
+	CComPtr<ID3D11DepthStencilState>	lightDepthStencilState;
+	CComPtr<ID3D11DepthStencilState>	depthDisabledStencilState;
 
 	// http://www.altdevblogaday.com/2011/08/08/stencil-buffer-optimisation-for-deferred-lights/
-	ID3D11DepthStencilState*	pointLightStencilMethod1State1;
-	ID3D11DepthStencilState*	pointLightStencilMethod1State2;
+	CComPtr<ID3D11DepthStencilState>	pointLightStencilMethod1State1;
+	CComPtr<ID3D11DepthStencilState>	pointLightStencilMethod1State2;
 
 	// http://kayru.org/articles/deferred-stencil/
-	ID3D11DepthStencilState*	pointLightStencilMethod2State1;
-	ID3D11DepthStencilState*	pointLightStencilMethod2State2;
+	CComPtr<ID3D11DepthStencilState>	pointLightStencilMethod2State1;
+	CComPtr<ID3D11DepthStencilState>	pointLightStencilMethod2State2;
 
-	ID3D11DepthStencilView*		depthStencilView;
+	CComPtr<ID3D11DepthStencilView>		depthStencilView;
 
-	ID3D11RasterizerState*		rasterState;
-	ID3D11RasterizerState*		backfaceCullingCW;
-	ID3D11RasterizerState*		frontfaceCullingCW;
-	ID3D11RasterizerState*		noCullingCW;
+	CComPtr<ID3D11RasterizerState>		rasterState;
+	CComPtr<ID3D11RasterizerState>		backfaceCullingCW;
+	CComPtr<ID3D11RasterizerState>		frontfaceCullingCW;
+	CComPtr<ID3D11RasterizerState>		noCullingCW;
 
 	XMFLOAT4X4 projectionMatrix, worldMatrix, orthoMatrix;
 
-	ID3D11BlendState* alphaEnableBlendingState;
-	ID3D11BlendState* shadowBlendState;
-	ID3D11BlendState* alphaDisableBlendingState;
-	ID3D11BlendState* lightAddBlendState;
-	ID3D11BlendState* colorDisabledBlendState;
-	ID3D11BlendState* previousBlendState;
+	CComPtr<ID3D11BlendState> alphaEnableBlendingState;
+	CComPtr<ID3D11BlendState> shadowBlendState;
+	CComPtr<ID3D11BlendState> alphaDisableBlendingState;
+	CComPtr<ID3D11BlendState> lightAddBlendState;
+	CComPtr<ID3D11BlendState> colorDisabledBlendState;
+	CComPtr<ID3D11BlendState> previousBlendState;
 
 	//Shadowmapping stuff
-	ID3D11Texture2D*			shadowmapTexture;
-	ID3D11ShaderResourceView*	shadowmapResourceView;
-	ID3D11DepthStencilView*		shadowmapDSV;
-	D3D11_VIEWPORT				shadowmapViewport;
+	CComPtr<ID3D11Texture2D>			shadowmapTexture;
+	CComPtr<ID3D11ShaderResourceView>	shadowmapResourceView;
+	CComPtr<ID3D11DepthStencilView>		shadowmapDSV;
+	D3D11_VIEWPORT						shadowmapViewport;
 };
 
 #endif

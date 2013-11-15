@@ -1,27 +1,20 @@
-////////////////////////////////////////////////////////////////////////////////
-// Filename: modelclass.h
-////////////////////////////////////////////////////////////////////////////////
-#ifndef _MODELCLASS_H_
-#define _MODELCLASS_H_
-
-
 //////////////
 // INCLUDES //
 //////////////
+#pragma once
 #include <d3d11.h>
 #include <windows.h>
 #include <xnamath.h>
 #include <fstream>
-using namespace std;
+#include <atlcomcli.h>
+#include <memory>
+#include <vector>
 
 
-///////////////////////
-// MY CLASS INCLUDES //
-///////////////////////
 #include "textureclass.h"
 #include "texturearray.h"
 
-
+using namespace std;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: ModelClass
@@ -59,15 +52,6 @@ private:
 		float x, y, z;
 	};
 
-	//This struct is for quads.
-
-	//struct VertexType
-	//{
-	//	XMFLOAT3 position;
-	//	XMFLOAT4 color;
-	//};
-
-
 public:
 	ModelClass();
 	ModelClass(const ModelClass&);
@@ -103,12 +87,105 @@ private:
 	void CalculateTangentBinormal(TempVertexType, TempVertexType, TempVertexType, VectorType&, VectorType&);
 	void CalculateNormal(VectorType, VectorType, VectorType&);
 
-	ID3D11Buffer *vertexBuffer, *indexBuffer;
+	CComPtr<ID3D11Buffer> vertexBuffer, indexBuffer;
 	int vertexCount, indexCount;
-	TextureClass* texture;
-	ModelType* model;
-	TextureArray* textureArray;
+	shared_ptr<TextureClass> texture;
+	unique_ptr<ModelType []> model;
+	shared_ptr<TextureArray> textureArray;
 };
 
-#endif
 
+
+/*
+	 functions for reading in .obj files.
+
+	 bool isDuplicate;
+	 indices.clear();
+	 for(int i = 0; i < polygonCount; i++)
+	 {
+	 for(int i2 = 0; i2 < 3; i2++)
+	 {
+	 indices.push_back(faceDefinitions[i].vertexIndexes[i2]);
+	 }
+	 }
+
+	 modelData->indices = new unsigned long[indices.size()];
+	 modelData->indexCount = indices.size();
+
+	 for(int i = 0; i < vertexCount; i++)
+	 {
+	 modelData->vertices[i].position = vertexPositions[i];
+	 }
+
+	 for(unsigned long i = 0; i < indices.size(); i++)
+	 {
+	 modelData->indices[i]  = indices[i];
+	 }
+	 
+	 */
+
+/* ******** How to make a cube... in dx9... ************/
+
+ /*
+	 // this is the function that puts the 3D models into video RAM
+	 void init_graphics(void)
+	 {
+	 // create the vertices using the CUSTOMVERTEX struct
+	 CUSTOMVERTEX vertices[] =
+	 {
+	 { -3.0f, 3.0f, -3.0f, D3DCOLOR_XRGB(0, 0, 255), },
+	 { 3.0f, 3.0f, -3.0f, D3DCOLOR_XRGB(0, 255, 0), },
+	 { -3.0f, -3.0f, -3.0f, D3DCOLOR_XRGB(255, 0, 0), },
+	 { 3.0f, -3.0f, -3.0f, D3DCOLOR_XRGB(0, 255, 255), },
+	 { -3.0f, 3.0f, 3.0f, D3DCOLOR_XRGB(0, 0, 255), },
+	 { 3.0f, 3.0f, 3.0f, D3DCOLOR_XRGB(255, 0, 0), },
+	 { -3.0f, -3.0f, 3.0f, D3DCOLOR_XRGB(0, 255, 0), },
+	 { 3.0f, -3.0f, 3.0f, D3DCOLOR_XRGB(0, 255, 255), },
+	 };
+
+	 // create a vertex buffer interface called v_buffer
+	 d3ddev->CreateVertexBuffer(8*sizeof(CUSTOMVERTEX),
+	 0,
+	 CUSTOMFVF,
+	 D3DPOOL_MANAGED,
+	 &v_buffer,
+	 NULL);
+
+	 VOID* pVoid;    // a void pointer
+
+	 // lock v_buffer and load the vertices into it
+	 v_buffer->Lock(0, 0, (void**)&pVoid, 0);
+	 memcpy(pVoid, vertices, sizeof(vertices));
+	 v_buffer->Unlock();
+
+	 // create the indices using an int array
+	 short indices[] =
+	 {
+	 0, 1, 2,    // side 1
+	 2, 1, 3,
+	 4, 0, 6,    // side 2
+	 6, 0, 2,
+	 7, 5, 6,    // side 3
+	 6, 5, 4,
+	 3, 1, 7,    // side 4
+	 7, 1, 5,
+	 4, 5, 0,    // side 5
+	 0, 5, 1,
+	 3, 7, 2,    // side 6
+	 2, 7, 6,
+	 };
+
+	 // create an index buffer interface called i_buffer
+	 d3ddev->CreateIndexBuffer(36*sizeof(short),
+	 0,
+	 D3DFMT_INDEX16,
+	 D3DPOOL_MANAGED,
+	 &i_buffer,
+	 NULL);
+
+	 // lock i_buffer and load the indices into it
+	 i_buffer->Lock(0, 0, (void**)&pVoid, 0);
+	 memcpy(pVoid, indices, sizeof(indices));
+	 i_buffer->Unlock();
+	 }
+*/

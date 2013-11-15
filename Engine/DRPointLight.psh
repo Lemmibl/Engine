@@ -31,17 +31,17 @@ static const float CameraFarClip = 500.0f;
 //////////////////////////////////////////////////
 
 //Decoding of GBuffer Normals
-half3 DecodeNormal(half2 enc)
+float3 DecodeNormal(float2 enc)
 {
-	half2 fenc = (enc*4.0f)-2.0f;
-	half f = dot(fenc,fenc);
-	half g = sqrt(1.0f-(f*0.25f));
+	float2 fenc = (enc*4.0f)-2.0f;
+	float f = dot(fenc,fenc);
+	float g = sqrt(1.0f-(f*0.25f));
 	
-	half3 n;
-	n.xy = fenc*g;
-	n.z = 1.0f-(f*0.5f);
+	//float3 n;
+	//n.xy = fenc*g;
+	//n.z = 1.0f-(f*0.5f);
 
-	return n;
+	return float3(fenc*g, 1.0f - (f*0.5f));
 }
 
 void RetrieveMaterialData(int materialID, out float Kd, out float Ks, out float surfaceSmoothness)
@@ -122,28 +122,25 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	float3 lightVector = (position-LightPosition);
 
 	float d = length(lightVector);
-	float attenuation = (LightColor.w / (d*d)); //(LightColor.w / (d*d)); //Slight offset to dampen the light
+	float attenuation = ((LightColor.w) / (d*d)); //(LightColor.w / (d*d)); //Slight offset to dampen the light
 
 	//Normalize lightVector after we've used it to determine the light attenuation
 	lightVector = normalize(lightVector);
 
 	//calculate NdotL product
-	float NdL = dot(normal, lightVector); //Potentially replace abs with max( , 0);
+	float NdL = saturate(dot(normal, -lightVector));
 
 	//compute diffuse light using NdotL product
 	float3 diffuseLight = (LightColor.rgb*NdL);
 
-	//surface reflection vector
-	float3 reflectionVector = normalize(reflect(lightVector, normal));
-
-	//camera-to-surface vector
-	float3 directionToCamera = viewRay;
+	 //Blinn half angle modification for performance over correctness
+	float3 h = normalize(normalize(CameraPosition - position) - lightVector);
 
 	//compute specular light
-	float specularLight = pow( saturate( dot(reflectionVector, directionToCamera)), surfaceSmoothness);
+	float specularLight = pow( saturate( dot(h, normal)), surfaceSmoothness);
 
 	//scale final value with attenuation, take into calculation the current material of this pixel
-	return attenuation*half4(diffuseCoefficient*diffuseLight, specularCoefficient*specularLight);//(attenuation/(CameraPosition.w+0.0001f))*
+	return attenuation*half4(diffuseCoefficient*diffuseLight, specularCoefficient*specularLight);
 }
 
 /*

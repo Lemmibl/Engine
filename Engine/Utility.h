@@ -18,6 +18,8 @@ public:
 	
 	float RandomFloat();
 	float VectorDistance(XMFLOAT3 vector1, XMFLOAT3 vector2);
+
+	//Returns new value as a float
 	float ConvertFromOneRangeToAnother(float OldValue, float OldMin, float OldMax, float NewMin, float NewMax);
 	
 	//Takes world Y position and returns the float and int value

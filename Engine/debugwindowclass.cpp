@@ -84,8 +84,8 @@ int DebugWindowClass::GetIndexCount()
 
 bool DebugWindowClass::InitializeBuffers(ID3D11Device* device)
 {
-	VertexType* vertices;
-	unsigned long* indices;
+	std::vector<VertexType> vertices;
+	std::vector<unsigned long> indices;
 	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA vertexData, indexData;
 	HRESULT result;
@@ -97,21 +97,10 @@ bool DebugWindowClass::InitializeBuffers(ID3D11Device* device)
 	indexCount = 6;
 
 	// Create the vertex array.
-	vertices = new VertexType[vertexCount];
-	if(!vertices)
-	{
-		return false;
-	}
+	vertices.resize(vertexCount);
 
 	// Create the index array.
-	indices = new unsigned long[indexCount];
-	if(!indices)
-	{
-		return false;
-	}
-
-	// Initialize vertex array to zeros at first.
-	memset(vertices, 0, (sizeof(VertexType) * vertexCount));
+	indices.resize(indexCount);
 
 	// Load the index array with data.
 	//for(i=0; i<indexCount; i++)
@@ -144,12 +133,12 @@ bool DebugWindowClass::InitializeBuffers(ID3D11Device* device)
 	vertexBufferDesc.StructureByteStride = 0;
 
 	// Give the subresource structure a pointer to the vertex data.
-	vertexData.pSysMem = vertices;
+	vertexData.pSysMem = vertices.data();
 	vertexData.SysMemPitch = 0;
 	vertexData.SysMemSlicePitch = 0;
 
 	// Now create the vertex buffer.
-	result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &vertexBuffer);
+	result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &vertexBuffer.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -164,23 +153,23 @@ bool DebugWindowClass::InitializeBuffers(ID3D11Device* device)
 	indexBufferDesc.StructureByteStride = 0;
 
 	// Give the subresource structure a pointer to the index data.
-	indexData.pSysMem = indices;
+	indexData.pSysMem = indices.data();
 	indexData.SysMemPitch = 0;
 	indexData.SysMemSlicePitch = 0;
 
 	// Create the index buffer.
-	result = device->CreateBuffer(&indexBufferDesc, &indexData, &indexBuffer);
+	result = device->CreateBuffer(&indexBufferDesc, &indexData, &indexBuffer.p);
 	if(FAILED(result))
 	{
 		return false;
 	}
 
-	// Release the arrays now that the vertex and index buffers have been created and loaded.
-	delete [] vertices;
-	vertices = 0;
+	//// Release the arrays now that the vertex and index buffers have been created and loaded.
+	//delete [] vertices;
+	//vertices = 0;
 
-	delete [] indices;
-	indices = 0;
+	//delete [] indices;
+	//indices = 0;
 
 	return true;
 }
@@ -188,19 +177,19 @@ bool DebugWindowClass::InitializeBuffers(ID3D11Device* device)
 
 void DebugWindowClass::ShutdownBuffers()
 {
-	// Release the index buffer.
-	if(indexBuffer)
-	{
-		indexBuffer->Release();
-		indexBuffer = 0;
-	}
+	//// Release the index buffer.
+	//if(indexBuffer)
+	//{
+	//	indexBuffer->Release();
+	//	indexBuffer = 0;
+	//}
 
-	// Release the vertex buffer.
-	if(vertexBuffer)
-	{
-		vertexBuffer->Release();
-		vertexBuffer = 0;
-	}
+	//// Release the vertex buffer.
+	//if(vertexBuffer)
+	//{
+	//	vertexBuffer->Release();
+	//	vertexBuffer = 0;
+	//}
 
 	return;
 }
@@ -293,7 +282,7 @@ void DebugWindowClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
 	offset = 0;
 
 	// Set the vertex buffer to active in the input assembler so it can be rendered.
-	deviceContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+	deviceContext->IASetVertexBuffers(0, 1, &vertexBuffer.p, &stride, &offset);
 
 	// Set the index buffer to active in the input assembler so it can be rendered.
 	deviceContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);

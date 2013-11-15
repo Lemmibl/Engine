@@ -70,22 +70,22 @@ bool DepthOnlyQuadShader::Render(ID3D11DeviceContext* deviceContext, int vertexC
 bool DepthOnlyQuadShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename)
 {
 	HRESULT result;
-	ID3D10Blob* errorMessage;
-	ID3D10Blob* vertexShaderBuffer;
-	ID3D10Blob* pixelShaderBuffer;
+	CComPtr<ID3D10Blob> errorMessage;
+	CComPtr<ID3D10Blob> vertexShaderBuffer;
+	CComPtr<ID3D10Blob> pixelShaderBuffer;
 	D3D11_INPUT_ELEMENT_DESC polygonLayout[4];
 	unsigned int numElements;
 	D3D11_BUFFER_DESC matrixBufferDesc;
 	D3D11_SAMPLER_DESC samplerDesc;
 
-	// Initialize the pointers this function will use to null.
-	errorMessage = 0;
-	vertexShaderBuffer = 0;
-	pixelShaderBuffer = 0;
+	//// Initialize the pointers this function will use to null.
+	//errorMessage = 0;
+	//vertexShaderBuffer = 0;
+	//pixelShaderBuffer = 0;
 
 	// Compile the vertex shader code.
 	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "DepthOnlyVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
-		&vertexShaderBuffer, &errorMessage, NULL);
+		&vertexShaderBuffer, &errorMessage.p, NULL);
 	if(FAILED(result))
 	{
 		// If the shader failed to compile it should have written something to the error message.
@@ -104,7 +104,7 @@ bool DepthOnlyQuadShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 
 	// Compile the vertex shader code.
 	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "DepthOnlyPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, 
-		&pixelShaderBuffer, &errorMessage, NULL);
+		&pixelShaderBuffer, &errorMessage.p, NULL);
 	if(FAILED(result))
 	{
 		// If the shader failed to compile it should have written something to the error message.
@@ -179,9 +179,9 @@ bool DepthOnlyQuadShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 		return false;
 	}
 
-	// Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
-	vertexShaderBuffer->Release();
-	vertexShaderBuffer = 0;
+	//// Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
+	//vertexShaderBuffer->Release();
+	//vertexShaderBuffer = 0;
 
 	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
 	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
@@ -192,7 +192,7 @@ bool DepthOnlyQuadShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 	matrixBufferDesc.StructureByteStride = 0;
 
 	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
-	result = device->CreateBuffer(&matrixBufferDesc, NULL, &matrixBuffer);
+	result = device->CreateBuffer(&matrixBufferDesc, NULL, &matrixBuffer.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -214,7 +214,7 @@ bool DepthOnlyQuadShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
 	// Create the texture sampler state.
-	result = device->CreateSamplerState(&samplerDesc, &samplerState);
+	result = device->CreateSamplerState(&samplerDesc, &samplerState.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -226,38 +226,38 @@ bool DepthOnlyQuadShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 
 void DepthOnlyQuadShader::ShutdownShader()
 {
-	// Release the matrix constant buffer.
-	if(matrixBuffer)
-	{
-		matrixBuffer->Release();
-		matrixBuffer = 0;
-	}
+	//// Release the matrix constant buffer.
+	//if(matrixBuffer)
+	//{
+	//	matrixBuffer->Release();
+	//	matrixBuffer = 0;
+	//}
 
-	// Release the layout.
-	if(layout)
-	{
-		layout->Release();
-		layout = 0;
-	}
+	//// Release the layout.
+	//if(layout)
+	//{
+	//	layout->Release();
+	//	layout = 0;
+	//}
 
-	if(samplerState)
-	{
-		samplerState->Release();
-		samplerState = 0;
-	}
+	//if(samplerState)
+	//{
+	//	samplerState->Release();
+	//	samplerState = 0;
+	//}
 
-	// Release the vertex shader.
-	if(vertexShader)
-	{
-		vertexShader->Release();
-		vertexShader = 0;
-	}
+	//// Release the vertex shader.
+	//if(vertexShader)
+	//{
+	//	vertexShader->Release();
+	//	vertexShader = 0;
+	//}
 
-	if(pixelShader)
-	{
-		pixelShader->Release();
-		pixelShader = 0;
-	}
+	//if(pixelShader)
+	//{
+	//	pixelShader->Release();
+	//	pixelShader = 0;
+	//}
 
 	return;
 }
@@ -327,7 +327,7 @@ bool DepthOnlyQuadShader::SetShaderParameters(ID3D11DeviceContext* deviceContext
 	bufferNumber = 0;
 
 	// Finanly set the constant buffer in the vertex shader with the updated values.
-	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &matrixBuffer);
+	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &matrixBuffer.p);
 
 	// Set shader texture array resource in the pixel shader.
 	deviceContext->PSSetShaderResources(0, 1, textures);
@@ -346,7 +346,7 @@ void DepthOnlyQuadShader::RenderShader(ID3D11DeviceContext* deviceContext, int v
 	deviceContext->PSSetShader(pixelShader, NULL, 0);
 
 	// Set the sampler state in the pixel shader.
-	deviceContext->PSSetSamplers(0, 1, &samplerState);
+	deviceContext->PSSetSamplers(0, 1, &samplerState.p);
 
 	// Render the stuff.
 	deviceContext->DrawInstanced(vertexCount, instanceCount, 0, 0);

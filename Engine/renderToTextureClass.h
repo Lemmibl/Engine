@@ -1,14 +1,11 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Filename: renderToTextureClass.h
-////////////////////////////////////////////////////////////////////////////////
-#ifndef _RENDERTTOEXTURECLASS_H_
-#define _RENDERTTOEXTURECLASS_H_
-
+#pragma once
 
 //////////////
 // INCLUDES //
 //////////////
 #include <d3d11.h>
+#include <atlcomcli.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: RenderToTextureClass
@@ -28,9 +25,7 @@ public:
 	ID3D11ShaderResourceView* GetShaderResourceView();
 
 private:
-	ID3D11Texture2D* renderTargetTexture;
-	ID3D11RenderTargetView* renderTargetView;
-	ID3D11ShaderResourceView* shaderResourceView;
+	CComPtr<ID3D11Texture2D> renderTargetTexture;
+	CComPtr<ID3D11RenderTargetView> renderTargetView;
+	CComPtr<ID3D11ShaderResourceView> shaderResourceView;
 };
-
-#endif

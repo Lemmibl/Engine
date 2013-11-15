@@ -53,7 +53,6 @@
 #include "DRPointLight.h"
 #include "DRDirectionalLight.h"
 #include "fontshaderclass.h"
-#include "DRGBuffer.h"
 #include "DepthOnlyQuadShader.h"
 #include "GaussianBlur.h"
 
@@ -98,7 +97,6 @@ private:
 	TextClass* text;
 	FrustumClass* frustum;
 
-	DRGBuffer* gbufferShader;
 	DRPointLight* pointLightShader;
 	vector<PointLight> pointLights;
 
@@ -148,10 +146,10 @@ private:
 	TextureAndMaterialHandler* textureAndMaterialHandler;
 
 	//These should be temporary. Just used for testing my little LOD system.
-	vector<XMFLOAT4> LODVector500;
-	vector<XMFLOAT4> LODVector2500;
-	vector<XMFLOAT4> LODVector5000;
-	vector<XMFLOAT4> LODVector10000;
+	vector<VegetationManager::InstanceType> LODVector500;
+	vector<VegetationManager::InstanceType> LODVector2500;
+	vector<VegetationManager::InstanceType> LODVector5000;
+	vector<VegetationManager::InstanceType> LODVector10000;
 	int lodState, previousLodState, toggleSSAO, toggleColorMode;
 
 	Lemmi2DAABB testBoundingbox;
@@ -164,9 +162,6 @@ private:
 	ID3D11RenderTargetView* lightTarget[1];
 	ID3D11RenderTargetView* shadowTarget[1];
 	ID3D11RenderTargetView* gaussianBlurPingPongRTView[1];
-
-	ID3D11ShaderResourceView* lSystemSRV;
-	ID3D11ShaderResourceView* ssaoRandomTextureSRV;
 
 	ID3D11ShaderResourceView* gbufferTextures[3];
 	ID3D11ShaderResourceView* dirLightTextures[4];

@@ -24,6 +24,7 @@ const float SCREEN_NEAR = 0.1f;
 #pragma once
 #include <windows.h>
 #include <xnamath.h>
+#include <memory>
 
 ///////////////////////
 // MY CLASS INCLUDES //
@@ -61,14 +62,15 @@ private:
 	HINSTANCE hinstance;
 	HWND hwnd;
 
-	D3DClass* d3D;
-	InputClass* input;
-	Renderer* renderer;
-	FpsMeter* fpsMeter;
-	CpuMeter* cpuMeter;
-	TimerClass* timer;
-	ControllerClass* cameraController;
-	CameraClass* camera;
+	shared_ptr<D3DClass> d3D;
+	shared_ptr<InputClass> input;
+	shared_ptr<ControllerClass> cameraController;
+	shared_ptr<CameraClass> camera;
+	Renderer renderer;
+	FpsMeter fpsMeter;
+	CpuMeter cpuMeter;
+	TimerClass timer;
+
 
 	float rotationalValue;
 	int screenWidth, screenHeight;

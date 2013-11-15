@@ -2,12 +2,12 @@
 
 MCubesGBufferShader::MCubesGBufferShader()
 {
-	vertexShader = 0;
-	pixelShader = 0;
-	layout = 0;
-	matrixBuffer = 0;
-	colorTypeBuffer = 0;
-	sampler = 0;
+	//vertexShader = 0;
+	//pixelShader = 0;
+	//layout = 0;
+	//matrixBuffer = 0;
+	//colorTypeBuffer = 0;
+	//sampler = 0;
 }
 
 
@@ -43,14 +43,14 @@ void MCubesGBufferShader::Shutdown()
 	return;
 }
 
-bool MCubesGBufferShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, 
-	XMMATRIX* worldViewMatrix, XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textures, int toggleColor)
+bool MCubesGBufferShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, XMMATRIX* worldViewMatrix, XMMATRIX* worldViewProjection, 
+	ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** texAndMatLookupTable, int toggleColor, float farclip)
 {
 	bool result;
 
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldMatrix, worldViewMatrix, worldViewProjection, textures, toggleColor);
+	result = SetShaderParameters(deviceContext, worldMatrix, worldViewMatrix, worldViewProjection, textureArray, texAndMatLookupTable, toggleColor, farclip);
 	if(!result)
 	{
 		return false;
@@ -65,23 +65,23 @@ bool MCubesGBufferShader::Render(ID3D11DeviceContext* deviceContext, int indexCo
 bool MCubesGBufferShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename)
 {
 	HRESULT result;
-	ID3D10Blob* errorMessage;
-	ID3D10Blob* vertexShaderBuffer;
-	ID3D10Blob* pixelShaderBuffer;
+	CComPtr<ID3D10Blob> errorMessage;
+	CComPtr<ID3D10Blob> vertexShaderBuffer;
+	CComPtr<ID3D10Blob> pixelShaderBuffer;
 
-	D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[2];
 	unsigned int numElements;
 	D3D11_BUFFER_DESC matrixBufferDesc;
 	D3D11_SAMPLER_DESC samplerDesc;
 
-	// Initialize the pointers this function will use to null.
-	errorMessage = 0;
-	vertexShaderBuffer = 0;
-	pixelShaderBuffer = 0;
+	//// Initialize the pointers this function will use to null.
+	//errorMessage = 0;
+	//vertexShaderBuffer = 0;
+	//pixelShaderBuffer = 0;
 
 	// Compile the vertex shader code.
 	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "MCubesGBufferVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 
-		0, NULL, &vertexShaderBuffer, &errorMessage, NULL);
+		0, NULL, &vertexShaderBuffer, &errorMessage.p, NULL);
 	if(FAILED(result))
 	{
 		// If the shader failed to compile it should have written something to the error message.
@@ -100,7 +100,7 @@ bool MCubesGBufferShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 
 	// Compile the pixel shader code.
 	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "MCubesGBufferPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 
-		0, NULL, &pixelShaderBuffer, &errorMessage, NULL);
+		0, NULL, &pixelShaderBuffer, &errorMessage.p, NULL);
 	if(FAILED(result))
 	{
 		// If the shader failed to compile it should have written something to the error message.
@@ -151,14 +151,6 @@ bool MCubesGBufferShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 	polygonLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[1].InstanceDataStepRate = 0;
 
-	polygonLayout[2].SemanticName = "COLOR";
-	polygonLayout[2].SemanticIndex = 0;
-	polygonLayout[2].Format = DXGI_FORMAT_R8G8B8A8_UINT;
-	polygonLayout[2].InputSlot = 0;
-	polygonLayout[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
-	polygonLayout[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-	polygonLayout[2].InstanceDataStepRate = 0;
-
 	// Get a count of the elements in the layout.
 	numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
 
@@ -171,11 +163,11 @@ bool MCubesGBufferShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 	}
 
 	// Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
-	vertexShaderBuffer->Release();
-	vertexShaderBuffer = 0;
+	//vertexShaderBuffer->Release();
+	//vertexShaderBuffer = 0;
 
-	pixelShaderBuffer->Release();
-	pixelShaderBuffer = 0;
+	//pixelShaderBuffer->Release();
+	//pixelShaderBuffer = 0;
 
 	// Setup the description of the matrix dynamic constant buffer that is in the vertex shader.
 	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
@@ -207,8 +199,6 @@ bool MCubesGBufferShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 		return false;
 	}
 
-
-
 	// Create a texture sampler state description.
 	samplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -238,46 +228,46 @@ void MCubesGBufferShader::ShutdownShader()
 {
 
 
-	// Release the sampler state.
-	if(sampler)
-	{
-		sampler->Release();
-		sampler = 0;
-	}
+	//// Release the sampler state.
+	//if(sampler)
+	//{
+	//	sampler->Release();
+	//	sampler = 0;
+	//}
 
-	// Release the matrix constant buffer.
-	if(matrixBuffer)
-	{
-		matrixBuffer->Release();
-		matrixBuffer = 0;
-	}
+	//// Release the matrix constant buffer.
+	//if(matrixBuffer)
+	//{
+	//	matrixBuffer->Release();
+	//	matrixBuffer = 0;
+	//}
 
-	if(colorTypeBuffer)
-	{
-		colorTypeBuffer->Release();
-		colorTypeBuffer = 0;
-	}
+	//if(colorTypeBuffer)
+	//{
+	//	colorTypeBuffer->Release();
+	//	colorTypeBuffer = 0;
+	//}
 
-	// Release the layout.
-	if(layout)
-	{
-		layout->Release();
-		layout = 0;
-	}
+	//// Release the layout.
+	//if(layout)
+	//{
+	//	layout->Release();
+	//	layout = 0;
+	//}
 
-	// Release the pixel shader.
-	if(pixelShader)
-	{
-		pixelShader->Release();
-		pixelShader = 0;
-	}
+	//// Release the pixel shader.
+	//if(pixelShader)
+	//{
+	//	pixelShader->Release();
+	//	pixelShader = 0;
+	//}
 
-	// Release the vertex shader.
-	if(vertexShader)
-	{
-		vertexShader->Release();
-		vertexShader = 0;
-	}
+	//// Release the vertex shader.
+	//if(vertexShader)
+	//{
+	//	vertexShader->Release();
+	//	vertexShader = 0;
+	//}
 
 	return;
 }
@@ -307,9 +297,9 @@ void MCubesGBufferShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWN
 	// Close the file.
 	fout.close();
 
-	// Release the error message.
-	errorMessage->Release();
-	errorMessage = 0;
+	//// Release the error message.
+	//errorMessage->Release();
+	//errorMessage = 0;
 
 	// Pop a message up on the screen to notify the user to check the text file for compile errors.
 	MessageBox(hwnd, L"Error compiling shader.  Check shader-error.txt for message.", shaderFilename, MB_OK);
@@ -317,8 +307,8 @@ void MCubesGBufferShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWN
 	return;
 }
 
-bool MCubesGBufferShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, 
-	XMMATRIX* worldViewMatrix, XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textures, int toggleColor)
+bool MCubesGBufferShader::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, XMMATRIX* worldViewMatrix, 
+	XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** texAndMatLookupTable, int toggleColor, float farclip)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -348,7 +338,7 @@ bool MCubesGBufferShader::SetShaderParameters(ID3D11DeviceContext* deviceContext
 	bufferNumber = 0;
 
 	// Now set the matrix constant buffer in the vertex shader with the updated values.
-	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &matrixBuffer);
+	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &matrixBuffer.p);
 
 	// Lock the matrix constant buffer so it can be written to.
 	result = deviceContext->Map(colorTypeBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -361,7 +351,7 @@ bool MCubesGBufferShader::SetShaderParameters(ID3D11DeviceContext* deviceContext
 	dataPtr2 = (ColorTypeBuffer*)mappedResource.pData;
 
 	// Copy the matrices into the constant buffer.
-	dataPtr2->toggleColorMode = XMFLOAT4(toggleColor, toggleColor, toggleColor, toggleColor);
+	dataPtr2->colorModeInX_FarClipInY_ZWUnused = XMFLOAT4((float)toggleColor, farclip, 0.0f, 0.0f);
 
 	// Unlock the matrix constant buffer.
 	deviceContext->Unmap(colorTypeBuffer, 0);
@@ -370,10 +360,11 @@ bool MCubesGBufferShader::SetShaderParameters(ID3D11DeviceContext* deviceContext
 	bufferNumber = 0;
 
 	// Now set the matrix constant buffer in the vertex shader with the updated values.
-	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &colorTypeBuffer);
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &colorTypeBuffer.p);
 
 	// Set shader texture array resource in the pixel shader.
-	deviceContext->PSSetShaderResources(0, 1, textures);
+	deviceContext->PSSetShaderResources(0, 1, textureArray);
+	deviceContext->PSSetShaderResources(1, 1, texAndMatLookupTable);
 
 	return true;
 }
@@ -388,7 +379,7 @@ void MCubesGBufferShader::RenderShader(ID3D11DeviceContext* deviceContext, int i
 	deviceContext->PSSetShader(pixelShader, NULL, 0);
 
 	// Set the sampler state in the pixel shader.
-	deviceContext->PSSetSamplers(0, 1, &sampler);
+	deviceContext->PSSetSamplers(0, 1, &sampler.p);
 
 	// Render the triangles.
 	deviceContext->DrawIndexed(indexCount, 0, 0);

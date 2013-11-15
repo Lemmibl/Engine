@@ -2,18 +2,20 @@
 // Filename: drcompose.cpp
 ////////////////////////////////////////////////////////////////////////////////
 #include "DRCompose.h"
+#include <stdio.h>
+#include <d3dcompiler.h>
 
 
 DRCompose::DRCompose()
 {
-	vertexShader = 0;
-	pixelShader = 0;
-	layout = 0;
-	samplers[0] = 0;
-	samplers[1] = 0;
+	//vertexShader = 0;
+	//pixelShader = 0;
+	//layout = 0;
+	//samplers[0] = 0;
+	//samplers[1] = 0;
 
-	vertexMatrixBuffer = 0;
-	pixelMatrixBuffer = 0;
+	//vertexMatrixBuffer = 0;
+	//pixelMatrixBuffer = 0;
 }
 
 
@@ -32,7 +34,7 @@ bool DRCompose::Initialize(ID3D11Device* device, HWND hwnd)
 	bool result;
 
 	// Initialize the vertex and pixel shaders.
-	result = InitializeShader(device, hwnd, L"../Engine/DRCompose.vsh", L"../Engine/DRCompose.psh");
+	result = InitializeShader(device, hwnd, L"../Engine/DRCompose.vsh", L"../Engine/DRCompose.hlsl");
 	if(!result)
 	{
 		return false;
@@ -72,23 +74,26 @@ bool DRCompose::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMAT
 bool DRCompose::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename)
 {
 	HRESULT result;
-	ID3D10Blob* errorMessage;
-	ID3D10Blob* vertexShaderBuffer;
-	ID3D10Blob* pixelShaderBuffer;
+	CComPtr<ID3D10Blob> errorMessage;
+	CComPtr<ID3D10Blob> vertexShaderBuffer;
+	CComPtr<ID3D10Blob> pixelShaderBuffer;
 	D3D11_INPUT_ELEMENT_DESC polygonLayout[2];
 	unsigned int numElements;
 	D3D11_SAMPLER_DESC samplerDesc;
 
 	D3D11_BUFFER_DESC vertexMatrixBufferDesc;
 
-	// Initialize the pointers this function will use to null.
-	errorMessage = 0;
-	vertexShaderBuffer = 0;
-	pixelShaderBuffer = 0;
+	//// Initialize the pointers this function will use to null.
+	//errorMessage = 0;
+	//vertexShaderBuffer = 0;
+	//pixelShaderBuffer = 0;
+
+	UINT dwShaderFlags = 0;
+	dwShaderFlags |= D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 
 	// Compile the vertex shader code.
-	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "ComposeVertexShader", "vs_5_0", NULL, 0, NULL, 
-		&vertexShaderBuffer, &errorMessage, NULL);
+	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "ComposeVertexShader", "vs_5_0", dwShaderFlags, 0, NULL, 
+		&vertexShaderBuffer, &errorMessage.p, NULL);
 	if(FAILED(result))
 	{
 		// If the shader failed to compile it should have written something to the error message.
@@ -106,8 +111,8 @@ bool DRCompose::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 	}
 
 	// Compile the pixel shader code.
-	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "ComposePixelShader", "ps_5_0", NULL, 0, NULL, 
-		&pixelShaderBuffer, &errorMessage, NULL);
+	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "ComposePixelShader", "ps_5_0", dwShaderFlags, 0, NULL, 
+		&pixelShaderBuffer, &errorMessage.p, NULL);
 	if(FAILED(result))
 	{
 		// If the shader failed to compile it should have written something to the error message.
@@ -167,12 +172,12 @@ bool DRCompose::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 		return false;
 	}
 
-	// Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
-	vertexShaderBuffer->Release();
-	vertexShaderBuffer = 0;
+	//// Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
+	//vertexShaderBuffer->Release();
+	//vertexShaderBuffer = 0;
 
-	pixelShaderBuffer->Release();
-	pixelShaderBuffer = 0;
+	//pixelShaderBuffer->Release();
+	//pixelShaderBuffer = 0;
 
 	// Create a texture sampler state description.
 	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
@@ -187,7 +192,7 @@ bool DRCompose::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
 	// Create the texture sampler state.
-	result = device->CreateSamplerState(&samplerDesc, &samplers[0]);
+	result = device->CreateSamplerState(&samplerDesc, &samplers[0].p);
 	if(FAILED(result))
 	{
 		return false;
@@ -206,7 +211,7 @@ bool DRCompose::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
 	// Create the texture sampler state.
-	result = device->CreateSamplerState(&samplerDesc, &samplers[1]);
+	result = device->CreateSamplerState(&samplerDesc, &samplers[1].p);
 	if(FAILED(result))
 	{
 		return false;
@@ -223,7 +228,7 @@ bool DRCompose::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 	vertexMatrixBufferDesc.StructureByteStride = 0;
 
 	// Create the camera constant buffer pointer so we can access the vertex shader constant buffer from within this class.
-	result = device->CreateBuffer(&vertexMatrixBufferDesc, NULL, &vertexMatrixBuffer);
+	result = device->CreateBuffer(&vertexMatrixBufferDesc, NULL, &vertexMatrixBuffer.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -238,7 +243,7 @@ bool DRCompose::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 	vertexMatrixBufferDesc.StructureByteStride = 0;
 
 	// Create the camera constant buffer pointer so we can access the vertex shader constant buffer from within this class.
-	result = device->CreateBuffer(&vertexMatrixBufferDesc, NULL, &pixelMatrixBuffer);
+	result = device->CreateBuffer(&vertexMatrixBufferDesc, NULL, &pixelMatrixBuffer.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -250,52 +255,52 @@ bool DRCompose::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 void DRCompose::ShutdownShader()
 {	
 
-	// Release the camera constant buffer.
-	if(vertexMatrixBuffer)
-	{
-		vertexMatrixBuffer->Release();
-		vertexMatrixBuffer = 0;
-	}
+	//// Release the camera constant buffer.
+	//if(vertexMatrixBuffer)
+	//{
+	//	vertexMatrixBuffer->Release();
+	//	vertexMatrixBuffer = 0;
+	//}
 
-	if(pixelMatrixBuffer)
-	{
-		pixelMatrixBuffer->Release();
-		pixelMatrixBuffer = 0;
-	}
+	//if(pixelMatrixBuffer)
+	//{
+	//	pixelMatrixBuffer->Release();
+	//	pixelMatrixBuffer = 0;
+	//}
 
-	// Release the sampler state.
-	if(samplers[0])
-	{
-		samplers[0]->Release();
-		samplers[0] = 0;
-	}
+	//// Release the sampler state.
+	//if(samplers[0])
+	//{
+	//	samplers[0]->Release();
+	//	samplers[0] = 0;
+	//}
 
-	if(samplers[1])
-	{
-		samplers[1]->Release();
-		samplers[1] = 0;
-	}
+	//if(samplers[1])
+	//{
+	//	samplers[1]->Release();
+	//	samplers[1] = 0;
+	//}
 
-	// Release the layout.
-	if(layout)
-	{
-		layout->Release();
-		layout = 0;
-	}
+	//// Release the layout.
+	//if(layout)
+	//{
+	//	layout->Release();
+	//	layout = 0;
+	//}
 
-	// Release the pixel shader.
-	if(pixelShader)
-	{
-		pixelShader->Release();
-		pixelShader = 0;
-	}
+	//// Release the pixel shader.
+	//if(pixelShader)
+	//{
+	//	pixelShader->Release();
+	//	pixelShader = 0;
+	//}
 
-	// Release the vertex shader.
-	if(vertexShader)
-	{
-		vertexShader->Release();
-		vertexShader = 0;
-	}
+	//// Release the vertex shader.
+	//if(vertexShader)
+	//{
+	//	vertexShader->Release();
+	//	vertexShader = 0;
+	//}
 
 	return;
 }
@@ -366,7 +371,7 @@ bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRI
 	// Set the position of the constant buffer in the vertex shader.
 	bufferNumber = 0;
 
-	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &vertexMatrixBuffer);
+	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &vertexMatrixBuffer.p);
 
 
 	/////////////#2
@@ -391,7 +396,7 @@ bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRI
 	// Set the position of the constant buffer in the vertex shader.
 	bufferNumber = 0;
 
-	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &pixelMatrixBuffer);
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &pixelMatrixBuffer.p);
 
 	// Set shader texture resource in the pixel shader.
 	deviceContext->PSSetShaderResources(0, 1, &randomTexture);
@@ -410,7 +415,8 @@ void DRCompose::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
 	deviceContext->PSSetShader(pixelShader, NULL, 0);
 
 	// Set the sampler state in the pixel shader.
-	deviceContext->PSSetSamplers(0, 2, samplers);
+	deviceContext->PSSetSamplers(0, 1, &samplers[0].p);
+	deviceContext->PSSetSamplers(1, 1, &samplers[1].p);
 
 	// Render the triangle.
 	deviceContext->DrawIndexed(indexCount, 0, 0);

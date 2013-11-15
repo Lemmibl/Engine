@@ -1,11 +1,7 @@
-////////////////////////////////////////////////////////////////////////////////
-// Filename: cameraclass.h
-////////////////////////////////////////////////////////////////////////////////
-#ifndef _CAMERACLASS_H_
-#define _CAMERACLASS_H_
+#pragma once
 
-#define TWO_PI 6.283185307179586476925286766559
-#define DEG_TO_RAD 0.01745329251994329576923690768489
+#define TWO_PI 6.283185307179586476925286766559f
+#define DEG_TO_RAD 0.01745329251994329576923690768489f
 
 //////////////
 // INCLUDES //
@@ -13,6 +9,7 @@
 #include <windows.h>
 #include <xnamath.h>
 #include "controllerclass.h"
+#include <memory>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: CameraClass
@@ -20,11 +17,8 @@
 class CameraClass
 {
 public:
-	CameraClass();
-	CameraClass(const CameraClass&);
+	CameraClass(std::shared_ptr<ControllerClass> externalController);
 	~CameraClass();
-
-	bool Initialize(ControllerClass* externalController);
 
 	#pragma region get and setters
 	void SetPosition(XMFLOAT3);
@@ -68,11 +62,10 @@ private:
 	XMFLOAT3 MatrixUp();
 	XMFLOAT3 MatrixDown();
 
-	ControllerClass* controller;
+	std::shared_ptr<ControllerClass> controller;
 	XMFLOAT3 position, rotation;
 	XMFLOAT4X4 world, view, projection;
 	float yaw, pitch, roll;
 
-	float PITCHROOF, PITCHFLOOR;
+	const float PITCHROOF, PITCHFLOOR;
 };
-#endif

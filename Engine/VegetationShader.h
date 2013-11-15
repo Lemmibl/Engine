@@ -6,6 +6,7 @@
 #include <xnamath.h>
 #include <d3dx11async.h>
 #include <fstream>
+#include <atlcomcli.h>
 
 
 using namespace std;
@@ -31,20 +32,21 @@ public:
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
-	bool Render(ID3D11DeviceContext* deviceContext, int vertexCount, int instanceCount, XMMATRIX* worldViewProjection, XMMATRIX* worldView, XMMATRIX* World, ID3D11ShaderResourceView** textures);
+	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, int vertexCount, int instanceCount, XMMATRIX* worldViewProjection, 
+		XMMATRIX* worldView, XMMATRIX* World, ID3D11ShaderResourceView** textures);
 
 private:
 	bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
 	void ShutdownShader();
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
 
-	bool SetShaderParameters(ID3D11DeviceContext*, XMMATRIX* worldViewProjection, XMMATRIX* worldView, XMMATRIX* World, ID3D11ShaderResourceView**);
-	void RenderShader(ID3D11DeviceContext*, int vertexCount, int instanceCount);
+	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, XMMATRIX* worldView, XMMATRIX* World, ID3D11ShaderResourceView**);
+	void RenderShader(ID3D11DeviceContext* deviceContext, int indexCount, int vertexCount, int instanceCount);
 
 private:
-	ID3D11VertexShader* vertexShader;
-	ID3D11PixelShader* pixelShader;
-	ID3D11InputLayout* layout;
-	ID3D11Buffer* matrixBuffer;
-	ID3D11SamplerState* samplerState;
+	CComPtr<ID3D11VertexShader> vertexShader;
+	CComPtr<ID3D11PixelShader> pixelShader;
+	CComPtr<ID3D11InputLayout> layout;
+	CComPtr<ID3D11Buffer> matrixBuffer;
+	CComPtr<ID3D11SamplerState> samplerState;
 };

@@ -7,6 +7,7 @@
 #include <xnamath.h> 
 #include <d3dx11async.h>
 #include <fstream>
+#include <atlcomcli.h>
 
 using namespace std;
 
@@ -45,11 +46,10 @@ private:
 	void RenderShaderY(ID3D11DeviceContext*, int);
 
 private:
-	ID3D11VertexShader* vertexShader;
-	ID3D11PixelShader* pixelShaderX; //For X blurring
-	ID3D11PixelShader* pixelShaderY; //For Y blurring
-	ID3D11InputLayout* layout;
-	ID3D11SamplerState* sampler;
-
-	ID3D11Buffer* vertexMatrixBuffer;
+	CComPtr<ID3D11VertexShader> vertexShader;
+	CComPtr<ID3D11PixelShader> pixelShaderX; //For X blurring
+	CComPtr<ID3D11PixelShader> pixelShaderY; //For Y blurring
+	CComPtr<ID3D11InputLayout> layout;
+	CComPtr<ID3D11SamplerState> sampler;
+	CComPtr<ID3D11Buffer> vertexMatrixBuffer;
 };

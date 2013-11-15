@@ -3,7 +3,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "bitmapclass.h"
 
-
 int BitmapClass::GetIndexCount()
 {
 	return indexCount;
@@ -16,9 +15,6 @@ ID3D11ShaderResourceView* BitmapClass::GetTexture()
 
 BitmapClass::BitmapClass()
 {
-	vertexBuffer = 0;
-	indexBuffer = 0;
-	texture = 0;
 }
 
 
@@ -95,8 +91,8 @@ bool BitmapClass::Render(ID3D11DeviceContext* deviceContext, int positionX, int 
 
 bool BitmapClass::InitializeBuffers(ID3D11Device* device)
 {
-	VertexType* vertices;
-	unsigned long* indices;
+	std::vector<VertexType> vertices;
+	std::vector<unsigned long> indices;
 	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA vertexData, indexData;
 	HRESULT result;
@@ -107,33 +103,11 @@ bool BitmapClass::InitializeBuffers(ID3D11Device* device)
 	// Set the number of indices in the index array.
 	indexCount = 6;
 
-	// Create the vertex array.
-	vertices = new VertexType[vertexCount];
-	if(!vertices)
-	{
-		return false;
-	}
-
 	// Create the index array.
-	indices = new unsigned long[indexCount];
-	if(!indices)
-	{
-		return false;
-	}
+	indices.resize(indexCount);
 
 	// Initialize vertex array to zeros at first.
-	memset(vertices, 0, (sizeof(VertexType) * vertexCount));
-
-	// Load the index array with data.
-	//for(i=0; i<indexCount; i++)
-	//{
-	//	indices[i] = i;
-	//}
-
-	/* 
-	// CW:  T1: 0,1,3  T2: 1,2,3
-	// CCW: T1: 0,3,1  T2: 1,3,2
-	*/
+	vertices.resize(vertexCount);
 
 	// Load the index array with data.
 	// First triangle
@@ -155,12 +129,12 @@ bool BitmapClass::InitializeBuffers(ID3D11Device* device)
 	vertexBufferDesc.StructureByteStride = 0;
 
 	// Give the sub resource structure a pointer to the vertex data.
-	vertexData.pSysMem = vertices;
+	vertexData.pSysMem = vertices.data();
 	vertexData.SysMemPitch = 0;
 	vertexData.SysMemSlicePitch = 0;
 
 	// Now create the vertex buffer.
-	result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &vertexBuffer);
+	result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &vertexBuffer.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -175,42 +149,42 @@ bool BitmapClass::InitializeBuffers(ID3D11Device* device)
 	indexBufferDesc.StructureByteStride = 0;
 
 	// Give the sub resource structure a pointer to the index data.
-	indexData.pSysMem = indices;
+	indexData.pSysMem = indices.data();
 	indexData.SysMemPitch = 0;
 	indexData.SysMemSlicePitch = 0;
 
 	// Create the index buffer.
-	result = device->CreateBuffer(&indexBufferDesc, &indexData, &indexBuffer);
+	result = device->CreateBuffer(&indexBufferDesc, &indexData, &indexBuffer.p);
 	if(FAILED(result))
 	{
 		return false;
 	}
 
-	// Release the arrays now that the vertex and index buffers have been created and loaded.
-	delete [] vertices;
-	vertices = 0;
+	//// Release the arrays now that the vertex and index buffers have been created and loaded.
+	//delete [] vertices;
+	//vertices = 0;
 
-	delete [] indices;
-	indices = 0;
+	//delete [] indices;
+	//indices = 0;
 
 	return true;
 }
 
 void BitmapClass::ShutdownBuffers()
 {
-	// Release the index buffer.
-	if(indexBuffer)
-	{
-		indexBuffer->Release();
-		indexBuffer = 0;
-	}
+	//// Release the index buffer.
+	//if(indexBuffer)
+	//{
+	//	indexBuffer->Release();
+	//	indexBuffer = 0;
+	//}
 
-	// Release the vertex buffer.
-	if(vertexBuffer)
-	{
-		vertexBuffer->Release();
-		vertexBuffer = 0;
-	}
+	//// Release the vertex buffer.
+	//if(vertexBuffer)
+	//{
+	//	vertexBuffer->Release();
+	//	vertexBuffer = 0;
+	//}
 
 	return;
 }
@@ -218,8 +192,8 @@ void BitmapClass::ShutdownBuffers()
 bool BitmapClass::UpdateBuffers(ID3D11DeviceContext* deviceContext, int positionX, int positionY)
 {
 	float left, right, top, bottom;
-	VertexType* vertices;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	VertexType* vertices;
 	VertexType* verticesPtr;
 	HRESULT result;
 
@@ -255,41 +229,6 @@ bool BitmapClass::UpdateBuffers(ID3D11DeviceContext* deviceContext, int position
 	{
 		return false;
 	}
-
-#pragma region quad code
-	//// Load the vertex array with data.
-	//vertices[0].position = XMFLOAT3(-1.0f, -1.0f, 0.0f);  // Bottom left.
-	//vertices[0].texture = XMFLOAT2(0.0f, 1.0f);
-	//vertices[0].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
-
-	//vertices[1].position = XMFLOAT3(-1.0f, 1.0f, 0.0f);  // Top left.
-	//vertices[1].texture = XMFLOAT2(0.0f, 0.0f);
-	//vertices[1].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
-
-	//vertices[2].position = XMFLOAT3(1.0f, 1.0f, 0.0f);  // Top right.
-	//vertices[2].texture = XMFLOAT2(1.0f, 0.0f);
-	//vertices[2].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
-
-	//vertices[3].position = XMFLOAT3(1.0f, -1.0f, 0.0f);  // Bottom right.
-	//vertices[3].texture = XMFLOAT2(1.0f, 1.0f);
-	//vertices[3].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
-
-	//// Load the index array with data.
-	//// First triangle
-	//indices[0] = 0;	// Bottom left.
-	//indices[1] = 1;	// Top left.
-	//indices[2] = 3;	// Bottom right.
-
-	//// Second triangle
-	//indices[3] = 1;	// Top left.
-	//indices[4] = 2;	// Top right.
-	//indices[5] = 3;	// Bottom right.
-
-	///* 
-	// CW:  T1: 0,1,3  T2: 1,2,3
-	// CCW: T1: 0,3,1  T2: 1,3,2
-	//*/
-#pragma endregion
 
 	// Load the vertex array with data.
 	vertices[0].position = XMFLOAT3(left, bottom, 0.0f);  // Bottom left.
@@ -354,7 +293,7 @@ bool BitmapClass::LoadTexture(ID3D11Device* device, WCHAR* filename)
 	bool result;
 
 	// Create the texture object.
-	texture = new TextureClass;
+	texture = std::shared_ptr<TextureClass>(new TextureClass());
 	if(!texture)
 	{
 		return false;
@@ -372,13 +311,13 @@ bool BitmapClass::LoadTexture(ID3D11Device* device, WCHAR* filename)
 
 void BitmapClass::ReleaseTexture()
 {
-	// Release the texture object.
-	if(texture)
-	{
-		texture->Shutdown();
-		delete texture;
-		texture = 0;
-	}
+	//// Release the texture object.
+	//if(texture)
+	//{
+	//	texture->Shutdown();
+	//	delete texture;
+	//	texture = 0;
+	//}
 
 	return;
 }

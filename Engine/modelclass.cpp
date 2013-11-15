@@ -25,21 +25,21 @@ UINT ModelClass::GetSizeOfVertexType()
 
 ID3D11Buffer* ModelClass::GetVertexBuffer()
 {
-	return vertexBuffer;
+	return vertexBuffer.p;
 }
 
 ID3D11Buffer* ModelClass::GetIndexBuffer()
 {
-	return indexBuffer;
+	return indexBuffer.p;
 }
 
 ModelClass::ModelClass()
 {
-	vertexBuffer = 0;
-	indexBuffer = 0;
-	model = 0;
-	texture = 0;
-	textureArray = 0;
+	//vertexBuffer = 0;
+	//indexBuffer = 0;
+	//model = 0;
+	//texture = 0;
+	//textureArray = 0;
 }
 
 
@@ -119,25 +119,17 @@ void ModelClass::Render(ID3D11DeviceContext* deviceContext)
 
 bool ModelClass::InitializeBuffers(ID3D11Device* device)
 {
-	VertexType* vertices;
-	unsigned long* indices;
+	vector<VertexType> vertices;
+	vector<unsigned long> indices;
 	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA vertexData, indexData;
 	HRESULT result;
 
 	// Create the vertex array.
-	vertices = new VertexType[vertexCount];
-	if(!vertices)
-	{
-		return false;
-	}
+	vertices.resize(vertexCount);
 
 	// Create the index array.
-	indices = new unsigned long[indexCount];
-	if(!indices)
-	{
-		return false;
-	}
+	indices.resize(indexCount);
 
 	// Load the vertex array and index array with data.
 	for(int i=0; i < vertexCount; i++)
@@ -160,12 +152,12 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	vertexBufferDesc.StructureByteStride = 0;
 
 	// Give the sub resource texture a pointer to the vertex data.
-	vertexData.pSysMem = vertices;
+	vertexData.pSysMem = vertices.data();
 	vertexData.SysMemPitch = 0;
 	vertexData.SysMemSlicePitch = 0;
 
 	// Now create the vertex buffer.
-	result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &vertexBuffer);
+	result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &vertexBuffer.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -180,23 +172,23 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	indexBufferDesc.StructureByteStride = 0;
 
 	// Give the sub resource texture a pointer to the index data.
-	indexData.pSysMem = indices;
+	indexData.pSysMem = indices.data();
 	indexData.SysMemPitch = 0;
 	indexData.SysMemSlicePitch = 0;
 
 	// Create the index buffer.
-	result = device->CreateBuffer(&indexBufferDesc, &indexData, &indexBuffer);
+	result = device->CreateBuffer(&indexBufferDesc, &indexData, &indexBuffer.p);
 	if(FAILED(result))
 	{
 		return false;
 	}
 
-	// Release the arrays now that the vertex and index buffers have been created and loaded.
-	delete [] vertices;
-	vertices = 0;
+	//// Release the arrays now that the vertex and index buffers have been created and loaded.
+	//delete [] vertices;
+	//vertices = 0;
 
-	delete [] indices;
-	indices = 0;
+	//delete [] indices;
+	//indices = 0;
 
 	return true;
 }
@@ -204,19 +196,19 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 
 void ModelClass::ShutdownBuffers()
 {
-	// Release the index buffer.
-	if(indexBuffer)
-	{
-		indexBuffer->Release();
-		indexBuffer = 0;
-	}
+	//// Release the index buffer.
+	//if(indexBuffer)
+	//{
+	//	indexBuffer->Release();
+	//	indexBuffer = 0;
+	//}
 
-	// Release the vertex buffer.
-	if(vertexBuffer)
-	{
-		vertexBuffer->Release();
-		vertexBuffer = 0;
-	}
+	//// Release the vertex buffer.
+	//if(vertexBuffer)
+	//{
+	//	vertexBuffer->Release();
+	//	vertexBuffer = 0;
+	//}
 
 	return;
 }
@@ -232,7 +224,7 @@ void ModelClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
 	offset = 0;
 
 	// Set the vertex buffer to active in the input assembler so it can be rendered.
-	deviceContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+	deviceContext->IASetVertexBuffers(0, 1, &vertexBuffer.p, &stride, &offset);
 
 	// Set the index buffer to active in the input assembler so it can be rendered.
 	deviceContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
@@ -247,7 +239,8 @@ bool ModelClass::LoadTexture(ID3D11Device* device, WCHAR* filename)
 {
 	bool result;
 
-	texture = new TextureClass();
+	//Shared ptr with custom deleter.
+	texture = std::shared_ptr<TextureClass>(new TextureClass(), [](TextureClass* ptr){ptr->Shutdown(); } );
 	if(!texture)
 	{
 		return false;
@@ -264,13 +257,13 @@ bool ModelClass::LoadTexture(ID3D11Device* device, WCHAR* filename)
 
 void ModelClass::ReleaseTexture()
 {
-	// Release the texture array object.
-	if(texture)
-	{
-		texture->Shutdown();
-		delete texture;
-		texture = 0;
-	}
+	//// Release the texture array object.
+	//if(texture)
+	//{
+	//	texture->Shutdown();
+	//	delete texture;
+	//	texture = 0;
+	//}
 
 	return;
 }
@@ -279,8 +272,8 @@ bool ModelClass::LoadTextures(ID3D11Device* device, WCHAR* texture, WCHAR* norma
 {
 	bool result;
 
-	// Create the texture array object.
-	textureArray = new TextureArray;
+	//Shared ptr with custom deleter.
+	textureArray = shared_ptr<TextureArray>(new TextureArray, [](TextureArray* ptr){ptr->Shutdown(); } );
 	if(!textureArray)
 	{
 		return false;
@@ -298,13 +291,13 @@ bool ModelClass::LoadTextures(ID3D11Device* device, WCHAR* texture, WCHAR* norma
 
 void ModelClass::ReleaseTextures()
 {
-	// Release the texture array object.
-	if(textureArray)
-	{
-		textureArray->Shutdown();
-		delete textureArray;
-		textureArray = 0;
-	}
+	//// Release the texture array object.
+	//if(textureArray)
+	//{
+	//	textureArray->Shutdown();
+	//	delete textureArray;
+	//	textureArray = 0;
+	//}
 
 	return;
 }
@@ -339,7 +332,7 @@ bool ModelClass::LoadModel(char* filename)
 	indexCount = vertexCount;
 
 	// Create the model using the vertex count that was read in.
-	model = new ModelType[vertexCount];
+	model = unique_ptr<ModelType []>(new ModelType[vertexCount]);
 	if(!model)
 	{
 		return false;
@@ -535,11 +528,11 @@ void ModelClass::CalculateNormal(VectorType tangent, VectorType binormal, Vector
 
 void ModelClass::ReleaseModel()
 {
-	if(model)
-	{
-		delete [] model;
-		model = 0;
-	}
+	//if(model)
+	//{
+	//	delete [] model;
+	//	model = 0;
+	//}
 
 	return;
 }

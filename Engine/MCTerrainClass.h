@@ -13,6 +13,15 @@ class MCTerrainClass
 private:
 
 	//Terrain modes
+	static const unsigned int terrainTypesSeaBottom = 1;
+	static const unsigned int terrainTypePlains = 2;
+	static const unsigned int terrainTypeHills = 3;
+	static const unsigned int terrainTypeTerraces = 4;
+	static const unsigned int terrainTypeDramaticHills = 5;
+	static const unsigned int terrainTypeFlyingIslands = 6;
+	static const unsigned int terrainTypeAlien = 7;
+	static const unsigned int terrainTypeFancy = 8;
+	static const unsigned int terrainTypeCave = 9;
 
 	int sizeX;
 	int sizeY;
@@ -25,27 +34,22 @@ private:
 	int terrainMode;
 	float densityToBeInside;
 	float maxDensity, minDensity, densityRangeUpper,densityRangeLower;
+	float XFactor;
+	float YFactor;
+	float ZFactor;
 
-	bool pulvirize;
+	bool pulverize;
 
 
 	MarchingCubeVertex *marchingCubeVertices;
 	SimplexNoise *noise;
 
 	vector<vector<vector<float>>> densityArray3D;
-	float* densityArray1D;
-
 
 public:
 	MCTerrainClass(void);
 
-	void Initialize
-		(
-		int sizeX,
-		int sizeY,
-		int sizeZ,
-		MarchingCubeVertex *marchingCubeVertices
-		);
+	void Initialize(int sizeX, int sizeY, int sizeZ, MarchingCubeVertex *marchingCubeVertices, SimplexNoise* simplexNoise);
 
 	~MCTerrainClass(void);
 
@@ -59,7 +63,7 @@ public:
 
 	void Noise3D();
 
-	MarchingCubeVertex* &GetMarchingCubeVertices()
+	MarchingCubeVertex* GetMarchingCubeVertices()
 	{
 		return marchingCubeVertices;
 	}
@@ -73,33 +77,28 @@ public:
 	{
 		return densityRangeLower;
 	}
-
-	float* &getDensetyArray1D()
-	{
-		return densityArray1D;
-	}
 	
 	void SetTerrainType(int terrainMode)
 	{
 		this->terrainMode = terrainMode;
 	}
 
-	void PulvirizeWorldToggle()
+	void PulverizeWorldToggle()
 	{
-		if (pulvirize)
-		pulvirize = false;
+		if (pulverize)
+		pulverize = false;
 		else
-		pulvirize = true;
+		pulverize = true;
 	}
 
 	bool GetPulverizeWorld()
 	{
-		return pulvirize;
+		return pulverize;
 	}
 
 	void SetPulverizeWorld(bool pulverize)
 	{
-		this->pulvirize = pulverize;
+		this->pulverize = pulverize;
 	}
 
 	int getTerrainType()

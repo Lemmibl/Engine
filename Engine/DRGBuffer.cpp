@@ -5,13 +5,13 @@
 
 DRGBuffer::DRGBuffer()
 {
-	vertexShader = 0;
-	pixelShader = 0;
-	layout = 0;
-	matrixBuffer = 0;
-	pixelFarZBuffer = 0;
-	samplers[0] = 0;
-	samplers[1] = 0;
+	//vertexShader = 0;
+	//pixelShader = 0;
+	//layout = 0;
+	//matrixBuffer = 0;
+	//pixelFarZBuffer = 0;
+	//samplers[0] = 0;
+	//samplers[1] = 0;
 }
 
 
@@ -69,9 +69,9 @@ bool DRGBuffer::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMAT
 bool DRGBuffer::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename)
 {
 	HRESULT result;
-	ID3D10Blob* errorMessage;
-	ID3D10Blob* vertexShaderBuffer;
-	ID3D10Blob* pixelShaderBuffer;
+	CComPtr<ID3D10Blob> errorMessage;
+	CComPtr<ID3D10Blob> vertexShaderBuffer;
+	CComPtr<ID3D10Blob> pixelShaderBuffer;
 
 	D3D11_INPUT_ELEMENT_DESC polygonLayout[5];
 	unsigned int numElements;
@@ -87,7 +87,7 @@ bool DRGBuffer::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 
 	// Compile the vertex shader code.
 	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "GBufferVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 
-		0, NULL, &vertexShaderBuffer, &errorMessage, NULL);
+		0, NULL, &vertexShaderBuffer, &errorMessage.p, NULL);
 	if(FAILED(result))
 	{
 		// If the shader failed to compile it should have written something to the error message.
@@ -106,7 +106,7 @@ bool DRGBuffer::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 
 	// Compile the pixel shader code.
 	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "GBufferPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 
-		0, NULL, &pixelShaderBuffer, &errorMessage, NULL);
+		0, NULL, &pixelShaderBuffer, &errorMessage.p, NULL);
 	if(FAILED(result))
 	{
 		// If the shader failed to compile it should have written something to the error message.
@@ -192,12 +192,12 @@ bool DRGBuffer::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 		return false;
 	}
 
-	// Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
-	vertexShaderBuffer->Release();
-	vertexShaderBuffer = 0;
+	//// Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
+	//vertexShaderBuffer->Release();
+	//vertexShaderBuffer = 0;
 
-	pixelShaderBuffer->Release();
-	pixelShaderBuffer = 0;
+	//pixelShaderBuffer->Release();
+	//pixelShaderBuffer = 0;
 
 	// Setup the description of the matrix dynamic constant buffer that is in the vertex shader.
 	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
@@ -208,7 +208,7 @@ bool DRGBuffer::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 	matrixBufferDesc.StructureByteStride = 0;
 
 	// Create the matrix constant buffer pointer so we can access the vertex shader constant buffer from within this class.
-	result = device->CreateBuffer(&matrixBufferDesc, NULL, &matrixBuffer);
+	result = device->CreateBuffer(&matrixBufferDesc, NULL, &matrixBuffer.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -223,7 +223,7 @@ bool DRGBuffer::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 	pixelShaderBufferDesc.StructureByteStride = 0;
 
 	// Create the matrix constant buffer pointer so we can access the vertex shader constant buffer from within this class.
-	result = device->CreateBuffer(&pixelShaderBufferDesc, NULL, &pixelFarZBuffer);
+	result = device->CreateBuffer(&pixelShaderBufferDesc, NULL, &pixelFarZBuffer.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -245,7 +245,7 @@ bool DRGBuffer::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
 	// Create the texture sampler state.
-	result = device->CreateSamplerState(&samplerDesc, &samplers[0]);
+	result = device->CreateSamplerState(&samplerDesc, &samplers[0].p);
 	if(FAILED(result))
 	{
 		return false;
@@ -267,7 +267,7 @@ bool DRGBuffer::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
 	// Create the texture sampler state.
-	result = device->CreateSamplerState(&samplerDesc, &samplers[1]);
+	result = device->CreateSamplerState(&samplerDesc, &samplers[1].p);
 	if(FAILED(result))
 	{
 		return false;
@@ -278,53 +278,51 @@ bool DRGBuffer::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 
 void DRGBuffer::ShutdownShader()
 {
+	//// Release the sampler state.
+	//if(samplers[0])
+	//{
+	//	samplers[0]->Release();
+	//	samplers[0] = 0;
+	//}
+	//if(samplers[1])
+	//{
+	//	samplers[1]->Release();
+	//	samplers[1] = 0;
+	//}
 
+	//// Release the matrix constant buffer.
+	//if(matrixBuffer)
+	//{
+	//	matrixBuffer->Release();
+	//	matrixBuffer = 0;
+	//}
 
-	// Release the sampler state.
-	if(samplers[0])
-	{
-		samplers[0]->Release();
-		samplers[0] = 0;
-	}
-	if(samplers[1])
-	{
-		samplers[1]->Release();
-		samplers[1] = 0;
-	}
+	//if(pixelFarZBuffer)
+	//{
+	//	pixelFarZBuffer->Release();
+	//	pixelFarZBuffer = 0;
+	//}
 
-	// Release the matrix constant buffer.
-	if(matrixBuffer)
-	{
-		matrixBuffer->Release();
-		matrixBuffer = 0;
-	}
+	//// Release the layout.
+	//if(layout)
+	//{
+	//	layout->Release();
+	//	layout = 0;
+	//}
 
-	if(pixelFarZBuffer)
-	{
-		pixelFarZBuffer->Release();
-		pixelFarZBuffer = 0;
-	}
+	//// Release the pixel shader.
+	//if(pixelShader)
+	//{
+	//	pixelShader->Release();
+	//	pixelShader = 0;
+	//}
 
-	// Release the layout.
-	if(layout)
-	{
-		layout->Release();
-		layout = 0;
-	}
-
-	// Release the pixel shader.
-	if(pixelShader)
-	{
-		pixelShader->Release();
-		pixelShader = 0;
-	}
-
-	// Release the vertex shader.
-	if(vertexShader)
-	{
-		vertexShader->Release();
-		vertexShader = 0;
-	}
+	//// Release the vertex shader.
+	//if(vertexShader)
+	//{
+	//	vertexShader->Release();
+	//	vertexShader = 0;
+	//}
 
 	return;
 }
@@ -395,7 +393,7 @@ bool DRGBuffer::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX
 	bufferNumber = 0;
 
 	// Now set the matrix constant buffer in the vertex shader with the updated values.
-	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &matrixBuffer);
+	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &matrixBuffer.p);
 
 	// Lock the light constant buffer so it can be written to.
 	result = deviceContext->Map(pixelFarZBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -416,7 +414,7 @@ bool DRGBuffer::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX
 	bufferNumber = 0;
 
 	// Finally set the light constant buffer in the pixel shader with the updated values.
-	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &pixelFarZBuffer);
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &pixelFarZBuffer.p);
 
 	// Set shader texture array resource in the pixel shader.
 	deviceContext->PSSetShaderResources(0, 3, textureArray);
@@ -434,7 +432,8 @@ void DRGBuffer::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
 	deviceContext->PSSetShader(pixelShader, NULL, 0);
 
 	// Set the sampler state in the pixel shader.
-	deviceContext->PSSetSamplers(0, 2, samplers);
+	deviceContext->PSSetSamplers(0, 1, &samplers[0].p);
+	deviceContext->PSSetSamplers(1, 1, &samplers[1].p);
 
 	// Render the triangles.
 	deviceContext->DrawIndexed(indexCount, 0, 0);

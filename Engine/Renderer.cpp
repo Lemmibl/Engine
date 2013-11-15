@@ -3,34 +3,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "Renderer.h"
 
-/*
-THE LINK DUNGEON
-
-Geometry shader quads:
-http://www.braynzarsoft.net/index.php?p=D3D11BILLBOARDS
-http://rastergrid.com/blog/2010/02/instance-culling-using-geometry-shaders/
-
-Linear depth:
-http://www.gamerendering.com/2008/09/28/linear-depth-texture/
-http://mynameismjp.wordpress.com/2010/09/05/position-from-depth-3/
-
-Inför cleana upp kod:
-http://gamedev.stackexchange.com/questions/24615/managing-shaders-and-objects-in-directx-11
-https://graphics.stanford.edu/wikis/cs448s-11/FrontPage?action=AttachFile&do=get&target=05-GPU_Arch_I.pdf
-
-
-Directional light lens flare:
-http://www.madgamedev.com/post/2010/04/21/Article-Sun-and-Lens-Flare-as-a-Post-Process.aspx
-http://stackoverflow.com/questions/14161727/hlsl-drawing-a-centered-circle
-if cross product (cameraDirection, lightDirection) == 0 then they're both facing the same way? I think.
-
-Multithreading:
-http://gamedev.stackexchange.com/questions/2116/multi-threaded-game-engine-design-resources
-http://www.gamasutra.com/view/feature/1830/multithreaded_game_engine_.php
-http://www.gamasutra.com/view/feature/2463/threading_3d_game_engine_basics.php
-http://bitsquid.blogspot.se/2010/03/task-management-practical-example.html
-*/
-
 Renderer::Renderer()
 {
 	d3D = 0;
@@ -38,7 +10,6 @@ Renderer::Renderer()
 	text = 0;
 
 	frustum = 0;
-	gbufferShader = 0;
 	textureShader = 0;
 	pointLightShader = 0;
 
@@ -69,9 +40,6 @@ Renderer::Renderer()
 	utility = 0;
 	textureAndMaterialHandler = 0;
 
-	lSystemSRV = 0;
-	ssaoRandomTextureSRV = 0;
-
 	timeOfDay = 0.0f;
 	timer = 10.0f;
 	lodState = 0;
@@ -90,7 +58,6 @@ Renderer::Renderer(const Renderer& other)
 
 Renderer::~Renderer()
 {
-	noise->~SimplexNoise();
 	delete noise;
 	noise = 0;
 }
@@ -121,12 +88,6 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 
 	XMStoreFloat4x4(&baseViewMatrix, camera->GetView());
 
-	result = InitializeShaders(hwnd);
-	if(!result)
-	{
-		return false;
-	}
-
 	result = InitializeLights(hwnd);
 	if(!result)
 	{
@@ -145,6 +106,12 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 		return false;
 	}
 
+	result = InitializeShaders(hwnd);
+	if(!result)
+	{
+		return false;
+	}
+
 	return true;
 }
 
@@ -152,16 +119,15 @@ bool Renderer::InitializeShaders( HWND hwnd )
 {
 	bool result;
 
-	gbufferShader = new DRGBuffer();
-	if(!gbufferShader)
+	skySphere = new Skysphere();
+	if(!skySphere)
 	{
 		return false;
 	}
 
-	result = gbufferShader->Initialize(d3D->GetDevice(), hwnd);
+	result = skySphere->Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
-		MessageBox(hwnd, L"GBuffer shader couldn't be initialized.", L"Error", MB_OK);
 		return false;
 	}
 
@@ -342,7 +308,7 @@ bool Renderer::InitializeLights( HWND hwnd )
 
 	// Initialize the directional light.
 	dirLight->Color = XMFLOAT4(0.6f, 0.4f, 0.4f, 1.0f);
-	dirLight->Intensity = 1.0f;
+	dirLight->Intensity = 1.5f;
 	dirLight->Position = XMFLOAT3(150.0f, 0.0f, 0.0f);
 
 	XMVECTOR direction = XMVector3Normalize(lookAt - XMLoadFloat3(&dirLight->Position));
@@ -360,28 +326,20 @@ bool Renderer::InitializeModels( HWND hwnd )
 {
 	bool result;
 
+	noise = new SimplexNoise();
+	if(!noise)
+	{
+		return false;
+	}
+
 	metaBalls = new MetaballsClass();
-	marchingCubes = new MarchingCubesClass(0.0f, 0.0f, 0.0f, 180.0f, 180.0f, 180.0f, 1.0f, 1.0f, 1.0f);
+	marchingCubes = new MarchingCubesClass(XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(180.0f, 180.0f, 180.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), noise);
 	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
 	marchingCubes->GetTerrain()->SetTerrainType(7);
-	//marchingCubes->Reset();
-	marchingCubes->GetTerrain()->Noise3D();
 	marchingCubes->CalculateMesh(d3D->GetDevice());
 
 	lSystem = new LSystemClass();
 	lSystem->initialize();
-
-	skySphere = new Skysphere();
-	if(!skySphere)
-	{
-		return false;
-	}
-
-	result = skySphere->Initialize(d3D->GetDevice(), hwnd);
-	if(!result)
-	{
-		return false;
-	}
 
 	vegetationManager = new VegetationManager();
 	if(!vegetationManager)
@@ -425,24 +383,8 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 		return false;
 	}
 
-	result = textureAndMaterialHandler->Initialize(d3D->GetDevice(), d3D->GetDeviceContext());
+	result = textureAndMaterialHandler->Initialize(d3D->GetDevice(), d3D->GetDeviceContext(), noise, utility);
 	if(!result)
-	{
-		return false;
-	}
-
-	noise = new SimplexNoise();
-	if(!noise)
-	{
-		return false;
-	}
-
-	if(FAILED(textureAndMaterialHandler->CreateSimplex2DTexture(d3D->GetDevice(), d3D->GetDeviceContext(), noise, &lSystemSRV)))
-	{
-		return false;
-	}
-
-	if(FAILED(textureAndMaterialHandler->CreateRandom2DTexture(d3D->GetDevice(), d3D->GetDeviceContext(), &ssaoRandomTextureSRV)))
 	{
 		return false;
 	}
@@ -453,26 +395,18 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 		return false;
 	}
 
-	result = dayNightCycle->Initialize(1000.0f, DAY); //86400.0f/6
+	result = dayNightCycle->Initialize(500.0f, DAY); //86400.0f/6 <-- This is realistic day/night cycle. 86400 seconds in a day.
 	if(!result)
 	{
 		return false;
 	}
 
-	dayNightCycle->Update(50.0f, dirLight, skySphere);
+	//dayNightCycle->Update(50.0f, dirLight, skySphere);
 
 	// Create the text object.
-	text = new TextClass();
+	text = new TextClass(d3D->GetDevice(), d3D->GetDeviceContext(), hwnd, screenWidth, screenHeight);
 	if(!text)
 	{
-		return false;
-	}
-
-	// Initialize the text object.
-	result = text->Initialize(d3D->GetDevice(), d3D->GetDeviceContext(), hwnd, screenWidth, screenHeight);
-	if(!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the text object. Look in graphicsclass.", L"Error", MB_OK);
 		return false;
 	}
 
@@ -575,27 +509,17 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 
 	if(inputManager->WasKeyPressed(DIK_U))
 	{
-		if(FAILED(textureAndMaterialHandler->CreateRandom2DTexture(d3D->GetDevice(), d3D->GetDeviceContext(), &ssaoRandomTextureSRV)))
-		{
-			return false;
-		}
+		textureAndMaterialHandler->RebuildRandom2DTexture(d3D->GetDevice(), d3D->GetDeviceContext());
 	}
 
 	if(inputManager->WasKeyPressed(DIK_I))
 	{
-		if(FAILED(textureAndMaterialHandler->CreateMirroredSimplex2DTexture(d3D->GetDevice(), d3D->GetDeviceContext(), noise, &lSystemSRV)))
-		{
-			return false;
-		}
+		textureAndMaterialHandler->RebuildMirroredSimplex2DTexture(d3D->GetDevice(), d3D->GetDeviceContext());
 	}
 
 	if(inputManager->WasKeyPressed(DIK_O))
 	{
-		if(FAILED(textureAndMaterialHandler->CreateSimplex2DTexture(d3D->GetDevice(), d3D->GetDeviceContext(), noise, &lSystemSRV)))
-		{
-			return false;
-		}
-
+		textureAndMaterialHandler->RebuildSimplex2DTexture(d3D->GetDevice(), d3D->GetDeviceContext());
 	}
 
 	if(inputManager->WasKeyPressed(DIK_P))
@@ -614,13 +538,15 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 		string temp = stringStream.str();
 		fileName = (temp).c_str();
 
+		//Yes! Very elegant solution. :|
+		textureAndMaterialHandler->SaveTextureToFile(d3D->GetDeviceContext(), *textureAndMaterialHandler->GetDirtTexture(), D3DX11_IFF_BMP, fileName);
 
-		//Call save-to-hdd function. If it returns false we break the update loop and the game dies hard.
-		if(!textureAndMaterialHandler->SaveLTreeTextureToFile(d3D->GetDeviceContext(), D3DX11_IFF_BMP, fileName))
-		{
-			MessageBox(NULL, L"Could not save random texture to hdd. Look in textureAndMaterialHandler.SaveLTreeTextureToFile()", L"Error", MB_OK);
-			return false;
-		}
+		////Call save-to-hdd function. If it returns false we break the update loop and the game dies hard.
+		//if(!textureAndMaterialHandler->SaveLTreeTextureToFile(d3D->GetDeviceContext(), D3DX11_IFF_BMP, fileName))
+		//{
+		//	MessageBox(NULL, L"Could not save random texture to hdd. Look in textureAndMaterialHandler.SaveLTreeTextureToFile()", L"Error", MB_OK);
+		//	return false;
+		//}
 	}
 
 	if(inputManager->IsKeyPressed(DIK_1))
@@ -673,52 +599,52 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 		}
 	}
 
-	if(inputManager->WasKeyPressed(DIK_NUMPAD0))
+	if(inputManager->WasKeyPressed(DIK_NUMPAD0) || inputManager->WasKeyPressed(DIK_0))
 	{
-		marchingCubes->GetTerrain()->PulvirizeWorldToggle();
+		marchingCubes->GetTerrain()->PulverizeWorldToggle();
 	}
 
-	if(inputManager->WasKeyPressed(DIK_NUMPAD1))
+	if(inputManager->WasKeyPressed(DIK_NUMPAD1) || inputManager->WasKeyPressed(DIK_F1))
 	{
 		marchingCubes->GetTerrain()->SetTerrainType(1);
 	}
 
-	if(inputManager->WasKeyPressed(DIK_NUMPAD2))
+	if(inputManager->WasKeyPressed(DIK_NUMPAD2) || inputManager->WasKeyPressed(DIK_F2))
 	{
 		marchingCubes->GetTerrain()->SetTerrainType(2);
 	}
 
-	if(inputManager->WasKeyPressed(DIK_NUMPAD3))
+	if(inputManager->WasKeyPressed(DIK_NUMPAD3) || inputManager->WasKeyPressed(DIK_F3))
 	{
 		marchingCubes->GetTerrain()->SetTerrainType(3);
 	}
 
-	if(inputManager->WasKeyPressed(DIK_NUMPAD4))
+	if(inputManager->WasKeyPressed(DIK_NUMPAD4) || inputManager->WasKeyPressed(DIK_F4))
 	{
 		marchingCubes->GetTerrain()->SetTerrainType(4);
 	}
 
-	if(inputManager->WasKeyPressed(DIK_NUMPAD5))
+	if(inputManager->WasKeyPressed(DIK_NUMPAD5) || inputManager->WasKeyPressed(DIK_F5))
 	{
 		marchingCubes->GetTerrain()->SetTerrainType(5);
 	}
 
-	if(inputManager->WasKeyPressed(DIK_NUMPAD6))
+	if(inputManager->WasKeyPressed(DIK_NUMPAD6) || inputManager->WasKeyPressed(DIK_F6))
 	{
 		marchingCubes->GetTerrain()->SetTerrainType(6);
 	}
 
-	if(inputManager->WasKeyPressed(DIK_NUMPAD7))
+	if(inputManager->WasKeyPressed(DIK_NUMPAD7) || inputManager->WasKeyPressed(DIK_F7))
 	{
 		marchingCubes->GetTerrain()->SetTerrainType(7);
 	}
 
-	if(inputManager->WasKeyPressed(DIK_NUMPAD8))
+	if(inputManager->WasKeyPressed(DIK_NUMPAD8) || inputManager->WasKeyPressed(DIK_F8))
 	{
 		marchingCubes->GetTerrain()->SetTerrainType(8);
 	}
 
-	if(inputManager->WasKeyPressed(DIK_NUMPAD9))
+	if(inputManager->WasKeyPressed(DIK_NUMPAD9) || inputManager->WasKeyPressed(DIK_F9))
 	{
 		marchingCubes->GetTerrain()->SetTerrainType(9);
 	}
@@ -728,7 +654,7 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 	//Distance between camera and middle of mcube chunk. We'll have to do this for each chunk, and keep an individual lodState for each chunk.
 	if(timer >= 0.2f)
 	{
-		int distance = (int)utility->VectorDistance(camera->GetPosition(), XMFLOAT3(30.0f, 40.0f, 30.0f));
+		int distance = (int)utility->VectorDistance(camera->GetPosition(), XMFLOAT3(90.0f, 40.0f, 90.0f));
 
 		//if(distance <= 100)
 		//{
@@ -750,31 +676,6 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 
 		timer = 0.0f;
 	}
-
-	//If the lod state has changed since last update, switch and rebuild vegetation instance buffers
-	if(lodState != previousLodState)
-	{
-		switch (lodState)
-		{
-		case 0:
-			vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector500);
-			break;
-
-		case 1:
-			vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector2500);
-			break;
-
-		case 2:
-			vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector5000);
-			break;
-
-		case 3:
-			vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector10000);
-			break;
-		}
-	}
-
-
 #pragma endregion
 
 #pragma region Generate new marching cubes world
@@ -783,28 +684,32 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 		previousLodState = 0; //We set previous lod state to something != lodState so that it'll trigger an instancebuffer rebuild
 		lodState = 3;
 
-		marchingCubes->Reset();
-		marchingCubes->GetTerrain()->Noise3D();
+		marchingCubes->Reset(noise);
 		marchingCubes->CalculateMesh(d3D->GetDevice());
 
 		GenerateVegetation(d3D->GetDevice(), false);
+	}
 
+	//If the lod state has changed since last update, switch and rebuild vegetation instance buffers
+	if(lodState != previousLodState)
+	{
 		switch (lodState)
 		{
 		case 0:
-			vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector500);
+			assert(vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector500));
 			break;
 
 		case 1:
-			vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector2500);
+			assert(vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector2500));
 			break;
 
 		case 2:
-			vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector5000);
+			assert(vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector5000));
 			break;
 
 		case 3:
-			vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector10000);
+			assert(vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector10000));
+			break;
 		}
 	}
 #pragma endregion
@@ -830,18 +735,18 @@ void Renderer::GenerateVegetation( ID3D11Device* device, bool IfSetupThenTrue_If
 	int textureID, randValue;
 
 	LODVector500.clear();
-	LODVector500.reserve(500);
+	//LODVector500.reserve(500);
 	LODVector2500.clear();
-	LODVector2500.reserve(2500);
+	//LODVector2500.reserve(2500);
 	LODVector5000.clear();
-	LODVector5000.reserve(5000);
+	//LODVector5000.reserve(5000);
 	LODVector10000.clear();
-	LODVector10000.reserve(10000);
+	//LODVector10000.reserve(70000);
 
 	for(int i = 0; i < 70000; i++)
 	{
-		x = (2.0f + (utility->RandomFloat() * 176.0f));
-		z = (2.0f + (utility->RandomFloat() * 176.0f));
+		x = (2.0f + (utility->RandomFloat() * marchingCubes->GetSizeX()-2.0f));
+		z = (2.0f + (utility->RandomFloat() * marchingCubes->GetSizeZ()-2.0f));
 
 		//Extract highest Y at this point
 		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate((int)x, (int)z);
@@ -849,7 +754,7 @@ void Renderer::GenerateVegetation( ID3D11Device* device, bool IfSetupThenTrue_If
 		randValue = rand()%100;
 
 		//No vegetation below Y:30
-		if(y <= 30.0f)
+		if(y <= 20.0f)
 		{
 			continue;
 		}
@@ -862,7 +767,9 @@ void Renderer::GenerateVegetation( ID3D11Device* device, bool IfSetupThenTrue_If
 				textureID = 0;
 
 				//Place texture ID in .w channel
-				XMFLOAT4 temp = XMFLOAT4(x, y, z, (float)textureID);
+				VegetationManager::InstanceType temp;
+				temp.position = XMFLOAT4(x, y, z, (float)textureID);
+				temp.randomValue = (utility->RandomFloat()*(XM_PI*2.0f));
 
 				//We use i to control how many should be added to each LOD vector
 				if(i <= 500)
@@ -902,8 +809,11 @@ void Renderer::GenerateVegetation( ID3D11Device* device, bool IfSetupThenTrue_If
 				textureID = 3; //Flower.
 			}
 
+			VegetationManager::InstanceType temp;
+
 			//Place texture ID in .w channel
-			XMFLOAT4 temp = XMFLOAT4(x, y, z, (float)textureID);
+			temp.position = XMFLOAT4(x, y, z, (float)textureID);
+			temp.randomValue = (utility->RandomFloat()*XM_PI);
 
 			//We use i to control how many should be added to each LOD vector
 			if(i <= 500)
@@ -927,7 +837,7 @@ void Renderer::GenerateVegetation( ID3D11Device* device, bool IfSetupThenTrue_If
 
 	if(IfSetupThenTrue_IfUpdateThenFalse)
 	{
-		vegetationManager->SetupQuads(d3D->GetDevice(), &LODVector500);
+		vegetationManager->SetupQuads(d3D->GetDevice(), &LODVector10000);
 	}
 	else
 	{
@@ -1057,7 +967,7 @@ bool Renderer::Render(HWND hwnd)
 	assert(RenderShadowmap(deviceContext, &lightWorldViewProj, &lightWorldView));
 	assert(RenderTwoPassGaussianBlur(deviceContext, &worldBaseViewOrthoProj));
 	assert(RenderGBuffer(deviceContext, &viewMatrix, &projectionMatrix, &identityWorldViewProj));
-	
+
 	assert(RenderPointLight(deviceContext, &viewMatrix, &invertedView, &viewProjection));
 	assert(RenderDirectionalLight(deviceContext, &viewMatrix, &worldBaseViewOrthoProj, &lightView, &lightProj, &invertedProjection));
 
@@ -1088,8 +998,8 @@ bool Renderer::RenderShadowmap( ID3D11DeviceContext* deviceContext, XMMATRIX* li
 	}
 
 	//Uncomment to enable vegetation quad shadows
-	 //Just doesn't look good right now. Will have to wait for cascaded shadowmaps or something similar before this is even worth it.
-	 /*********************************************************************************************/
+	//Just doesn't look good right now. Will have to wait for cascaded shadowmaps or something similar before this is even worth it.
+	/*********************************************************************************************/
 
 	//d3D->TurnOnShadowBlendState();
 	//vegetationManager->RenderBuffers(deviceContext);
@@ -1180,7 +1090,7 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 	}
 
 	if(!mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), &worldMatrix, &worldView, 
-		identityWorldViewProj, textureAndMaterialHandler->GetTerrainTextureArray(), toggleColorMode))
+		identityWorldViewProj, textureAndMaterialHandler->GetTerrainTextureArray(), textureAndMaterialHandler->GetMaterialLookupTexture(), toggleColorMode, screenFar))
 	{
 		return false;
 	}
@@ -1242,7 +1152,7 @@ bool Renderer::RenderPointLight( ID3D11DeviceContext* deviceContext, XMMATRIX* v
 			{
 				return false;
 			}
-		 
+
 			//if(!textureShader->Render(deviceContext, sphereModel->GetIndexCount(), &worldViewProj, sphereModel->GetTexture()))
 			//{
 			//	return false;
@@ -1304,7 +1214,7 @@ bool Renderer::RenderComposedScene(ID3D11DeviceContext* deviceContext, XMMATRIX*
 	fullScreenQuad.Render(deviceContext, 0, 0);
 
 	composeShader->Render(deviceContext, fullScreenQuad.GetIndexCount(), worldBaseViewOrthoProj, worldView, view, invertedProjection, 
-		invertedViewProjection, &dayNightCycle->GetAmbientLightColor(), fogMinimum, finalTextures, ssaoRandomTextureSRV, toggleSSAO);
+		invertedViewProjection, &dayNightCycle->GetAmbientLightColor(), fogMinimum, finalTextures, *textureAndMaterialHandler->GetSSAORandomTexture(), toggleSSAO);
 
 	return true;
 }
@@ -1365,7 +1275,7 @@ bool Renderer::RenderDebugInfoAndText(ID3D11DeviceContext* deviceContext, XMMATR
 		}
 
 		if(!textureShader->Render(d3D->GetDeviceContext(), debugWindows[5].GetIndexCount(), 
-			worldBaseViewOrthoProj, lSystemSRV))
+			worldBaseViewOrthoProj, *textureAndMaterialHandler->GetNoiseTexture()))
 		{
 			return false;
 		}
@@ -1415,13 +1325,6 @@ void Renderer::Shutdown()
 	{
 		delete textureAndMaterialHandler;
 		textureAndMaterialHandler = 0;
-	}
-
-	if(gbufferShader)
-	{
-		gbufferShader->Shutdown();
-		delete gbufferShader;
-		gbufferShader = 0;
 	}
 
 	if(textureShader)
@@ -1552,18 +1455,6 @@ void Renderer::Shutdown()
 	{
 		delete dayNightCycle;
 		dayNightCycle = 0;
-	}
-
-	if(lSystemSRV)
-	{
-		lSystemSRV->Release();
-		lSystemSRV = 0;
-	}
-
-	if(ssaoRandomTextureSRV)
-	{
-		ssaoRandomTextureSRV->Release();
-		ssaoRandomTextureSRV = 0;
 	}
 
 	if(noise)

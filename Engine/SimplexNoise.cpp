@@ -36,22 +36,14 @@ static Grads grad3 [] =
 
 SimplexNoise::SimplexNoise()
 {
-	for(int i=0; i<256; i++)
-	{
-		p[i] = 1 + (rand() % 10);
-	}
-
-	for(int i=0; i<512; i++)
-	{
-		perm[i] = p[i & 255];
-	}
+	ReseedRandom();
 }
 
 void SimplexNoise::ReseedRandom()
 {
 	for(int i=0; i<256; i++)
 	{
-		p[i] = 1 + (rand() % 10);
+		p[i] = 1 + (rand() % 255);
 	}
 
 	for(int i=0; i<512; i++)
@@ -147,8 +139,6 @@ float SimplexNoise::noise2D(float xin, float yin)
 
 float SimplexNoise::noise3D2(float xin, float yin, float zin) 
 {
-	//for(int i=0; i<512; i++) perm[i]=p[i & 255]; //Remove this comment to slow down code by a margin of 6-7x.
-
 	float n0, n1, n2, n3; // Noise contributions from the four corners
 
 	// Skew the input space to determine which simplex cell we're in

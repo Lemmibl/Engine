@@ -1,9 +1,4 @@
-///////////////////////////////////////////////////////////////////////////////
-// Filename: modellistclass.h
-///////////////////////////////////////////////////////////////////////////////
-#ifndef _MODELLISTCLASS_H_
-#define _MODELLISTCLASS_H_
-
+#pragma once
 
 //////////////
 // INCLUDES //
@@ -12,7 +7,7 @@
 #include <xnamath.h>
 #include <stdlib.h>
 #include <time.h>
-
+#include <memory>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Class name: ModelListClass
@@ -39,7 +34,5 @@ public:
 
 private:
 	int modelCount;
-	ModelInfoType* modelInfoList;
+	std::unique_ptr<ModelInfoType []> modelInfoList;
 };
-
-#endif

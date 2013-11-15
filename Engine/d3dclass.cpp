@@ -41,56 +41,56 @@ void D3DClass::GetVideoCardInfo(char* cardName, int& memory)
 
 ID3D11DepthStencilView* D3DClass::GetDepthStencilView()
 {
-	deviceContext->OMSetDepthStencilState(depthStencilState, 1);
+	deviceContext->OMSetDepthStencilState(depthStencilState.p, 1);
 	return depthStencilView;
 }
 
 ID3D11DepthStencilView* D3DClass::GetShadowmapDSV()
 {
-	return shadowmapDSV;
+	return shadowmapDSV.p;
 }
 
 ID3D11ShaderResourceView* D3DClass::GetShadowmapSRV()
 {
-	return shadowmapResourceView;
+	return shadowmapResourceView.p;
 }
 
 ID3D11RenderTargetView* D3DClass::GetBackBuffer()
 {
-	return renderTargetView;
+	return renderTargetView.p;
 }
 #pragma endregion
 
 D3DClass::D3DClass()
 {
-	swapChain = 0;
-	device = 0;
-	deviceContext = 0;
-	renderTargetView = 0;
-	depthStencilBuffer = 0;
-	depthStencilState = 0;
-	depthStencilView = 0;
-	rasterState = 0;
-	backfaceCullingCW = 0;
-	frontfaceCullingCW = 0;
+	//swapChain = 0;
+	//device = 0;
+	//deviceContext = 0;
+	//renderTargetView = 0;
+	//depthStencilBuffer = 0;
+	//depthStencilState = 0;
+	//depthStencilView = 0;
+	//rasterState = 0;
+	//backfaceCullingCW = 0;
+	//frontfaceCullingCW = 0;
 
-	depthDisabledStencilState = 0;
-	lightDepthStencilState = 0;
-	pointLightStencilMethod1State1 = 0;
-	pointLightStencilMethod1State2 = 0;
+	//depthDisabledStencilState = 0;
+	//lightDepthStencilState = 0;
+	//pointLightStencilMethod1State1 = 0;
+	//pointLightStencilMethod1State2 = 0;
 
-	pointLightStencilMethod2State1 = 0;
-	pointLightStencilMethod2State2 = 0;
+	//pointLightStencilMethod2State1 = 0;
+	//pointLightStencilMethod2State2 = 0;
 
-	shadowmapDSV = 0;
-	shadowmapTexture = 0;
-	shadowmapResourceView = 0;
+	//shadowmapDSV = 0;
+	//shadowmapTexture = 0;
+	//shadowmapResourceView = 0;
 
-	alphaEnableBlendingState = 0;
-	alphaDisableBlendingState = 0;
-	lightAddBlendState = 0;
-	colorDisabledBlendState = 0;
-	previousBlendState = 0;
+	//alphaEnableBlendingState = 0;
+	//alphaDisableBlendingState = 0;
+	//lightAddBlendState = 0;
+	//colorDisabledBlendState = 0;
+	//previousBlendState = 0;
 }
 
 D3DClass::D3DClass(const D3DClass& other)
@@ -276,7 +276,7 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 
 	// Create the swap chain, Direct3D device, and Direct3D device context.
 	result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, NULL, &featureLevel, 1, 
-		D3D11_SDK_VERSION, &swapChainDesc, &swapChain, &device, NULL, &deviceContext);
+		D3D11_SDK_VERSION, &swapChainDesc, &swapChain.p, &device.p, NULL, &deviceContext.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -290,7 +290,7 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 	}
 
 	// Create the render target view with the back buffer pointer.
-	result = device->CreateRenderTargetView(backBufferPtr, NULL, &renderTargetView);
+	result = device->CreateRenderTargetView(backBufferPtr, NULL, &renderTargetView.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -343,7 +343,7 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 	depthBufferDesc.MiscFlags = 0;
 
 	// Create the texture for the depth buffer using the filled out description.
-	result = device->CreateTexture2D(&depthBufferDesc, NULL, &depthStencilBuffer);
+	result = device->CreateTexture2D(&depthBufferDesc, NULL, &depthStencilBuffer.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -372,7 +372,7 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 	depthDisabledStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
 	// Create the state using the device.
-	result = device->CreateDepthStencilState(&depthDisabledStencilDesc, &depthDisabledStencilState);
+	result = device->CreateDepthStencilState(&depthDisabledStencilDesc, &depthDisabledStencilState.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -403,14 +403,14 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 	depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
 	// Create the depth stencil state.
-	result = device->CreateDepthStencilState(&depthStencilDesc, &depthStencilState);
+	result = device->CreateDepthStencilState(&depthStencilDesc, &depthStencilState.p);
 	if(FAILED(result))
 	{
 		return false;
 	}
 
 	// Set the depth stencil state.
-	deviceContext->OMSetDepthStencilState(depthStencilState, 1);
+	deviceContext->OMSetDepthStencilState(depthStencilState.p, 1);
 
 	// Initialize the depth stencil view.
 	ZeroMemory(&depthStencilViewDesc, sizeof(depthStencilViewDesc));
@@ -421,14 +421,14 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 	depthStencilViewDesc.Texture2D.MipSlice = 0;
 
 	// Create the depth stencil view.
-	result = device->CreateDepthStencilView(depthStencilBuffer, &depthStencilViewDesc, &depthStencilView);
+	result = device->CreateDepthStencilView(depthStencilBuffer.p, &depthStencilViewDesc, &depthStencilView.p);
 	if(FAILED(result))
 	{
 		return false;
 	}
 
 	// Bind the render target view and depth stencil buffer to the output render pipeline.
-	deviceContext->OMSetRenderTargets(1, &renderTargetView, depthStencilView);
+	deviceContext->OMSetRenderTargets(1, &renderTargetView.p, depthStencilView.p);
 
 	// Initialize the description of the stencil state.
 	ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
@@ -454,7 +454,7 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 	depthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_DECR;
 	depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
-	result = device->CreateDepthStencilState(&depthStencilDesc, &lightDepthStencilState);
+	result = device->CreateDepthStencilState(&depthStencilDesc, &lightDepthStencilState.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -496,7 +496,7 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 	depthstencil_desc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
 	depthstencil_desc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
 
-	result = device->CreateDepthStencilState(&depthstencil_desc, &pointLightStencilMethod1State1);
+	result = device->CreateDepthStencilState(&depthstencil_desc, &pointLightStencilMethod1State1.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -534,7 +534,7 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 	depthstencil_desc.BackFace.StencilPassOp = D3D11_STENCIL_OP_ZERO;
 	depthstencil_desc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
 
-	result = device->CreateDepthStencilState(&depthstencil_desc, &pointLightStencilMethod1State2);
+	result = device->CreateDepthStencilState(&depthstencil_desc, &pointLightStencilMethod1State2.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -571,7 +571,7 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 	depthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
 	depthStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
 
-	result = device->CreateDepthStencilState(&depthStencilDesc, &pointLightStencilMethod2State1);
+	result = device->CreateDepthStencilState(&depthStencilDesc, &pointLightStencilMethod2State1.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -606,7 +606,7 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 	depthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_ZERO;
 	depthStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
 
-	result = device->CreateDepthStencilState(&depthStencilDesc, &pointLightStencilMethod2State2);
+	result = device->CreateDepthStencilState(&depthStencilDesc, &pointLightStencilMethod2State2.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -628,7 +628,7 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 	rasterDesc.SlopeScaledDepthBias = 0.0f;
 
 	// Create the rasterizer state from the description we just filled out.
-	result = device->CreateRasterizerState(&rasterDesc, &rasterState);
+	result = device->CreateRasterizerState(&rasterDesc, &rasterState.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -651,7 +651,7 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 	rasterDesc.SlopeScaledDepthBias = 0;
 
 	// Create the rasterizer state from the description we just filled out.
-	result = device->CreateRasterizerState(&rasterDesc, &backfaceCullingCW);
+	result = device->CreateRasterizerState(&rasterDesc, &backfaceCullingCW.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -671,7 +671,7 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 	rasterDesc.SlopeScaledDepthBias = 0.0f;
 
 	// Create the rasterizer state from the description we just filled out.
-	result = device->CreateRasterizerState(&rasterDesc, &frontfaceCullingCW);
+	result = device->CreateRasterizerState(&rasterDesc, &frontfaceCullingCW.p);
 	if(FAILED(result))
 	{
 		return false;	
@@ -691,7 +691,7 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 	rasterDesc.SlopeScaledDepthBias = 0;
 
 	// Create the rasterizer state from the description we just filled out.
-	result = device->CreateRasterizerState(&rasterDesc, &noCullingCW);
+	result = device->CreateRasterizerState(&rasterDesc, &noCullingCW.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -715,7 +715,7 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 	blendStateDescription.AlphaToCoverageEnable = true;
 
 	// Create the blend state using the description.
-	result = device->CreateBlendState(&blendStateDescription, &alphaEnableBlendingState); //Enable
+	result = device->CreateBlendState(&blendStateDescription, &alphaEnableBlendingState.p); //Enable
 	if(FAILED(result))
 	{
 		return false;
@@ -726,7 +726,7 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 	blendStateDescription.AlphaToCoverageEnable = false;
 
 	// Create the blend state using the description.
-	result = device->CreateBlendState(&blendStateDescription, &alphaDisableBlendingState); //Disable
+	result = device->CreateBlendState(&blendStateDescription, &alphaDisableBlendingState.p); //Disable
 	if(FAILED(result))
 	{
 		return false;
@@ -746,7 +746,7 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 	blendStateDescription.AlphaToCoverageEnable = true;
 
 	// Create the blend state using the description.
-	result = device->CreateBlendState(&blendStateDescription, &shadowBlendState); //Enable
+	result = device->CreateBlendState(&blendStateDescription, &shadowBlendState.p); //Enable
 	if(FAILED(result))
 	{
 		return false;
@@ -768,7 +768,7 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 	}
 
 	// Create the blend state using the description.
-	result = device->CreateBlendState(&blendStateDescription, &lightAddBlendState); //Additive blend state for light mapping
+	result = device->CreateBlendState(&blendStateDescription, &lightAddBlendState.p); //Additive blend state for light mapping
 	if(FAILED(result))
 	{
 		return false;
@@ -790,7 +790,7 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 
 
 	// Create the blend state using the description.
-	result = device->CreateBlendState(&blendStateDescription, &colorDisabledBlendState); //Color disabled state for pointlight phase
+	result = device->CreateBlendState(&blendStateDescription, &colorDisabledBlendState.p); //Color disabled state for pointlight phase
 	if(FAILED(result))
 	{
 		return false;
@@ -816,7 +816,7 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 	texDesc.MiscFlags = 0;
 
 	//create texture and depth/resource views
-	result = device->CreateTexture2D(&texDesc, NULL, &shadowmapTexture);
+	result = device->CreateTexture2D(&texDesc, NULL, &shadowmapTexture.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -828,7 +828,7 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 	dsvDesc.Texture2D.MipSlice = 0;
 	dsvDesc.Flags = 0;
 
-	result = device->CreateDepthStencilView(shadowmapTexture, &dsvDesc, &shadowmapDSV);
+	result = device->CreateDepthStencilView(shadowmapTexture, &dsvDesc, &shadowmapDSV.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -861,7 +861,7 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 	texDesc.MiscFlags = 0;
 
 	//create texture and depth/resource views
-	result = device->CreateTexture2D(&texDesc, NULL, &shadowmapTexture);
+	result = device->CreateTexture2D(&texDesc, NULL, &shadowmapTexture.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -873,7 +873,7 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 	srvDesc.Texture2D.MipLevels = texDesc.MipLevels;
 	srvDesc.Texture2D.MostDetailedMip = 0;
 
-	result = device->CreateShaderResourceView(shadowmapTexture, &srvDesc, &shadowmapResourceView);
+	result = device->CreateShaderResourceView(shadowmapTexture, &srvDesc, &shadowmapResourceView.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -894,155 +894,155 @@ bool D3DClass::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNe
 
 void D3DClass::Shutdown()
 {
-	// Before shutting down set to windowed mode or when you release the swap chain it will throw an exception.
-	if(swapChain)
-	{
-		swapChain->SetFullscreenState(false, NULL);
-	}
+	//// Before shutting down set to windowed mode or when you release the swap chain it will throw an exception.
+	//if(swapChain)
+	//{
+	//	swapChain->SetFullscreenState(false, NULL);
+	//}
 
-	if(depthDisabledStencilState)
-	{
-		depthDisabledStencilState->Release();
-		depthDisabledStencilState = 0;
-	}
+	//if(depthDisabledStencilState)
+	//{
+	//	depthDisabledStencilState->Release();
+	//	depthDisabledStencilState = 0;
+	//}
 
-	if(pointLightStencilMethod1State1)
-	{
-		pointLightStencilMethod1State1->Release();
-		pointLightStencilMethod1State1 = 0;
-	}
+	//if(pointLightStencilMethod1State1)
+	//{
+	//	pointLightStencilMethod1State1->Release();
+	//	pointLightStencilMethod1State1 = 0;
+	//}
 
-	if(pointLightStencilMethod1State2)
-	{
-		pointLightStencilMethod1State2->Release();
-		pointLightStencilMethod1State2 = 0;
-	}
+	//if(pointLightStencilMethod1State2)
+	//{
+	//	pointLightStencilMethod1State2->Release();
+	//	pointLightStencilMethod1State2 = 0;
+	//}
 
-	if(pointLightStencilMethod2State1)
-	{
-		pointLightStencilMethod2State1->Release();
-		pointLightStencilMethod2State1 = 0;
-	}
+	//if(pointLightStencilMethod2State1)
+	//{
+	//	pointLightStencilMethod2State1->Release();
+	//	pointLightStencilMethod2State1 = 0;
+	//}
 
-	if(pointLightStencilMethod2State2)
-	{
-		pointLightStencilMethod2State2->Release();
-		pointLightStencilMethod2State2 = 0;
-	}
+	//if(pointLightStencilMethod2State2)
+	//{
+	//	pointLightStencilMethod2State2->Release();
+	//	pointLightStencilMethod2State2 = 0;
+	//}
 
-	if(alphaEnableBlendingState)
-	{
-		alphaEnableBlendingState->Release();
-		alphaEnableBlendingState = 0;
-	}
+	//if(alphaEnableBlendingState)
+	//{
+	//	alphaEnableBlendingState->Release();
+	//	alphaEnableBlendingState = 0;
+	//}
 
-	if(alphaDisableBlendingState)
-	{
-		alphaDisableBlendingState->Release();
-		alphaDisableBlendingState = 0;
-	}
+	//if(alphaDisableBlendingState)
+	//{
+	//	alphaDisableBlendingState->Release();
+	//	alphaDisableBlendingState = 0;
+	//}
 
-	if(lightAddBlendState)
-	{
-		lightAddBlendState->Release();
-		lightAddBlendState = 0;
-	}
+	//if(lightAddBlendState)
+	//{
+	//	lightAddBlendState->Release();
+	//	lightAddBlendState = 0;
+	//}
 
-	if(colorDisabledBlendState)
-	{
-		colorDisabledBlendState->Release();
-		colorDisabledBlendState = 0;
-	}
+	//if(colorDisabledBlendState)
+	//{
+	//	colorDisabledBlendState->Release();
+	//	colorDisabledBlendState = 0;
+	//}
 
-	if(previousBlendState)
-	{
-		previousBlendState->Release();
-		previousBlendState = 0;
-	}
+	//if(previousBlendState)
+	//{
+	//	previousBlendState->Release();
+	//	previousBlendState = 0;
+	//}
 
-	if(rasterState)
-	{
-		rasterState->Release();
-		rasterState = 0;
-	}
+	//if(rasterState)
+	//{
+	//	rasterState->Release();
+	//	rasterState = 0;
+	//}
 
-	if(backfaceCullingCW)
-	{
-		backfaceCullingCW->Release();
-		backfaceCullingCW = 0;
-	}
+	//if(backfaceCullingCW)
+	//{
+	//	backfaceCullingCW->Release();
+	//	backfaceCullingCW = 0;
+	//}
 
-	if(frontfaceCullingCW)
-	{
-		frontfaceCullingCW->Release();
-		frontfaceCullingCW = 0;
-	}
+	//if(frontfaceCullingCW)
+	//{
+	//	frontfaceCullingCW->Release();
+	//	frontfaceCullingCW = 0;
+	//}
 
-	if(depthStencilView)
-	{
-		depthStencilView->Release();
-		depthStencilView = 0;
-	}
+	//if(depthStencilView)
+	//{
+	//	depthStencilView->Release();
+	//	depthStencilView = 0;
+	//}
 
-	if(depthStencilState)
-	{
-		depthStencilState->Release();
-		depthStencilState = 0;
-	}
+	//if(depthStencilState)
+	//{
+	//	depthStencilState->Release();
+	//	depthStencilState = 0;
+	//}
 
-	if(depthStencilBuffer)
-	{
-		depthStencilBuffer->Release();
-		depthStencilBuffer = 0;
-	}
+	//if(depthStencilBuffer)
+	//{
+	//	depthStencilBuffer->Release();
+	//	depthStencilBuffer = 0;
+	//}
 
-	if(renderTargetView)
-	{
-		renderTargetView->Release();
-		renderTargetView = 0;
-	}
+	//if(renderTargetView)
+	//{
+	//	renderTargetView->Release();
+	//	renderTargetView = 0;
+	//}
 
-	if(deviceContext)
-	{
-		deviceContext->Release();
-		deviceContext = 0;
-	}
+	//if(deviceContext)
+	//{
+	//	deviceContext->Release();
+	//	deviceContext = 0;
+	//}
 
-	if(device)
-	{
-		device->Release();
-		device = 0;
-	}
+	//if(device)
+	//{
+	//	device->Release();
+	//	device = 0;
+	//}
 
-	if(swapChain)
-	{
-		swapChain->Release();
-		swapChain = 0;
-	}
+	//if(swapChain)
+	//{
+	//	swapChain->Release();
+	//	swapChain = 0;
+	//}
 
-	if(lightDepthStencilState)
-	{
-		lightDepthStencilState->Release();
-		lightDepthStencilState = 0;
-	}
+	//if(lightDepthStencilState)
+	//{
+	//	lightDepthStencilState->Release();
+	//	lightDepthStencilState = 0;
+	//}
 
-	if(shadowmapDSV)
-	{
-		shadowmapDSV->Release();
-		shadowmapDSV = 0;
-	}
+	//if(shadowmapDSV)
+	//{
+	//	shadowmapDSV->Release();
+	//	shadowmapDSV = 0;
+	//}
 
-	if(shadowmapTexture)
-	{
-		shadowmapTexture->Release();
-		shadowmapTexture = 0;
-	}
+	//if(shadowmapTexture)
+	//{
+	//	shadowmapTexture->Release();
+	//	shadowmapTexture = 0;
+	//}
 
-	if(shadowmapResourceView)
-	{
-		shadowmapResourceView->Release();
-		shadowmapResourceView = 0;
-	}
+	//if(shadowmapResourceView)
+	//{
+	//	shadowmapResourceView->Release();
+	//	shadowmapResourceView = 0;
+	//}
 
 	return;
 }
@@ -1058,10 +1058,10 @@ void D3DClass::BeginScene(float red, float green, float blue, float alpha)
 	color[3] = alpha;
 
 	// Clear the back buffer.
-	deviceContext->ClearRenderTargetView(renderTargetView, color);
+	deviceContext->ClearRenderTargetView(renderTargetView.p, color);
 
 	// Clear the depth buffer.
-	deviceContext->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	deviceContext->ClearDepthStencilView(depthStencilView.p, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	return;
 }
@@ -1086,7 +1086,7 @@ void D3DClass::EndScene()
 void D3DClass::SetBackBufferRenderTarget()
 {
 	// Bind the render target view and depth stencil buffer to the output render pipeline.
-	deviceContext->OMSetRenderTargets(1, &renderTargetView, depthStencilView);
+	deviceContext->OMSetRenderTargets(1, &renderTargetView.p, depthStencilView.p);
 
 	return;
 }
@@ -1111,7 +1111,7 @@ void D3DClass::ChangeRasterizerState( ID3D11RasterizerState* rasterizerState )
 
 void D3DClass::SetBackFaceCullingRasterizer()
 {
-	deviceContext->RSSetState(backfaceCullingCW);
+	deviceContext->RSSetState(backfaceCullingCW.p);
 
 	return;
 }
@@ -1125,14 +1125,14 @@ void D3DClass::ResetRasterizerState()
 
 void D3DClass::SetFrontFaceCullingRasterizer()
 {
-	deviceContext->RSSetState(frontfaceCullingCW);
+	deviceContext->RSSetState(frontfaceCullingCW.p);
 
 	return;
 }
 
 void D3DClass::SetNoCullRasterizer()
 {
-	deviceContext->RSSetState(noCullingCW);
+	deviceContext->RSSetState(noCullingCW.p);
 
 	return;
 }
@@ -1149,8 +1149,13 @@ void D3DClass::TurnOnLightBlending()
 	blendFactor[2] = 1.0f;
 	blendFactor[3] = 1.0f;
 
+	UINT sampleMask;
+
+	// Get the old blendstate
+	deviceContext->OMGetBlendState(&previousBlendState.p, blendFactor, &sampleMask);
+
 	// Turn on the alpha blending.
-	deviceContext->OMSetBlendState(lightAddBlendState, blendFactor, 0xffffffff);
+	deviceContext->OMSetBlendState(lightAddBlendState.p, blendFactor, 0xffffffff);
 }
 
 void D3DClass::TurnOffColorBlending()
@@ -1163,8 +1168,13 @@ void D3DClass::TurnOffColorBlending()
 	blendFactor[2] = 1.0f;
 	blendFactor[3] = 1.0f;
 
+	UINT sampleMask;
+
+	// Get the old blendstate
+	deviceContext->OMGetBlendState(&previousBlendState.p, blendFactor, &sampleMask);
+
 	// Turn on the alpha blending.
-	deviceContext->OMSetBlendState(colorDisabledBlendState, blendFactor, 0xffffffff);
+	deviceContext->OMSetBlendState(colorDisabledBlendState.p, blendFactor, 0xffffffff);
 }
 
 void D3DClass::TurnOnAlphaBlending()
@@ -1178,8 +1188,13 @@ void D3DClass::TurnOnAlphaBlending()
 	blendFactor[2] = 1.0f;
 	blendFactor[3] = 1.0f;
 
+	UINT sampleMask;
+
+	// Get the old blendstate
+	deviceContext->OMGetBlendState(&previousBlendState.p, blendFactor, &sampleMask);
+
 	// Turn on the alpha blending.
-	deviceContext->OMSetBlendState(alphaEnableBlendingState, blendFactor, 0xffffffff);
+	deviceContext->OMSetBlendState(alphaEnableBlendingState.p, blendFactor, 0xffffffff);
 
 	return;
 }
@@ -1195,8 +1210,13 @@ void D3DClass::TurnOnShadowBlendState()
 	blendFactor[2] = 1.0f;
 	blendFactor[3] = 1.0f;
 
+	UINT sampleMask;
+
+	// Get the old blendstate
+	deviceContext->OMGetBlendState(&previousBlendState.p, blendFactor, &sampleMask);
+
 	// Turn on the alpha blending.
-	deviceContext->OMSetBlendState(shadowBlendState, blendFactor, 0xffffffff);
+	deviceContext->OMSetBlendState(shadowBlendState.p, blendFactor, 0xffffffff);
 }
 
 void D3DClass::TurnOffAlphaBlending()
@@ -1210,8 +1230,13 @@ void D3DClass::TurnOffAlphaBlending()
 	blendFactor[2] = 1.0f;
 	blendFactor[3] = 1.0f;
 
+	UINT sampleMask;
+
+	// Get the old blendstate
+	deviceContext->OMGetBlendState(&previousBlendState.p, blendFactor, &sampleMask);
+
 	// Turn off the alpha blending.
-	deviceContext->OMSetBlendState(alphaDisableBlendingState, blendFactor, 0xffffffff);
+	deviceContext->OMSetBlendState(alphaDisableBlendingState.p, blendFactor, 0xffffffff);
 
 	return;
 }
@@ -1223,7 +1248,7 @@ void D3DClass::ChangeBlendState(ID3D11BlendState* blendState)
 	UINT sampleMask;
 
 	// Get the old blendstate
-	deviceContext->OMGetBlendState(&previousBlendState, blendFactor, &sampleMask);
+	deviceContext->OMGetBlendState(&previousBlendState.p, blendFactor, &sampleMask);
 
 	// Turn on the new blendstate
 	deviceContext->OMSetBlendState(blendState, blendFactor, sampleMask);
@@ -1240,7 +1265,7 @@ void D3DClass::ResetBlendState()
 	blendFactor[3] = 1.0f;
 
 	// Turn on the alpha blending.
-	deviceContext->OMSetBlendState(previousBlendState, blendFactor, 0xffffffff);
+	deviceContext->OMSetBlendState(previousBlendState.p, blendFactor, 0xffffffff);
 }
 #pragma endregion
 
@@ -1253,37 +1278,37 @@ void D3DClass::ResetBlendState()
 
 void D3DClass::SetLightStencilMethod1Phase1()
 {
-	deviceContext->OMSetDepthStencilState(pointLightStencilMethod1State1, 0);
+	deviceContext->OMSetDepthStencilState(pointLightStencilMethod1State1.p, 0);
 	return;
 }
 
 void D3DClass::SetLightStencilMethod1Phase2()
 {
-	deviceContext->OMSetDepthStencilState(pointLightStencilMethod1State2, 0);
+	deviceContext->OMSetDepthStencilState(pointLightStencilMethod1State2.p, 0);
 	return;
 }
 
 void D3DClass::SetLightStencilMethod2Phase1()
 {
-	deviceContext->OMSetDepthStencilState(pointLightStencilMethod2State1, 0);
+	deviceContext->OMSetDepthStencilState(pointLightStencilMethod2State1.p, 0);
 	return;
 }
 
 void D3DClass::SetLightStencilMethod2Phase2()
 {
-	deviceContext->OMSetDepthStencilState(pointLightStencilMethod2State2, 0);
+	deviceContext->OMSetDepthStencilState(pointLightStencilMethod2State2.p, 0);
 	return;
 }
 
 void D3DClass::TurnZBufferOn()
 {
-	deviceContext->OMSetDepthStencilState(depthStencilState, 1);
+	deviceContext->OMSetDepthStencilState(depthStencilState.p, 1);
 	return;
 }
 
 void D3DClass::TurnZBufferOff()
 {
-	deviceContext->OMSetDepthStencilState(depthDisabledStencilState, 1);
+	deviceContext->OMSetDepthStencilState(depthDisabledStencilState.p, 1);
 	return;
 }
 #pragma endregion

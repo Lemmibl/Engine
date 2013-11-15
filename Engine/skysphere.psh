@@ -5,14 +5,11 @@ cbuffer GradientBuffer
 {
 	float4 ApexColor;
 	float4 CenterColor;
+
+	//Time saved in FogColor.w
 	float4 FogColor;
 };
 
-cbuffer TimeBuffer
-{
-	float time;
-	float3 Padding;
-};
 
 
 //////////////
@@ -21,7 +18,7 @@ cbuffer TimeBuffer
 struct PixelInputType
 {
 	float4 Position : SV_POSITION;
-	float4 DomePosition : TEXCOORD0;
+	float DomePositionY : TEXCOORD0;
 };
 
 //This function is used for values in the 0 to 1 range; lerp values etc. 
@@ -42,12 +39,13 @@ float PerlinEaseCurve(float value)
 ////////////////////////////////////////////////////////////////////////////////
 float4 SkyspherePixelShader(PixelInputType input) : SV_TARGET0
 {
-	float4 sphereColor = lerp(ApexColor, CenterColor, time);
+	//Use time, saved in FogColor.w to lerp between these values.
+	float4 sphereColor = lerp(ApexColor, CenterColor, FogColor.w);
 
 	//Fog/Skysphere color lerp multiplier. It basically scales with the Y position of this pixel, plus a little offset to make the fog begin higher up.
 	//We clamp it to 0-1 to make sure the lerp value doesn't get screwy.
 	//After that we put it through a perlin ease curve to make the beginning and the end more extreme
-	float fogMultiplier = PerlinEaseCurve(clamp(0.4f-input.DomePosition.y, 0.0f, 1.0f));
+	float fogMultiplier = PerlinEaseCurve(clamp(0.35f-input.DomePositionY, 0.0f, 1.0f));
 
 	return lerp(sphereColor, FogColor, fogMultiplier); //We want to scale so that furthest down on the skysphere is covered in fog
 }

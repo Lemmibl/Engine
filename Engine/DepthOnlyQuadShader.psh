@@ -29,10 +29,10 @@ float2 ComputeMoments(float depth)
 
 float2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 {
-	if(0.1f >= shaderTexture.Sample(SampleType, input.TexCoord.xyz).w)
+	if(0.2f >= shaderTexture.Sample(SampleType, input.TexCoord.xyz).w)
 	{
 		discard;
 	}
 
-	return ComputeMoments(input.TexCoord.w); //I store postProj.z/w depth in texcoord.w. I pack everything into a float4 to save space.
+	return ComputeMoments(input.TexCoord.w); //I store viewspace depth in .w channel.
 };

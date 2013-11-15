@@ -5,9 +5,9 @@
 
 VertexShaderOnly::VertexShaderOnly()
 {
-	vertexShader = 0;
-	layout = 0;
-	matrixBuffer = 0;
+	//vertexShader = 0;
+	//layout = 0;
+	//matrixBuffer = 0;
 }
 
 
@@ -68,8 +68,8 @@ bool VertexShaderOnly::Render(ID3D11DeviceContext* deviceContext, int indexCount
 bool VertexShaderOnly::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename)
 {
 	HRESULT result;
-	ID3D10Blob* errorMessage;
-	ID3D10Blob* vertexShaderBuffer;
+	CComPtr<ID3D10Blob> errorMessage;
+	CComPtr<ID3D10Blob> vertexShaderBuffer;
 	D3D11_INPUT_ELEMENT_DESC polygonLayout[1];
 	unsigned int numElements;
 	D3D11_BUFFER_DESC matrixBufferDesc;
@@ -128,8 +128,8 @@ bool VertexShaderOnly::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 	}
 
 	// Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
-	vertexShaderBuffer->Release();
-	vertexShaderBuffer = 0;
+	//vertexShaderBuffer->Release();
+	//vertexShaderBuffer = 0;
 
 	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
 	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
@@ -140,7 +140,7 @@ bool VertexShaderOnly::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 	matrixBufferDesc.StructureByteStride = 0;
 
 	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
-	result = device->CreateBuffer(&matrixBufferDesc, NULL, &matrixBuffer);
+	result = device->CreateBuffer(&matrixBufferDesc, NULL, &matrixBuffer.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -153,25 +153,25 @@ bool VertexShaderOnly::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 void VertexShaderOnly::ShutdownShader()
 {
 	// Release the matrix constant buffer.
-	if(matrixBuffer)
-	{
-		matrixBuffer->Release();
-		matrixBuffer = 0;
-	}
+	//if(matrixBuffer)
+	//{
+	//	matrixBuffer->Release();
+	//	matrixBuffer = 0;
+	//}
 
-	// Release the layout.
-	if(layout)
-	{
-		layout->Release();
-		layout = 0;
-	}
+	//// Release the layout.
+	//if(layout)
+	//{
+	//	layout->Release();
+	//	layout = 0;
+	//}
 
-	// Release the vertex shader.
-	if(vertexShader)
-	{
-		vertexShader->Release();
-		vertexShader = 0;
-	}
+	//// Release the vertex shader.
+	//if(vertexShader)
+	//{
+	//	vertexShader->Release();
+	//	vertexShader = 0;
+	//}
 
 	return;
 }
@@ -203,8 +203,8 @@ void VertexShaderOnly::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND h
 	fout.close();
 
 	// Release the error message.
-	errorMessage->Release();
-	errorMessage = 0;
+	//errorMessage->Release();
+	//errorMessage = 0;
 
 	// Pop a message up on the screen to notify the user to check the text file for compile errors.
 	MessageBox(hwnd, L"Error compiling shader.  Check shader-error.txt for message.", shaderFilename, MB_OK);
@@ -240,7 +240,7 @@ bool VertexShaderOnly::SetShaderParameters(ID3D11DeviceContext* deviceContext, X
 	bufferNumber = 0;
 
 	// Finanly set the constant buffer in the vertex shader with the updated values.
-	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &matrixBuffer);
+	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &matrixBuffer.p);
 
 	return true;
 }

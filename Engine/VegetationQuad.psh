@@ -53,12 +53,14 @@ PixelShaderOutput VegetationQuadPixelShader(PixelInputType input)
 		discard;
 	}
 
+	float fadeValue =  (depth*depth); //depth; //
+
 	//No branching cuz texture array. Yay. To clarify -- our texCoord.z channel contains texture ID, which we extract from each instance of vegetation.
 	//output.Color = lerp(shaderTexture.Sample(linearSampler, input.TexCoord.xyz), float4(0.2f, 0.3f, 0.2f, 0.3f), depth);
 	output.Color = shaderTexture.Sample(linearSampler, input.TexCoord.xyz);
-	
+
 	//I fade in the alpha depending on depth, to make the vegetation appear smoothly. Works pretty well despite its' simplicity.
-	if((output.Color.w-(depth-0.4f)) <= 0.7f) //Alpha testing and tiny optimization for the break-early cases.
+	if((output.Color.w * fadeValue) >= 0.7f) //Alpha testing and tiny optimization for the break-early cases.
 	{
 		discard;
 	}

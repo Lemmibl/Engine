@@ -8,6 +8,8 @@
 //////////////
 // INCLUDES //
 //////////////
+#pragma once
+
 #include <d3d11.h>
 #include <windows.h>
 #include <xnamath.h>
@@ -17,6 +19,9 @@
 // MY CLASS INCLUDES //
 ///////////////////////
 #include "textureclass.h"
+#include <atlcomcli.h>
+#include <memory>
+#include <vector>
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -53,9 +58,10 @@ private:
 	void ReleaseTexture();
 
 private:
-	ID3D11Buffer *vertexBuffer, *indexBuffer;
+	CComPtr<ID3D11Buffer> vertexBuffer;
+	CComPtr<ID3D11Buffer> indexBuffer;
 	int vertexCount, indexCount;
-	TextureClass* texture;
+	std::shared_ptr<TextureClass> texture;
 
 	int screenWidth, screenHeight;
 	int screenCenterX, screenCenterY;

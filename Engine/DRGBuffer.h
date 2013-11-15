@@ -13,6 +13,7 @@
 #include <xnamath.h> 
 #include <d3dx11async.h>
 #include <fstream>
+#include <atlcomcli.h>
 using namespace std;
 
 
@@ -57,14 +58,14 @@ private:
 	void RenderShader(ID3D11DeviceContext*, int);
 
 private:
-	ID3D11VertexShader* vertexShader;
-	ID3D11PixelShader* pixelShader;
-	ID3D11InputLayout* layout;
+	CComPtr<ID3D11VertexShader> vertexShader;
+	CComPtr<ID3D11PixelShader> pixelShader;
+	CComPtr<ID3D11InputLayout> layout;
 
-	ID3D11Buffer* matrixBuffer;
-	ID3D11Buffer* pixelFarZBuffer;
+	CComPtr<ID3D11Buffer> matrixBuffer;
+	CComPtr<ID3D11Buffer> pixelFarZBuffer;
 
-	ID3D11SamplerState* samplers[2];
+	CComPtr<ID3D11SamplerState> samplers[2];
 };
 
 #endif

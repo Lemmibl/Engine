@@ -1,10 +1,24 @@
 #pragma once
-#include "StructsAndEnums.h"
 #include "SkySphere.h"
 #include <math.h>
+#include "StructsAndEnums.h"
 
 class DayNightCycle
 {
+private:
+	//Struct containing all of the variables that make up a stage of the day in the day/night system
+	//Was made mainly to enable more streamlined code and make lerping between the different stages easier
+	struct StageOfDayStruct
+	{
+		XMFLOAT4 AmbientColor;
+		XMFLOAT4 DirectionalLightColor;
+		XMFLOAT4 SkysphereColor;
+		float LightIntensity;
+		float DurationOfStage;
+		XMFLOAT3 StartPosition;
+		XMFLOAT3 EndPosition;
+	};
+
 public:
 	DayNightCycle();
 	DayNightCycle(const DayNightCycle&);

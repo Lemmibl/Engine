@@ -28,7 +28,7 @@ bool ModelListClass::Initialize(int numModels)
 	modelCount = numModels;
 
 	// Create a list array of the model information.
-	modelInfoList = new ModelInfoType[modelCount];
+	modelInfoList = std::unique_ptr<ModelInfoType []>(new ModelInfoType[modelCount]);
 	if(!modelInfoList)
 	{
 		return false;
@@ -58,12 +58,12 @@ bool ModelListClass::Initialize(int numModels)
 
 void ModelListClass::Shutdown()
 {
-	// Release the model information list.
-	if(modelInfoList)
-	{
-		delete [] modelInfoList;
-		modelInfoList = 0;
-	}
+	//// Release the model information list.
+	//if(modelInfoList)
+	//{
+	//	delete [] modelInfoList;
+	//	modelInfoList = 0;
+	//}
 
 	return;
 }

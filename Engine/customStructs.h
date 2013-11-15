@@ -7,25 +7,15 @@
 
 struct MarchingCubeVertex
 {
-	float posX;
-	float posY;
-	float posZ;
-
-	float normalX;
-	float normalY;
-	float normalZ;
-
+	XMFLOAT3 position;
+	XMFLOAT3 normal;
 	float density;
-
 	bool inside;
 };
 
 struct Metapoint
 {
-	float posX;
-	float posY;
-	float posZ;
-
+	XMFLOAT3 position;
 	float power;
 };
 
@@ -33,8 +23,6 @@ struct MarchingCubeVectors
 {
 	XMFLOAT3 position;
 	XMFLOAT3 normal;
-	UINT32 TextureAndMaterialIDs;
-	/*float lerpValue;*/
 };
 
 #endif

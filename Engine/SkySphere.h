@@ -14,6 +14,9 @@
 #include <xnamath.h>
 #include <fstream>
 #include "SkysphereShader.h"
+#include <atlcomcli.h>
+#include <memory>
+#include <vector>
 using namespace std;
 
 
@@ -62,11 +65,12 @@ private:
 	void RenderBuffers(ID3D11DeviceContext*);
 
 private:
-	ModelType* model;
+	std::unique_ptr<ModelType[]> model;
 	int vertexCount, indexCount;
-	ID3D11Buffer *vertexBuffer, *indexBuffer;
+	CComPtr<ID3D11Buffer> vertexBuffer;
+	CComPtr<ID3D11Buffer> indexBuffer;
 	XMFLOAT4 apexColor, centerColor;
-	SkysphereShader* skysphereShader;
+	SkysphereShader skysphereShader;
 };
 
 #endif
