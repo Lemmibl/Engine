@@ -85,8 +85,6 @@ public:
 	bool RenderPointLight(ID3D11DeviceContext* deviceContext, XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* viewProjection);
 	bool RenderComposedScene(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* worldView, XMMATRIX* view, XMMATRIX* invertedProjection, XMMATRIX* invertedViewProjection);
 	bool RenderDebugInfoAndText(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj);
-
-	//And the winner for worst parameter name 2013 goes to.....
 	void GenerateVegetation(ID3D11Device* device, bool IfSetupThenTrue_IfUpdateThenFalse);
 
 private:
