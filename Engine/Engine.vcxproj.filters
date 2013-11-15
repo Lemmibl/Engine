@@ -52,9 +52,6 @@
     <ClCompile Include="timerclass.cpp">
       <Filter>General Code\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="soundclass.cpp">
-      <Filter>General Code\Utility</Filter>
-    </ClCompile>
     <ClCompile Include="cameraclass.cpp">
       <Filter>General Code</Filter>
     </ClCompile>
@@ -208,9 +205,6 @@
       <Filter>General Code\Utility</Filter>
     </ClInclude>
     <ClInclude Include="timerclass.h">
-      <Filter>General Code\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="soundclass.h">
       <Filter>General Code\Utility</Filter>
     </ClInclude>
     <ClInclude Include="cameraclass.h">

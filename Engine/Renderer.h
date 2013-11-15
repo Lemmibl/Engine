@@ -34,7 +34,6 @@
 
 //Objects
 #include "modelclass.h"
-#include "pointlight.h"
 #include "cameraclass.h"
 #include "frustumclass.h"
 #include "debugwindowclass.h"
