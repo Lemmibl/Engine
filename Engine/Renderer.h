@@ -1,8 +1,4 @@
-////////////////////////////////////////////////////////////////////////////////
-// Filename: graphicsclass.h
-////////////////////////////////////////////////////////////////////////////////
-
-///////////////////////
+///////////////
 // MY CLASS INCLUDES //
 ///////////////////////
 #pragma once;
@@ -55,10 +51,6 @@
 #include "DepthOnlyQuadShader.h"
 #include "GaussianBlur.h"
 
-
-////////////////////////////////////////////////////////////////////////////////
-// Class name: GraphicsClass
-////////////////////////////////////////////////////////////////////////////////
 class Renderer
 {
 public:
@@ -151,9 +143,6 @@ private:
 
 	Lemmi2DAABB testBoundingbox;
 
-	/************************************************************************/
-	/* Actual rendering related variables                                   */
-	/************************************************************************/
 	XMFLOAT3 camPos, camDir;
 	ID3D11RenderTargetView* gbufferRenderTargets[3]; //render targets for GBuffer pass
 	ID3D11RenderTargetView* lightTarget[1];
@@ -168,8 +157,4 @@ private:
 
 	ID3D11DepthStencilView* shadowDepthStencil;
 	ID3D11DepthStencilView* depthStencil; //We set it later on when we need it. Calling d3D->GetDepthStencilView() also calls a reset on DS settings to default, hence we wait with calling it.
-
-	/************************************************************************/
-	/* End of rendering related variables									*/
-	/************************************************************************/
 };
