@@ -644,9 +644,14 @@ HRESULT TextureAndMaterialHandler::CreateSimplex2DTexture(ID3D11Device* device, 
 				x *= -1;
 			}
 
-			float firstIteration = noise->noise3D2(x*0.01f,y*0.01f, 10.0f)*512;
-			float seccondIteration = noise->noise3D2(x*0.001f,y*0.001f, 30.0f)*512;
-			float thirdIteration = noise->noise3D2(x*0.0005f,y*0.0005f, 45.0f)*512;
+			float firstIteration = (noise->SimplexNoise3D(x*0.01f,y*0.01f, 10.0f)*250);
+			//firstIteration = (firstIteration > 0) ? firstIteration : -firstIteration;
+
+			float seccondIteration = (noise->SimplexNoise3D(x*0.001f,y*0.001f, 30.0f)*250);
+			//seccondIteration = (seccondIteration > 0) ? seccondIteration : -seccondIteration;
+
+			float thirdIteration = (noise->SimplexNoise3D(x*0.0005f,y*0.0005f, 45.0f)*250);
+			//thirdIteration = (thirdIteration > 0) ? thirdIteration : -thirdIteration;
 
 			pixelData[i].x = (int)(firstIteration + seccondIteration + thirdIteration);
 			pixelData[i].y = (int)(firstIteration + seccondIteration + thirdIteration);
@@ -680,9 +685,14 @@ HRESULT TextureAndMaterialHandler::CreateMirroredSimplex2DTexture(ID3D11Device* 
 			y = yCounter;
 			x = xCounter;	
 
-			float firstIteration = noise->noise3D2(x*0.01f, y*0.01f, 10.0f)*512;
-			float seccondIteration = noise->noise3D2(x*0.001f, y*0.001f, 30.0f)*512;
-			float thirdIteration = noise->noise3D2(x*0.0005f, y*0.0005f, 45.0f)*512;
+			float firstIteration = noise->SimplexNoise3D(x*0.01f, y*0.01f, 10.0f)*250;
+			//firstIteration = (firstIteration > 0) ? firstIteration : -firstIteration;
+
+			float seccondIteration = noise->SimplexNoise3D(x*0.001f, y*0.001f, 30.0f)*250;
+			//seccondIteration = (seccondIteration > 0) ? seccondIteration : -seccondIteration;
+
+			float thirdIteration = noise->SimplexNoise3D(x*0.0005f, y*0.0005f, 45.0f)*250;
+			//thirdIteration = (thirdIteration >= 0) ? thirdIteration : -thirdIteration;
 
 			pixelData[i].x = (int)(firstIteration + seccondIteration + thirdIteration);
 			pixelData[i].y = (int)(firstIteration + seccondIteration + thirdIteration);

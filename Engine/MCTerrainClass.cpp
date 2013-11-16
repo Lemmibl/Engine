@@ -51,7 +51,7 @@ void MCTerrainClass::MCHeightMap()
 
 	for(int i = 0; i < worldArraySize; i++)
 	{
-		float density = noise->noise2D(marchingCubeVertices[i].position.x, marchingCubeVertices[i].position.z);
+		float density = noise->Noise2D(marchingCubeVertices[i].position.x, marchingCubeVertices[i].position.z);
 		worldArray[i] = density;
 	}
 
@@ -120,26 +120,26 @@ void MCTerrainClass::Noise3D()
 				switch ( terrainMode ) {
 				case terrainTypesSeaBottom:
 					density = 1 + sizeY * 0.1f - y;
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x/220,marchingCubeVertices[idx].position.y/20,marchingCubeVertices[idx].position.z/220) *2.0f;
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x/120,marchingCubeVertices[idx].position.y/220,marchingCubeVertices[idx].position.z/40) *2.0f;
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x/20,marchingCubeVertices[idx].position.y/420,marchingCubeVertices[idx].position.z/20) *2.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x/220,marchingCubeVertices[idx].position.y/20,marchingCubeVertices[idx].position.z/220) *2.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x/120,marchingCubeVertices[idx].position.y/220,marchingCubeVertices[idx].position.z/40) *2.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x/20,marchingCubeVertices[idx].position.y/420,marchingCubeVertices[idx].position.z/20) *2.0f;
 					break;
 				case terrainTypePlains:
 					density = 1 + sizeY * 0.2f - y;
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x/220,marchingCubeVertices[idx].position.y/20,marchingCubeVertices[idx].position.z/220) *10.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x/220,marchingCubeVertices[idx].position.y/20,marchingCubeVertices[idx].position.z/220) *10.0f;
 					break;
 				case terrainTypeHills:
 					density = 1 + sizeY * 0.2f - y;
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x/220,marchingCubeVertices[idx].position.y/20,marchingCubeVertices[idx].position.z/220) *2.0f;
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x/80,marchingCubeVertices[idx].position.y/220,marchingCubeVertices[idx].position.z/40) *20.0f;
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x/20,marchingCubeVertices[idx].position.y/420,marchingCubeVertices[idx].position.z/20) *10.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x/220,marchingCubeVertices[idx].position.y/20,marchingCubeVertices[idx].position.z/220) *2.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x/80,marchingCubeVertices[idx].position.y/220,marchingCubeVertices[idx].position.z/40) *20.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x/20,marchingCubeVertices[idx].position.y/420,marchingCubeVertices[idx].position.z/20) *10.0f;
 					break;
 				case terrainTypeTerraces:
 					density = 1 + sizeY * 0.4f - y;
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x/220,marchingCubeVertices[idx].position.y/220,marchingCubeVertices[idx].position.z/420) *20.0f;
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x/120,marchingCubeVertices[idx].position.y/20,marchingCubeVertices[idx].position.z/20) *20.0f;
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x/20,marchingCubeVertices[idx].position.y/20,marchingCubeVertices[idx].position.z/120) *20.0f;
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x/120,marchingCubeVertices[idx].position.y/20,marchingCubeVertices[idx].position.z/120) *5.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x/220,marchingCubeVertices[idx].position.y/220,marchingCubeVertices[idx].position.z/420) *20.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x/120,marchingCubeVertices[idx].position.y/20,marchingCubeVertices[idx].position.z/20) *20.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x/20,marchingCubeVertices[idx].position.y/20,marchingCubeVertices[idx].position.z/120) *20.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x/120,marchingCubeVertices[idx].position.y/20,marchingCubeVertices[idx].position.z/120) *5.0f;
 
 					//**Toplvl**//
 					if(y > 20)
@@ -162,11 +162,11 @@ void MCTerrainClass::Noise3D()
 
 				case terrainTypeDramaticHills:
 					density = 1 + sizeY * 0.6f - y;
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x/80,marchingCubeVertices[idx].position.y/80,marchingCubeVertices[idx].position.z/520) *30.0f;
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x/40,marchingCubeVertices[idx].position.y/30,marchingCubeVertices[idx].position.z/500) *30.0f;
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x/180,marchingCubeVertices[idx].position.y/20,marchingCubeVertices[idx].position.z/50) *20.0f;
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x/120,marchingCubeVertices[idx].position.y/20,marchingCubeVertices[idx].position.z/120) *5.0f;
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x/80,marchingCubeVertices[idx].position.y/420,marchingCubeVertices[idx].position.z/80) *30.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x/80,marchingCubeVertices[idx].position.y/80,marchingCubeVertices[idx].position.z/520) *30.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x/40,marchingCubeVertices[idx].position.y/30,marchingCubeVertices[idx].position.z/500) *30.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x/180,marchingCubeVertices[idx].position.y/20,marchingCubeVertices[idx].position.z/50) *20.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x/120,marchingCubeVertices[idx].position.y/20,marchingCubeVertices[idx].position.z/120) *5.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x/80,marchingCubeVertices[idx].position.y/420,marchingCubeVertices[idx].position.z/80) *30.0f;
 
 					//**Toplvl**//
 					if(y > 20)
@@ -189,30 +189,30 @@ void MCTerrainClass::Noise3D()
 				case terrainTypeFlyingIslands:
 					
 					density = 0 + sizeY * 0.001f - y*0.1f;
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x/40,marchingCubeVertices[idx].position.y/10,marchingCubeVertices[idx].position.z/25) *10.0f;
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x/60,marchingCubeVertices[idx].position.y/5,marchingCubeVertices[idx].position.z/35) *10.0f;
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x/21,marchingCubeVertices[idx].position.y/10,marchingCubeVertices[idx].position.z/43) *10.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x/40,marchingCubeVertices[idx].position.y/10,marchingCubeVertices[idx].position.z/25) *10.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x/60,marchingCubeVertices[idx].position.y/5,marchingCubeVertices[idx].position.z/35) *10.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x/21,marchingCubeVertices[idx].position.y/10,marchingCubeVertices[idx].position.z/43) *10.0f;
 
 					break;
 				case terrainTypeAlien:
 					density = 1 + sizeY * 0.1f - y;
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x/220,marchingCubeVertices[idx].position.y/20,marchingCubeVertices[idx].position.z/220) *20.0f;
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x/120,marchingCubeVertices[idx].position.y/220,marchingCubeVertices[idx].position.z/40) *20.0f;
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x/20,marchingCubeVertices[idx].position.y/420,marchingCubeVertices[idx].position.z/20) *10.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x/220,marchingCubeVertices[idx].position.y/20,marchingCubeVertices[idx].position.z/220) *20.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x/120,marchingCubeVertices[idx].position.y/220,marchingCubeVertices[idx].position.z/40) *20.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x/20,marchingCubeVertices[idx].position.y/420,marchingCubeVertices[idx].position.z/20) *10.0f;
 					break;
 				case terrainTypeFancy:
 					density = 1 + sizeY * 0.1f - y;
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x/220,marchingCubeVertices[idx].position.y/220,marchingCubeVertices[idx].position.z/420) *2.0f;
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x/120,marchingCubeVertices[idx].position.y/20,marchingCubeVertices[idx].position.z/20) *20.0f;
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x/20,marchingCubeVertices[idx].position.y/20,marchingCubeVertices[idx].position.z/120) *20.0f;
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x/120,marchingCubeVertices[idx].position.y/20,marchingCubeVertices[idx].position.z/120) *2.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x/220,marchingCubeVertices[idx].position.y/220,marchingCubeVertices[idx].position.z/420) *2.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x/120,marchingCubeVertices[idx].position.y/20,marchingCubeVertices[idx].position.z/20) *20.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x/20,marchingCubeVertices[idx].position.y/20,marchingCubeVertices[idx].position.z/120) *20.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x/120,marchingCubeVertices[idx].position.y/20,marchingCubeVertices[idx].position.z/120) *2.0f;
 					break;
 				case terrainTypeCave:
 					density = 7;
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x/60,marchingCubeVertices[idx].position.y/60,marchingCubeVertices[idx].position.z/60) *20.0f;
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x/20,marchingCubeVertices[idx].position.y/20,marchingCubeVertices[idx].position.z/120) *10.0f;
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x/20,marchingCubeVertices[idx].position.y/120,marchingCubeVertices[idx].position.z/20) *10.0f;
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x/120,marchingCubeVertices[idx].position.y/20,marchingCubeVertices[idx].position.z/20) *10.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x/60,marchingCubeVertices[idx].position.y/60,marchingCubeVertices[idx].position.z/60) *20.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x/20,marchingCubeVertices[idx].position.y/20,marchingCubeVertices[idx].position.z/120) *10.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x/20,marchingCubeVertices[idx].position.y/120,marchingCubeVertices[idx].position.z/20) *10.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x/120,marchingCubeVertices[idx].position.y/20,marchingCubeVertices[idx].position.z/20) *10.0f;
 					break;
 				default:
 
@@ -224,7 +224,7 @@ void MCTerrainClass::Noise3D()
 
 				if (pulverize == true)
 				{
-					density += noise->noise3D2(marchingCubeVertices[idx].position.x*0.2f,marchingCubeVertices[idx].position.y*0.2f,marchingCubeVertices[idx].position.z*0.2f)*2.0f;
+					density += noise->SimplexNoise3D(marchingCubeVertices[idx].position.x*0.2f,marchingCubeVertices[idx].position.y*0.2f,marchingCubeVertices[idx].position.z*0.2f)*2.0f;
 				}
 
 				/*
@@ -371,12 +371,16 @@ void MCTerrainClass::CreateMCVerts()
 	float normalY = ((densityArray3D[x][y-1][z]	- densityArray3D[x][y+1][z])) * YFactor;
 	float normalZ = ((densityArray3D[x][y][z-1]	- densityArray3D[x][y][z+1])) * ZFactor;
 
-	//Normalize results.
-	float vectorLength = (normalX*normalX) + (normalY*normalY) + (normalZ*normalZ);
+	marchingCubeVertices[idx].normal.x = normalX;
+	marchingCubeVertices[idx].normal.y = normalY;
+	marchingCubeVertices[idx].normal.z = normalZ;
 
-	marchingCubeVertices[idx].normal.x = normalX/vectorLength;
-	marchingCubeVertices[idx].normal.y = normalY/vectorLength;
-	marchingCubeVertices[idx].normal.z = normalZ/vectorLength;
+	////Normalize results.
+	//float vectorLength = (normalX*normalX) + (normalY*normalY) + (normalZ*normalZ);
+
+	//marchingCubeVertices[idx].normal.x = normalX/vectorLength;
+	//marchingCubeVertices[idx].normal.y = normalY/vectorLength;
+	//marchingCubeVertices[idx].normal.z = normalZ/vectorLength;
 }
 
 float MCTerrainClass::GetHighestPositionOfCoordinate(int x, int z)

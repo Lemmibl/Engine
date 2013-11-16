@@ -539,14 +539,7 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 		fileName = (temp).c_str();
 
 		//Yes! Very elegant solution. :|
-		textureAndMaterialHandler->SaveTextureToFile(d3D->GetDeviceContext(), *textureAndMaterialHandler->GetDirtTexture(), D3DX11_IFF_BMP, fileName);
-
-		////Call save-to-hdd function. If it returns false we break the update loop and the game dies hard.
-		//if(!textureAndMaterialHandler->SaveLTreeTextureToFile(d3D->GetDeviceContext(), D3DX11_IFF_BMP, fileName))
-		//{
-		//	MessageBox(NULL, L"Could not save random texture to hdd. Look in textureAndMaterialHandler.SaveLTreeTextureToFile()", L"Error", MB_OK);
-		//	return false;
-		//}
+		textureAndMaterialHandler->SaveTextureToFile(d3D->GetDeviceContext(), *textureAndMaterialHandler->GetNoiseTexture(), D3DX11_IFF_BMP, fileName);
 	}
 
 	if(inputManager->IsKeyPressed(DIK_1))
@@ -769,7 +762,7 @@ void Renderer::GenerateVegetation( ID3D11Device* device, bool IfSetupThenTrue_If
 				//Place texture ID in .w channel
 				VegetationManager::InstanceType temp;
 				temp.position = XMFLOAT4(x, y, z, (float)textureID);
-				temp.randomValue = (utility->RandomFloat()*(XM_PI*2.0f));
+				temp.randomValue = (utility->RandomFloat()*360.0f);
 
 				//We use i to control how many should be added to each LOD vector
 				if(i <= 500)
