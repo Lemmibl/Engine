@@ -7,6 +7,7 @@
 	- MCubeChunk som innehåller: En mesh (vertices+indices), stepX+sizeY, stepY+sizeY, stepZ+sizeZ, startPos+endPos (och en vektor med positioner)?
 	- Gör om marching cubes kring mcubechunk baserat på sample
 
+* Lägg till en "Applicera en 2D simplex noise textur på terrängen som en height map" genereringsfunktion
 
 * Geometry shader gräs?
 

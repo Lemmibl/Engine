@@ -68,8 +68,8 @@ float SimplexNoise::Noise2D(float xin, float yin)
 	float s = (xin+yin)*F2;
 
 	// Hairy factor for 2D
-	int i = fastfloor(xin+s);
-	int j = fastfloor(yin+s);
+	int i = MFloatToInt(xin+s);
+	int j = MFloatToInt(yin+s);
 	float G2 = (float)(3.0f-sqrt(3.0f))/6.0f;
 	float t = (i+j)*G2;
 	float X0 = i-t;
@@ -143,9 +143,9 @@ float SimplexNoise::SimplexNoise3D(float xin, float yin, float zin)
 	float n0, n1, n2, n3; // Noise contributions from the four corners
 
 	float s = (xin+yin+zin)*F3; // Very nice and simple skew factor for 3D
-	int i = fastfloor(xin+s);
-	int j = fastfloor(yin+s);
-	int k = fastfloor(zin+s);
+	int i = MFloatToInt(xin+s);
+	int j = MFloatToInt(yin+s);
+	int k = MFloatToInt(zin+s);
 
 	const float t = (i+j+k)*G3;
 
@@ -205,7 +205,6 @@ float SimplexNoise::SimplexNoise3D(float xin, float yin, float zin)
 	else {
 		t0 *= t0;
 		n0 = t0 * t0 * dot(grad3[gi0], x0, y0, z0);
-		//n0 = t0 * t0 * dot(grad3,gi0, x0, y0, z0);
 	}
 
 	float t1 = 0.5f - x1*x1 - y1*y1 - z1*z1;
@@ -213,7 +212,6 @@ float SimplexNoise::SimplexNoise3D(float xin, float yin, float zin)
 	else {
 		t1 *= t1;
 		n1 = t1 * t1 * dot(grad3[gi1], x1, y1, z1);
-		//n1 = t1 * t1 * dot(grad3,gi1, x1, y1, z1);
 	}
 
 	float t2 = 0.5f - x2*x2 - y2*y2 - z2*z2;
@@ -221,7 +219,6 @@ float SimplexNoise::SimplexNoise3D(float xin, float yin, float zin)
 	else {
 		t2 *= t2;
 		n2 = t2 * t2 * dot(grad3[gi2], x2, y2, z2);
-		//n2 = t2 * t2 * dot(grad3,gi2, x2, y2, z2);
 	}
 
 	float t3 = 0.5f - x3*x3 - y3*y3 - z3*z3;
@@ -229,7 +226,6 @@ float SimplexNoise::SimplexNoise3D(float xin, float yin, float zin)
 	else {
 		t3 *= t3;
 		n3 = t3 * t3 * dot(grad3[gi3], x3, y3, z3);
-		//n3 = t3 * t3 * dot(grad3,gi3, x3, y3, z3);
 	}
 
 	// Add contributions from each corner to get the final noise value.
@@ -237,6 +233,11 @@ float SimplexNoise::SimplexNoise3D(float xin, float yin, float zin)
 
 	//return (36.0f*(n0 + n1 + n2 + n3)+1)*0.5f;// 0 -> 1
 	return (32.0f*(n0 + n1 + n2 + n3)); //-1 -> 1
+}
+
+float SimplexNoise::SimplexNoise3DZeroToOne( float xin, float yin, float zin )
+{
+	return (1.0f+SimplexNoise3D(xin, yin, zin))*0.5f;
 }
 
 //http://mrl.nyu.edu/~perlin/noise/

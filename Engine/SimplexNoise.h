@@ -12,6 +12,7 @@ public:
 
 	float Noise2D(float xin, float yin);
 	float SimplexNoise3D(float xin, float yin, float zin);
+	float SimplexNoise3DZeroToOne(float xin, float yin, float zin);
 //	float PerlinNoise3D(float x, float y,  float z);
 
 	void ReseedRandom();
@@ -22,9 +23,9 @@ public:
 
 
 private:
-	__forceinline int __stdcall MFloatToInt(const float x)
-
+	inline int MFloatToInt(float x)
 	{
+		x -= 0.5f;
 		int t;
 		__asm fld x;
 		__asm fistp t;

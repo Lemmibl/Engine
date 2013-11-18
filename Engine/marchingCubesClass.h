@@ -18,17 +18,20 @@ public:
 	//Calculates whether the points are inside or outside.
 	void ComputeMetaBalls();
 
-	//Converts the metaballs into a mesh for directx to use
-	void CalculateMesh(ID3D11Device* device);
-
 	//Extract a cube from the .. voxel field...
-	void ExtractCube(MarchingCubeVertex* cube);
+	void ExtractCube(MarchingCubeVertex** cube);
 
 	//Calculate the lookup value we'll be using to index into the fields
-	void CalculateLookupValue(unsigned int* lookup, unsigned int index, MarchingCubeVertex* cube);
+	void CalculateLookupValue(unsigned int* lookup, unsigned int index, MarchingCubeVertex** cube);
 
 	//Triangulate the cube that was extracted before, with the help of our lookup value
-	void ProcessCube(unsigned int lookupValue, MarchingCubeVertex* verts, MarchingCubeVertex* cube, vector<unsigned long>& indices, vector<MarchingCubeVectors>& vertices, unsigned int& indexCounter, unsigned int& vertexCounter);
+	void ProcessCube(unsigned int lookupValue, MarchingCubeVertex* verts, MarchingCubeVertex** cube, vector<unsigned long>& indices, 
+		vector<MarchingCubeVectors>& vertices, unsigned int& indexCounter, unsigned int& vertexCounter);
+
+	void SetupBuffers(ID3D11Device* device, vector<unsigned long>& indices, vector<MarchingCubeVectors>& vertices, unsigned int indexCount, unsigned int vertexCount);
+
+	//Converts the metaballs into a mesh for directx to use
+	void CalculateMesh(ID3D11Device* device);
 
 	//Render the calculated mesh
 	bool Render(ID3D11DeviceContext* context);

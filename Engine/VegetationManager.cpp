@@ -201,12 +201,6 @@ bool VegetationManager::BuildVertexAndIndexBuffers( ID3D11Device* device )
 	vertices[v+3].position = XMFLOAT3(quad1Right.x, 0.0f, quad1Right.y);  // Bottom right.
 	vertices[v+3].texCoord = XMFLOAT2(1.0f, 1.0f);
 
-	//vertices[v+4].position = XMFLOAT3(quad1Left.x, 0.0f, quad1Left.y);  // Bottom left.
-	//vertices[v+4].texCoord = XMFLOAT2(0.0f, 1.0f);
-
-	//vertices[v+5].position = XMFLOAT3(quad1Right.x, 1.0f, quad1Right.y);  // Top right.
-	//vertices[v+5].texCoord = XMFLOAT2(1.0f, 0.0f);
-
 	indices[i+0] = v+0;
 	indices[i+1] = v+1;
 	indices[i+2] = v+2;
@@ -220,8 +214,6 @@ bool VegetationManager::BuildVertexAndIndexBuffers( ID3D11Device* device )
 	vertices[v+1].normal = vertexNormal;
 	vertices[v+2].normal = vertexNormal;
 	vertices[v+3].normal = vertexNormal;
-	//vertices[v+4].normal = vertexNormal;
-	//vertices[v+5].normal = vertexNormal;
 
 	i += 6;
 	v += 4;
@@ -239,12 +231,6 @@ bool VegetationManager::BuildVertexAndIndexBuffers( ID3D11Device* device )
 	vertices[v+3].position = XMFLOAT3(quad2Right.x, 0.0f, quad2Right.y);  // Bottom right.
 	vertices[v+3].texCoord = XMFLOAT2(1.0f, 1.0f);
 
-	//vertices[v+4].position = XMFLOAT3(quad2Left.x, 0.0f, quad2Left.y);  // Bottom left.
-	//vertices[v+4].texCoord = XMFLOAT2(0.0f, 1.0f);
-
-	//vertices[v+5].position = XMFLOAT3(quad2Right.x, 1.0f, quad2Right.y);  // Top right.
-	//vertices[v+5].texCoord = XMFLOAT2(1.0f, 0.0f);
-
 	indices[i+0] = v+0;
 	indices[i+1] = v+1;
 	indices[i+2] = v+2;
@@ -258,8 +244,6 @@ bool VegetationManager::BuildVertexAndIndexBuffers( ID3D11Device* device )
 	vertices[v+1].normal = vertexNormal;
 	vertices[v+2].normal = vertexNormal;
 	vertices[v+3].normal = vertexNormal;
-	//vertices[v+4].normal = vertexNormal;
-	//vertices[v+5].normal = vertexNormal;
 
 	i += 6;
 	v += 4;
@@ -277,12 +261,6 @@ bool VegetationManager::BuildVertexAndIndexBuffers( ID3D11Device* device )
 	vertices[v+3].position = XMFLOAT3(quad3Right.x, 0.0f, quad3Right.y);  // Bottom right.
 	vertices[v+3].texCoord = XMFLOAT2(1.0f, 1.0f);
 
-	//vertices[v+4].position = XMFLOAT3(quad3Left.x, 0.0f, quad3Left.y);  // Bottom left.
-	//vertices[v+4].texCoord = XMFLOAT2(0.0f, 1.0f);
-
-	//vertices[v+5].position = XMFLOAT3(quad3Right.x, 1.0f, quad3Right.y);  // Top right.
-	//vertices[v+5].texCoord = XMFLOAT2(1.0f, 0.0f);
-
 	indices[i+0] = v+0;
 	indices[i+1] = v+1;
 	indices[i+2] = v+2;
@@ -295,8 +273,6 @@ bool VegetationManager::BuildVertexAndIndexBuffers( ID3D11Device* device )
 	vertices[v+1].normal = vertexNormal;  //XMFLOAT3(0.0f, 0.0f, 0.0f);
 	vertices[v+2].normal = vertexNormal;  //XMFLOAT3(0.0f, 0.0f, 0.0f);
 	vertices[v+3].normal = vertexNormal;  //XMFLOAT3(0.0f, 0.0f, 0.0f);
-	//vertices[v+4].normal = vertexNormal;
-	//vertices[v+5].normal = vertexNormal;
 
 #pragma endregion
 

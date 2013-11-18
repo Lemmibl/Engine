@@ -34,10 +34,12 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	int terrainTextureCount = 6;
 	WCHAR* terrainFilenames[6] = 
 	{
-		L"../Engine/data/dirt.dds",
-		L"../Engine/data/grassTileTest01.dds",
+		L"../Engine/data/randomDirt2.dds",//dirt //0
+		L"../Engine/data/grassTileTest01.dds", //1
+		//L"../Engine/data/randomGrass.dds", //1
 		L"../Engine/data/rock4.dds",
-		L"../Engine/data/seafloor.dds",
+		L"../Engine/data/seafloor.dds", //4
+		//L"../Engine/data/randomDirt.dds",//4
 		L"../Engine/data/snow.dds",
 		L"../Engine/data/stone.dds"
 	};
@@ -140,32 +142,27 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	Build1DMaterialTextureArray(device, deviceContext, materials, materials.size(), 5, &materialTextureArraySRV.p);
 
 	//Brown generally considered to be 150R, 75B and 0G.
-	MaterialColorSpectrumUINT8 dirtColor;
+	dirtColor.RedMin = 30;
+	dirtColor.RedMax = 80;
+	dirtColor.GreenMin = 20;
+	dirtColor.GreenMax = 40;
+	dirtColor.BlueMin = 15;
+	dirtColor.BlueMax = 25;
 
-	dirtColor.RedMin = 60;
-	dirtColor.RedMax = 110;
-	dirtColor.GreenMin = 40;
-	dirtColor.GreenMax = 70;
-	dirtColor.BlueMin = 0;
-	dirtColor.BlueMax = 15;
-
-
-	MaterialColorSpectrumUINT8 grassColor;
-
-	grassColor.RedMin = 40;
+	grassColor.RedMin = 60;
 	grassColor.RedMax = 130;
 	grassColor.GreenMin = 110;
-	grassColor.GreenMax = 130;
-	grassColor.BlueMin = 0;
-	grassColor.BlueMax = 5;
+	grassColor.GreenMax = 180;
+	grassColor.BlueMin = 20;
+	grassColor.BlueMax = 35;
 
 	//If this SRV has been initialized before, release it first.
-	if(dirtTextureSRV)
+	if(terrainTextureSRV)
 	{
-		dirtTextureSRV.Release();
+		terrainTextureSRV.Release();
 	}
 
-	CreateMaterialTexture(device, deviceContext, 256, 256, &dirtTextureSRV.p, grassColor);
+	CreateMaterialTexture(device, deviceContext, 1024, 1024, &terrainTextureSRV.p, grassColor);
 
 	CreateMaterialLookupTable(device, deviceContext, &materialLookupTableSRV.p, 380);
 
@@ -729,19 +726,55 @@ HRESULT TextureAndMaterialHandler::Create2DSSAORandomTexture( ID3D11Device* devi
 
 //Sorry for the vague name. This function is for randomly creating textures for different "materials"... Grass, dirt, rock. 
 //They will hopefully look pretty much like minecraft's default textures.
-void TextureAndMaterialHandler::CreateMaterialTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, unsigned int width, unsigned int height, 
-		ID3D11ShaderResourceView** textureSRV, MaterialColorSpectrumUINT8 colorSpectrum )
+void TextureAndMaterialHandler::CreateMaterialTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, int width, int height, 
+	ID3D11ShaderResourceView** textureSRV, MaterialColorSpectrumUINT8 colorSpectrum )
 {
 	std::vector<PixelData> pixelData;
 	pixelData.resize(width * height);
 
-	for(size_t i = 0; i < pixelData.size(); i++)
+	//for(size_t i = 0; i < pixelData.size(); i++)
+	//{
+	//	pixelData[i].x = RandRange(colorSpectrum.RedMin, colorSpectrum.RedMax);
+	//	pixelData[i].y = RandRange(colorSpectrum.GreenMin, colorSpectrum.GreenMax);
+	//	pixelData[i].z = RandRange(colorSpectrum.BlueMin, colorSpectrum.BlueMax);
+	//	pixelData[i].w = 1.0f;
+	//}
+
+	int i = 0;
+
+	float randZ = utility->RandomFloat();
+
+
+	float x, y;
+
+	//for(float yCounter = (-height*0.5f); yCounter < height*0.5f; yCounter++)
+	//{
+	//	for(float xCounter = (-width*0.5f); xCounter < width*0.5f; xCounter++)
+	//	{
+
+
+	for(float yCounter = 0; yCounter < width; yCounter++)
 	{
-		pixelData[i].x = RandRange(colorSpectrum.RedMin, colorSpectrum.RedMax);
-		pixelData[i].y = RandRange(colorSpectrum.GreenMin, colorSpectrum.GreenMax);
-		pixelData[i].z = RandRange(colorSpectrum.BlueMin, colorSpectrum.BlueMax);
-		pixelData[i].w = 1; //Alpha.
+		for(float xCounter = 0; xCounter < height; xCounter++)
+		{
+			y = abs(yCounter);
+			x = abs(xCounter);
+
+			float firstIteration = noise->SimplexNoise3DZeroToOne(x*0.01f, y*0.01f, randZ);
+			float secondIteration = noise->SimplexNoise3DZeroToOne(y*0.008f, x*0.008f, randZ);
+
+			float multiplier = (secondIteration+firstIteration)*0.5f;
+
+			pixelData[i].x = ((float)multiplier * (colorSpectrum.RedMax-colorSpectrum.RedMin)+colorSpectrum.RedMin);		//
+			pixelData[i].y = ((float)multiplier * (colorSpectrum.GreenMax-colorSpectrum.GreenMin)+colorSpectrum.GreenMin);	//
+			pixelData[i].z = ((float)multiplier * (colorSpectrum.BlueMax-colorSpectrum.BlueMin)+colorSpectrum.BlueMin);		//
+			pixelData[i].w = 1; //Alpha.
+
+			i++;
+		}
 	}
+
+	noise->ReseedRandom();
 
 	if(FAILED(Build2DTextureProgrammatically(device, deviceContext, pixelData, width, height, textureSRV)))
 	{
@@ -827,11 +860,31 @@ void TextureAndMaterialHandler::RebuildMirroredSimplex2DTexture( ID3D11Device* d
 	CreateMirroredSimplex2DTexture(device, deviceContext, &noiseSRV.p);
 }
 
+void TextureAndMaterialHandler::RebuildGrassTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext )
+{
+	if(terrainTextureSRV)
+	{
+		terrainTextureSRV.Release();
+	}
+
+	CreateMaterialTexture(device, deviceContext, 1024, 1024, &terrainTextureSRV.p, grassColor);
+}
+
+void TextureAndMaterialHandler::RebuildDirtTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext )
+{
+	if(terrainTextureSRV)
+	{
+		terrainTextureSRV.Release();
+	}
+
+	CreateMaterialTexture(device, deviceContext, 1024, 1024, &terrainTextureSRV.p, dirtColor);
+}
+
 void TextureAndMaterialHandler::CreateMaterialLookupTable( ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** textureSRV, int worldMaxYValue )
 {
 	//Definiera FYRA värden för varje Y-koordinat från 0 till WORLD_MAX_Y(180 atm?)
 	//Skapa 1DTexture med WORLD_MAX_Y texlar och tilldela värden.
-	
+
 	////IDs for different things. Potential TODO: Read these in from an XML or smth?
 	//enum MaterialID
 	//{
@@ -852,7 +905,7 @@ void TextureAndMaterialHandler::CreateMaterialLookupTable( ID3D11Device* device,
 	//	TEXTURE_SNOW,
 	//	TEXTURE_TILEDSTONE
 	//}; 
-	
+
 	std::vector<PixelData> pixelData;
 	pixelData.resize(worldMaxYValue);
 

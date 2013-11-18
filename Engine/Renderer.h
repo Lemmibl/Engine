@@ -110,7 +110,7 @@ private:
 	RenderTarget2D* gaussianBlurPingPongRT; //Used for blurring shadow map
 
 	TextureShaderClass* textureShader;
-	DebugWindowClass debugWindows[6];
+	DebugWindowClass debugWindows[7];
 	DebugWindowClass fullScreenQuad;
 
 	XMFLOAT4X4 baseViewMatrix;
@@ -140,6 +140,8 @@ private:
 	vector<VegetationManager::InstanceType> LODVector5000;
 	vector<VegetationManager::InstanceType> LODVector10000;
 	int lodState, previousLodState, toggleSSAO, toggleColorMode;
+
+	int vegetationCount;
 
 	Lemmi2DAABB testBoundingbox;
 

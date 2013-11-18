@@ -46,7 +46,7 @@ public:
 	ID3D11ShaderResourceView** GetTerrainTextureArray()		{ return &terrainTextureArraySRV.p;		};
 	ID3D11ShaderResourceView** GetMaterialTextureArray()	{ return &materialTextureArraySRV.p;	};
 	ID3D11ShaderResourceView** GetMaterialLookupTexture()	{ return &materialLookupTableSRV.p;		};
-	ID3D11ShaderResourceView** GetDirtTexture()				{ return &dirtTextureSRV.p;				};
+	ID3D11ShaderResourceView** GetTerrainTexture()			{ return &terrainTextureSRV.p;			};
 	ID3D11ShaderResourceView** GetSSAORandomTexture()		{ return &ssaoRandomTextureSRV.p;		};
 	ID3D11ShaderResourceView** GetNoiseTexture()			{ return &noiseSRV.p;					};
 
@@ -64,6 +64,10 @@ public:
 	//To access the texture, call GetNoiseTexture()
 	void RebuildMirroredSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
 
+	void RebuildGrassTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
+	void RebuildRockTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
+	void RebuildDirtTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
+
 	bool SaveLTreeTextureToFile(ID3D11DeviceContext* deviceContext, D3DX11_IMAGE_FILE_FORMAT format, LPCSTR fileName);
 	void SaveTextureToFile(ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView* texture, D3DX11_IMAGE_FILE_FORMAT format, LPCSTR fileName);
 
@@ -72,7 +76,7 @@ private:
 	HRESULT CreateRandom2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv);
 	HRESULT CreateSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv);
 	HRESULT CreateMirroredSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv);
-	void CreateMaterialTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, unsigned int width, unsigned int height, 
+	void CreateMaterialTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, int width, int height, 
 		ID3D11ShaderResourceView** textureSRV, MaterialColorSpectrumUINT8 colorSpectrum);
 
 	void CreateMaterialLookupTable(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** textureSRV, int worldMaxYValue);
@@ -109,9 +113,13 @@ private:
 	CComPtr<ID3D11ShaderResourceView> terrainTextureArraySRV;
 	CComPtr<ID3D11ShaderResourceView> materialTextureArraySRV;
 	CComPtr<ID3D11ShaderResourceView> materialLookupTableSRV;
-	CComPtr<ID3D11ShaderResourceView> dirtTextureSRV;
+	CComPtr<ID3D11ShaderResourceView> terrainTextureSRV;
 	CComPtr<ID3D11ShaderResourceView> noiseSRV;
 	CComPtr<ID3D11ShaderResourceView> ssaoRandomTextureSRV;
 
 	CComPtr<ID3D11Texture2D> placeHolderTexture;
+
+	MaterialColorSpectrumUINT8 dirtColor;
+	MaterialColorSpectrumUINT8 grassColor;
+
 };
