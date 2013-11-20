@@ -42,7 +42,7 @@ public:
 
 private:
 	bool BuildVertexAndIndexBuffers(ID3D11Device* device);
-	XMFLOAT3 CalculateVertexNormals(XMFLOAT3 v1, XMFLOAT3 v2, XMFLOAT3 v3);
+	XMFLOAT3 CalculateVertexNormals(XMFLOAT3* v1, XMFLOAT3* v2, XMFLOAT3* v3);
 
 private:
 	CComPtr<ID3D11Buffer> vertexBuffer;

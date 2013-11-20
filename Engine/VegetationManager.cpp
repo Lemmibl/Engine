@@ -209,7 +209,7 @@ bool VegetationManager::BuildVertexAndIndexBuffers( ID3D11Device* device )
 	indices[i+5] = v+3;
 
 	//The quad is "straight" so we'll only need to calculate normal once to know all of the normals
-	XMFLOAT3 vertexNormal = CalculateVertexNormals(vertices[1+v].position, vertices[2+v].position, vertices[0+v].position);
+	XMFLOAT3 vertexNormal = CalculateVertexNormals(&vertices[1+v].position, &vertices[2+v].position, &vertices[0+v].position);
 	vertices[v+0].normal = vertexNormal;
 	vertices[v+1].normal = vertexNormal;
 	vertices[v+2].normal = vertexNormal;
@@ -238,7 +238,7 @@ bool VegetationManager::BuildVertexAndIndexBuffers( ID3D11Device* device )
 	indices[i+4] = v+2;
 	indices[i+5] = v+3;
 
-	vertexNormal = CalculateVertexNormals(vertices[1+v].position, vertices[2+v].position, vertices[0+v].position);
+	vertexNormal = CalculateVertexNormals(&vertices[1+v].position, &vertices[2+v].position, &vertices[0+v].position);
 	//I write "0+i" for clarity
 	vertices[v+0].normal = vertexNormal;
 	vertices[v+1].normal = vertexNormal;
@@ -268,11 +268,11 @@ bool VegetationManager::BuildVertexAndIndexBuffers( ID3D11Device* device )
 	indices[i+4] = v+2;
 	indices[i+5] = v+3;
 
-	vertexNormal = CalculateVertexNormals(vertices[1+v].position, vertices[2+v].position, vertices[0+v].position);
-	vertices[v+0].normal = vertexNormal;  //XMFLOAT3(0.0f, 0.0f, 0.0f);
-	vertices[v+1].normal = vertexNormal;  //XMFLOAT3(0.0f, 0.0f, 0.0f);
-	vertices[v+2].normal = vertexNormal;  //XMFLOAT3(0.0f, 0.0f, 0.0f);
-	vertices[v+3].normal = vertexNormal;  //XMFLOAT3(0.0f, 0.0f, 0.0f);
+	vertexNormal = CalculateVertexNormals(&vertices[1+v].position, &vertices[2+v].position, &vertices[0+v].position);
+	vertices[v+0].normal = vertexNormal;
+	vertices[v+1].normal = vertexNormal;
+	vertices[v+2].normal = vertexNormal;
+	vertices[v+3].normal = vertexNormal;
 
 #pragma endregion
 
@@ -362,18 +362,15 @@ bool VegetationManager::BuildInstanceBuffer( ID3D11Device* device, std::vector<I
 	return true;
 }
 
-XMFLOAT3 VegetationManager::CalculateVertexNormals( XMFLOAT3 topLeft, XMFLOAT3 topRight, XMFLOAT3 bottomLeft)
+XMFLOAT3 VegetationManager::CalculateVertexNormals( XMFLOAT3* topLeft, XMFLOAT3* topRight, XMFLOAT3* bottomLeft)
 {
-	XMVECTOR v1 = XMVector3Normalize(XMLoadFloat3(&topLeft));
-	XMVECTOR v2 = XMVector3Normalize(XMLoadFloat3(&topRight));
-	XMVECTOR v3 = XMVector3Normalize(XMLoadFloat3(&bottomLeft));
-	XMVECTOR resultVec;
-
-	resultVec = XMVector3Normalize(XMVector3Cross((v2-v1), (v3-v1)));
+	XMVECTOR v1 = XMVector3Normalize(XMLoadFloat3(topLeft));
+	XMVECTOR v2 = XMVector3Normalize(XMLoadFloat3(topRight));
+	XMVECTOR v3 = XMVector3Normalize(XMLoadFloat3(bottomLeft));
 
 	XMFLOAT3 result;
 
-	XMStoreFloat3(&result, resultVec);
+	XMStoreFloat3(&result, XMVector3Normalize(XMVector3Cross((v2-v1), (v3-v1))));
 
 	return result;
 }

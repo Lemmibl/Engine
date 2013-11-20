@@ -50,7 +50,7 @@ Renderer::Renderer()
 	toggleOtherPointLights = false;
 
 
-
+	xPos = yPos = 0.0f;
 
 
 
@@ -321,8 +321,8 @@ bool Renderer::InitializeLights( HWND hwnd )
 	XMVECTOR direction = XMVector3Normalize(lookAt - XMLoadFloat3(&dirLight->Position));
 	XMStoreFloat3(&dirLight->Direction, direction);
 
-	//XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(((float)D3DX_PI/2.0f), 1.0f, 5.0f, 500.0f));	//Generate PERSPECTIVE light projection matrix and store it as float4x4
-	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(300.0f, 300.0f, 5.0f, 500.0f));					//Generate ORTHOGONAL light projection matrix and store it as float4x4
+	//XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(XM_PIDIV4, 1.0f, 5.0f, 500.0f));	//Generate PERSPECTIVE light projection matrix and store it as float4x4
+	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(300.0f, 300.0f, 5.0f, 400.0f));					//Generate ORTHOGONAL light projection matrix and store it as float4x4
 	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up));				//Generate light view matrix and store it as float4x4.
 #pragma endregion
 
@@ -531,12 +531,16 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 
 	if(inputManager->WasKeyPressed(DIK_J))
 	{
-		textureAndMaterialHandler->RebuildGrassTexture(d3D->GetDevice(), d3D->GetDeviceContext());
+		xPos += 30.0f;
+
+		textureAndMaterialHandler->RebuildTexture(d3D->GetDevice(), d3D->GetDeviceContext(), TEXTURE_GRASS, 1024, 1024, xPos, yPos, true);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_K))
 	{
-		textureAndMaterialHandler->RebuildDirtTexture(d3D->GetDevice(), d3D->GetDeviceContext());
+		yPos += 30.0f;
+
+		textureAndMaterialHandler->RebuildTexture(d3D->GetDevice(), d3D->GetDeviceContext(), TEXTURE_DIRT, 1024, 1024, xPos, yPos, true);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_P))

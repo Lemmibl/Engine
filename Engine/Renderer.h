@@ -143,6 +143,8 @@ private:
 
 	int vegetationCount;
 
+	float xPos, yPos;
+
 	Lemmi2DAABB testBoundingbox;
 
 	XMFLOAT3 camPos, camDir;
