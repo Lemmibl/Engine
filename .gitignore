@@ -49,3 +49,7 @@ _ReSharper*/
 
 # Office Temp Files
 ~$*
+Engine.opensdf
+Engine.psess
+Engine/DRDirectionalLight.psh.orig
+Engine/shader-error.txt.orig

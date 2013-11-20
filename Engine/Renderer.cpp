@@ -581,6 +581,7 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 		textureAndMaterialHandler->SaveTextureToFile(d3D->GetDeviceContext(), *textureAndMaterialHandler->GetTerrainTexture(), D3DX11_IFF_BMP, fileName);
 	}
 
+	//Speed up the change of day
 	if(inputManager->IsKeyPressed(DIK_1))
 	{
 		seconds = timeOfDay += frameTime;
