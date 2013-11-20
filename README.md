@@ -18,30 +18,30 @@ Q to toggle drawing debug info.
 2 to toggle material drawing mode.
 3 and 4 are supposed to change fog draw distance but is currently not supported...
 5 to toggle drawing of point lights
-6 to toggle SSAO drawing mode. Default is with SSAO enabled, next is the scene without any SSAO, and the last is the scene with only SSAO applied.
+6 to toggle SSAO drawing mode. (Default is with SSAO enabled, next is the scene without any SSAO, and the last is the scene with only SSAO applied).
 
 F1-F9 to change what type of terrain you want to generate next.
-  terrainTypesSeaBottom = 1;
-  terrainTypePlains = 2;
-  terrainTypeHills = 3;
-  terrainTypeTerraces = 4;
-  terrainTypeDramaticHills = 5;
-  terrainTypeFlyingIslands = 6;
-  terrainTypeAlien = 7;
-  terrainTypeFancy = 8;
-  terrainTypeCave = 9;
+  terrainTypesSeaBottom = 1.
+  terrainTypePlains = 2.
+  terrainTypeHills = 3.
+  terrainTypeTerraces = 4.
+  terrainTypeDramaticHills = 5.
+  terrainTypeFlyingIslands = 6.
+  terrainTypeAlien = 7.
+  terrainTypeFancy = 8.
+  terrainTypeCave = 9.
   
-N to generate a new world!
-R and F to move point lights up and down
+N to generate a new world.
+R and F to move point lights up and down.
 
-U to generate random R8G8B8A8 noise to a debug texture
-I to generate random simplex noise to a debug texture
-O to generate mirrored random simplex noise to a debug texture
-P to save this texture to harddrive (gets saved where the code files are located)
+U to generate random R8G8B8A8 noise to a debug texture.
+I to generate random simplex noise to a debug texture.
+O to generate mirrored random simplex noise to a debug texture.
+P to save this texture to harddrive (gets saved where the code files are located).
 
-J to generate a random "grass" texture
-K to generate a random "dirt" texture
-L to save the grass or dirt texture to harddrive (gets saved where the code files are located)
+J to generate a random "grass" texture.
+K to generate a random "dirt" texture.
+L to save the grass or dirt texture to harddrive (gets saved where the code files are located).
 
 That should be all of the keybindings for the moment. :)
 
