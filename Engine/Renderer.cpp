@@ -587,6 +587,7 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 		seconds = timeOfDay += frameTime;
 	}
 
+	//Toggle the coloring mode of materials
 	if(inputManager->WasKeyPressed(DIK_2))
 	{
 		toggleColorMode++;
