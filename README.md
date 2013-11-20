@@ -4,7 +4,9 @@ Engine
 DirectX11 / C++ videogame "Engine" made by me, Carl "Lemmi" Engström. Originally started out as a Bachelor's Degree project together with my friend Felix Nawrin Oxing, with the focus on procedurally generated terrain and deferred rendering.
 
 
-************Important**************
+***********************************
+IMPORTANT:
+
 If you want to download and start the project, you need to open it through the Engine.vcxproj inside the code folder!
 I don't really know why but it seems like git breaks the .sln files somehow.
 ***********************************
