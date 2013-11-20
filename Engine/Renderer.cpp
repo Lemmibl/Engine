@@ -559,7 +559,6 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 		string temp = stringStream.str();
 		fileName = (temp).c_str();
 
-		//Yes! Very elegant solution. :|
 		textureAndMaterialHandler->SaveTextureToFile(d3D->GetDeviceContext(), *textureAndMaterialHandler->GetNoiseTexture(), D3DX11_IFF_BMP, fileName);
 	}
 
@@ -579,7 +578,6 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 		string temp = stringStream.str();
 		fileName = (temp).c_str();
 
-		//Yes! Very elegant solution. :|
 		textureAndMaterialHandler->SaveTextureToFile(d3D->GetDeviceContext(), *textureAndMaterialHandler->GetTerrainTexture(), D3DX11_IFF_BMP, fileName);
 	}
 
