@@ -48,6 +48,13 @@ Renderer::Renderer()
 	toggleTextureShader = false;
 	returning = false;
 	toggleOtherPointLights = false;
+
+
+
+
+
+
+	vegetationCount = 150000;
 }
 
 
@@ -410,7 +417,7 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 		return false;
 	}
 
-	for(int i = 0; i < 6; i++)
+	for(int i = 0; i < 7; i++)
 	{
 		debugWindows[i].Initialize(d3D->GetDevice(), screenWidth, screenHeight, 200, 200);
 	}
@@ -522,6 +529,16 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 		textureAndMaterialHandler->RebuildSimplex2DTexture(d3D->GetDevice(), d3D->GetDeviceContext());
 	}
 
+	if(inputManager->WasKeyPressed(DIK_J))
+	{
+		textureAndMaterialHandler->RebuildGrassTexture(d3D->GetDevice(), d3D->GetDeviceContext());
+	}
+
+	if(inputManager->WasKeyPressed(DIK_K))
+	{
+		textureAndMaterialHandler->RebuildDirtTexture(d3D->GetDevice(), d3D->GetDeviceContext());
+	}
+
 	if(inputManager->WasKeyPressed(DIK_P))
 	{
 		//Create and initialize our time... things.
@@ -539,14 +556,27 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 		fileName = (temp).c_str();
 
 		//Yes! Very elegant solution. :|
-		textureAndMaterialHandler->SaveTextureToFile(d3D->GetDeviceContext(), *textureAndMaterialHandler->GetDirtTexture(), D3DX11_IFF_BMP, fileName);
+		textureAndMaterialHandler->SaveTextureToFile(d3D->GetDeviceContext(), *textureAndMaterialHandler->GetNoiseTexture(), D3DX11_IFF_BMP, fileName);
+	}
 
-		////Call save-to-hdd function. If it returns false we break the update loop and the game dies hard.
-		//if(!textureAndMaterialHandler->SaveLTreeTextureToFile(d3D->GetDeviceContext(), D3DX11_IFF_BMP, fileName))
-		//{
-		//	MessageBox(NULL, L"Could not save random texture to hdd. Look in textureAndMaterialHandler.SaveLTreeTextureToFile()", L"Error", MB_OK);
-		//	return false;
-		//}
+	if(inputManager->WasKeyPressed(DIK_L))
+	{
+		//Create and initialize our time... things.
+		const time_t timeObject = time(NULL);
+		struct tm parts;
+		localtime_s(&parts, &timeObject );
+
+		std::ostringstream stringStream;
+
+		//Create the string that will hold the screenshot's name when it gets pooped out into the directory
+		stringStream << "SavedTexture_" << (1+parts.tm_mon) << "-" << parts.tm_mday <<  "-" << parts.tm_min << "-" << parts.tm_sec << ".bmp";
+
+		LPCSTR fileName;
+		string temp = stringStream.str();
+		fileName = (temp).c_str();
+
+		//Yes! Very elegant solution. :|
+		textureAndMaterialHandler->SaveTextureToFile(d3D->GetDeviceContext(), *textureAndMaterialHandler->GetTerrainTexture(), D3DX11_IFF_BMP, fileName);
 	}
 
 	if(inputManager->IsKeyPressed(DIK_1))
@@ -728,22 +758,25 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 	return true;
 }
 
-//THIS SHOULD BE INSIDE VEGETATION MANAGER
+//TODO: THIS SHOULD BE INSIDE VEGETATION MANAGER
 void Renderer::GenerateVegetation( ID3D11Device* device, bool IfSetupThenTrue_IfUpdateThenFalse)
 {
 	float x,z,y;
 	int textureID, randValue;
 
 	LODVector500.clear();
-	//LODVector500.reserve(500);
-	LODVector2500.clear();
-	//LODVector2500.reserve(2500);
-	LODVector5000.clear();
-	//LODVector5000.reserve(5000);
-	LODVector10000.clear();
-	//LODVector10000.reserve(70000);
+	LODVector500.resize(vegetationCount/8);
 
-	for(int i = 0; i < 70000; i++)
+	LODVector2500.clear();
+	LODVector2500.resize(vegetationCount/4);
+	
+	LODVector5000.clear();
+	LODVector5000.resize(vegetationCount/2);
+
+	LODVector10000.clear();
+	LODVector10000.resize(vegetationCount);
+
+	for(int i = 0; i < vegetationCount; i++)
 	{
 		x = (2.0f + (utility->RandomFloat() * marchingCubes->GetSizeX()-2.0f));
 		z = (2.0f + (utility->RandomFloat() * marchingCubes->GetSizeZ()-2.0f));
@@ -769,25 +802,25 @@ void Renderer::GenerateVegetation( ID3D11Device* device, bool IfSetupThenTrue_If
 				//Place texture ID in .w channel
 				VegetationManager::InstanceType temp;
 				temp.position = XMFLOAT4(x, y, z, (float)textureID);
-				temp.randomValue = (utility->RandomFloat()*(XM_PI*2.0f));
+				temp.randomValue = (utility->RandomFloat()*360.0f);
 
 				//We use i to control how many should be added to each LOD vector
-				if(i <= 500)
+				if(i <= (vegetationCount / 8))
 				{
-					LODVector500.push_back(temp);
+					LODVector500[i] = (temp);
 				}
 
-				if(i <= 2500)
+				if(i <= (vegetationCount / 4))
 				{
-					LODVector2500.push_back(temp);
+					LODVector2500[i] = (temp);
 				}
 
-				if(i <= 5000)
+				if(i <= (vegetationCount / 2))
 				{
-					LODVector5000.push_back(temp);
+					LODVector5000[i] = (temp);
 				}
 
-				LODVector10000.push_back(temp);
+				LODVector10000[i] = (temp);
 			}
 		}
 		else
@@ -1276,6 +1309,17 @@ bool Renderer::RenderDebugInfoAndText(ID3D11DeviceContext* deviceContext, XMMATR
 
 		if(!textureShader->Render(d3D->GetDeviceContext(), debugWindows[5].GetIndexCount(), 
 			worldBaseViewOrthoProj, *textureAndMaterialHandler->GetNoiseTexture()))
+		{
+			return false;
+		}
+
+		if(!debugWindows[6].Render(d3D->GetDeviceContext(), 600, 200))
+		{
+			return false;
+		}
+
+		if(!textureShader->Render(d3D->GetDeviceContext(), debugWindows[6].GetIndexCount(), 
+			worldBaseViewOrthoProj, *textureAndMaterialHandler->GetTerrainTexture()))
 		{
 			return false;
 		}

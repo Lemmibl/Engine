@@ -1,8 +1,4 @@
-////////////////////////////////////////////////////////////////////////////////
-// Filename: graphicsclass.h
-////////////////////////////////////////////////////////////////////////////////
-
-///////////////////////
+///////////////
 // MY CLASS INCLUDES //
 ///////////////////////
 #pragma once;
@@ -55,10 +51,6 @@
 #include "DepthOnlyQuadShader.h"
 #include "GaussianBlur.h"
 
-
-////////////////////////////////////////////////////////////////////////////////
-// Class name: GraphicsClass
-////////////////////////////////////////////////////////////////////////////////
 class Renderer
 {
 public:
@@ -85,8 +77,6 @@ public:
 	bool RenderPointLight(ID3D11DeviceContext* deviceContext, XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* viewProjection);
 	bool RenderComposedScene(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* worldView, XMMATRIX* view, XMMATRIX* invertedProjection, XMMATRIX* invertedViewProjection);
 	bool RenderDebugInfoAndText(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj);
-
-	//And the winner for worst parameter name 2013 goes to.....
 	void GenerateVegetation(ID3D11Device* device, bool IfSetupThenTrue_IfUpdateThenFalse);
 
 private:
@@ -120,7 +110,7 @@ private:
 	RenderTarget2D* gaussianBlurPingPongRT; //Used for blurring shadow map
 
 	TextureShaderClass* textureShader;
-	DebugWindowClass debugWindows[6];
+	DebugWindowClass debugWindows[7];
 	DebugWindowClass fullScreenQuad;
 
 	XMFLOAT4X4 baseViewMatrix;
@@ -151,11 +141,10 @@ private:
 	vector<VegetationManager::InstanceType> LODVector10000;
 	int lodState, previousLodState, toggleSSAO, toggleColorMode;
 
+	int vegetationCount;
+
 	Lemmi2DAABB testBoundingbox;
 
-	/************************************************************************/
-	/* Actual rendering related variables                                   */
-	/************************************************************************/
 	XMFLOAT3 camPos, camDir;
 	ID3D11RenderTargetView* gbufferRenderTargets[3]; //render targets for GBuffer pass
 	ID3D11RenderTargetView* lightTarget[1];
@@ -170,8 +159,4 @@ private:
 
 	ID3D11DepthStencilView* shadowDepthStencil;
 	ID3D11DepthStencilView* depthStencil; //We set it later on when we need it. Calling d3D->GetDepthStencilView() also calls a reset on DS settings to default, hence we wait with calling it.
-
-	/************************************************************************/
-	/* End of rendering related variables									*/
-	/************************************************************************/
 };

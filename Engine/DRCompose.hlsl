@@ -13,7 +13,7 @@ Texture2D shaderTextures[4] : register(ps_5_0, t1); // 0 = color, 1 = light, 2 =
 static const float sampleRadius = 0.6f; //Controls sampling radius.
 static const float intensity = 6.0f; //AO intensity. The higher this value is, the darker the occluded parts will be.
 static const float scale = 0.8f; //Scales distance between occluders and occludee.
-static const float bias = 0.5f; //Cutoff value. The higher this value is, the harsher we are with cutting off low AO values.
+static const float bias = 0.2f; //Cutoff value. The higher this value is, the harsher we are with cutting off low AO values.
 static const float CameraFarClip = 500.0f;
 static const float FogEnd = 300.0f;
 static const float FogStart = 100.0f;

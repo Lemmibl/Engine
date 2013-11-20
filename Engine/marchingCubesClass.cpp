@@ -447,10 +447,7 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 	{
 		vector<MarchingCubeVectors> vertices;
 		vector<unsigned long> indices;
-		D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
-		D3D11_SUBRESOURCE_DATA vertexData, indexData;
-		HRESULT result;
-		MarchingCubeVertex cube[8];
+		MarchingCubeVertex* cube[8];
 		unsigned int lookup = 0;
 
 		// Create the vertex array.
@@ -488,6 +485,99 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 		indexCount = indexCounter;
 		vertexCount = vertexCounter;
 
+		SetupBuffers(device, indices, vertices, indexCount, vertexCount);
+	}
+
+	void MarchingCubesClass::ExtractCube(MarchingCubeVertex** cube)
+	{
+		cube[7] = &marchingCubeVertices[index];
+		cube[6] = &marchingCubeVertices[index+1];
+		cube[5]	= &marchingCubeVertices[index + 1 + (this->sizeY * this->sizeZ)];
+		cube[4]	= &marchingCubeVertices[index + (this->sizeY * this->sizeZ)];
+		cube[3]	= &marchingCubeVertices[index + this->sizeY];
+		cube[2]	= &marchingCubeVertices[index+1+this->sizeY];
+		cube[1]	= &marchingCubeVertices[index + 1 + this->sizeY + (this->sizeY * this->sizeZ)];
+		cube[0] = &marchingCubeVertices[index + this->sizeY + (this->sizeY * this->sizeZ)];
+
+	}
+
+	void MarchingCubesClass::CalculateLookupValue(unsigned int* lookup, unsigned int index, MarchingCubeVertex** cube )
+	{
+		if (cube[7]->inside)
+			*lookup |= 128;
+
+		if (cube[6]->inside)
+			*lookup |= 64;
+
+		if (cube[5]->inside)
+			*lookup |= 32;
+
+		if (cube[4]->inside)
+			*lookup |= 16;
+
+		if (cube[3]->inside)
+			*lookup |= 8;
+
+		if (cube[2]->inside)
+			*lookup |= 4;
+
+		if (cube[1]->inside)
+			*lookup |= 2;
+
+		if (cube[0]->inside)
+			*lookup |= 1;
+	}
+
+	void MarchingCubesClass::ProcessCube( unsigned int lookupValue, MarchingCubeVertex* verts, MarchingCubeVertex** cube, vector<unsigned long>& indices, 
+		vector<MarchingCubeVectors>& vertices, unsigned int& indexCounter, unsigned int& vertexCounter )
+	{
+		if(lookupValue == 0)
+			return;
+		
+		//For each potential case
+		for(int i = 0; i < 12; ++i)
+		{
+			//Check if the value corresponds with each bitfilter value. (1 << i) times 12 goes from 0 to 2048.
+			if(this->edgeTable[lookupValue] & (1 << i))
+			{
+				//If the bitwise check goes through, then interpolate between the two relevant corners of the cube.
+				verts[i] =	Interpolate(*cube[edgePairs[i].first],	*cube[edgePairs[i].second]);
+			}
+		}
+
+		int i, j;
+
+		for (i = 0; this->triTable[lookupValue][i] != -1; i += 3)
+		{
+			for (j = i; j < (i+3); j++)
+			{
+				int tritableLookupValue = triTable[lookupValue][j];
+
+				//Comment this if you want the edges back. :)
+				if(y > 10)
+				{
+					//And this.
+					if(x > 0 && z > 0 && x < this->sizeX-2 && z < this->sizeZ-2)
+					{
+						indices[indexCounter] = vertexCounter;
+
+						vertices[vertexCounter].position	= verts[tritableLookupValue].position;
+						vertices[vertexCounter].normal		= verts[tritableLookupValue].normal;
+
+						vertexCounter++;
+						indexCounter++;	
+					}
+				}
+			}
+		}
+	}
+
+	void MarchingCubesClass::SetupBuffers(ID3D11Device* device, vector<unsigned long>& indices, vector<MarchingCubeVectors>& vertices, unsigned int indexCount, unsigned int vertexCount )
+	{
+		D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
+		D3D11_SUBRESOURCE_DATA vertexData, indexData;
+		HRESULT result;
+
 		// Set up the description of the static vertex buffer.
 		vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 		vertexBufferDesc.ByteWidth = sizeof(MarchingCubeVectors) * vertexCount;
@@ -519,98 +609,6 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 
 		// Create the index buffer.
 		result = device->CreateBuffer(&indexBufferDesc, &indexData, &indexBuffer);
-
-		//// Release the arrays now that the vertex and index buffers have been created and loaded.
-		//delete [] vertices;
-		//vertices = 0;
-
-		//delete [] indices;
-		//indices = 0;
-
-	}
-
-	void MarchingCubesClass::ExtractCube( MarchingCubeVertex* cube )
-	{
-		cube[7] = marchingCubeVertices[index];
-		cube[6] = marchingCubeVertices[index+1];
-		cube[5]	= marchingCubeVertices[index + 1 + (this->sizeY * this->sizeZ)];
-		cube[4]	= marchingCubeVertices[index + (this->sizeY * this->sizeZ)];
-		cube[3]	= marchingCubeVertices[index + this->sizeY];
-		cube[2]	= marchingCubeVertices[index+1+this->sizeY];
-		cube[1]	= marchingCubeVertices[index + 1 + this->sizeY + (this->sizeY * this->sizeZ)];
-		cube[0] = marchingCubeVertices[index + this->sizeY + (this->sizeY * this->sizeZ)];
-
-	}
-
-	void MarchingCubesClass::CalculateLookupValue(unsigned int* lookup, unsigned int index, MarchingCubeVertex* cube )
-	{
-		if (cube[7].inside)
-			*lookup |= 128;
-
-		if (cube[6].inside)
-			*lookup |= 64;
-
-		if (cube[5].inside)
-			*lookup |= 32;
-
-		if (cube[4].inside)
-			*lookup |= 16;
-
-		if (cube[3].inside)
-			*lookup |= 8;
-
-		if (cube[2].inside)
-			*lookup |= 4;
-
-		if (cube[1].inside)
-			*lookup |= 2;
-
-		if (cube[0].inside)
-			*lookup |= 1;
-	}
-
-	void MarchingCubesClass::ProcessCube( unsigned int lookupValue, MarchingCubeVertex* verts, MarchingCubeVertex* cube, vector<unsigned long>& indices, 
-		vector<MarchingCubeVectors>& vertices, unsigned int& indexCounter, unsigned int& vertexCounter )
-	{
-		if(lookupValue == 0)
-			return;
-		
-		//For each potential case
-		for(int i = 0; i < 12; ++i)
-		{
-			//Check if the value corresponds with each bitfilter value. (1 << i) times 12 goes from 0 to 2048.
-			if(this->edgeTable[lookupValue] & (1 << i))
-			{
-				//If the bitwise check goes through, then interpolate between the two relevant corners of the cube.
-				verts[i] =	Interpolate(cube[edgePairs[i].first],	cube[edgePairs[i].second]);
-			}
-		}
-
-		int i, j;
-
-		for (i = 0; this->triTable[lookupValue][i] != -1; i += 3)
-		{
-			for (j = i; j < (i+3); j++)
-			{
-				int tritableLookupValue = triTable[lookupValue][j];
-
-				//Comment this if you want the edges back. :)
-				if(y > 10)
-				{
-					//And this.
-					if(x > 0 && z > 0 && x < this->sizeX-2 && z < this->sizeZ-2)
-					{
-						indices[indexCounter] = vertexCounter;
-
-						vertices[vertexCounter].position	= verts[tritableLookupValue].position;
-						vertices[vertexCounter].normal		= verts[tritableLookupValue].normal;
-
-						vertexCounter++;
-						indexCounter++;	
-					}
-				}
-			}
-		}
 	}
 
 	bool MarchingCubesClass::Render(ID3D11DeviceContext* deviceContext)
