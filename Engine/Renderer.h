@@ -118,7 +118,7 @@ private:
 	UINT shadowMapWidth, shadowMapHeight, screenWidth, screenHeight;
 	float screenFar, screenNear, timer, timeOfDay;
 
-	bool returning, toggleDebugInfo, toggleTextureShader, toggleOtherPointLights;
+	bool returning, toggleDebugInfo, toggleTextureShader, toggleOtherPointLights, drawWireFrame;
 	float fogMinimum;
 	
 	MetaballsClass* metaBalls;

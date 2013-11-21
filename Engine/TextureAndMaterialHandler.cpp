@@ -34,7 +34,7 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	int terrainTextureCount = 6;
 	WCHAR* terrainFilenames[6] = 
 	{
-		L"../Engine/data/randomDirt2.dds",//dirt //0
+		L"../Engine/data/dirt.dds",//dirt //0
 		L"../Engine/data/grassTileTest01.dds", //1
 		//L"../Engine/data/randomGrass.dds", //1
 		L"../Engine/data/rock4.dds",

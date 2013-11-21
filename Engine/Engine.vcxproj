@@ -33,7 +33,6 @@
     <ClCompile Include="LemmiQuadtree.h" />
     <ClCompile Include="LerpInstance.cpp" />
     <ClCompile Include="SentenceManager.cpp" />
-    <ClCompile Include="TerrainChunk.cpp" />
     <ClCompile Include="TextureAndMaterialHandler.cpp" />
     <ClCompile Include="LSystemBranch.cpp" />
     <ClCompile Include="Utility.cpp" />
@@ -62,6 +61,7 @@
     <ClCompile Include="timerclass.cpp" />
     <ClCompile Include="TreeClass.cpp" />
     <ClCompile Include="VertexShaderOnly.cpp" />
+    <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bitmapclass.h" />
@@ -119,6 +119,7 @@
     <ClInclude Include="TreeClass.h" />
     <ClInclude Include="VegetationManager.h" />
     <ClInclude Include="VertexShaderOnly.h" />
+    <ClInclude Include="World.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="DRCompose.hlsl" />

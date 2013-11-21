@@ -154,8 +154,8 @@
     <ClCompile Include="SentenceManager.cpp">
       <Filter>General Code</Filter>
     </ClCompile>
-    <ClCompile Include="TerrainChunk.cpp">
-      <Filter>Procedural generation</Filter>
+    <ClCompile Include="World.cpp">
+      <Filter>General Code</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -323,6 +323,9 @@
     </ClInclude>
     <ClInclude Include="customStructs.h">
       <Filter>Procedural generation\MC</Filter>
+    </ClInclude>
+    <ClInclude Include="World.h">
+      <Filter>General Code</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

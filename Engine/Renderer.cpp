@@ -48,7 +48,7 @@ Renderer::Renderer()
 	toggleTextureShader = false;
 	returning = false;
 	toggleOtherPointLights = false;
-
+	drawWireFrame = false;
 
 	xPos = yPos = 0.0f;
 
@@ -457,6 +457,11 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 
 	timer += seconds;
 
+	if(inputManager->WasKeyPressed(DIK_E))
+	{
+		drawWireFrame = !drawWireFrame;
+	}
+
 	if(inputManager->WasKeyPressed(DIK_Q))
 	{
 		toggleDebugInfo = !toggleDebugInfo;
@@ -773,7 +778,7 @@ void Renderer::GenerateVegetation( ID3D11Device* device, bool IfSetupThenTrue_If
 
 	LODVector2500.clear();
 	LODVector2500.resize(vegetationCount/4);
-	
+
 	LODVector5000.clear();
 	LODVector5000.resize(vegetationCount/2);
 
@@ -1110,7 +1115,15 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 
 	skySphere->Render(deviceContext, &worldViewProjMatrix, &dayNightCycle->GetAmbientLightColor(), timeOfDay);
 
-	d3D->SetBackFaceCullingRasterizer();
+	if(drawWireFrame)
+	{	
+		d3D->SetWireframeRasterizer();
+	}
+	else
+	{
+		d3D->SetBackFaceCullingRasterizer();
+	}
+
 	d3D->TurnZBufferOn();
 
 	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
