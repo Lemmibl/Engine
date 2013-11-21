@@ -405,10 +405,10 @@
     <None Include="DRCompose.vsh">
       <Filter>Rendering\Shaders\Post processing</Filter>
     </None>
-    <None Include="TODO.txt" />
     <None Include="DRCompose.hlsl">
       <Filter>Rendering\Shaders\Post processing</Filter>
     </None>
+    <None Include="..\TODO.txt" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Rendering">

@@ -3,23 +3,22 @@
 /*						TODO AND THINGS OF THAT SORT							*/
 /********************************************************************************/
 
-* Fixa marching cubes terräng
-	- MCubeChunk som innehåller: En mesh (vertices+indices), stepX+sizeY, stepY+sizeY, stepZ+sizeZ, startPos+endPos (och en vektor med positioner)?
-	- Gör om marching cubes kring mcubechunk baserat på sample
+* Fix marching cubes terrain
+	- MCubeChunk that contains: A mesh (vertices+indices), stepX+sizeY, stepY+sizeY, stepZ+sizeZ, startPos+endPos (and a vector with positions)?
+	- Refactor marching cubes class to work around external chunks that it recieves through functions, instead of chunks that it owns
 
-* Lägg till en "Applicera en 2D simplex noise textur på terrängen som en height map" genereringsfunktion
+* Add a "Apply a 2D simplex noise texture on terrain as a height map" function
 
-* Geometry shader gräs?
+* Geometry shader grass?
 
 * Skysphere texture mapping!!! Clouds?
 
-* PROCEDURELLT GENERERADE DIRT/STEN/GRÄS texturer? Randoma fram värden i RGB skalan!? Borde funka bra. Med random chans för olika inslag typ sten i dirt osv.
-* Se över om det går att fixa pointlights till två stora render pass istället för 121212121212... X numPointlights
+* Procedurally generated grass/rock/dirt textures with a random chance to get small blotches of say, gray or brown to break up the monotony?
+* Try to change point lights render pass to two big render passes, instead of 121212121212... X numPointlights
 * Shadow manager
 * Light manager
-* Expandera vegetationmanagern för att få den att täcka mer
-* Marching cube chunks
-* Någon sorts XML loader/reader för configs och tweaks. T.ex. keybindings eller textur/material IDs
+* Expand vegetationmanager to make it encompass everything related to vegetation (remove all of the vegetation things from renderer)
+* Some sort of XML loader/reader for configs / keybindings / texture&material IDs
 
 /*
 THE LINK DUNGEON

@@ -122,8 +122,8 @@
     <ClInclude Include="World.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\TODO.txt" />
     <None Include="DRCompose.hlsl" />
-    <None Include="TODO.txt" />
     <None Include="DepthOnlyQuadShader.psh" />
     <None Include="DepthOnlyQuadShader.vsh" />
     <None Include="DepthOnlyShader.psh" />
