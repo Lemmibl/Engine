@@ -89,22 +89,33 @@ http://www.cplusplus.com/reference/unordered_map/unordered_map/begin/
 
 
 
+##################################
+
+OK! Renderables!
+
+Vi har en basklass som heter typ Renderable, den är virtual pure etc. Den innehåller... ingenting? Något?
+
+Sen är där fyra objekt som alla ärver från Renderable.
+
+Där är fyra:
+
+Model, InstancedModel, IndexedModel och IndexedInstanced model
+
+Alla model innehåller:
+enum RenderableType,
+unsigned int vertexCount,
+unsigned long vertexSize,
+
+unsigned int vertexCount
+unsigned long sizeOfOneObject
+unsigned long count?
+
+Sen kan de innehålla indexbuffers, vertexbuffers, instance buffers etc beroende på vad de innehåller
+
+Sen när man renderar så skickar vi bara in en vector med alla renderables och switchar beroende på varje objekt.
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+ELLER så kan varje renderable bara ha en funktion: Render, och den gör en massa saker
 
 
 
