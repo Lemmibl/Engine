@@ -30,15 +30,15 @@ Here are the controls for this project. They are probably prone to change and I 
 ***********************************
 * F1-F9 to change what type of terrain you want to generate next.
 
-# TypesSeaBottom = 1.
-# TypePlains = 2.
-# TypeHills = 3.
-# TypeTerraces = 4.
-# TypeDramaticHills = 5.
-# TypeFlyingIslands = 6.
-# TypeAlien = 7.
-# TypeFancy = 8.
-# TypeCave = 9.
+. TypesSeaBottom = 1.
+. TypePlains = 2.
+. TypeHills = 3.
+. TypeTerraces = 4.
+. TypeDramaticHills = 5.
+. TypeFlyingIslands = 6.
+. TypeAlien = 7.
+. TypeFancy = 8.
+. TypeCave = 9.
 ***********************************
   
 * N to generate a new world.
