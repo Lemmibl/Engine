@@ -28,15 +28,17 @@ Here are the controls for this project. They are probably prone to change and I 
 * 6 to toggle SSAO drawing mode. (Default is with SSAO enabled, next is the scene without any SSAO, and the last is the scene with only SSAO applied).
 
 * F1-F9 to change what type of terrain you want to generate next.
-*   terrainTypesSeaBottom = 1.
-*   terrainTypePlains = 2.
-*   terrainTypeHills = 3.
-*   terrainTypeTerraces = 4.
-*   terrainTypeDramaticHills = 5.
-*   terrainTypeFlyingIslands = 6.
-*   terrainTypeAlien = 7.
-*   terrainTypeFancy = 8.
-*   terrainTypeCave = 9.
+***********************************
+TypesSeaBottom = 1.
+TypePlains = 2.
+TypeHills = 3.
+TypeTerraces = 4.
+TypeDramaticHills = 5.
+TypeFlyingIslands = 6.
+TypeAlien = 7.
+TypeFancy = 8.
+TypeCave = 9.
+***********************************
   
 * N to generate a new world.
 * R and F to move point lights up and down.
