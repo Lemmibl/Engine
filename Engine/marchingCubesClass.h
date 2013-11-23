@@ -72,12 +72,15 @@ public:
 		float diff;
 
 		diff = (this->metaballsIsoValue - v1.density) / (v2.density - v1.density);
+		
+		//Interpolate density as well.
+		//We don't actually use density after this point, so there's no need to calculate it, but just in case we expand on this in the future ...
+		v.density = v1.density + (v2.density - v1.density) * diff;
 
-		// Finds where on the line our point is possitioned
+		// Finds where on the line our point is positioned
 		v.position.x = v1.position.x + (v2.position.x - v1.position.x) * diff;
 		v.position.y = v1.position.y + (v2.position.y - v1.position.y) * diff;
 		v.position.z = v1.position.z + (v2.position.z - v1.position.z) * diff;
-		v.density = (v1.density + v2.density) * 0.5f;
 
 		// calculates the average normal for each point
 		v.normal.x = v1.normal.x + (v2.normal.x - v1.normal.x) * diff;

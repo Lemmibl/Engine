@@ -14,10 +14,9 @@ struct VertexShaderInput
 struct VertexShaderOutput
 {
 	float4 Position : SV_POSITION;
-	float3 Normal : NORMAL;
-	float3 WorldNormal : TEXCOORD0;
-	float4 WorldPosition : TEXCOORD1;
-	float ViewDepth : TEXCOORD2;
+	float4 WorldNormal : NORMAL;
+	float4 WorldPosition : TEXCOORD0;
+	float ViewDepth : TEXCOORD1;
 };
 
 VertexShaderOutput MCubesGBufferVertexShader(VertexShaderInput input)
@@ -26,6 +25,8 @@ VertexShaderOutput MCubesGBufferVertexShader(VertexShaderInput input)
 
 	output.Position	= mul(input.Position, WorldViewProjection);
 	
+	float4 normal = float4(input.Normal, 1.0f);
+
 	//This is the proper way to do it
 	//output.ViewDepth		= mul(input.Position, WorldView).z;
 
@@ -33,8 +34,7 @@ VertexShaderOutput MCubesGBufferVertexShader(VertexShaderInput input)
 	output.ViewDepth = output.Position.w;
 
 	output.WorldPosition	= mul(input.Position, World);
-	output.Normal			= input.Normal;
-	output.WorldNormal		= mul(input.Normal, World);
+	output.WorldNormal		= normalize(mul(normal, World));
 
 	return output;
 }

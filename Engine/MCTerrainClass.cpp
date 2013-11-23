@@ -25,15 +25,16 @@ void MCTerrainClass::Initialize(int sizeX, int sizeY, int sizeZ, MarchingCubeVer
 
 	densityToBeInside = 0.2f;
 
-	densityArray3D.resize(sizeZ);
-	for (int i = 0; i < sizeZ; ++i)
-	{
-		densityArray3D[i].resize(sizeY);
-		for (int j = 0; j < sizeY; ++j)
-		{
-			densityArray3D[i][j].resize(sizeX);
-		}
-	}
+	//densityArray3D.resize(sizeZ);
+	//for (int i = 0; i < sizeZ; ++i)
+	//{
+	//	densityArray3D[i].resize(sizeY);
+	//	for (int j = 0; j < sizeY; ++j)
+	//	{
+	//		densityArray3D[i][j].resize(sizeX);
+	//	}
+	//}
+
 	pulverize = false;
 	worldSize = 0;
 	worldSizeMargin = 1;
@@ -340,20 +341,20 @@ void MCTerrainClass::Noise3D()
 					marchingCubeVertices[idx].inside = false;
 				}
 
-				if(marchingCubeVertices[idx].density < 0)
-				{
-					densityArray3D[x][y][z] = 0.0f;
-				}
-				else if(marchingCubeVertices[idx].density > 1)
-				{
-					densityArray3D[x][y][z] = 1.0f;
-				}
-				else
-				{
-					densityArray3D[x][y][z] = marchingCubeVertices[idx].density;
-				}
+				//if(marchingCubeVertices[idx].density < 0)
+				//{
+				//	densityArray3D[x][y][z] = 0.0f;
+				//}
+				//else if(marchingCubeVertices[idx].density > 1)
+				//{
+				//	densityArray3D[x][y][z] = 1.0f;
+				//}
+				//else
+				//{
+				//	densityArray3D[x][y][z] = marchingCubeVertices[idx].density;
+				//}
 
-				densityArray3D[x][y][z] = marchingCubeVertices[idx].density;
+				//densityArray3D[x][y][z] = marchingCubeVertices[idx].density;
 				
 				CreateMCVerts();
 			}
@@ -363,17 +364,17 @@ void MCTerrainClass::Noise3D()
 
 void MCTerrainClass::CreateMCVerts()
 {
-	//float normalX = marchingCubeVertices[idx - 1].density - marchingCubeVertices[idx+1].density;
-	//float normalY = marchingCubeVertices[idx - sizeY].density - marchingCubeVertices[idx + sizeY].density;
-	//float normalZ = marchingCubeVertices[idx - (sizeY * sizeZ)].density - marchingCubeVertices[idx + (sizeY * sizeZ)].density;
+	marchingCubeVertices[idx].normal.x = (marchingCubeVertices[idx - 1].density -				marchingCubeVertices[idx+1].density)					* XFactor;
+	marchingCubeVertices[idx].normal.y = (marchingCubeVertices[idx - sizeY].density -			marchingCubeVertices[idx + sizeY].density)				* YFactor;
+	marchingCubeVertices[idx].normal.z = (marchingCubeVertices[idx - (sizeY * sizeZ)].density -	marchingCubeVertices[idx + (sizeY * sizeZ)].density)	* ZFactor;
 
-	float normalX = ((densityArray3D[x-1][y][z]	- densityArray3D[x+1][y][z])) * XFactor;
-	float normalY = ((densityArray3D[x][y-1][z]	- densityArray3D[x][y+1][z])) * YFactor;
-	float normalZ = ((densityArray3D[x][y][z-1]	- densityArray3D[x][y][z+1])) * ZFactor;
+	//float normalX = ((densityArray3D[x-1][y][z]	- densityArray3D[x+1][y][z])) * XFactor;
+	//float normalY = ((densityArray3D[x][y-1][z]	- densityArray3D[x][y+1][z])) * YFactor;
+	//float normalZ = ((densityArray3D[x][y][z-1]	- densityArray3D[x][y][z+1])) * ZFactor;
 
-	marchingCubeVertices[idx].normal.x = normalX;
-	marchingCubeVertices[idx].normal.y = normalY;
-	marchingCubeVertices[idx].normal.z = normalZ;
+	//marchingCubeVertices[idx].normal.x = normalX;
+	//marchingCubeVertices[idx].normal.y = normalY;
+	//marchingCubeVertices[idx].normal.z = normalZ;
 
 	////Normalize results.
 	//float vectorLength = (normalX*normalX) + (normalY*normalY) + (normalZ*normalZ);

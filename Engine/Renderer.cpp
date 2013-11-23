@@ -1056,6 +1056,7 @@ bool Renderer::RenderShadowmap( ID3D11DeviceContext* deviceContext, XMMATRIX* li
 	return true;
 }
 
+//TODO: change this function to just take two generic render targets and a depth stencil, as to make it possible to blur anything
 bool Renderer::RenderTwoPassGaussianBlur(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj )
 {
 	//Shadow map blur stage
@@ -1132,8 +1133,6 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 	worldView = XMMatrixTranspose(worldMatrix * (*viewMatrix));
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
-	//if(frustum->Check2DAABB(&testBoundingbox))
-	//{
 	if(!marchingCubes->Render(deviceContext))
 	{
 		return false;
@@ -1152,7 +1151,6 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 		return false;
 	}
 	d3D->TurnOffAlphaBlending();
-	//}
 
 	return true;
 }

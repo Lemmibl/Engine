@@ -157,6 +157,12 @@
     <ClCompile Include="World.cpp">
       <Filter>General Code</Filter>
     </ClCompile>
+    <ClCompile Include="TerrainManager.cpp">
+      <Filter>Procedural generation</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainChunk.cpp">
+      <Filter>Procedural generation</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cpumeter.h">
@@ -326,6 +332,12 @@
     </ClInclude>
     <ClInclude Include="World.h">
       <Filter>General Code</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainManager.h">
+      <Filter>Procedural generation</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>Rendering\Rendering utility</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -101,8 +101,8 @@ void VegetationManager::RenderBuffers( ID3D11DeviceContext* deviceContext)
 	offsets[1] = 0;
 
 	// Set the array of pointers to the vertex and instance buffers.
-	bufferPointers[0] = vertexBuffer;	
-	bufferPointers[1] = instanceBuffer;
+	bufferPointers[0] = vertexBuffer.p;	
+	bufferPointers[1] = instanceBuffer.p;
 
 	// Set the vertex buffer to active in the input assembler so it can be rendered.
 	deviceContext->IASetVertexBuffers(0, 2, bufferPointers, strides, offsets);

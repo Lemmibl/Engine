@@ -33,6 +33,8 @@
     <ClCompile Include="LemmiQuadtree.h" />
     <ClCompile Include="LerpInstance.cpp" />
     <ClCompile Include="SentenceManager.cpp" />
+    <ClCompile Include="TerrainChunk.cpp" />
+    <ClCompile Include="TerrainManager.cpp" />
     <ClCompile Include="TextureAndMaterialHandler.cpp" />
     <ClCompile Include="LSystemBranch.cpp" />
     <ClCompile Include="Utility.cpp" />
@@ -88,8 +90,10 @@
     <ClInclude Include="LemmiGridTable.h" />
     <ClInclude Include="LemmiLinkedList.h" />
     <ClInclude Include="LerpInstance.h" />
+    <ClInclude Include="Mesh.h" />
     <ClInclude Include="SentenceManager.h" />
     <ClInclude Include="TerrainChunk.h" />
+    <ClInclude Include="TerrainManager.h" />
     <ClInclude Include="TextureAndMaterialHandler.h" />
     <ClInclude Include="LSystemBranch.h" />
     <ClInclude Include="Utility.h" />

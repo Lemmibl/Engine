@@ -20,6 +20,11 @@
 * Expand vegetationmanager to make it encompass everything related to vegetation (remove all of the vegetation things from renderer)
 * Some sort of XML loader/reader for configs / keybindings / texture&material IDs
 
+
+* Create a function that reads a vertex buffer and creates a bounding box that covers it. 
+http://stackoverflow.com/questions/17414491/how-to-read-vertices-from-vertex-buffer-in-direct3d11 << HERE! This is what I've been looking for.
+https://www.braynzarsoft.net/~braynzar/index.php?p=BoundingBox And this.
+
 /*
 THE LINK DUNGEON
 
