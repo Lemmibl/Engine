@@ -27,27 +27,26 @@ Here are the controls for this project. They are probably prone to change and I 
 * 5 to toggle drawing of point lights
 * 6 to toggle SSAO drawing mode. (Default is with SSAO enabled, next is the scene without any SSAO, and the last is the scene with only SSAO applied).
 
-* F1-F9 to change what type of terrain you want to generate next.
 ***********************************
-TypesSeaBottom = 1.
-TypePlains = 2.
-TypeHills = 3.
-TypeTerraces = 4.
-TypeDramaticHills = 5.
-TypeFlyingIslands = 6.
-TypeAlien = 7.
-TypeFancy = 8.
-TypeCave = 9.
+* F1-F9 to change what type of terrain you want to generate next.
+
+-TypesSeaBottom = 1.
+-TypePlains = 2.
+-TypeHills = 3.
+-TypeTerraces = 4.
+-TypeDramaticHills = 5.
+-TypeFlyingIslands = 6.
+-TypeAlien = 7.
+-TypeFancy = 8.
+-TypeCave = 9.
 ***********************************
   
 * N to generate a new world.
 * R and F to move point lights up and down.
-
 * U to generate random R8G8B8A8 noise to a debug texture.
 * I to generate random simplex noise to a debug texture.
 * O to generate mirrored random simplex noise to a debug texture.
 * P to save this texture to harddrive (gets saved where the code files are located).
-
 * J to generate a random "grass" texture.
 * K to generate a random "dirt" texture.
 * L to save the grass or dirt texture to harddrive (gets saved where the code files are located).
