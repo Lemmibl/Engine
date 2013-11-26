@@ -14,6 +14,6 @@ private:
 // 
 // I think I've finally figured it out. Just use a sorted map that uses a pair<int,int> as key and a chunk as value. Or maybe like a shared_ptr<chunk> as value
 //http://en.cppreference.com/w/cpp/utility/hash
-//
+
 };
 
