@@ -1,5 +1,4 @@
-#ifndef MCUBES_METABALLS_H
-#define MCUBES_METABALLS_H
+#pragma once
 #include "customStructs.h"
 #include <stdio.h>
 #include <windows.h>
@@ -7,21 +6,6 @@
 
 class MetaballsClass
 {
-	
-
-private:
-	int i;
-	
-	// number of metapoints
-	int numberOfMetapoints;
-
-	// the length between points
-	float lengthX, lengthY, lengthZ;
-	float isoValue;
-
-	// the metapoints
-	Metapoint metapoints[3];
-
 public:
 	MetaballsClass()
 	{
@@ -38,12 +22,12 @@ public:
 		metapoints[1].position.z = 10.0f;
 	}
 
-	~MetaballsClass();
-
 	void SetIsoValue(float isoValue)
 	{
 		this->isoValue = isoValue;
 	}
+
+	float GetIsoValue() const { return isoValue; }
 
 	//move the metaball
 	inline void MoveBall(int idx, float x, float y, float z)
@@ -105,5 +89,17 @@ public:
 
 		return density;
 	}
+
+private:
+	int i;
+
+	// number of metapoints
+	int numberOfMetapoints;
+
+	// the length between points
+	float lengthX, lengthY, lengthZ;
+	float isoValue;
+
+	// the metapoints
+	Metapoint metapoints[3];
 };
-#endif

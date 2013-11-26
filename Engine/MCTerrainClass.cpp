@@ -388,27 +388,29 @@ float MCTerrainClass::GetHighestPositionOfCoordinate(int x, int z)
 {
 	float j = 0.0f;
 	int i = 0;
+	int idxPreCalc = x + z * sizeY * sizeZ;
 
+	//So what this function does is that it takes a point in our voxel field, then it starts from the absolute highest point in the field, 
+	// and goes downward until it hits a point with a density that is high enough to be considered solid.
 	for (i = sizeY; i > 0; i--)
 	{
-		idx = x + i*sizeY + z * sizeY * sizeZ;
+		idx = i*sizeY + idxPreCalc;
 
+		//When we find our first solid voxel, we break, because we've found the right point
 		if(marchingCubeVertices[idx].inside)
 		{
 			break;
 		} 
 	}
 
-	int idx = x + (i+1)*sizeY + z * sizeY * sizeZ;
-	int idx2 = x + (i+2)*sizeY + z * sizeY * sizeZ;
+	//Now we want the point below it
+	int idx2 = idx+sizeY;
 
-	float j1 = marchingCubeVertices[idx].density;
-	float j2 = marchingCubeVertices[idx2].density;
-	j = (j1 + j2)*0.5f;
+	//Calculate an average
+	j = (marchingCubeVertices[idx].density + marchingCubeVertices[idx2].density)*0.5f;
 
-
-	//j = 0;
-	return (i + 1.0f + j);
+	//Then we add some fuckin' magic numbers because we're BAD BOYS who don't PLAY BY THE RULES
+	return (i + 0.5f + j);
 }
 
 float MCTerrainClass::GetHighestPositionOfCoordinateBruteforce(float x, float z)

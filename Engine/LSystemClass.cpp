@@ -25,7 +25,7 @@ LSystemClass::~LSystemClass(void)
 {
 }
 
-void LSystemClass::initialize()
+void LSystemClass::Initialize()
 {
 
 

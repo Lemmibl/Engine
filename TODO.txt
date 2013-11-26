@@ -15,11 +15,10 @@
 
 * Procedurally generated grass/rock/dirt textures with a random chance to get small blotches of say, gray or brown to break up the monotony?
 * Try to change point lights render pass to two big render passes, instead of 121212121212... X numPointlights
-* Shadow manager
+* Shadow manager...?
 * Light manager
 * Expand vegetationmanager to make it encompass everything related to vegetation (remove all of the vegetation things from renderer)
 * Some sort of XML loader/reader for configs / keybindings / texture&material IDs
-
 
 * Create a function that reads a vertex buffer and creates a bounding box that covers it. 
 http://stackoverflow.com/questions/17414491/how-to-read-vertices-from-vertex-buffer-in-direct3d11 << HERE! This is what I've been looking for.
@@ -28,8 +27,37 @@ https://www.braynzarsoft.net/~braynzar/index.php?p=BoundingBox And this.
 /*
 THE LINK DUNGEON
 
+OK, SO! This is how I think I will manage and send renderable objects to my renderer every frame:
 
-http://hugi.scene.org/online/hugi22/pxmcbp.htm
+I keep a struct or class that could be called, say, RenderableBundle. This is one object that you'll send to the renderer's render function by pointer.
+
+RenderableBundle will contain:
+a vector<queue<>>. One queue for each sort of renderable.
+
+http://www.dataorienteddesign.com/dodmain/node14.html VVVVVVVVVVVVV
+We will also keep a separate vector with render settings for each queue. This means that each queue contains different sorts of renderables, and that each of these queues can have their own settings, modes etc.
+
+So inside renderer we'll do something like this:
+
+for(int i = 0; i < RenderableBundle.vector.size(); i++)
+{
+	
+	<Change settings that we find through RenderableBundle.RenderSettings[i]>
+
+	while(!RenderableBundle.vector[i].empty())
+	{
+		RenderMesh(RenderableBundle.vector[i][j].front());
+		RenderableBundle.vector[i][j].pop();
+
+		SomeShader.Render();
+	}
+}
+
+Rendering and general layout of rendering system:
+http://gamedev.stackexchange.com/questions/22080/which-of-these-directx11-calls-actually-sends-data-to-the-gpu
+http://www.dataorienteddesign.com/dodmain/node14.html
+http://www.bitsquid.se/presentations/benefits-of-a-data-driven-renderer.pdf
+
 
 Entity system:
 http://www.gameprogblog.com/managing-entities/#more-79

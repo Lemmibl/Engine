@@ -38,6 +38,7 @@
 #include "MCTerrainClass.h"
 #include "LSystemClass.h"
 #include "SimplexNoise.h"
+#include "Mesh.h"
 
 //Shaders
 #include "MCubesGBufferShader.h"
@@ -58,7 +59,7 @@ public:
 	Renderer(const Renderer&);
 	~Renderer();
 
-	bool Initialize(HWND hwnd, CameraClass* camera, InputClass* inputManager, D3DClass* d3D, UINT screenWidth, 
+	bool Initialize(HWND hwnd, shared_ptr<CameraClass> camera, shared_ptr<InputClass> inputManager, shared_ptr<D3DClass> d3D, UINT screenWidth, 
 		UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear, bool toggleDebug);
 
 	bool InitializeShaders(HWND hwnd);
@@ -68,7 +69,11 @@ public:
 	void Shutdown();
 
 	bool Update(HWND hwnd, int, int, float, float seconds);
+
+	void SetupRTsAndStuff();
+
 	bool Render(HWND hwnd);
+	void RenderMesh(ID3D11DeviceContext* deviceContext, Mesh* mesh);
 
 	bool RenderShadowmap(ID3D11DeviceContext* deviceContext, XMMATRIX* lightWorldViewProj, XMMATRIX* lightWorldView);
 	bool RenderTwoPassGaussianBlur(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj);
@@ -80,59 +85,54 @@ public:
 	void GenerateVegetation(ID3D11Device* device, bool IfSetupThenTrue_IfUpdateThenFalse);
 
 private:
-	D3DClass* d3D;
-	CameraClass* camera;
-	InputClass* inputManager;
-	TextClass* text;
-	FrustumClass* frustum;
+	shared_ptr<D3DClass> d3D;
+	shared_ptr<CameraClass> camera;
+	shared_ptr<InputClass> inputManager;
+	shared_ptr<TextClass> text;
+	shared_ptr<MarchingCubesClass> marchingCubes;
 
-	DRPointLight* pointLightShader;
+
+	FrustumClass frustum;
+
+	DRPointLight pointLightShader;
 	vector<PointLight> pointLights;
 
-	VertexShaderOnly* vertexOnlyShader;
-	DepthOnlyShader* depthOnlyShader;
-	DepthOnlyQuadShader* depthOnlyQuadShader;
-	DRCompose* composeShader;
-	GaussianBlur* gaussianBlurShader;
+	VertexShaderOnly vertexOnlyShader;
+	DepthOnlyShader depthOnlyShader;
+	DepthOnlyQuadShader depthOnlyQuadShader;
+	DRCompose composeShader;
+	GaussianBlur gaussianBlurShader;
 
-	DRDirLight* dirLightShader;
-	DirLight* dirLight;
+	DRDirLight dirLightShader;
+	DirLight dirLight;
 
-	ModelClass* sphereModel;
-	Skysphere* skySphere;
-	VegetationManager* vegetationManager;
+	ModelClass sphereModel;
+	Skysphere skySphere;
+	VegetationManager vegetationManager;
 
-	RenderTarget2D* colorRT; // render target for storing color. 8R 8G 8B 8A. stores specular intensity in alpha value.
-	RenderTarget2D* depthRT; // render target for storing depth. it's a R16 G16 because we use variance shadowmapping
-	RenderTarget2D* normalRT; //render target for storing normals. 8R 8G 8B 8A. stores specular power in alpha value.
-	RenderTarget2D* lightRT; // light rendertarget
-	RenderTarget2D* shadowRT; //Shadow map
-	RenderTarget2D* gaussianBlurPingPongRT; //Used for blurring shadow map
-
-	TextureShaderClass* textureShader;
+	TextureShaderClass textureShader;
 	DebugWindowClass debugWindows[7];
 	DebugWindowClass fullScreenQuad;
 
 	XMFLOAT4X4 baseViewMatrix;
 
 	UINT shadowMapWidth, shadowMapHeight, screenWidth, screenHeight;
-	float screenFar, screenNear, timer, timeOfDay;
+	float farClip, nearClip, timer, timeOfDay;
 
 	bool returning, toggleDebugInfo, toggleTextureShader, toggleOtherPointLights, drawWireFrame;
 	float fogMinimum;
 	
-	MetaballsClass* metaBalls;
-	MCubesGBufferShader* mcubeShader;
+	MetaballsClass metaBalls;
+	MCubesGBufferShader mcubeShader;
 
-	DayNightCycle* dayNightCycle;
-	MarchingCubesClass* marchingCubes;
-	MCTerrainClass* mcTerrain;
+	DayNightCycle dayNightCycle;
+	MCTerrainClass mcTerrain;
 
-	LSystemClass* lSystem;
-	SimplexNoise *noise;
+	LSystemClass lSystem;
+	SimplexNoise noise;
 
-	Utility* utility;
-	TextureAndMaterialHandler* textureAndMaterialHandler;
+	Utility utility;
+	TextureAndMaterialHandler textureAndMaterialHandler;
 
 	//These should be temporary. Just used for testing my little LOD system.
 	vector<VegetationManager::InstanceType> LODVector500;
@@ -148,17 +148,28 @@ private:
 	Lemmi2DAABB testBoundingbox;
 
 	XMFLOAT3 camPos, camDir;
-	ID3D11RenderTargetView* gbufferRenderTargets[3]; //render targets for GBuffer pass
-	ID3D11RenderTargetView* lightTarget[1];
-	ID3D11RenderTargetView* shadowTarget[1];
-	ID3D11RenderTargetView* gaussianBlurPingPongRTView[1];
 
-	ID3D11ShaderResourceView* gbufferTextures[3];
-	ID3D11ShaderResourceView* dirLightTextures[4];
-	ID3D11ShaderResourceView* finalTextures[4];
-	ID3D11ShaderResourceView* gaussianBlurTexture[1];
-	ID3D11ShaderResourceView* lightMap;
+	RenderTarget2D colorRT; // render target for storing color. 8R 8G 8B 8A. stores specular intensity in alpha value.
+	RenderTarget2D depthRT; // render target for storing depth. it's a R16 G16 because we use variance shadowmapping
+	RenderTarget2D normalRT; //render target for storing normals. 8R 8G 8B 8A. stores specular power in alpha value.
+	RenderTarget2D lightRT; // light rendertarget
+	RenderTarget2D shadowRT; //Shadow map
+	RenderTarget2D gaussianBlurPingPongRT; //Used for blurring shadow map
 
-	ID3D11DepthStencilView* shadowDepthStencil;
-	ID3D11DepthStencilView* depthStencil; //We set it later on when we need it. Calling d3D->GetDepthStencilView() also calls a reset on DS settings to default, hence we wait with calling it.
+	//http://stackoverflow.com/questions/2319224/dynamic-array-of-com-objects
+	//http://369o.com/data/books/atl/0321159624/ch03lev1sec4.html
+
+	CComPtr<ID3D11RenderTargetView> gbufferRenderTargets[3]; //render targets for GBuffer pass
+	CComPtr<ID3D11RenderTargetView> lightTarget[1];
+	CComPtr<ID3D11RenderTargetView> shadowTarget[1];
+	CComPtr<ID3D11RenderTargetView> gaussianBlurPingPongRTView[1];
+
+	CComPtr<ID3D11ShaderResourceView> gbufferTextures[3];
+	CComPtr<ID3D11ShaderResourceView> dirLightTextures[4];
+	CComPtr<ID3D11ShaderResourceView> finalTextures[4];
+	CComPtr<ID3D11ShaderResourceView> gaussianBlurTexture[1];
+	CComPtr<ID3D11ShaderResourceView> lightMap;
+
+	CComPtr<ID3D11DepthStencilView> shadowDepthStencil;
+	CComPtr<ID3D11DepthStencilView> depthStencil; //We set it later on when we need it. Calling d3D->GetDepthStencilView() also calls a reset on DS settings to default, hence we wait with calling it.
 };

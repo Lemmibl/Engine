@@ -5,40 +5,40 @@
 
 Renderer::Renderer()
 {
-	d3D = 0;
-	camera  = 0;
-	text = 0;
+	//d3D = 0;
+	//camera  = 0;
+	//text = 0;
 
-	frustum = 0;
-	textureShader = 0;
-	pointLightShader = 0;
+	//frustum = 0;
+	//textureShader = 0;
+	//pointLightShader = 0;
 
-	vertexOnlyShader = 0;
-	depthOnlyShader = 0;
-	composeShader = 0;
-	gaussianBlurShader = 0;
+	//vertexOnlyShader = 0;
+	//depthOnlyShader = 0;
+	//composeShader = 0;
+	//gaussianBlurShader = 0;
 
-	dirLightShader = 0;
-	dirLight = 0;
+	//dirLightShader = 0;
+	//dirLight = 0;
 
-	sphereModel = 0;
-	skySphere = 0;
-	vegetationManager = 0;
-	depthOnlyQuadShader = 0;
+	//sphereModel = 0;
+	//skySphere = 0;
+	//vegetationManager = 0;
+	//depthOnlyQuadShader = 0;
 
-	colorRT = 0;
-	normalRT = 0;
-	depthRT = 0;
-	shadowRT = 0;
-	lightRT = 0;
-	gaussianBlurPingPongRT = 0;
+	//colorRT = 0;
+	//normalRT = 0;
+	//depthRT = 0;
+	//shadowRT = 0;
+	//lightRT = 0;
+	//gaussianBlurPingPongRT = 0;
 
-	mcubeShader = 0;
-	marchingCubes = 0;
-	mcTerrain = 0;
+	//mcubeShader = 0;
+	//marchingCubes = 0;
+	//mcTerrain = 0;
 
-	utility = 0;
-	textureAndMaterialHandler = 0;
+	//utility = 0;
+	//textureAndMaterialHandler = 0;
 
 	timeOfDay = 0.0f;
 	timer = 10.0f;
@@ -65,25 +65,25 @@ Renderer::Renderer(const Renderer& other)
 
 Renderer::~Renderer()
 {
-	delete noise;
-	noise = 0;
+	//delete noise;
+	//noise = 0;
 }
 
 
-bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3DClass* d3D, UINT screenWidth, UINT screenHeight,
-	UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear, bool toggleDebug)
+bool Renderer::Initialize(HWND hwnd, shared_ptr<CameraClass> camera, shared_ptr<InputClass> inputManager, shared_ptr<D3DClass> d3D, UINT screenWidth, 
+	UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear, bool toggleDebug)
 {
 	srand((unsigned int)time(NULL));
 	bool result;
 
 	this->toggleDebugInfo = toggleDebug;
-	this->inputManager = input;
+	this->inputManager = inputManager;
 	this->shadowMapWidth = shadowmapWidth;
 	this->shadowMapHeight = shadowmapHeight;
 	this->screenWidth = screenWidth;
 	this->screenHeight = screenHeight;
-	this->screenFar = screenFar;
-	this->screenNear = screenNear;
+	this->farClip = screenFar;
+	this->nearClip = screenNear;
 	this->d3D = d3D;
 	this->camera = camera;
 
@@ -91,7 +91,7 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 	toggleColorMode = 1;
 	fogMinimum = 1.0f;
 
-	utility = new Utility();
+	utility = Utility();
 
 	XMStoreFloat4x4(&baseViewMatrix, camera->GetView());
 
@@ -119,6 +119,8 @@ bool Renderer::Initialize(HWND hwnd, CameraClass* camera, InputClass* input, D3D
 		return false;
 	}
 
+	SetupRTsAndStuff();
+
 	return true;
 }
 
@@ -126,113 +128,81 @@ bool Renderer::InitializeShaders( HWND hwnd )
 {
 	bool result;
 
-	skySphere = new Skysphere();
-	if(!skySphere)
-	{
-		return false;
-	}
+	//skySphere();
 
-	result = skySphere->Initialize(d3D->GetDevice(), hwnd);
+	result = skySphere.Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		return false;
 	}
 
-	pointLightShader = new DRPointLight();
-	if(!pointLightShader)
-	{
-		return false;
-	}
+	pointLightShader = DRPointLight();
 
-	result = pointLightShader->Initialize(d3D->GetDevice(), hwnd);
+	result = pointLightShader.Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Pointlight shader couldn't be initialized.", L"Error", MB_OK);
 		return false;
 	}
 
-	vertexOnlyShader = new VertexShaderOnly();
-	if(!vertexOnlyShader)
-	{
-		return false;
-	}
+	vertexOnlyShader = VertexShaderOnly();
 
-	result = vertexOnlyShader->Initialize(d3D->GetDevice(), hwnd);
+	result = vertexOnlyShader.Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Vertex only shader couldn't be initialized.", L"Error", MB_OK);
 		return false;
 	}
 
-	depthOnlyShader = new DepthOnlyShader();
-	if(!vertexOnlyShader)
-	{
-		return false;
-	}
+	depthOnlyShader = DepthOnlyShader();
 
-	result = depthOnlyShader->Initialize(d3D->GetDevice(), hwnd);
+	result = depthOnlyShader.Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Depth only shader couldn't be initialized.", L"Error", MB_OK);
 		return false;
 	}
 
-	depthOnlyQuadShader = new DepthOnlyQuadShader();
-	if(!depthOnlyQuadShader)
-	{
-		return false;
-	}
+	depthOnlyQuadShader = DepthOnlyQuadShader();
 
-	result = depthOnlyQuadShader->Initialize(d3D->GetDevice(), hwnd);
+	result = depthOnlyQuadShader.Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Depth only quad shader couldn't be initialized.", L"Error", MB_OK);
 		return false;
 	}
 
-	composeShader = new DRCompose();
-	if(!composeShader)
-	{
-		return false;
-	}
+	composeShader = DRCompose();
 
-	result = composeShader->Initialize(d3D->GetDevice(), hwnd);
+	result = composeShader.Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Compose shader couldn't be initialized.", L"Error", MB_OK);
 		return false;
 	}
 
-	gaussianBlurShader = new GaussianBlur();
-	if(!gaussianBlurShader)
+	gaussianBlurShader = GaussianBlur();
+
+	result = gaussianBlurShader.Initialize(d3D->GetDevice(), hwnd);
+	if(!result)
 	{
+		MessageBox(hwnd, L"Gaussian blur shader couldn't be initialized.", L"Error", MB_OK);
 		return false;
 	}
 
-	result = gaussianBlurShader->Initialize(d3D->GetDevice(), hwnd);
 
+	textureShader = TextureShaderClass();
 
-
-	textureShader = new TextureShaderClass();
-	if(!textureShader)
-	{
-		return false;
-	}
-
-	result = textureShader->Initialize(d3D->GetDevice(), hwnd);
+	result = textureShader.Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Texture shader couldn't be initialized.", L"Error", MB_OK);
 		return false;
 	}
 
-	mcubeShader = new MCubesGBufferShader();
-	if(!mcubeShader)
-	{
-		return false;
-	}
+	mcubeShader = MCubesGBufferShader();
 
-	result = mcubeShader->Initialize(d3D->GetDevice(), hwnd);
+	result = mcubeShader.Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Marching cubes gbuffer shader couldn't be initialized.", L"Error", MB_OK);
@@ -254,9 +224,9 @@ bool Renderer::InitializeLights( HWND hwnd )
 
 	for(int i = 0; i < 100; i++)
 	{
-		red = utility->RandomFloat();
-		green = utility->RandomFloat();
-		blue = utility->RandomFloat();
+		red = utility.RandomFloat();
+		green = utility.RandomFloat();
+		blue = utility.RandomFloat();
 		// pointLights[i].Position = XMFLOAT3(2.0f+(x * 176.0f), 15.0f, 2.0f + (y * 176.0f));
 
 		PointLight pointLight;
@@ -264,7 +234,7 @@ bool Renderer::InitializeLights( HWND hwnd )
 
 		pointLights[i].Color = XMFLOAT3(red, green, blue);
 		pointLights[i].Position = XMFLOAT3(x, y, z);
-		pointLights[i].Radius = 4.0f + (5.0f*utility->RandomFloat()); //Used to both scale the actual point light model and is a factor in the attenuation
+		pointLights[i].Radius = 4.0f + (5.0f*utility.RandomFloat()); //Used to both scale the actual point light model and is a factor in the attenuation
 		pointLights[i].Intensity = 1.0f;//3.0f*utility->RandomFloat(); //Is used to control the attenuation
 
 		x += 18.0f;
@@ -291,19 +261,12 @@ bool Renderer::InitializeLights( HWND hwnd )
 
 #pragma region Directional light initialization
 	// Create the directional light.
-	dirLight = new DirLight();
-	if(!dirLight)
-	{
-		return false;
-	}
+	dirLight = DirLight();
 
-	dirLightShader = new DRDirLight();
-	if(!dirLightShader)
-	{
-		return false;
-	}
+	dirLightShader = DRDirLight();
 
-	result = dirLightShader->Initialize(d3D->GetDevice(), hwnd);
+
+	result = dirLightShader.Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Dir light shader couldn't be initialized.", L"Error", MB_OK);
@@ -314,16 +277,16 @@ bool Renderer::InitializeLights( HWND hwnd )
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 
 	// Initialize the directional light.
-	dirLight->Color = XMFLOAT4(0.6f, 0.4f, 0.4f, 1.0f);
-	dirLight->Intensity = 1.5f;
-	dirLight->Position = XMFLOAT3(150.0f, 0.0f, 0.0f);
+	dirLight.Color = XMFLOAT4(0.6f, 0.4f, 0.4f, 1.0f);
+	dirLight.Intensity = 1.5f;
+	dirLight.Position = XMFLOAT3(150.0f, 0.0f, 0.0f);
 
-	XMVECTOR direction = XMVector3Normalize(lookAt - XMLoadFloat3(&dirLight->Position));
-	XMStoreFloat3(&dirLight->Direction, direction);
+	XMVECTOR direction = XMVector3Normalize(lookAt - XMLoadFloat3(&dirLight.Position));
+	XMStoreFloat3(&dirLight.Direction, direction);
 
-	//XMStoreFloat4x4(&dirLight->Projection, XMMatrixPerspectiveFovLH(XM_PIDIV4, 1.0f, 5.0f, 500.0f));	//Generate PERSPECTIVE light projection matrix and store it as float4x4
-	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(300.0f, 300.0f, 5.0f, 400.0f));					//Generate ORTHOGONAL light projection matrix and store it as float4x4
-	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up));				//Generate light view matrix and store it as float4x4.
+	//XMStoreFloat4x4(&dirLight.Projection, XMMatrixPerspectiveFovLH(XM_PIDIV4, 1.0f, 5.0f, 500.0f));	//Generate PERSPECTIVE light projection matrix and store it as float4x4
+	XMStoreFloat4x4(&dirLight.Projection, XMMatrixOrthographicLH(300.0f, 300.0f, 5.0f, 400.0f));					//Generate ORTHOGONAL light projection matrix and store it as float4x4
+	XMStoreFloat4x4(&dirLight.View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight.Position), lookAt, up));				//Generate light view matrix and store it as float4x4.
 #pragma endregion
 
 	return true;
@@ -333,28 +296,21 @@ bool Renderer::InitializeModels( HWND hwnd )
 {
 	bool result;
 
-	noise = new SimplexNoise();
-	if(!noise)
-	{
-		return false;
-	}
+	noise = SimplexNoise();
 
-	metaBalls = new MetaballsClass();
-	marchingCubes = new MarchingCubesClass(XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(180.0f, 180.0f, 180.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), noise);
-	marchingCubes->SetMetaBalls(metaBalls, 0.2f);
+	//metaBalls = MetaballsClass();
+
+	marchingCubes = make_shared<MarchingCubesClass>(XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(180.0f, 180.0f, 180.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), &noise);
+	marchingCubes->SetMetaBalls(&metaBalls, 0.2f);
 	marchingCubes->GetTerrain()->SetTerrainType(7);
 	marchingCubes->CalculateMesh(d3D->GetDevice());
 
-	lSystem = new LSystemClass();
-	lSystem->initialize();
+	lSystem = LSystemClass();
+	lSystem.Initialize();
 
-	vegetationManager = new VegetationManager();
-	if(!vegetationManager)
-	{
-		return false;
-	}
+	//vegetationManager = VegetationManager();
 
-	result = vegetationManager->Initialize(d3D->GetDevice(), hwnd);
+	result = vegetationManager.Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		return false;
@@ -363,14 +319,10 @@ bool Renderer::InitializeModels( HWND hwnd )
 	GenerateVegetation(d3D->GetDevice(), true);
 
 	// Create the model object.
-	sphereModel = new ModelClass();
-	if(!sphereModel)
-	{
-		return false;
-	}
+	//sphereModel = ModelClass();
 
 	// Initialize the model object. It really doesn't matter what textures it has because it's only used for point light volume culling.
-	result = sphereModel->Initialize(d3D->GetDevice(), "../Engine/data/skydome.txt", L"../Engine/data/grass.dds", L"../Engine/data/dirt.dds", L"../Engine/data/rock.dds");
+	result = sphereModel.Initialize(d3D->GetDevice(), "../Engine/data/skydome.txt", L"../Engine/data/grass.dds", L"../Engine/data/dirt.dds", L"../Engine/data/rock.dds");
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
@@ -384,38 +336,25 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 {
 	bool result;
 
-	textureAndMaterialHandler = new TextureAndMaterialHandler();
-	if(!textureAndMaterialHandler)
-	{
-		return false;
-	}
+	text = make_shared<TextClass>(d3D->GetDevice(), d3D->GetDeviceContext(), hwnd, screenWidth, screenHeight);
 
-	result = textureAndMaterialHandler->Initialize(d3D->GetDevice(), d3D->GetDeviceContext(), noise, utility);
+	textureAndMaterialHandler = TextureAndMaterialHandler();
+
+	result = textureAndMaterialHandler.Initialize(d3D->GetDevice(), d3D->GetDeviceContext(), &noise, &utility);
 	if(!result)
 	{
 		return false;
 	}
 
-	dayNightCycle = new DayNightCycle();
-	if(!dayNightCycle)
-	{
-		return false;
-	}
+	dayNightCycle = DayNightCycle();
 
-	result = dayNightCycle->Initialize(500.0f, DAY); //86400.0f/6 <-- This is realistic day/night cycle. 86400 seconds in a day.
+	result = dayNightCycle.Initialize(500.0f, DAY); //86400.0f/6 <-- This is realistic day/night cycle. 86400 seconds in a day.
 	if(!result)
 	{
 		return false;
 	}
 
 	//dayNightCycle->Update(50.0f, dirLight, skySphere);
-
-	// Create the text object.
-	text = new TextClass(d3D->GetDevice(), d3D->GetDeviceContext(), hwnd, screenWidth, screenHeight);
-	if(!text)
-	{
-		return false;
-	}
 
 	for(int i = 0; i < 7; i++)
 	{
@@ -424,28 +363,24 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 
 	fullScreenQuad.Initialize(d3D->GetDevice(), screenWidth, screenHeight, screenWidth, screenHeight);
 
-	colorRT = new RenderTarget2D();
-	normalRT = new RenderTarget2D();
-	depthRT = new RenderTarget2D();
-	shadowRT = new RenderTarget2D();
-	lightRT = new RenderTarget2D();
-	gaussianBlurPingPongRT = new RenderTarget2D();
+	colorRT					= RenderTarget2D();
+	normalRT				= RenderTarget2D();
+	depthRT					= RenderTarget2D();
+	shadowRT				= RenderTarget2D();
+	lightRT					= RenderTarget2D();
+	gaussianBlurPingPongRT	= RenderTarget2D();
 
-	colorRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
-	normalRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
-	depthRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
-	lightRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
-	shadowRT->Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R32G32_FLOAT);
-	gaussianBlurPingPongRT->Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R32G32_FLOAT); //Needs to be identical to shadowRT
+	colorRT.Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
+	normalRT.Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
+	depthRT.Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
+	lightRT.Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
+	shadowRT.Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R32G32_FLOAT);
+	gaussianBlurPingPongRT.Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R32G32_FLOAT); //Needs to be identical to shadowRT
 
 	// Create the frustum object.
-	frustum = new FrustumClass();
-	if(!frustum)
-	{
-		return false;
-	}
+	frustum = FrustumClass();
+	frustum.SetInternals(((float)D3DX_PI/2.0f), 1.0f, nearClip, farClip);
 
-	frustum->SetInternals(((float)D3DX_PI/2.0f), 1.0f, 0.5f, 150.0f);
 	testBoundingbox = Lemmi2DAABB(XMFLOAT2(0, 0), XMFLOAT2(60, 60));
 
 	return true;
@@ -521,31 +456,31 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 
 	if(inputManager->WasKeyPressed(DIK_U))
 	{
-		textureAndMaterialHandler->RebuildRandom2DTexture(d3D->GetDevice(), d3D->GetDeviceContext());
+		textureAndMaterialHandler.RebuildRandom2DTexture(d3D->GetDevice(), d3D->GetDeviceContext());
 	}
 
 	if(inputManager->WasKeyPressed(DIK_I))
 	{
-		textureAndMaterialHandler->RebuildMirroredSimplex2DTexture(d3D->GetDevice(), d3D->GetDeviceContext());
+		textureAndMaterialHandler.RebuildMirroredSimplex2DTexture(d3D->GetDevice(), d3D->GetDeviceContext());
 	}
 
 	if(inputManager->WasKeyPressed(DIK_O))
 	{
-		textureAndMaterialHandler->RebuildSimplex2DTexture(d3D->GetDevice(), d3D->GetDeviceContext());
+		textureAndMaterialHandler.RebuildSimplex2DTexture(d3D->GetDevice(), d3D->GetDeviceContext());
 	}
 
 	if(inputManager->WasKeyPressed(DIK_J))
 	{
 		xPos += 30.0f;
 
-		textureAndMaterialHandler->RebuildTexture(d3D->GetDevice(), d3D->GetDeviceContext(), TEXTURE_GRASS, 1024, 1024, xPos, yPos, true);
+		textureAndMaterialHandler.RebuildTexture(d3D->GetDevice(), d3D->GetDeviceContext(), TEXTURE_GRASS, 1024, 1024, xPos, yPos, true);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_K))
 	{
 		yPos += 30.0f;
 
-		textureAndMaterialHandler->RebuildTexture(d3D->GetDevice(), d3D->GetDeviceContext(), TEXTURE_DIRT, 1024, 1024, xPos, yPos, true);
+		textureAndMaterialHandler.RebuildTexture(d3D->GetDevice(), d3D->GetDeviceContext(), TEXTURE_DIRT, 1024, 1024, xPos, yPos, true);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_P))
@@ -564,7 +499,7 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 		string temp = stringStream.str();
 		fileName = (temp).c_str();
 
-		textureAndMaterialHandler->SaveTextureToFile(d3D->GetDeviceContext(), *textureAndMaterialHandler->GetNoiseTexture(), D3DX11_IFF_BMP, fileName);
+		textureAndMaterialHandler.SaveTextureToFile(d3D->GetDeviceContext(), *textureAndMaterialHandler.GetNoiseTexture(), D3DX11_IFF_BMP, fileName);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_L))
@@ -583,7 +518,7 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 		string temp = stringStream.str();
 		fileName = (temp).c_str();
 
-		textureAndMaterialHandler->SaveTextureToFile(d3D->GetDeviceContext(), *textureAndMaterialHandler->GetTerrainTexture(), D3DX11_IFF_BMP, fileName);
+		textureAndMaterialHandler.SaveTextureToFile(d3D->GetDeviceContext(), *textureAndMaterialHandler.GetTerrainTexture(), D3DX11_IFF_BMP, fileName);
 	}
 
 	//Speed up the change of day
@@ -693,7 +628,7 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 	//Distance between camera and middle of mcube chunk. We'll have to do this for each chunk, and keep an individual lodState for each chunk.
 	if(timer >= 0.2f)
 	{
-		int distance = (int)utility->VectorDistance(camera->GetPosition(), XMFLOAT3(90.0f, 40.0f, 90.0f));
+		int distance = (int)utility.VectorDistance(camera->GetPosition(), XMFLOAT3(90.0f, 40.0f, 90.0f));
 
 		//if(distance <= 100)
 		//{
@@ -723,7 +658,7 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 		previousLodState = 0; //We set previous lod state to something != lodState so that it'll trigger an instancebuffer rebuild
 		lodState = 3;
 
-		marchingCubes->Reset(noise);
+		marchingCubes->Reset(&noise);
 		marchingCubes->CalculateMesh(d3D->GetDevice());
 
 		GenerateVegetation(d3D->GetDevice(), false);
@@ -735,32 +670,32 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 		switch (lodState)
 		{
 		case 0:
-			assert(vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector500));
+			assert(vegetationManager.BuildInstanceBuffer(d3D->GetDevice(), &LODVector500));
 			break;
 
 		case 1:
-			assert(vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector2500));
+			assert(vegetationManager.BuildInstanceBuffer(d3D->GetDevice(), &LODVector2500));
 			break;
 
 		case 2:
-			assert(vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector5000));
+			assert(vegetationManager.BuildInstanceBuffer(d3D->GetDevice(), &LODVector5000));
 			break;
 
 		case 3:
-			assert(vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector10000));
+			assert(vegetationManager.BuildInstanceBuffer(d3D->GetDevice(), &LODVector10000));
 			break;
 		}
 	}
 #pragma endregion
 
-	timeOfDay = dayNightCycle->Update(seconds, dirLight, skySphere);
+	timeOfDay = dayNightCycle.Update(seconds, &dirLight, &skySphere);
 
 	XMVECTOR lookAt = XMLoadFloat3(&camera->GetPosition());//XMVectorSet(30.0f, 20.0f, 30.0f, 1.0f);//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition())+(camera->ForwardVector()*30.0f);//XMLoadFloat3(&camera->GetPosition());//
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
-	XMVECTOR currentLightPos = (XMLoadFloat3(&camera->GetPosition())+XMLoadFloat3(&dirLight->Position));//XMLoadFloat3(&camera->GetPosition())-(camera->ForwardVector()*30.0f);
+	XMVECTOR currentLightPos = (XMLoadFloat3(&camera->GetPosition())+XMLoadFloat3(&dirLight.Position));//XMLoadFloat3(&camera->GetPosition())-(camera->ForwardVector()*30.0f);
 
-	XMStoreFloat3(&dirLight->Direction, XMVector3Normalize((lookAt - currentLightPos)));//XMLoadFloat3(&dirLight->Position)
-	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(currentLightPos, lookAt, up)); //Generate light view matrix
+	XMStoreFloat3(&dirLight.Direction, XMVector3Normalize((lookAt - currentLightPos)));//XMLoadFloat3(&dirLight.Position)
+	XMStoreFloat4x4(&dirLight.View, XMMatrixLookAtLH(currentLightPos, lookAt, up)); //Generate light view matrix
 
 	previousLodState = lodState;
 
@@ -773,22 +708,22 @@ void Renderer::GenerateVegetation( ID3D11Device* device, bool IfSetupThenTrue_If
 	float x,z,y;
 	int textureID, randValue;
 
-	LODVector500.clear();
+	//LODVector500.clear();
 	LODVector500.resize(vegetationCount/8);
 
-	LODVector2500.clear();
+	//LODVector2500.clear();
 	LODVector2500.resize(vegetationCount/4);
 
-	LODVector5000.clear();
+	//LODVector5000.clear();
 	LODVector5000.resize(vegetationCount/2);
 
-	LODVector10000.clear();
+	//LODVector10000.clear();
 	LODVector10000.resize(vegetationCount);
 
 	for(int i = 0; i < vegetationCount; i++)
 	{
-		x = (2.0f + (utility->RandomFloat() * marchingCubes->GetSizeX()-2.0f));
-		z = (2.0f + (utility->RandomFloat() * marchingCubes->GetSizeZ()-2.0f));
+		x = (2.0f + (utility.RandomFloat() * marchingCubes->GetSizeX()-2.0f));
+		z = (2.0f + (utility.RandomFloat() * marchingCubes->GetSizeZ()-2.0f));
 
 		//Extract highest Y at this point
 		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate((int)x, (int)z);
@@ -811,7 +746,7 @@ void Renderer::GenerateVegetation( ID3D11Device* device, bool IfSetupThenTrue_If
 				//Place texture ID in .w channel
 				VegetationManager::InstanceType temp;
 				temp.position = XMFLOAT4(x, y, z, (float)textureID);
-				temp.randomValue = (utility->RandomFloat()*360.0f);
+				temp.randomValue = (utility.RandomFloat()*360.0f);
 
 				//We use i to control how many should be added to each LOD vector
 				if(i <= (vegetationCount / 8))
@@ -844,18 +779,20 @@ void Renderer::GenerateVegetation( ID3D11Device* device, bool IfSetupThenTrue_If
 			}
 			else if(randValue <= 98) //If 97-98
 			{
-				textureID = 4; //Bush.
+				//textureID = 4; //Bush.
+				textureID = 1;
 			}
 			else //If 99-100.
 			{
-				textureID = 3; //Flower.
+				//textureID = 3; //Flowers.
+				textureID = 1;
 			}
 
 			VegetationManager::InstanceType temp;
 
 			//Place texture ID in .w channel
 			temp.position = XMFLOAT4(x, y, z, (float)textureID);
-			temp.randomValue = (utility->RandomFloat()*XM_PI);
+			temp.randomValue = (utility.RandomFloat()*XM_PI);
 
 			//We use i to control how many should be added to each LOD vector
 			if(i <= 500)
@@ -879,12 +816,63 @@ void Renderer::GenerateVegetation( ID3D11Device* device, bool IfSetupThenTrue_If
 
 	if(IfSetupThenTrue_IfUpdateThenFalse)
 	{
-		vegetationManager->SetupQuads(d3D->GetDevice(), &LODVector10000);
+		vegetationManager.SetupQuads(d3D->GetDevice(), &LODVector10000);
 	}
 	else
 	{
-		vegetationManager->BuildInstanceBuffer(d3D->GetDevice(), &LODVector10000);
+		vegetationManager.BuildInstanceBuffer(d3D->GetDevice(), &LODVector10000);
 	}
+}
+
+void Renderer::SetupRTsAndStuff()
+{
+	shadowDepthStencil = d3D->GetShadowmapDSV();
+
+	//For shadow pre-gbuffer pass
+	shadowTarget[0] = shadowRT.RTView;
+
+	//Name should be pretty self-explanatory
+	gaussianBlurPingPongRTView[0] = gaussianBlurPingPongRT.RTView;
+
+	//For gbuffer pass
+	gbufferRenderTargets[0] = colorRT.RTView;
+	gbufferRenderTargets[1] = normalRT.RTView;
+	gbufferRenderTargets[2] = depthRT.RTView;
+
+	//For lighting pass
+	lightTarget[0] = lightRT.RTView; 
+
+	//For GBuffer pass
+	gbufferTextures[0] = colorRT.SRView; 
+	gbufferTextures[1] = normalRT.SRView;
+	gbufferTextures[2] = depthRT.SRView;
+
+	//For directional light pass
+	dirLightTextures[0] = normalRT.SRView;
+	dirLightTextures[1] = depthRT.SRView;
+	dirLightTextures[2] = shadowRT.SRView;
+	dirLightTextures[3] = colorRT.SRView;
+
+	//For the the final composition pass
+	finalTextures[0] = colorRT.SRView;
+	finalTextures[1] = lightRT.SRView;
+	finalTextures[2] = depthRT.SRView;
+	finalTextures[3] = normalRT.SRView;
+
+	gaussianBlurTexture[0] = gaussianBlurPingPongRT.SRView;
+}
+
+
+void Renderer::RenderMesh( ID3D11DeviceContext* deviceContext, Mesh* mesh )
+{
+	// Set the vertex buffer to active in the input assembler so it can be rendered.r
+	deviceContext->IASetVertexBuffers(0, 1, &mesh->vertexBuffer.p, &mesh->vertexStride, 0);
+
+	// Set the index buffer to active in the input assembler so it can be rendered.
+	deviceContext->IASetIndexBuffer(mesh->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+	// Set the tangent type of primitive that should be rendered from this vertex buffer, in this case triangles.
+	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
 bool Renderer::Render(HWND hwnd)
@@ -896,50 +884,18 @@ bool Renderer::Render(HWND hwnd)
 	ID3D11Device* device = d3D->GetDevice();
 
 #pragma region Preparation
-	shadowDepthStencil = d3D->GetShadowmapDSV();
+
 
 	// Generate the view matrix based on the camera's position.
 	camPos = camera->GetPosition();
 	XMStoreFloat3(&camDir, XMVector3Normalize(camera->ForwardVector()));
 
-	//For shadow pre-gbuffer pass
-	shadowTarget[0] = shadowRT->RTView;
-
-	//Name should be pretty self-explanatory
-	gaussianBlurPingPongRTView[0] = gaussianBlurPingPongRT->RTView;
-
-	//For gbuffer pass
-	gbufferRenderTargets[0] = colorRT->RTView;
-	gbufferRenderTargets[1] = normalRT->RTView;
-	gbufferRenderTargets[2] = depthRT->RTView;
-
-	//For lighting pass
-	lightTarget[0] = lightRT->RTView; 
-
-	//For GBuffer pass
-	gbufferTextures[0] = colorRT->SRView; 
-	gbufferTextures[1] = normalRT->SRView;
-	gbufferTextures[2] = depthRT->SRView;
-
-	//For directional light pass
-	dirLightTextures[0] = normalRT->SRView;
-	dirLightTextures[1] = depthRT->SRView;
-	dirLightTextures[2] = shadowRT->SRView;
-	dirLightTextures[3] = colorRT->SRView;
-
-	//For the the final composition pass
-	finalTextures[0] = colorRT->SRView;
-	finalTextures[1] = lightRT->SRView;
-	finalTextures[2] = depthRT->SRView;
-	finalTextures[3] = normalRT->SRView;
-
-	gaussianBlurTexture[0] = gaussianBlurPingPongRT->SRView;
 #pragma endregion
 
 #pragma region Matrix preparations
 	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, scalingMatrix, viewProjection, invertedViewProjection, invertedView, 
 		lightView, lightProj, lightViewProj, baseView, worldBaseViewOrthoProj, identityWorldViewProj, lightWorldViewProj, 
-		invertedProjection, untransposedViewProj, lightWorldView, lightWorld, invertedWorldView, worldView, worldBaseView;
+		invertedProjection, untransposedViewProj, lightWorldView, invertedWorldView, worldView, worldBaseView;
 
 	//XMMATRIX shadowScaleBiasMatrix = new XMMATRIX
 	//	(
@@ -954,12 +910,11 @@ bool Renderer::Render(HWND hwnd)
 	d3D->GetOrthoMatrix(orthoMatrix);
 	camera->GetViewMatrix(viewMatrix);
 	camera->GetProjectionMatrix(projectionMatrix);
-	lightView = XMLoadFloat4x4(&dirLight->View);
-	lightProj = XMLoadFloat4x4(&dirLight->Projection);
-	lightWorld = XMMatrixTranslationFromVector(XMLoadFloat3(&dirLight->Position));
+	lightView = XMLoadFloat4x4(&dirLight.View);
+	lightProj = XMLoadFloat4x4(&dirLight.Projection);
 
 	// Construct the frustum.
-	frustum->ConstructFrustum(screenFar, &projectionMatrix, &viewMatrix);
+	//frustum->ConstructFrustum(screenFar, &projectionMatrix, &viewMatrix);
 
 	XMVECTOR nullVec = XMVectorSplatOne();
 	viewProjection = XMMatrixMultiply(viewMatrix, projectionMatrix);
@@ -1025,7 +980,7 @@ bool Renderer::Render(HWND hwnd)
 bool Renderer::RenderShadowmap( ID3D11DeviceContext* deviceContext, XMMATRIX* lightWorldViewProj, XMMATRIX* lightWorldView)
 {
 	//Early depth pass for shadowmap
-	deviceContext->OMSetRenderTargets(1, shadowTarget, shadowDepthStencil);
+	deviceContext->OMSetRenderTargets(1, &shadowTarget[0].p, shadowDepthStencil);
 	deviceContext->ClearDepthStencilView(shadowDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
 	deviceContext->ClearRenderTargetView(shadowTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 	d3D->SetShadowViewport();
@@ -1034,7 +989,7 @@ bool Renderer::RenderShadowmap( ID3D11DeviceContext* deviceContext, XMMATRIX* li
 
 	marchingCubes->Render(deviceContext);
 
-	if(!depthOnlyShader->Render(deviceContext, marchingCubes->GetIndexCount(), lightWorldViewProj, lightWorldView))
+	if(!depthOnlyShader.Render(deviceContext, marchingCubes->GetIndexCount(), lightWorldViewProj, lightWorldView))
 	{
 		return false;
 	}
@@ -1046,8 +1001,8 @@ bool Renderer::RenderShadowmap( ID3D11DeviceContext* deviceContext, XMMATRIX* li
 	//d3D->TurnOnShadowBlendState();
 	//vegetationManager->RenderBuffers(deviceContext);
 
-	//depthOnlyQuadShader->Render(deviceContext, vegetationManager->GetVertexCount(), vegetationManager->GetInstanceCount(),
-	//	lightWorldViewProj, lightWorldView, textureAndMaterialHandler->GetVegetationTextureArray());
+	//depthOnlyQuadShader.Render(deviceContext, vegetationManager->GetVertexCount(), vegetationManager->GetInstanceCount(),
+	//	lightWorldViewProj, lightWorldView, textureAndMaterialHandler.GetVegetationTextureArray());
 
 	//d3D->ResetBlendState();
 
@@ -1061,7 +1016,7 @@ bool Renderer::RenderTwoPassGaussianBlur(ID3D11DeviceContext* deviceContext, XMM
 {
 	//Shadow map blur stage
 	//Change render target to prepare for ping-ponging
-	deviceContext->OMSetRenderTargets(1, gaussianBlurPingPongRTView, shadowDepthStencil);
+	deviceContext->OMSetRenderTargets(1, &gaussianBlurPingPongRTView[0].p, shadowDepthStencil);
 	deviceContext->ClearRenderTargetView(gaussianBlurPingPongRTView[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 1.0f));
 	deviceContext->ClearDepthStencilView(shadowDepthStencil, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
@@ -1071,13 +1026,13 @@ bool Renderer::RenderTwoPassGaussianBlur(ID3D11DeviceContext* deviceContext, XMM
 		return false;
 	}
 
-	if(!gaussianBlurShader->RenderBlurX(deviceContext, fullScreenQuad.GetIndexCount(), worldBaseViewOrthoProj, &dirLightTextures[2]))
+	if(!gaussianBlurShader.RenderBlurX(deviceContext, fullScreenQuad.GetIndexCount(), worldBaseViewOrthoProj, &dirLightTextures[2].p))
 	{
 		return false;
 	}
 
 	//Change render target back to our shadow map to render the second blur and get the final result
-	deviceContext->OMSetRenderTargets(1, shadowTarget, shadowDepthStencil);
+	deviceContext->OMSetRenderTargets(1, &shadowTarget[0].p, shadowDepthStencil);
 	deviceContext->ClearDepthStencilView(shadowDepthStencil, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	//Blur shadow map texture vertically
@@ -1086,7 +1041,7 @@ bool Renderer::RenderTwoPassGaussianBlur(ID3D11DeviceContext* deviceContext, XMM
 		return false;
 	}
 
-	if(!gaussianBlurShader->RenderBlurY(deviceContext, fullScreenQuad.GetIndexCount(), worldBaseViewOrthoProj, &gaussianBlurTexture[0]))
+	if(!gaussianBlurShader.RenderBlurY(deviceContext, fullScreenQuad.GetIndexCount(), worldBaseViewOrthoProj, &gaussianBlurTexture[0].p))
 	{
 		return false;
 	}
@@ -1101,7 +1056,7 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 	//GBuffer building stage
 	d3D->SetDefaultViewport();
 	depthStencil = d3D->GetDepthStencilView();
-	deviceContext->OMSetRenderTargets(3, gbufferRenderTargets, depthStencil);
+	deviceContext->OMSetRenderTargets(3, &gbufferRenderTargets[0].p, depthStencil);
 	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	deviceContext->ClearRenderTargetView(gbufferRenderTargets[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
@@ -1114,7 +1069,7 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 	worldViewProjMatrix = XMMatrixTranslation(camPos.x, camPos.y, camPos.z) * ((*viewMatrix) * (*projectionMatrix));
 	worldViewProjMatrix = XMMatrixTranspose(worldViewProjMatrix);
 
-	skySphere->Render(deviceContext, &worldViewProjMatrix, &dayNightCycle->GetAmbientLightColor(), timeOfDay);
+	skySphere.Render(deviceContext, &worldViewProjMatrix, &dayNightCycle.GetAmbientLightColor(), timeOfDay);
 
 	if(drawWireFrame)
 	{	
@@ -1138,15 +1093,15 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 		return false;
 	}
 
-	if(!mcubeShader->Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), &worldMatrix, &worldView, 
-		identityWorldViewProj, textureAndMaterialHandler->GetTerrainTextureArray(), textureAndMaterialHandler->GetMaterialLookupTexture(), toggleColorMode, screenFar))
+	if(!mcubeShader.Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), &worldMatrix, &worldView, 
+		identityWorldViewProj, textureAndMaterialHandler.GetTerrainTextureArray(), textureAndMaterialHandler.GetMaterialLookupTexture(), toggleColorMode, farClip))
 	{
 		return false;
 	}
 
 	d3D->SetNoCullRasterizer();
 	d3D->TurnOnAlphaBlending();
-	if(!vegetationManager->Render(deviceContext, identityWorldViewProj, &worldView, &worldMatrix, textureAndMaterialHandler->GetVegetationTextureArray()))
+	if(!vegetationManager.Render(deviceContext, identityWorldViewProj, &worldView, &worldMatrix, textureAndMaterialHandler.GetVegetationTextureArray()))
 	{
 		return false;
 	}
@@ -1160,7 +1115,7 @@ bool Renderer::RenderPointLight( ID3D11DeviceContext* deviceContext, XMMATRIX* v
 	XMMATRIX world, worldView, worldViewProj;
 
 	//Point light stage
-	deviceContext->OMSetRenderTargets(1, lightTarget, depthStencil);
+	deviceContext->OMSetRenderTargets(1, &lightTarget[0].p, depthStencil);
 	deviceContext->ClearRenderTargetView(lightTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_STENCIL, 1.0f, 0);
 
@@ -1182,9 +1137,9 @@ bool Renderer::RenderPointLight( ID3D11DeviceContext* deviceContext, XMMATRIX* v
 			d3D->SetLightStencilMethod1Phase1();
 			d3D->SetNoCullRasterizer();
 
-			sphereModel->Render(deviceContext);
+			sphereModel.Render(deviceContext);
 
-			if(!vertexOnlyShader->Render(deviceContext, sphereModel->GetIndexCount(), &worldViewProj))
+			if(!vertexOnlyShader.Render(deviceContext, sphereModel.GetIndexCount(), &worldViewProj))
 			{
 				return false;
 			}
@@ -1193,15 +1148,15 @@ bool Renderer::RenderPointLight( ID3D11DeviceContext* deviceContext, XMMATRIX* v
 			d3D->SetLightStencilMethod1Phase2();
 			d3D->SetFrontFaceCullingRasterizer();
 
-			sphereModel->Render(deviceContext);
+			sphereModel.Render(deviceContext);
 
-			if(!pointLightShader->Render(deviceContext, sphereModel->GetIndexCount(), &worldViewProj, &worldView, &world, invertedView, 
-				&pointLights[i], gbufferTextures, textureAndMaterialHandler->GetMaterialTextureArray(), camPos))
+			if(!pointLightShader.Render(deviceContext, sphereModel.GetIndexCount(), &worldViewProj, &worldView, &world, invertedView, 
+				&pointLights[i], &gbufferTextures[0].p, textureAndMaterialHandler.GetMaterialTextureArray(), camPos))
 			{
 				return false;
 			}
 
-			//if(!textureShader->Render(deviceContext, sphereModel->GetIndexCount(), &worldViewProj, sphereModel->GetTexture()))
+			//if(!textureShader.Render(deviceContext, sphereModel->GetIndexCount(), &worldViewProj, sphereModel->GetTexture()))
 			//{
 			//	return false;
 			//}
@@ -1240,9 +1195,9 @@ bool Renderer::RenderDirectionalLight( ID3D11DeviceContext* deviceContext, XMMAT
 		return false;
 	}
 
-	if(!dirLightShader->Render(deviceContext, fullScreenQuad.GetIndexCount(), worldBaseViewOrthoProj, &worldView, &worldMatrix, viewMatrix, 
-		&invertedView, invertedProjection, lightView, lightProj, dirLightTextures, textureAndMaterialHandler->GetMaterialTextureArray(), 
-		camPos, dirLight, dayNightCycle->GetAmbientLightColor()))
+	if(!dirLightShader.Render(deviceContext, fullScreenQuad.GetIndexCount(), worldBaseViewOrthoProj, &worldView, &worldMatrix, viewMatrix, 
+		&invertedView, invertedProjection, lightView, lightProj, &dirLightTextures[0].p, textureAndMaterialHandler.GetMaterialTextureArray(), 
+		camPos, &dirLight, dayNightCycle.GetAmbientLightColor()))
 	{
 		return false;
 	}
@@ -1261,8 +1216,8 @@ bool Renderer::RenderComposedScene(ID3D11DeviceContext* deviceContext, XMMATRIX*
 
 	fullScreenQuad.Render(deviceContext, 0, 0);
 
-	composeShader->Render(deviceContext, fullScreenQuad.GetIndexCount(), worldBaseViewOrthoProj, worldView, view, invertedProjection, 
-		invertedViewProjection, &dayNightCycle->GetAmbientLightColor(), fogMinimum, finalTextures, *textureAndMaterialHandler->GetSSAORandomTexture(), toggleSSAO);
+	composeShader.Render(deviceContext, fullScreenQuad.GetIndexCount(), worldBaseViewOrthoProj, worldView, view, invertedProjection, 
+		invertedViewProjection, &dayNightCycle.GetAmbientLightColor(), fogMinimum, &finalTextures[0].p, *textureAndMaterialHandler.GetSSAORandomTexture(), toggleSSAO);
 
 	return true;
 }
@@ -1288,7 +1243,7 @@ bool Renderer::RenderDebugInfoAndText(ID3D11DeviceContext* deviceContext, XMMATR
 				return false;
 			}
 
-			if(!textureShader->Render(d3D->GetDeviceContext(), debugWindows[i].GetIndexCount(), 
+			if(!textureShader.Render(d3D->GetDeviceContext(), debugWindows[i].GetIndexCount(), 
 				worldBaseViewOrthoProj, gbufferTextures[i]))
 			{
 				return false;
@@ -1300,8 +1255,8 @@ bool Renderer::RenderDebugInfoAndText(ID3D11DeviceContext* deviceContext, XMMATR
 			return false;
 		}
 
-		if(!textureShader->Render(d3D->GetDeviceContext(), debugWindows[4].GetIndexCount(), 
-			worldBaseViewOrthoProj, shadowRT->SRView))
+		if(!textureShader.Render(d3D->GetDeviceContext(), debugWindows[4].GetIndexCount(), 
+			worldBaseViewOrthoProj, shadowRT.SRView))
 		{
 			return false;
 		}
@@ -1311,8 +1266,8 @@ bool Renderer::RenderDebugInfoAndText(ID3D11DeviceContext* deviceContext, XMMATR
 			return false;
 		}
 
-		if(!textureShader->Render(d3D->GetDeviceContext(), debugWindows[3].GetIndexCount(), 
-			worldBaseViewOrthoProj, lightRT->SRView))
+		if(!textureShader.Render(d3D->GetDeviceContext(), debugWindows[3].GetIndexCount(), 
+			worldBaseViewOrthoProj, lightRT.SRView))
 		{
 			return false;
 		}
@@ -1322,8 +1277,8 @@ bool Renderer::RenderDebugInfoAndText(ID3D11DeviceContext* deviceContext, XMMATR
 			return false;
 		}
 
-		if(!textureShader->Render(d3D->GetDeviceContext(), debugWindows[5].GetIndexCount(), 
-			worldBaseViewOrthoProj, *textureAndMaterialHandler->GetNoiseTexture()))
+		if(!textureShader.Render(d3D->GetDeviceContext(), debugWindows[5].GetIndexCount(), 
+			worldBaseViewOrthoProj, *textureAndMaterialHandler.GetNoiseTexture()))
 		{
 			return false;
 		}
@@ -1333,8 +1288,8 @@ bool Renderer::RenderDebugInfoAndText(ID3D11DeviceContext* deviceContext, XMMATR
 			return false;
 		}
 
-		if(!textureShader->Render(d3D->GetDeviceContext(), debugWindows[6].GetIndexCount(), 
-			worldBaseViewOrthoProj, *textureAndMaterialHandler->GetTerrainTexture()))
+		if(!textureShader.Render(d3D->GetDeviceContext(), debugWindows[6].GetIndexCount(), 
+			worldBaseViewOrthoProj, *textureAndMaterialHandler.GetTerrainTexture()))
 		{
 			return false;
 		}
@@ -1349,7 +1304,7 @@ bool Renderer::RenderDebugInfoAndText(ID3D11DeviceContext* deviceContext, XMMATR
 			return false;
 		}
 
-		// Turn off alpha blending after rendering the text.
+		// Turn off alpha blending after rendering the text->
 		d3D->TurnOffAlphaBlending();
 
 		// Turn the Z buffer back on now that all 2D rendering has completed.
@@ -1361,166 +1316,166 @@ bool Renderer::RenderDebugInfoAndText(ID3D11DeviceContext* deviceContext, XMMATR
 
 void Renderer::Shutdown()
 {
-	if(utility)
+	/*if(utility)
 	{
-		delete utility;
-		utility = 0;
+	delete utility;
+	utility = 0;
 	}
 
 	if (text)
 	{
-		text->Shutdown();
-		delete text;
-		text = 0;
+	text->Shutdown();
+	delete text;
+	text = 0;
 	}
 
 	if(frustum)
 	{
-		delete frustum;
-		frustum = 0;
+	delete frustum;
+	frustum = 0;
 	}
 
 	if(textureAndMaterialHandler)
 	{
-		delete textureAndMaterialHandler;
-		textureAndMaterialHandler = 0;
+	delete textureAndMaterialHandler;
+	textureAndMaterialHandler = 0;
 	}
 
 	if(textureShader)
 	{
-		textureShader->Shutdown();
-		delete textureShader;
-		textureShader = 0;
+	textureShader.Shutdown();
+	delete textureShader;
+	textureShader = 0;
 	}
 
 	if(pointLightShader)
 	{
-		pointLightShader->Shutdown();
-		delete pointLightShader;
-		pointLightShader = 0;
+	pointLightShader.Shutdown();
+	delete pointLightShader;
+	pointLightShader = 0;
 	}
 
 	if(dirLight)
 	{
-		delete dirLight;
-		dirLight = 0;
+	delete dirLight;
+	dirLight = 0;
 	}
 
 	if(depthOnlyShader)
 	{
-		depthOnlyShader->Shutdown();
-		delete depthOnlyShader;
-		depthOnlyShader = 0;
+	depthOnlyShader.Shutdown();
+	delete depthOnlyShader;
+	depthOnlyShader = 0;
 	}
 
 	if(vertexOnlyShader)
 	{
-		vertexOnlyShader->Shutdown();
-		delete vertexOnlyShader;
-		vertexOnlyShader = 0;
+	vertexOnlyShader.Shutdown();
+	delete vertexOnlyShader;
+	vertexOnlyShader = 0;
 	}
 
 	if(dirLightShader)
 	{
-		dirLightShader->Shutdown();
-		delete dirLightShader;
-		dirLightShader = 0;
+	dirLightShader.Shutdown();
+	delete dirLightShader;
+	dirLightShader = 0;
 	}
 
 	if(composeShader)
 	{
-		composeShader->Shutdown();
-		delete composeShader;
-		composeShader = 0;
+	composeShader.Shutdown();
+	delete composeShader;
+	composeShader = 0;
 	}
 
 	if(gaussianBlurShader)
 	{
-		gaussianBlurShader->Shutdown();
-		delete gaussianBlurShader;
-		gaussianBlurShader = 0;
+	gaussianBlurShader.Shutdown();
+	delete gaussianBlurShader;
+	gaussianBlurShader = 0;
 	}
 
 	if(colorRT)
 	{
-		delete colorRT;
-		colorRT = 0;
+	delete colorRT;
+	colorRT = 0;
 	}
 
 	if(normalRT)
 	{
-		delete normalRT;
-		normalRT = 0;
+	delete normalRT;
+	normalRT = 0;
 	}
 
 	if(depthRT)
 	{
-		delete depthRT;
-		depthRT = 0;
+	delete depthRT;
+	depthRT = 0;
 	}
 
 	if(lightRT)
 	{
-		delete lightRT;
-		lightRT = 0;
+	delete lightRT;
+	lightRT = 0;
 	}
 
 	if(shadowRT)
 	{
-		delete shadowRT;
-		shadowRT = 0;
+	delete shadowRT;
+	shadowRT = 0;
 	}
 
 	if(gaussianBlurPingPongRT)
 	{
-		delete gaussianBlurPingPongRT;
-		gaussianBlurPingPongRT  = 0;
+	delete gaussianBlurPingPongRT;
+	gaussianBlurPingPongRT  = 0;
 	}
 
 	if(sphereModel)
 	{
-		sphereModel->Shutdown();
-		delete sphereModel;
-		sphereModel = 0;
+	sphereModel->Shutdown();
+	delete sphereModel;
+	sphereModel = 0;
 	}
 
 	if(skySphere)
 	{
-		skySphere->Shutdown();
-		delete skySphere;
-		skySphere = 0;
+	skySphere->Shutdown();
+	delete skySphere;
+	skySphere = 0;
 	}
 
 	if(vegetationManager)
 	{
-		vegetationManager->Shutdown();
-		delete vegetationManager;
-		vegetationManager = 0;
+	vegetationManager->Shutdown();
+	delete vegetationManager;
+	vegetationManager = 0;
 	}
 
 	if(marchingCubes)
 	{
-		delete marchingCubes;
-		marchingCubes = 0;
+	delete marchingCubes;
+	marchingCubes = 0;
 	}
 
 	if(mcubeShader)
 	{
-		mcubeShader->Shutdown();
-		mcubeShader = 0;
+	mcubeShader.Shutdown();
+	mcubeShader = 0;
 	}
 
 	if(dayNightCycle)
 	{
-		delete dayNightCycle;
-		dayNightCycle = 0;
+	delete dayNightCycle;
+	dayNightCycle = 0;
 	}
 
 	if(noise)
 	{
-		delete noise;
-		noise = 0;
-	}
+	delete noise;
+	noise = 0;
+	}*/
 
 	return;
 }

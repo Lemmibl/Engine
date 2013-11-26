@@ -10,7 +10,7 @@ public:
 	~LSystemClass(void);
 
 	
-	void initialize();
+	void Initialize();
 	
 public:
 	list<LSystemBranch>* BranchList;

@@ -92,7 +92,7 @@ bool Engine::Initialize()
 
 
 	// Initialize the renderer.
-	result = renderer.Initialize(hwnd, camera.get(), input.get(), d3D.get(), screenWidth, screenHeight, 
+	result = renderer.Initialize(hwnd, camera, input, d3D, screenWidth, screenHeight, 
 		shadowMapWidth, shadowMapHeight, SCREEN_FAR, SCREEN_NEAR, toggleDebug);
 	if(!result)
 	{

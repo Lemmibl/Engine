@@ -13,7 +13,7 @@ public:
 	~TerrainChunk();
 
 	Mesh* GetMesh() { return &mesh; }
-	Lemmi3DAABB* GetBoundingBox() const { return &boundingBox; }
+	const Lemmi3DAABB* GetBoundingBox() { return &boundingBox; }
 
 	unsigned int GetStepsX() const { return stepsX; }
 	unsigned int GetStepsY() const { return stepsY; }
