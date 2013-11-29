@@ -1,14 +1,18 @@
 #pragma once
 #include <d3d11.h>
 #include <atlcomcli.h>
+#include "GenericRenderable.h"
 
 //////////////////////////////////////////////////////////////////////////
 // So, in order for this to be a functioning mesh, you need to use 
 // d3d11device->CreateBuffer()  on the indexBuffer and vertexBuffer object
 // Then you also need to fill out vertexCount, indexCount and vertexStride
 //////////////////////////////////////////////////////////////////////////
-struct Mesh
+class Mesh : public GenericRenderable
 {
+public:
+	Mesh();
+	~Mesh();
 //public:
 //	const unsigned int GetVertexCount() const { return vertexCount; }
 //	const unsigned int GetIndexCount() const { return indexCount; }
@@ -25,7 +29,7 @@ struct Mesh
 //	void SetVertexStride(unsigned int val) { vertexStride = val; }
 //
 //
-//private:
+public:
 	//These can be set to whatever you want, as long as they match vertexStride, indexCount and vertexCount
 	CComPtr<ID3D11Buffer> vertexBuffer, indexBuffer;
 
@@ -34,3 +38,5 @@ struct Mesh
 	//Stride is == sizeof(IndividualVertex). Total size of vertexBuffer is vertexStride * vertexCount
 	unsigned int vertexStride; 
 };
+
+

@@ -5,51 +5,31 @@
 #include "types.h"
 #include <windows.h>
 #include "Utility.h"
-
+#include "MarchingCubeChunk.h"
 
 class MarchingCubesClass
 {
 public:
-	MarchingCubesClass(	XMFLOAT3 startPosition, XMFLOAT3 endPosition,
+	MarchingCubesClass(	XMFLOAT3 startPosition, XMFLOAT3 stepCount,
 		XMFLOAT3 stepSize, SimplexNoise* simplexNoise);
 
 	~MarchingCubesClass();
 
+	//Converts a voxel field to a mesh
+	void CalculateMesh(ID3D11Device* device, MarchingCubeChunk* chunk);
+
 	//Calculates whether the points are inside or outside.
 	void ComputeMetaBalls();
 
-	//Extract a cube from the .. voxel field...
-	void ExtractCube(MarchingCubeVertex** cube);
-
-	//Calculate the lookup value we'll be using to index into the fields
-	void CalculateLookupValue(unsigned int* lookup, unsigned int index, MarchingCubeVertex** cube);
-
-	//Triangulate the cube that was extracted before, with the help of our lookup value
-	void ProcessCube(unsigned int lookupValue, MarchingCubeVertex* verts, MarchingCubeVertex** cube, vector<unsigned long>& indices, 
-		vector<MarchingCubeVectors>& vertices, unsigned int& indexCounter, unsigned int& vertexCounter);
-
-	void SetupBuffers(ID3D11Device* device, vector<unsigned long>& indices, vector<MarchingCubeVectors>& vertices, unsigned int indexCount, unsigned int vertexCount);
-
-	//Converts the metaballs into a mesh for directx to use
-	void CalculateMesh(ID3D11Device* device);
-
-	//Render the calculated mesh
-	bool Render(ID3D11DeviceContext* context);
-
 	//Reset the mesh
 	void Reset(SimplexNoise* simplexNoise);
-	void LSystemTree(int vertexID);
-	void LSystemTree();
-	void Ground(int vertexID);
 
 	float GetHeightOfXZpos();
-	int GetIndexCount() { return indexCount; }
-	int GetSizeX() { return sizeX; }
-	int GetSizeY() { return sizeY; }
-	int GetSizeZ() { return sizeZ; }
 
-	TreeClass* GetTree(){return tree; }
-	MCTerrainClass* GetTerrain(){ return terrain; }
+	MarchingCubeChunk* GetChunk() { return &temporaryChunk; }
+
+	TreeClass* GetTree(){ return tree; }
+	MCTerrainClass* GetTerrain() { return terrain; }
 
 	/* Setter for metaball pointer and isovalue */
 	void SetMetaBalls(MetaballsClass *mb, float isoValue)
@@ -64,15 +44,28 @@ public:
 		this->wireframe = s;
 	}
 
-	private:
+private:
+	//Extract a cube from the .. voxel field...
+	void ExtractCube(MarchingCubeVoxel** cube, vector<MarchingCubeVoxel>* vertices, unsigned int sizeX, unsigned int sizeY, unsigned int sizeZ);
+
+	//Calculate the lookup value we'll be using to index into the fields
+	void CalculateLookupValue(unsigned int* lookup, unsigned int index, MarchingCubeVoxel** cube);
+
+	//Triangulate the cube that was extracted before, with the help of our lookup value
+	void ProcessCube(unsigned int lookupValue, MarchingCubeVoxel* verts, MarchingCubeVoxel** cube, vector<unsigned int>* indices, vector<MarchingCubeVectors>* vertices, unsigned int& indexCounter, unsigned int& vertexCounter, unsigned int sizeX,  unsigned int sizeY, unsigned int sizeZ);
+
+	//Create vertex and index buffers from the data that we've created
+	void CreateMesh(ID3D11Device* device, Mesh* mesh, vector<unsigned int>* indices, vector<MarchingCubeVectors>* vertices, unsigned int indexCount, unsigned int vertexCount);
+
+
 	// Returns a point that is interpolated with ten other points for both normals and possition
-	inline MarchingCubeVertex Interpolate(MarchingCubeVertex v1, MarchingCubeVertex v2)
+	inline MarchingCubeVoxel Interpolate(MarchingCubeVoxel v1, MarchingCubeVoxel v2)
 	{
-		MarchingCubeVertex v;
+		MarchingCubeVoxel v;
 		float diff;
 
 		diff = (this->metaballsIsoValue - v1.density) / (v2.density - v1.density);
-		
+
 		//Interpolate density as well.
 		//We don't actually use density after this point, so there's no need to calculate it, but just in case we expand on this in the future ...
 		v.density = v1.density + (v2.density - v1.density) * diff;
@@ -98,30 +91,10 @@ public:
 	}
 
 private:
-	ID3D11Buffer *vertexBuffer, *indexBuffer;
-	int vertexCount, indexCount;
-	int x,y,z;
+	//This will be removed in the future and moved to terrain manager, I'm just adding it right now to make the code runnable and to make sure that everything works. Because I'm a lazy piece of shit, basically.
+	MarchingCubeChunk temporaryChunk;
+	unsigned int x,y,z;
 	int index;
-
-	// Properties for the grid, what x,y,z coordinates in object space the grid will start at.
-	float startX;
-	float startY;
-	float startZ;
-
-	// Properties for the grid, what x,y,z coordinates in object space the grid will end at.
-	float endX;
-	float endY;
-	float endZ;
-
-	// How long each step will be between start(x,y,z) and end(x,y,z).
-	float stepX;
-	float stepY;
-	float stepZ;
-
-	// Size of the grid. Is calculated in the constructor.
-	int sizeX;
-	int sizeY;
-	int sizeZ;
 
 	float metaballsIsoValue;
 
@@ -129,17 +102,11 @@ private:
 	bool wireframe;
 
 	// Pointer to a metaball object 
-	MetaballsClass *mb;
-	TreeClass *tree;
-	MCTerrainClass *terrain;
+	MetaballsClass* mb;
+	TreeClass* tree;
+	MCTerrainClass* terrain;
 
 	// Tables for edge cases and triangle lookup 
 	const static int edgeTable[256];
 	const static int triTable[256][16];
-	
-	// Stores the points that we generate
-	MarchingCubeVertex *marchingCubeVertices;
-
-	// Stores the points from a simple cube 
-	MarchingCubeVertex verts[12];
 };

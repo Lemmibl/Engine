@@ -332,134 +332,83 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 
 	MarchingCubesClass::~MarchingCubesClass()
 	{	
-		delete marchingCubeVertices; 
-		marchingCubeVertices = 0;
-
-		vertexBuffer->Release();
-		vertexBuffer = 0;
-
-		indexBuffer->Release();
-		indexBuffer = 0;
-
 		delete terrain;
 		terrain = 0;
 	}
 
-	MarchingCubesClass::MarchingCubesClass(	XMFLOAT3 startPos, XMFLOAT3 endPos,
+	MarchingCubesClass::MarchingCubesClass(	XMFLOAT3 startPos, XMFLOAT3 stepCount,
 		XMFLOAT3 stepSize, SimplexNoise* simplexNoise)
+	:	temporaryChunk(startPos, XMFLOAT3(startPos.x + stepSize.x*stepCount.x, startPos.y + stepSize.y*stepCount.y, startPos.z + stepSize.z*stepCount.z), stepSize, stepCount)
 	{
-		this->startX = startPos.x;
-		this->startY = startPos.y;
-		this->startZ = startPos.z;
-
-		this->endX = endPos.x;
-		this->endY = endPos.y;
-		this->endZ = endPos.z;
-
-		this->stepX = stepSize.x;
-		this->stepY = stepSize.y;
-		this->stepZ = stepSize.z;
-
-		//calculates the size of the grid
-		this->sizeX = (int) ((this->endX - this->startX) / this->stepX);
-		this->sizeY = (int) ((this->endY - this->startY) / this->stepY);
-		this->sizeZ = (int) ((this->endZ - this->startZ) / this->stepZ);
-
-		vertexCount = ((this->sizeX+1) * (this->sizeY+1) * (this->sizeZ+1));
-		indexCount = vertexCount;
-
-		this->marchingCubeVertices = new MarchingCubeVertex[vertexCount];
 		this->wireframe = false;
+
+		//(int)((endPos.x - startPos.x) / stepSize.x);
+		//(int)((endPos.y - startPos.y) / stepSize.y);
+		//(int)((endPos.z - startPos.z) / stepSize.z);
 
 		//Terrain = new MCTerrainClass(sizeX, sizeY,sizeZ, marchingCubeVertices);
 
-		/* setter default-verdier */
-		for (z = 0; z < this->sizeZ; z++)
-		{
-			for (y = 0; y < this->sizeY; y++)
-			{
-				for (x = 0; x < this->sizeX; x++)
-				{
-					/* regner ut index en gang (sparer en haug med MULs) */
-					index = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
-
-					/* setter default-verdier ut fra hvor i gridden vi befinner oss */
-					this->marchingCubeVertices[index].position.x = this->startX + this->stepX * x;
-					this->marchingCubeVertices[index].position.y = this->startY + this->stepY * y;
-					this->marchingCubeVertices[index].position.z = this->startZ + this->stepZ * z;
-					this->marchingCubeVertices[index].density = 0.0f;
-					this->marchingCubeVertices[index].inside = false;
-					this->marchingCubeVertices[index].normal.x = 0.0f;
-					this->marchingCubeVertices[index].normal.y = 0.0f;
-					this->marchingCubeVertices[index].normal.z = 0.0f;
-				}
-			}
-		}
-
 		terrain = new MCTerrainClass();
 
-		terrain->Initialize(sizeX,sizeY,sizeZ,this->marchingCubeVertices, simplexNoise);
+		terrain->Initialize(temporaryChunk.GetStepCountX(), temporaryChunk.GetStepCountY(), temporaryChunk.GetStepCountZ(), simplexNoise);
 		terrain->SetTerrainType(7); //Default.
-		terrain->Noise3D();
+		terrain->Noise3D(temporaryChunk.GetVoxelField());
 		//this->Tree = new TreeClass(sizeX,sizeY,sizeZ,this->marchingCubeVertices);
 	}
 
-	/* 
-	regner ut hvor mye hvert enkelt av punktene i griden blir påvirket av alle metapunktene,
-	avgjør deretter hvorvidt punktet er innenfor eller utenfor figuren vi ønsker å tegne.
-	Bruker deretter et skittent triks for å generere normaler raskt (ser på tilsideliggende styrke)
-	dette blir ikke helt nøyaktige normaler, men burde gi et greit nok estimat i forhold til tidsbruk.
-	*/
 	void MarchingCubesClass::ComputeMetaBalls()
 	{
-		for (z = 1; z < (this->sizeZ - 1); z++)
-		{
-			for (y = 1; y < (this->sizeY - 1); y++)
-			{
-				for (x = 1; x < (this->sizeX - 1); x++)
-				{
-					index = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
+		//for (z = 1; z < (this->sizeZ - 1); z++)
+		//{
+		//	for (y = 1; y < (this->sizeY - 1); y++)
+		//	{
+		//		for (x = 1; x < (this->sizeX - 1); x++)
+		//		{
+		//			index = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
 
-					//this->marchingCubeVertices[index].density = this->mb->Get_vertex_value(this->marchingCubeVertices[index]);
-					Ground(index);
-					//LSystemTree(index);
+		//			//this->marchingCubeVertices[index].density = this->mb->Get_vertex_value(this->marchingCubeVertices[index]);
+		//			Ground(index);
+		//			//LSystemTree(index);
 
 
-					if (this->marchingCubeVertices[index].density > this->metaballsIsoValue)
-					{
-						this->marchingCubeVertices[index].inside = true;
-					}
-					else
-					{
-						this->marchingCubeVertices[index].inside = false;
-					}
+		//			if (this->marchingCubeVertices[index].density > this->metaballsIsoValue)
+		//			{
+		//				this->marchingCubeVertices[index].inside = true;
+		//			}
+		//			else
+		//			{
+		//				this->marchingCubeVertices[index].inside = false;
+		//			}
 
-					this->marchingCubeVertices[index].normal.x = this->marchingCubeVertices[index - 1].density - this->marchingCubeVertices[index+1].density;
-					this->marchingCubeVertices[index].normal.y = this->marchingCubeVertices[index - this->sizeY].density - this->marchingCubeVertices[index + this->sizeY].density;
-					this->marchingCubeVertices[index].normal.z = this->marchingCubeVertices[index - (this->sizeY * this->sizeZ)].density - this->marchingCubeVertices[index + (this->sizeY * this->sizeZ)].density; 
-				}
-			}
-		}
-
+		//			this->marchingCubeVertices[index].normal.x = this->marchingCubeVertices[index - 1].density - this->marchingCubeVertices[index+1].density;
+		//			this->marchingCubeVertices[index].normal.y = this->marchingCubeVertices[index - this->sizeY].density - this->marchingCubeVertices[index + this->sizeY].density;
+		//			this->marchingCubeVertices[index].normal.z = this->marchingCubeVertices[index - (this->sizeY * this->sizeZ)].density - this->marchingCubeVertices[index + (this->sizeY * this->sizeZ)].density; 
+		//		}
+		//	}
+		//}
 	}
 
-	void MarchingCubesClass::CalculateMesh(ID3D11Device* device)
+	void MarchingCubesClass::CalculateMesh(ID3D11Device* device, MarchingCubeChunk* chunk)
 	{
-		vector<MarchingCubeVectors> vertices;
-		vector<unsigned long> indices;
-		MarchingCubeVertex* cube[8];
+		// Stores the points from a simple cube 
+		MarchingCubeVoxel verts[12];
+
+		// Stores the eight corners of each cube that we march through
+		MarchingCubeVoxel* cube[8];
+
 		unsigned int lookup = 0;
 
-		// Create the vertex array.
-		vertices.resize(vertexCount);
+		//Temporary holding until we make a vertexbuffer
+		std::vector<MarchingCubeVectors> vertices;
 
-		// Create the index array.
-		indices.resize(indexCount);
+		vertices.resize(chunk->GetTotalSize());
 
 		unsigned int vertexCounter = 0;
 		unsigned int indexCounter = 0;
 
-		lookup = 0;
+		unsigned int sizeX = chunk->GetStepCountX();
+		unsigned int sizeY = chunk->GetStepCountY();
+		unsigned int sizeZ = chunk->GetStepCountZ();
 
 		for (z = 0; z < sizeZ; ++z)
 		{
@@ -468,72 +417,88 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 				for (x = 0; x < sizeX; ++x)
 				{
 					// Calculate index for where in the field we are
-					index = x + (y*this->sizeY) + (z * this->sizeY * this->sizeZ);
+					index = x + (y*sizeY) + (z * sizeY * sizeZ);
 
-					ExtractCube(cube);
+					//Extract a cube from the voxel field of the chunk
+					ExtractCube(cube, chunk->GetVoxelField(), sizeX, sizeY, sizeZ);
 
-					// Of the 256 edge cases which should we use?
+					// Out of the 256 potential edge cases, which should we use?
 					CalculateLookupValue(&lookup, index, cube);
 
-					ProcessCube(lookup, verts, cube, indices, vertices, indexCounter, vertexCounter);
-
-					lookup = 0;
+					//Core of the algorithm. Takes the calculated lookup value and applies the specific case from the lookup table to the cube we've extracted from the voxel field.
+					ProcessCube(lookup, verts, cube, chunk->GetIndices(), &vertices, indexCounter, vertexCounter, sizeX, sizeY, sizeZ);
 				}
 			}
 		}
 
-		indexCount = indexCounter;
-		vertexCount = vertexCounter;
-
-		SetupBuffers(device, indices, vertices, indexCount, vertexCount);
+		//Create the mesh
+		CreateMesh(device, chunk->GetMesh(), chunk->GetIndices(), &vertices, indexCounter, vertexCounter);
 	}
 
-	void MarchingCubesClass::ExtractCube(MarchingCubeVertex** cube)
+	void MarchingCubesClass::ExtractCube( MarchingCubeVoxel** cube, vector<MarchingCubeVoxel>* vertices, unsigned int sizeX, unsigned int sizeY, unsigned int sizeZ )
 	{
-		cube[7] = &marchingCubeVertices[index];
-		cube[6] = &marchingCubeVertices[index+1];
-		cube[5]	= &marchingCubeVertices[index + 1 + (this->sizeY * this->sizeZ)];
-		cube[4]	= &marchingCubeVertices[index + (this->sizeY * this->sizeZ)];
-		cube[3]	= &marchingCubeVertices[index + this->sizeY];
-		cube[2]	= &marchingCubeVertices[index+1+this->sizeY];
-		cube[1]	= &marchingCubeVertices[index + 1 + this->sizeY + (this->sizeY * this->sizeZ)];
-		cube[0] = &marchingCubeVertices[index + this->sizeY + (this->sizeY * this->sizeZ)];
+		cube[7]	= &(*vertices)[index];
+		cube[6]	= &(*vertices)[index+1];
+		cube[5]	= &(*vertices)[index + 1 + (sizeY * sizeZ)];
+		cube[4]	= &(*vertices)[index + (sizeY * sizeZ)];
+		cube[3]	= &(*vertices)[index + sizeY];
+		cube[2]	= &(*vertices)[index + 1 +sizeY];
+		cube[1]	= &(*vertices)[index + 1 + sizeY + (sizeY * sizeZ)];
+		cube[0]	= &(*vertices)[index + sizeY + (sizeY * sizeZ)];
 
 	}
 
-	void MarchingCubesClass::CalculateLookupValue(unsigned int* lookup, unsigned int index, MarchingCubeVertex** cube )
+	void MarchingCubesClass::CalculateLookupValue(unsigned int* lookup, unsigned int index, MarchingCubeVoxel** cube )
 	{
-		if (cube[7]->inside)
+		*lookup = 0;
+
+		if(cube[7]->inside)
+		{
 			*lookup |= 128;
+		}
 
-		if (cube[6]->inside)
+		if(cube[6]->inside)
+		{
 			*lookup |= 64;
+		}
 
-		if (cube[5]->inside)
+		if(cube[5]->inside)
+		{
 			*lookup |= 32;
+		}
 
-		if (cube[4]->inside)
+		if(cube[4]->inside)
+		{
 			*lookup |= 16;
+		}
 
-		if (cube[3]->inside)
+		if(cube[3]->inside)
+		{
 			*lookup |= 8;
+		}
 
-		if (cube[2]->inside)
+		if(cube[2]->inside)
+		{
 			*lookup |= 4;
+		}
 
-		if (cube[1]->inside)
+		if(cube[1]->inside)
+		{
 			*lookup |= 2;
+		}
 
-		if (cube[0]->inside)
+		if(cube[0]->inside)
+		{
 			*lookup |= 1;
+		}
 	}
 
-	void MarchingCubesClass::ProcessCube( unsigned int lookupValue, MarchingCubeVertex* verts, MarchingCubeVertex** cube, vector<unsigned long>& indices, 
-		vector<MarchingCubeVectors>& vertices, unsigned int& indexCounter, unsigned int& vertexCounter )
+	void MarchingCubesClass::ProcessCube( unsigned int lookupValue, MarchingCubeVoxel* verts, MarchingCubeVoxel** cube, vector<unsigned int>* indices, 
+	vector<MarchingCubeVectors>* vertices, unsigned int& indexCounter, unsigned int& vertexCounter, unsigned int sizeX, unsigned int sizeY, unsigned int sizeZ )
 	{
 		if(lookupValue == 0)
 			return;
-		
+
 		//For each potential case
 		for(int i = 0; i < 12; ++i)
 		{
@@ -557,12 +522,12 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 				if(y > 10)
 				{
 					//And this.
-					if(x > 0 && z > 0 && x < this->sizeX-2 && z < this->sizeZ-2)
+					if(x > 0 && z > 0 && x < sizeX-2 && z < sizeZ-2)
 					{
-						indices[indexCounter] = vertexCounter;
+						(*indices)[indexCounter] = vertexCounter;
 
-						vertices[vertexCounter].position	= verts[tritableLookupValue].position;
-						vertices[vertexCounter].normal		= verts[tritableLookupValue].normal;
+						(*vertices)[vertexCounter].position		= verts[tritableLookupValue].position;
+						(*vertices)[vertexCounter].normal		= verts[tritableLookupValue].normal;
 
 						vertexCounter++;
 						indexCounter++;	
@@ -572,11 +537,15 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 		}
 	}
 
-	void MarchingCubesClass::SetupBuffers(ID3D11Device* device, vector<unsigned long>& indices, vector<MarchingCubeVectors>& vertices, unsigned int indexCount, unsigned int vertexCount )
+	void MarchingCubesClass::CreateMesh(ID3D11Device* device, Mesh* mesh, vector<unsigned int>* indices, vector<MarchingCubeVectors>* vertices, unsigned int indexCount, unsigned int vertexCount )
 	{
 		D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
 		D3D11_SUBRESOURCE_DATA vertexData, indexData;
 		HRESULT result;
+
+		mesh->vertexCount = vertexCount;
+		mesh->indexCount = indexCount;
+		mesh->vertexStride = sizeof(MarchingCubeVectors);
 
 		// Set up the description of the static vertex buffer.
 		vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -587,114 +556,32 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 		vertexBufferDesc.StructureByteStride = 0;
 
 		// Give the sub resource texture a pointer to the vertex data.
-		vertexData.pSysMem = vertices.data();
+		vertexData.pSysMem = vertices->data();
 		vertexData.SysMemPitch = 0;
 		vertexData.SysMemSlicePitch = 0;
 
 		// Now create the vertex buffer.
-		result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &vertexBuffer);
+		result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &mesh->vertexBuffer.p);
 
 		// Set up the description of the static index buffer.
 		indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-		indexBufferDesc.ByteWidth = sizeof(unsigned long) * indexCount;
+		indexBufferDesc.ByteWidth = sizeof(unsigned int) * indexCount;
 		indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 		indexBufferDesc.CPUAccessFlags = 0;
 		indexBufferDesc.MiscFlags = 0;
 		indexBufferDesc.StructureByteStride = 0;
 
 		// Give the sub resource texture a pointer to the index data.
-		indexData.pSysMem = indices.data();
+		indexData.pSysMem = indices->data();
 		indexData.SysMemPitch = 0;
 		indexData.SysMemSlicePitch = 0;
 
 		// Create the index buffer.
-		result = device->CreateBuffer(&indexBufferDesc, &indexData, &indexBuffer);
-	}
-
-	bool MarchingCubesClass::Render(ID3D11DeviceContext* deviceContext)
-	{
-		unsigned int stride;
-		unsigned int offset;
-
-		// Set vertex buffer stride and offset.
-		stride = sizeof(MarchingCubeVectors); 
-		offset = 0;
-
-		// Set the vertex buffer to active in the input assembler so it can be rendered.r
-		deviceContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-
-		// Set the index buffer to active in the input assembler so it can be rendered.
-		deviceContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-
-		// Set the tangent type of primitive that should be rendered from this vertex buffer, in this case triangles.
-		deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-		return true;
-	}
-
-	void  MarchingCubesClass::LSystemTree()
-	{
-		for (z = 1; z < (this->sizeZ - 1); z++)
-		{
-			for (y = 1; y < (this->sizeY - 1); y++)
-			{
-				for (x = 1; x < (this->sizeX - 1); x++)
-				{
-					index = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
-
-					if(	sqrt((0 - this->marchingCubeVertices[index].position.x) * (0 - this->marchingCubeVertices[index].position.x)) < 2 &&
-						sqrt((0 - this->marchingCubeVertices[index].position.y) * (0 - this->marchingCubeVertices[index].position.y)) < 2 &&
-						sqrt((0 - this->marchingCubeVertices[index].position.z) * (0 - this->marchingCubeVertices[index].position.z)) < 2)
-					{
-
-						this->marchingCubeVertices[index].density = 1.5f;
-					}
-
-
-					if (this->marchingCubeVertices[index].density > 1.1f)
-					{
-						this->marchingCubeVertices[index].inside = true;
-					}
-					else
-					{
-						this->marchingCubeVertices[index].inside = false;
-					}
-
-					this->marchingCubeVertices[index].normal.x = this->marchingCubeVertices[index - 1].density - this->marchingCubeVertices[index+1].density;
-					this->marchingCubeVertices[index].normal.y = this->marchingCubeVertices[index - this->sizeY].density - this->marchingCubeVertices[index + this->sizeY].density;
-					this->marchingCubeVertices[index].normal.z = this->marchingCubeVertices[index - (this->sizeY * this->sizeZ)].density - this->marchingCubeVertices[index + (this->sizeY * this->sizeZ)].density; 
-				}
-			}
-		}
-	}
-
-	void  MarchingCubesClass::LSystemTree(int vertexID)
-	{
-		//if(this->marchingCubeVertices[index].position.x * this->marchingCubeVertices[index].position.x)
-		if(	sqrt((0 - this->marchingCubeVertices[index].position.x) * (0 - this->marchingCubeVertices[index].position.x)) < 2 &&
-			sqrt((0 - this->marchingCubeVertices[index].position.y) * (0 - this->marchingCubeVertices[index].position.y)) < 2 &&
-			sqrt((0 - this->marchingCubeVertices[index].position.z) * (0 - this->marchingCubeVertices[index].position.z)) < 2)
-		{
-
-			this->marchingCubeVertices[vertexID].density = 1.5f;
-		}
-	}
-
-	void  MarchingCubesClass::Ground(int vertexID)
-	{
-
-		if(this->marchingCubeVertices[vertexID].position.y < -18)
-		{
-
-			this->marchingCubeVertices[vertexID].density = 0.5f;
-		}
+		result = device->CreateBuffer(&indexBufferDesc, &indexData, &mesh->indexBuffer.p);
 	}
 
 	void MarchingCubesClass::Reset(SimplexNoise* simplexNoise)
 	{
-		vertexCount = (this->sizeX * this->sizeY * this->sizeZ);
-		indexCount = vertexCount;
-
 		simplexNoise->ReseedRandom();
 
 		bool tempPulverize = terrain->GetPulverizeWorld();
@@ -704,12 +591,12 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 		//terrain = 0;
 
 		//this->terrain = new MCTerrainClass();
-		terrain->Initialize(sizeX,sizeY,sizeZ,this->marchingCubeVertices, simplexNoise);
+		terrain->Initialize(temporaryChunk.GetStepCountX(), temporaryChunk.GetStepCountY(), temporaryChunk.GetStepCountZ(), simplexNoise);
 		terrain->SetTerrainType(tempTerrainType);
 		terrain->SetPulverizeWorld(tempPulverize);
-		terrain->Noise3D();
+		terrain->Noise3D(temporaryChunk.GetVoxelField());
 
-		ComputeMetaBalls();
+		//ComputeMetaBalls();
 	}
 
 	float MarchingCubesClass::GetHeightOfXZpos()

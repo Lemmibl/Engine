@@ -11,7 +11,6 @@ using std::vector;
 class MCTerrainClass
 {
 private:
-
 	//Terrain modes
 	static const unsigned int terrainTypesSeaBottom = 1;
 	static const unsigned int terrainTypePlains = 2;
@@ -23,50 +22,17 @@ private:
 	static const unsigned int terrainTypeFancy = 8;
 	static const unsigned int terrainTypeCave = 9;
 
-	int sizeX;
-	int sizeY;
-	int sizeZ;
-	int worldSize;
-	int worldSizeMargin;
-	int x,y,z, idx;
-	int worldArraySize;
-	int *marchingCubesFluxArray;
-	int terrainMode;
-	float densityToBeInside;
-	float maxDensity, minDensity, densityRangeUpper,densityRangeLower;
-	float XFactor;
-	float YFactor;
-	float ZFactor;
-
-	bool pulverize;
-
-
-	MarchingCubeVertex *marchingCubeVertices;
-	SimplexNoise *noise;
-
-	vector<vector<vector<float>>> densityArray3D;
-
 public:
-	MCTerrainClass(void);
-
-	void Initialize(int sizeX, int sizeY, int sizeZ, MarchingCubeVertex *marchingCubeVertices, SimplexNoise* simplexNoise);
-
-	~MCTerrainClass(void);
+	MCTerrainClass();
+	~MCTerrainClass();
 
 
+	void Initialize(int sizeX, int sizeY, int sizeZ, SimplexNoise* simplexNoise);
 	void LSystem();
-
-
 	void LSystemTree();
-
 	void MCHeightMap();
 
-	void Noise3D();
-
-	MarchingCubeVertex* GetMarchingCubeVertices()
-	{
-		return marchingCubeVertices;
-	}
+	void Noise3D(vector<MarchingCubeVoxel>* marchingCubeVertices);
 
 	float GetDensityRangeUpper()
 	{
@@ -106,20 +72,26 @@ public:
 		return terrainMode;
 	}
 
-	vector<vector<vector<float>>> const &getDensityArray3D() const
-	{
-		return densityArray3D;
-	}
-
-
-
-	float GetHighestPositionOfCoordinate(int x, int z);
-
-	float GetHighestPositionOfCoordinateBruteforce(float x, float z);
+	float GetHighestPositionOfCoordinate(vector<MarchingCubeVoxel>* marchingCubeVertices, int x, int z);
 
 private:
-	void CreateMCVerts();
+	void CreateMCVerts(vector<MarchingCubeVoxel>* marchingCubeVertices);
 
 
+private:
+	int sizeX, sizeY, sizeZ;
+	int worldSize;
+	int worldSizeMargin;
+	int x,y,z, idx;
+	int worldArraySize;
+	int terrainMode;
+	float densityToBeInside;
+	float maxDensity, minDensity, densityRangeUpper,densityRangeLower;
+	float XFactor;
+	float YFactor;
+	float ZFactor;
+	bool pulverize;
 
+	vector<MarchingCubeVoxel>* marchingCubeVertices;
+	SimplexNoise *noise;
 };

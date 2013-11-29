@@ -300,13 +300,13 @@ bool Renderer::InitializeModels( HWND hwnd )
 
 	//metaBalls = MetaballsClass();
 
-	marchingCubes = make_shared<MarchingCubesClass>(XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(180.0f, 180.0f, 180.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), &noise);
+	marchingCubes = shared_ptr<MarchingCubesClass>(new MarchingCubesClass(XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(100.0f, 100.0f, 100.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), &noise));
 	marchingCubes->SetMetaBalls(&metaBalls, 0.2f);
 	marchingCubes->GetTerrain()->SetTerrainType(7);
-	marchingCubes->CalculateMesh(d3D->GetDevice());
+	marchingCubes->CalculateMesh(d3D->GetDevice(), marchingCubes->GetChunk());
 
-	lSystem = LSystemClass();
-	lSystem.Initialize();
+	//lSystem = LSystemClass();
+	//lSystem.Initialize();
 
 	//vegetationManager = VegetationManager();
 
@@ -659,7 +659,7 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 		lodState = 3;
 
 		marchingCubes->Reset(&noise);
-		marchingCubes->CalculateMesh(d3D->GetDevice());
+		marchingCubes->CalculateMesh(d3D->GetDevice(), marchingCubes->GetChunk());
 
 		GenerateVegetation(d3D->GetDevice(), false);
 	}
@@ -720,13 +720,16 @@ void Renderer::GenerateVegetation( ID3D11Device* device, bool IfSetupThenTrue_If
 	//LODVector10000.clear();
 	LODVector10000.resize(vegetationCount);
 
+	MarchingCubeChunk* tempChunk = marchingCubes->GetChunk();
+	MCTerrainClass* tempTerrain = marchingCubes->GetTerrain();
+
 	for(int i = 0; i < vegetationCount; i++)
 	{
-		x = (2.0f + (utility.RandomFloat() * marchingCubes->GetSizeX()-2.0f));
-		z = (2.0f + (utility.RandomFloat() * marchingCubes->GetSizeZ()-2.0f));
+		x = (2.0f + (utility.RandomFloat() * tempChunk->GetStepCountX()-2.0f));
+		z = (2.0f + (utility.RandomFloat() * tempChunk->GetStepCountZ()-2.0f));
 
 		//Extract highest Y at this point
-		y = marchingCubes->GetTerrain()->GetHighestPositionOfCoordinate((int)x, (int)z);
+		y = tempTerrain->GetHighestPositionOfCoordinate(tempChunk->GetVoxelField(), (int)x, (int)z);
 
 		randValue = rand()%100;
 
@@ -862,14 +865,17 @@ void Renderer::SetupRTsAndStuff()
 	gaussianBlurTexture[0] = gaussianBlurPingPongRT.SRView;
 }
 
-
 void Renderer::RenderMesh( ID3D11DeviceContext* deviceContext, Mesh* mesh )
 {
+	// Set vertex buffer stride and offset.
+	unsigned int stride = mesh->vertexStride;
+	unsigned int offset = 0;
+
 	// Set the vertex buffer to active in the input assembler so it can be rendered.r
-	deviceContext->IASetVertexBuffers(0, 1, &mesh->vertexBuffer.p, &mesh->vertexStride, 0);
+	deviceContext->IASetVertexBuffers(0, 1, &mesh->vertexBuffer.p, &stride, &offset);
 
 	// Set the index buffer to active in the input assembler so it can be rendered.
-	deviceContext->IASetIndexBuffer(mesh->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	deviceContext->IASetIndexBuffer(mesh->indexBuffer.p, DXGI_FORMAT_R32_UINT, 0);
 
 	// Set the tangent type of primitive that should be rendered from this vertex buffer, in this case triangles.
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -987,9 +993,9 @@ bool Renderer::RenderShadowmap( ID3D11DeviceContext* deviceContext, XMMATRIX* li
 
 	d3D->SetNoCullRasterizer();
 
-	marchingCubes->Render(deviceContext);
+	RenderMesh(deviceContext, marchingCubes->GetChunk()->GetMesh());
 
-	if(!depthOnlyShader.Render(deviceContext, marchingCubes->GetIndexCount(), lightWorldViewProj, lightWorldView))
+	if(!depthOnlyShader.Render(deviceContext, marchingCubes->GetChunk()->GetMesh()->indexCount, lightWorldViewProj, lightWorldView))
 	{
 		return false;
 	}
@@ -1088,12 +1094,15 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 	worldView = XMMatrixTranspose(worldMatrix * (*viewMatrix));
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
-	if(!marchingCubes->Render(deviceContext))
-	{
-		return false;
-	}
+	//if(!marchingCubes->Render(deviceContext))
+	//{
+	//	return false;
+	//}
+	//} 
 
-	if(!mcubeShader.Render(d3D->GetDeviceContext(), marchingCubes->GetIndexCount(), &worldMatrix, &worldView, 
+	RenderMesh(deviceContext, marchingCubes->GetChunk()->GetMesh());
+
+	if(!mcubeShader.Render(d3D->GetDeviceContext(), marchingCubes->GetChunk()->GetMesh()->indexCount, &worldMatrix, &worldView, 
 		identityWorldViewProj, textureAndMaterialHandler.GetTerrainTextureArray(), textureAndMaterialHandler.GetMaterialLookupTexture(), toggleColorMode, farClip))
 	{
 		return false;

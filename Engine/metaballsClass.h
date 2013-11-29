@@ -39,9 +39,9 @@ public:
 
 
 	// Returns a point that is interpolated with ten other points for both normals and possition
-	inline MarchingCubeVertex Interpolate(MarchingCubeVertex v1, MarchingCubeVertex v2)
+	inline MarchingCubeVoxel Interpolate(MarchingCubeVoxel v1, MarchingCubeVoxel v2)
 	{
-		MarchingCubeVertex v;
+		MarchingCubeVoxel v;
 		float diff;
 
 		diff = (isoValue - v1.density) / (v2.density - v1.density);
@@ -69,7 +69,7 @@ public:
 
 	
 	//gets the densety value of a point in the grid
-	inline float Get_vertex_value(MarchingCubeVertex v)
+	inline float Get_vertex_value(MarchingCubeVoxel v)
 	{
 		float density = 0.0;
 

@@ -27,13 +27,15 @@
     <ClCompile Include="fpsmeter.cpp" />
     <ClCompile Include="frustumclass.cpp" />
     <ClCompile Include="GaussianBlur.cpp" />
+    <ClCompile Include="GenericRenderable.cpp" />
     <ClCompile Include="Lemmi3DAABB.h" />
     <ClCompile Include="LemmiEntity.cpp" />
     <ClCompile Include="LemmiGridTable.cpp" />
     <ClCompile Include="LemmiQuadtree.h" />
     <ClCompile Include="LerpInstance.cpp" />
+    <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="SentenceManager.cpp" />
-    <ClCompile Include="TerrainChunk.cpp" />
+    <ClCompile Include="MarchingCubeChunk.cpp" />
     <ClCompile Include="TerrainManager.cpp" />
     <ClCompile Include="TextureAndMaterialHandler.cpp" />
     <ClCompile Include="LSystemBranch.cpp" />
@@ -84,6 +86,7 @@
     <ClInclude Include="frustumclass.h" />
     <ClInclude Include="DRGBuffer.h" />
     <ClInclude Include="GaussianBlur.h" />
+    <ClInclude Include="GenericRenderable.h" />
     <ClInclude Include="interfacepointers.h" />
     <ClInclude Include="Lemmi2DAABB.h" />
     <ClInclude Include="LemmiEntity.h" />
@@ -92,7 +95,7 @@
     <ClInclude Include="LerpInstance.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="SentenceManager.h" />
-    <ClInclude Include="TerrainChunk.h" />
+    <ClInclude Include="MarchingCubeChunk.h" />
     <ClInclude Include="TerrainManager.h" />
     <ClInclude Include="TextureAndMaterialHandler.h" />
     <ClInclude Include="LSystemBranch.h" />

@@ -6,28 +6,34 @@
 #include "Mesh.h"
 #include "Lemmi3DAABB.h"
 
-class TerrainChunk
+class MarchingCubeChunk
 {
 public:
-	TerrainChunk(XMFLOAT3 startPosition, XMFLOAT3 endPosition, XMFLOAT3 stepSize, XMFLOAT3 stepCount, size_t vertexStride);
-	~TerrainChunk();
+	MarchingCubeChunk(XMFLOAT3 startPosition, XMFLOAT3 endPosition, XMFLOAT3 stepSize, XMFLOAT3 stepCount);
+	~MarchingCubeChunk();
 
 	Mesh* GetMesh() { return &mesh; }
+	vector<MarchingCubeVoxel>* GetVoxelField() { return &voxels; }
+	vector<unsigned int>* GetIndices() { return &indices; }
 	const Lemmi3DAABB* GetBoundingBox() { return &boundingBox; }
 
-	unsigned int GetStepsX() const { return stepsX; }
-	unsigned int GetStepsY() const { return stepsY; }
-	unsigned int GetStepsZ() const { return stepsZ; }
+	unsigned int GetTotalSize() const { return voxels.size(); }
+	unsigned int GetStepCountX() const { return stepCountX; }
+	unsigned int GetStepCountY() const { return stepCountY; }
+	unsigned int GetStepCountZ() const { return stepCountZ; }
 
 	float GetStepSizeX() const { return stepSizeX ; }
 	float GetStepSizeY() const { return stepSizeY ; }
 	float GetStepSizeZ() const { return stepSizeZ ; }
 
-	void Render(ID3D11DeviceContext* deviceContext);
+	float GetSizeX() const { return stepSizeX * stepCountX; }
+	float GetSizeY() const { return stepSizeY * stepCountY; }
+	float GetSizeZ() const { return stepSizeZ * stepCountZ; }
 
 private:
-	//Vertices is sizeX*sizeY*sizeZ big
-	vector<MarchingCubeVertex> vertices;
+	//voxels is sizeX*sizeY*sizeZ big
+	vector<MarchingCubeVoxel> voxels;
+	vector<unsigned int> indices;
 
 	//Our mesh that we'll be rendering. Contains all vertex/index data.
 	Mesh mesh;
@@ -41,9 +47,9 @@ private:
 	float stepSizeZ;
 
 	// The amount of steps we take between startPosition and endPosition
-	unsigned int stepsX;
-	unsigned int stepsY;
-	unsigned int stepsZ;
+	unsigned int stepCountX;
+	unsigned int stepCountY;
+	unsigned int stepCountZ;
 
 	Lemmi3DAABB boundingBox;
 

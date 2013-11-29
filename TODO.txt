@@ -63,6 +63,11 @@ Entity system:
 http://www.gameprogblog.com/managing-entities/#more-79
 
 Geometry shader quads:
+http://upvoid.com/devblog/2013/02/prototype-grass/ <<<<<<<<<<<<<<<<<<<<<<<<<<<<<< THIS.
+
+http://www.bth.se/fou/cuppsats.nsf/all/9b18626fa27d52c9c1257bae002ca00d/$file/BTH2013Tillman.pdf
+http://illogictree.com/upload/site/LeeRealtimeGrassThesis.pdf
+http://www.gamedev.net/topic/645080-good-way-to-manage-grass-rendering/
 http://www.cg.tuwien.ac.at/research/publications/2007/Habel_2007_IAG/
 http://http.developer.nvidia.com/GPUGems/gpugems_ch07.html
 http://www.braynzarsoft.net/index.php?p=D3D11BILLBOARDS

@@ -10,7 +10,7 @@ TreeClass::TreeClass
 	int sizeX,
 	int sizeY,
 	int sizeZ,
-	MarchingCubeVertex *marchingCubeVertices
+	MarchingCubeVoxel *marchingCubeVertices
 	)
 {
 

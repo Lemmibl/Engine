@@ -5,7 +5,7 @@
 #include <windows.h>
 #include <xnamath.h>
 
-struct MarchingCubeVertex
+struct MarchingCubeVoxel
 {
 	XMFLOAT3 position;
 	XMFLOAT3 normal;

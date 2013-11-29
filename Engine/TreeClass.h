@@ -13,7 +13,7 @@ private:
 	int sizeY;
 	int sizeZ;
 	int x,y,z, idx;
-	MarchingCubeVertex *marchingCubeVertices2;
+	MarchingCubeVoxel *marchingCubeVertices2;
 public:
 	TreeClass(void);
 
@@ -22,7 +22,7 @@ public:
 		int sizeX,
 		int sizeY,
 		int sizeZ,
-		MarchingCubeVertex *marchingCubeVertices
+		MarchingCubeVoxel *marchingCubeVertices
 		);
 
 	~TreeClass(void);

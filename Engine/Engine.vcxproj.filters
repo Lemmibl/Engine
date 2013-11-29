@@ -160,8 +160,14 @@
     <ClCompile Include="TerrainManager.cpp">
       <Filter>Procedural generation</Filter>
     </ClCompile>
-    <ClCompile Include="TerrainChunk.cpp">
+    <ClCompile Include="MarchingCubeChunk.cpp">
       <Filter>Procedural generation</Filter>
+    </ClCompile>
+    <ClCompile Include="GenericRenderable.cpp">
+      <Filter>Rendering\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>Rendering\Objects</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -324,9 +330,6 @@
     <ClInclude Include="SentenceManager.h">
       <Filter>General Code</Filter>
     </ClInclude>
-    <ClInclude Include="TerrainChunk.h">
-      <Filter>Procedural generation</Filter>
-    </ClInclude>
     <ClInclude Include="customStructs.h">
       <Filter>Procedural generation\MC</Filter>
     </ClInclude>
@@ -336,8 +339,14 @@
     <ClInclude Include="TerrainManager.h">
       <Filter>Procedural generation</Filter>
     </ClInclude>
+    <ClInclude Include="MarchingCubeChunk.h">
+      <Filter>Procedural generation</Filter>
+    </ClInclude>
+    <ClInclude Include="GenericRenderable.h">
+      <Filter>Rendering\Objects</Filter>
+    </ClInclude>
     <ClInclude Include="Mesh.h">
-      <Filter>Rendering\Rendering utility</Filter>
+      <Filter>Rendering\Objects</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
