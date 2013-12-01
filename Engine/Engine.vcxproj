@@ -27,7 +27,7 @@
     <ClCompile Include="fpsmeter.cpp" />
     <ClCompile Include="frustumclass.cpp" />
     <ClCompile Include="GaussianBlur.cpp" />
-    <ClCompile Include="GenericRenderable.cpp" />
+    <ClCompile Include="GeometryShaderGrass.cpp" />
     <ClCompile Include="Lemmi3DAABB.h" />
     <ClCompile Include="LemmiEntity.cpp" />
     <ClCompile Include="LemmiGridTable.cpp" />
@@ -86,7 +86,8 @@
     <ClInclude Include="frustumclass.h" />
     <ClInclude Include="DRGBuffer.h" />
     <ClInclude Include="GaussianBlur.h" />
-    <ClInclude Include="GenericRenderable.h" />
+    <ClInclude Include="RenderableInterface.h" />
+    <ClInclude Include="GeometryShaderGrass.h" />
     <ClInclude Include="interfacepointers.h" />
     <ClInclude Include="Lemmi2DAABB.h" />
     <ClInclude Include="LemmiEntity.h" />
@@ -203,6 +204,10 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <MinimalRebuild>false</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

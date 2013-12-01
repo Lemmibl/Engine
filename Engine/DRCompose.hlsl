@@ -10,10 +10,10 @@ SamplerState samplers[2]; //0 == linear sampler, 1 == point
 Texture2D randomTexture : register(ps_5_0, t0);
 Texture2D shaderTextures[4] : register(ps_5_0, t1); // 0 = color, 1 = light, 2 = depth, 3 = normal
 
-static const float sampleRadius = 0.6f; //Controls sampling radius.
-static const float intensity = 6.0f; //AO intensity. The higher this value is, the darker the occluded parts will be.
-static const float scale = 0.8f; //Scales distance between occluders and occludee.
-static const float bias = 0.2f; //Cutoff value. The higher this value is, the harsher we are with cutting off low AO values.
+static const float sampleRadius = 0.6f; //Controls sampling radius. 0.1f to 1.0f are pretty ok values.
+static const float intensity = 4.0f; //AO intensity. The higher this value is, the darker the occluded parts will be. 1.0f to 10.0f values is pretty ok values.
+static const float scale = 0.8f; //Scales distance between occluders and occludee. Still a little unsure as to what values would be good to use.
+static const float bias = 0.2f; //Cutoff value. The higher this value is, the harsher we are with cutting off low AO values. 0.01f to 0.4f values are pretty ok.
 static const float CameraFarClip = 500.0f;
 static const float FogEnd = 300.0f;
 static const float FogStart = 100.0f;

@@ -124,6 +124,10 @@ bool VegetationManager::BuildVertexAndIndexBuffers( ID3D11Device* device )
 	D3D11_SUBRESOURCE_DATA vertexData, indexData;
 	HRESULT result;
 
+	const XMVECTOR upVector = XMVector3Normalize(XMLoadFloat3(&XMFLOAT3(0.0f, 1.0f, 0.0f)));
+	XMFLOAT3 vertexNormal;
+	XMVECTOR tempVector;
+
 #pragma region Setting up the vertices
 
 	// Set the number of vertices in the vertex array.
@@ -209,7 +213,11 @@ bool VegetationManager::BuildVertexAndIndexBuffers( ID3D11Device* device )
 	indices[i+5] = v+3;
 
 	//The quad is "straight" so we'll only need to calculate normal once to know all of the normals
-	XMFLOAT3 vertexNormal = CalculateVertexNormals(&vertices[1+v].position, &vertices[2+v].position, &vertices[0+v].position);
+	tempVector = XMLoadFloat3(&CalculateVertexNormals(&vertices[1+v].position, &vertices[2+v].position, &vertices[0+v].position));
+	tempVector = XMVector3Normalize((tempVector+upVector)/2);
+
+	XMStoreFloat3(&vertexNormal, tempVector);
+
 	vertices[v+0].normal = vertexNormal;
 	vertices[v+1].normal = vertexNormal;
 	vertices[v+2].normal = vertexNormal;
@@ -238,7 +246,12 @@ bool VegetationManager::BuildVertexAndIndexBuffers( ID3D11Device* device )
 	indices[i+4] = v+2;
 	indices[i+5] = v+3;
 
-	vertexNormal = CalculateVertexNormals(&vertices[1+v].position, &vertices[2+v].position, &vertices[0+v].position);
+	//The quad is "straight" so we'll only need to calculate normal once to know all of the normals
+	tempVector = XMLoadFloat3(&CalculateVertexNormals(&vertices[1+v].position, &vertices[2+v].position, &vertices[0+v].position));
+	tempVector = XMVector3Normalize((tempVector+upVector)/2);
+
+	XMStoreFloat3(&vertexNormal, tempVector);
+
 	//I write "0+i" for clarity
 	vertices[v+0].normal = vertexNormal;
 	vertices[v+1].normal = vertexNormal;
@@ -268,7 +281,12 @@ bool VegetationManager::BuildVertexAndIndexBuffers( ID3D11Device* device )
 	indices[i+4] = v+2;
 	indices[i+5] = v+3;
 
-	vertexNormal = CalculateVertexNormals(&vertices[1+v].position, &vertices[2+v].position, &vertices[0+v].position);
+	//The quad is "straight" so we'll only need to calculate normal once to know all of the normals
+	tempVector = XMLoadFloat3(&CalculateVertexNormals(&vertices[1+v].position, &vertices[2+v].position, &vertices[0+v].position));
+	tempVector = XMVector3Normalize((tempVector+upVector)/2);
+
+	XMStoreFloat3(&vertexNormal, tempVector);
+
 	vertices[v+0].normal = vertexNormal;
 	vertices[v+1].normal = vertexNormal;
 	vertices[v+2].normal = vertexNormal;

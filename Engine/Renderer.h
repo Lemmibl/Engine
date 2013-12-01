@@ -73,7 +73,6 @@ public:
 	void SetupRTsAndStuff();
 
 	bool Render(HWND hwnd);
-	void RenderMesh(ID3D11DeviceContext* deviceContext, Mesh* mesh);
 
 	bool RenderShadowmap(ID3D11DeviceContext* deviceContext, XMMATRIX* lightWorldViewProj, XMMATRIX* lightWorldView);
 	bool RenderTwoPassGaussianBlur(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj);

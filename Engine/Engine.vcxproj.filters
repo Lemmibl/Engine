@@ -163,11 +163,11 @@
     <ClCompile Include="MarchingCubeChunk.cpp">
       <Filter>Procedural generation</Filter>
     </ClCompile>
-    <ClCompile Include="GenericRenderable.cpp">
-      <Filter>Rendering\Objects</Filter>
-    </ClCompile>
     <ClCompile Include="Mesh.cpp">
       <Filter>Rendering\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="GeometryShaderGrass.cpp">
+      <Filter>Rendering\Shader wrappers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -342,10 +342,13 @@
     <ClInclude Include="MarchingCubeChunk.h">
       <Filter>Procedural generation</Filter>
     </ClInclude>
-    <ClInclude Include="GenericRenderable.h">
+    <ClInclude Include="Mesh.h">
       <Filter>Rendering\Objects</Filter>
     </ClInclude>
-    <ClInclude Include="Mesh.h">
+    <ClInclude Include="GeometryShaderGrass.h">
+      <Filter>Rendering\Shader wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderableInterface.h">
       <Filter>Rendering\Objects</Filter>
     </ClInclude>
   </ItemGroup>

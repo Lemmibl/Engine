@@ -29,7 +29,7 @@ public:
 	void CreateChunk(int startPosX, int startPosZ);
 	bool GetChunk(int x, int z, MarchingCubeChunk* inOutChunk);
 	vector<MarchingCubeChunk*>* GetActiveChunks(int x, int z);
-	vector<GenericRenderable*>* GetTerrainRenderables();
+	vector<RenderableInterface*>* GetTerrainRenderables();
 
 private:
 	std::pair<int,int> AddPairs(std::pair<int,int> pairOne, std::pair<int,int> pairTwo)
@@ -40,7 +40,7 @@ private:
 private:
 	std::unordered_map<std::pair<int,int>, MarchingCubeChunk*, int_pair_hash> map;
 	vector<MarchingCubeChunk*> activeChunks;
-	vector<GenericRenderable*> activeRenderables; //We add each chunk's mesh to this list and only change it when our activechunks change
+	vector<RenderableInterface*> activeRenderables; //We add each chunk's mesh to this list and only change it when our activechunks change
 
 	std::pair<int,int> lastUsedKey;
 

@@ -543,9 +543,9 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 		D3D11_SUBRESOURCE_DATA vertexData, indexData;
 		HRESULT result;
 
-		mesh->vertexCount = vertexCount;
-		mesh->indexCount = indexCount;
-		mesh->vertexStride = sizeof(MarchingCubeVectors);
+		mesh->SetVertexCount(vertexCount);
+		mesh->SetIndexCount(indexCount);
+		mesh->SetVertexStride(sizeof(MarchingCubeVectors));
 
 		// Set up the description of the static vertex buffer.
 		vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -561,7 +561,7 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 		vertexData.SysMemSlicePitch = 0;
 
 		// Now create the vertex buffer.
-		result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &mesh->vertexBuffer.p);
+		result = device->CreateBuffer(&vertexBufferDesc, &vertexData, mesh->GetVertexBufferPP());
 
 		// Set up the description of the static index buffer.
 		indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -577,7 +577,7 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 		indexData.SysMemSlicePitch = 0;
 
 		// Create the index buffer.
-		result = device->CreateBuffer(&indexBufferDesc, &indexData, &mesh->indexBuffer.p);
+		result = device->CreateBuffer(&indexBufferDesc, &indexData, mesh->GetIndexBufferPP());
 	}
 
 	void MarchingCubesClass::Reset(SimplexNoise* simplexNoise)
