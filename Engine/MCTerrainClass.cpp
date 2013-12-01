@@ -298,11 +298,11 @@ void MCTerrainClass::Noise3D(vector<MarchingCubeVoxel>* marchingCubeVertices)
 		densityRangeLower = 1 / densityRangeLower;
 	}
 
-	for (z = 1; z < (sizeZ -1); z++)
+	for (z = 1; z < (sizeZ-1); z++)
 	{
-		for (y = 1; y < (sizeY -1); y++)
+		for (y = 1; y < (sizeY-1); y++)
 		{
-			for (x = 1; x < (sizeX -1); x++)
+			for (x = 1; x < (sizeX-1); x++)
 			{
 				idx = x + y*sizeY + z * sizeY * sizeZ;
 

@@ -12,17 +12,17 @@ MarchingCubeChunk::MarchingCubeChunk(XMFLOAT3 startPos, XMFLOAT3 endPos, XMFLOAT
 	stepCountZ((unsigned int)stepCount.z),
 	mesh()
 {
-	voxels.resize((1+stepCountX) * (1+stepCountY) * (1+stepCountZ));
+	voxels.resize((stepCountX+1) * (stepCountY+1) * (stepCountZ+1));
 	indices.resize(voxels.size());
 
 	int index = 0;
 
 	// Set default values for each voxel in the field
-	for(unsigned int z = 0; z < stepCountZ; z++)
+	for(unsigned int z = 0; z <= stepCountZ; ++z)
 	{
-		for(unsigned int y = 0; y < stepCountY; y++)
+		for(unsigned int y = 0; y <= stepCountY; ++y)
 		{
-			for(unsigned int x = 0; x < stepCountX; x++)
+			for(unsigned int x = 0; x <= stepCountX; ++x)
 			{
 				//Calculate index for this voxel
 				index = x + y*stepCountY + z * stepCountY * stepCountZ;

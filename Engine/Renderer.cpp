@@ -5,41 +5,7 @@
 
 Renderer::Renderer()
 {
-	//d3D = 0;
-	//camera  = 0;
-	//text = 0;
-
-	//frustum = 0;
-	//textureShader = 0;
-	//pointLightShader = 0;
-
-	//vertexOnlyShader = 0;
-	//depthOnlyShader = 0;
-	//composeShader = 0;
-	//gaussianBlurShader = 0;
-
-	//dirLightShader = 0;
-	//dirLight = 0;
-
-	//sphereModel = 0;
-	//skySphere = 0;
-	//vegetationManager = 0;
-	//depthOnlyQuadShader = 0;
-
-	//colorRT = 0;
-	//normalRT = 0;
-	//depthRT = 0;
-	//shadowRT = 0;
-	//lightRT = 0;
-	//gaussianBlurPingPongRT = 0;
-
-	//mcubeShader = 0;
-	//marchingCubes = 0;
-	//mcTerrain = 0;
-
-	//utility = 0;
-	//textureAndMaterialHandler = 0;
-
+	xPos = yPos = 0.0f;
 	timeOfDay = 0.0f;
 	timer = 10.0f;
 	lodState = 0;
@@ -50,11 +16,7 @@ Renderer::Renderer()
 	toggleOtherPointLights = false;
 	drawWireFrame = false;
 
-	xPos = yPos = 0.0f;
-
-
-
-	vegetationCount = 150000;
+	vegetationCount = 15000;
 }
 
 
@@ -705,117 +667,105 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 //TODO: THIS SHOULD BE INSIDE VEGETATION MANAGER
 void Renderer::GenerateVegetation( ID3D11Device* device, bool IfSetupThenTrue_IfUpdateThenFalse)
 {
-	float x,z,y;
-	int textureID, randValue;
+	float x,z,y, randValue;
+	int textureID = -1;
 
-	//LODVector500.clear();
-	LODVector500.resize(vegetationCount/8);
+	LODVector500.clear();
+	LODVector2500.clear();
+	LODVector5000.clear();
+	LODVector10000.clear();
 
-	//LODVector2500.clear();
-	LODVector2500.resize(vegetationCount/4);
-
-	//LODVector5000.clear();
-	LODVector5000.resize(vegetationCount/2);
-
-	//LODVector10000.clear();
-	LODVector10000.resize(vegetationCount);
+	//LODVector500.resize(vegetationCount/8);
+	//LODVector2500.resize(vegetationCount/4);
+	//LODVector5000.resize(vegetationCount/2);
+	//LODVector10000.resize(vegetationCount);
 
 	MarchingCubeChunk* tempChunk = marchingCubes->GetChunk();
 	MCTerrainClass* tempTerrain = marchingCubes->GetTerrain();
 
 	for(int i = 0; i < vegetationCount; i++)
 	{
+		textureID = -1;
+
 		x = (2.0f + (utility.RandomFloat() * tempChunk->GetStepCountX()-2.0f));
 		z = (2.0f + (utility.RandomFloat() * tempChunk->GetStepCountZ()-2.0f));
 
 		//Extract highest Y at this point
 		y = tempTerrain->GetHighestPositionOfCoordinate(tempChunk->GetVoxelField(), (int)x, (int)z);
 
-		randValue = rand()%100;
+		randValue = (utility.RandomFloat()*360.0f);
 
-		//No vegetation below Y:30
-		if(y <= 20.0f)
+		//No vegetation below Y:20
+		if(y >= 20.0f)
 		{
-			continue;
-		}
-		else if(y >= 45.0)
-		{
-			//But the grass should be sparse, so there is
-			//95% chance that we won't actually add this to the instance list.
-			if(randValue > 95)
+			if(y >= 45.0)
 			{
-				textureID = 0;
+				//But the grass should be sparse, so there is
+				//high chance that we won't actually add this to the instance list.
+				if(randValue > 300.0f)
+				{
+					textureID = 0;
+				}
+			}
+			else
+			{
+				if(randValue <= 40.0f)
+				{
+					textureID = 2; //Some kind of leaf branch that I've turned into a plant quad.
+				}
+				else if(randValue <= 330.0f) //By far biggest chance that we get normal grass
+				{
+					textureID = 1; //Normal grass.
+				}
+				else if(randValue <= 350.0f) //If 97-98
+				{
+					//textureID = 4; //Bush.
+					textureID = 1;
+				}
+				else //If 99-100.
+				{
+					//textureID = 3; //Flowers.
+					textureID = 1;
+				}
+			}
 
+			if(textureID != -1)
+			{
 				//Place texture ID in .w channel
 				VegetationManager::InstanceType temp;
 				temp.position = XMFLOAT4(x, y, z, (float)textureID);
-				temp.randomValue = (utility.RandomFloat()*360.0f);
+				temp.randomValue = randValue;
 
 				//We use i to control how many should be added to each LOD vector
 				if(i <= (vegetationCount / 8))
 				{
-					LODVector500[i] = (temp);
+					LODVector500.push_back(temp);
 				}
 
 				if(i <= (vegetationCount / 4))
 				{
-					LODVector2500[i] = (temp);
+					LODVector2500.push_back(temp);
 				}
 
 				if(i <= (vegetationCount / 2))
 				{
-					LODVector5000[i] = (temp);
+					LODVector5000.push_back(temp);
 				}
 
-				LODVector10000[i] = (temp);
+				LODVector10000.push_back(temp);
 			}
-		}
-		else
-		{
-			if(randValue <= 5)
-			{
-				textureID = 2; //Some kind of leaf branch that I've turned into a plant quad.
-			}
-			else if(randValue <= 96) //By far biggest chance that we get normal grass
-			{
-				textureID = 1; //Normal grass.
-			}
-			else if(randValue <= 98) //If 97-98
-			{
-				//textureID = 4; //Bush.
-				textureID = 1;
-			}
-			else //If 99-100.
-			{
-				//textureID = 3; //Flowers.
-				textureID = 1;
-			}
-
-			VegetationManager::InstanceType temp;
-
-			//Place texture ID in .w channel
-			temp.position = XMFLOAT4(x, y, z, (float)textureID);
-			temp.randomValue = (utility.RandomFloat()*XM_PI);
-
-			//We use i to control how many should be added to each LOD vector
-			if(i <= 500)
-			{
-				LODVector500.push_back(temp);
-			}
-
-			if(i <= 2500)
-			{
-				LODVector2500.push_back(temp);
-			}
-
-			if(i <= 5000)
-			{
-				LODVector5000.push_back(temp);
-			}
-
-			LODVector10000.push_back(temp);
 		}
 	}
+
+	if(LODVector10000.size() == 0)
+	{
+		VegetationManager::InstanceType temp;
+		temp.position = XMFLOAT4(0.0f, 0.0f, 0.0f, (float)1.0f);
+		temp.randomValue = 0.0f;
+
+		LODVector10000.push_back(temp);
+	}
+
 
 	if(IfSetupThenTrue_IfUpdateThenFalse)
 	{

@@ -32,11 +32,19 @@ public:
 	vector<GenericRenderable*>* GetTerrainRenderables();
 
 private:
+	std::pair<int,int> AddPairs(std::pair<int,int> pairOne, std::pair<int,int> pairTwo)
+	{
+		return std::make_pair<int, int>(pairOne.first+pairTwo.first, pairOne.second+pairTwo.second);
+	}
+
+private:
 	std::unordered_map<std::pair<int,int>, MarchingCubeChunk*, int_pair_hash> map;
 	vector<MarchingCubeChunk*> activeChunks;
 	vector<GenericRenderable*> activeRenderables; //We add each chunk's mesh to this list and only change it when our activechunks change
 
 	std::pair<int,int> lastUsedKey;
+
+	XMFLOAT3 stepSize, stepCount;
 
 	MCTerrainClass mcTerrain;
 

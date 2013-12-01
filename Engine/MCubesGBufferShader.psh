@@ -23,7 +23,7 @@ Texture2D materialAndTextureLookupTable;
 SamplerState textureSampler;
 
 static const float3 UpNormal = float3(0.0f, 1.0f, 0.0f);
-static const float tighten = 0.4f;
+static const float tighten = 0.435f;
 static const float textureScale = 0.1f;
 
 
@@ -64,8 +64,8 @@ PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
 	float3 NormalizedWorldNormal = normalize(input.WorldNormal.xyz);
 
 	float3 blend_weights = abs(NormalizedWorldNormal);     
-	blend_weights = (blend_weights - 0.35f)*7.0f;  // Tighten up the blending zone
-	blend_weights = max(blend_weights, 0.1f);
+	blend_weights = (blend_weights - 0.2f)*7.0f;  // Tighten up the blending zone
+	blend_weights = max(blend_weights, 0.0f);
 	blend_weights /= (blend_weights.x + blend_weights.y + blend_weights.z).xxx; // Force weights to sum to 1.0 (very important!)  
 
 	float4 YZColor = shaderTextures.Sample(textureSampler, float3(input.WorldPosition.yz * textureScale, 2.0f));

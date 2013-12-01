@@ -3,16 +3,35 @@
 //All the  different edge pairings potentially used for triangle extraction
 static const std::pair<int, int> edgePairs[9] = 
 {
-	std::make_pair<int, int>(-1,	-1),
+	//North
+	std::make_pair<int, int>(0,		1),
+
+	//South
 	std::make_pair<int, int>(0,		-1),
-	std::make_pair<int, int>(1,		-1),
-	std::make_pair<int, int>(-1,	0),
-	std::make_pair<int, int>(0,		0),
+
+	//East
 	std::make_pair<int, int>(1,		0),
+
+	//West
+	std::make_pair<int, int>(-1,	0),
+
+	std::make_pair<int, int>(-1,	1),
+	std::make_pair<int, int>(1,		1),
+	std::make_pair<int, int>(0,		0),
 	std::make_pair<int, int>(-1,	-1),
-	std::make_pair<int, int>(0,		-1),
 	std::make_pair<int, int>(1,		-1),
 };
+
+enum Direction
+{
+	NORTH = 0,
+	SOUTH = 1,
+	EAST = 2,
+	WEST = 3
+};
+
+static const XMFLOAT3 stepSize(1.0f, 1.0f, 1.0f);
+static const XMFLOAT3 stepCount(60.0f, 60.0f, 60.0f);
 
 TerrainManager::TerrainManager()
 {
@@ -31,34 +50,55 @@ void TerrainManager::CreateChunk( int startPosX, int startPosZ )
 	// If there isn't, just make a chunk. If there is, depending on which case it is, we extract the bordervalues from the border chunk.
 	// 
 	// Should look something like this:
-	// 
-	// if(there is a chunk to the north)
-	// {
-	//		int index1, index2;
-	//		
-	//		//These is the two different Z indexes for the two different chunks we'll be merging between
-	//		int z1, z2;
-	//		
-	//		//In this case, we want northern chunk's southern edge values 
-	//		//transported into this chunk's northern edge values
-	//		
-	//		//Since north is Z+1
-	//		z1 = 60; //Our max value
-	//		z2 = 0; //The min value for the northern chunk
-	//		
-	//		for(x < sizeX)
-	//		{
-	//			for(y < sizeY)
-	//			{
-	//				index1 = x + y*sizeY + z1 * sizeY * sizeZ;
-	//				index2 = x + y*sizeY + z2 * sizeY * sizeZ;
-	//				
-	//				thisChunk[index1] = otherChunk[index2];
-	//			}
-	//		}
-	// }
-	//
-	//////////////////////////////////////////////////////////////////////////
+
+	//Make a key out of the values
+	std::pair<int,int> key(startPosX, startPosZ);
+
+	//See if the key that we're using already exists
+	std::unordered_map<std::pair<int,int>, MarchingCubeChunk*>::const_iterator mappedChunk = map.find(key);
+
+	//If they key doesn't exist, we go about creating the chunk
+	if(mappedChunk == map.end())
+	{
+		MarchingCubeChunk newChunk
+		(
+			XMFLOAT3(startPosX, 0, startPosZ), 
+			XMFLOAT3(startPosX + stepSize.x*stepCount.x, 0 + stepSize.y*stepCount.y, startPosZ + stepSize.z*stepCount.z), 
+			stepSize, 
+			stepCount
+		);
+
+		std::unordered_map<std::pair<int,int>, MarchingCubeChunk*>::const_iterator neighBourchunk = map.find(AddPairs(key, edgePairs[NORTH]));
+
+		if(neighBourchunk != map.end())
+		{
+			int index1, index2;
+
+			//These is the two different Z indexes for the two different chunks we'll be merging between
+			int z1, z2;
+
+			//In this case, we want northern chunk's southern edge values 
+			//transported into this chunk's northern edge values
+
+			//Since north is Z+1
+			z1 = 60; //Our max value
+			z2 = 0; //The min value for the northern chunk
+
+			for(int x = 0; x < stepCount.x; ++x)
+			{
+				for(int y = 0; y < stepCount.y; ++y)
+				{
+					index1 = x + y*stepCount.y + z1 * stepCount.y * stepCount.z;
+					index2 = x + y*stepCount.y + z2 * stepCount.y * stepCount.z;
+
+					vector<MarchingCubeVoxel>* newChunkVoxels = newChunk.GetVoxelField();
+					vector<MarchingCubeVoxel>* neighbourVoxels = neighBourchunk->second->GetVoxelField();
+
+					newChunkVoxels[index1] = neighbourVoxels[index2];
+				}
+			}
+		}
+	}
 }
 
 //The reason I implement this function in this way is that if we would do a "if(map.find(key)) { return map[key] }"
@@ -97,7 +137,7 @@ vector<MarchingCubeChunk*>* TerrainManager::GetActiveChunks( int x, int z )
 {	
 	//Make a key out of the values
 	std::pair<int,int> key(x, z);
-	
+
 	//If activeChunks.size()==0, it means that this is the first time this function has been called.
 	//Thus we add all 9 chunks around this point to activechunks.
 	//We also check to see if this key has already been used, which means that the player is still in the same area, 
@@ -109,7 +149,7 @@ vector<MarchingCubeChunk*>* TerrainManager::GetActiveChunks( int x, int z )
 
 		//Clear active chunks
 		activeChunks.clear();
-		
+
 		//Add all new relevant chunks
 		for(int i=0; i < 9; i++)
 		{

@@ -53,6 +53,10 @@ for(int i = 0; i < RenderableBundle.vector.size(); i++)
 	}
 }
 
+Tiling perlin noise:
+http://gamedev.stackexchange.com/questions/23625/how-do-you-generate-tileable-perlin-noise
+http://webstaff.itn.liu.se/~stegu/TNM022-2005/perlinnoiselinks/perlin-noise-math-faq.html#tile
+
 Rendering and general layout of rendering system:
 http://gamedev.stackexchange.com/questions/22080/which-of-these-directx11-calls-actually-sends-data-to-the-gpu
 http://www.dataorienteddesign.com/dodmain/node14.html
@@ -72,10 +76,6 @@ http://www.cg.tuwien.ac.at/research/publications/2007/Habel_2007_IAG/
 http://http.developer.nvidia.com/GPUGems/gpugems_ch07.html
 http://www.braynzarsoft.net/index.php?p=D3D11BILLBOARDS
 http://rastergrid.com/blog/2010/02/instance-culling-using-geometry-shaders/
-
-Inför cleana upp kod:
-http://gamedev.stackexchange.com/questions/24615/managing-shaders-and-objects-in-directx-11
-https://graphics.stanford.edu/wikis/cs448s-11/FrontPage?action=AttachFile&do=get&target=05-GPU_Arch_I.pdf
 
 
 Directional light lens flare:
