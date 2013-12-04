@@ -1,6 +1,3 @@
-////////////////////////////////////////////////////////////////////////////////
-// Filename: graphicsclass.cpp
-////////////////////////////////////////////////////////////////////////////////
 #include "Renderer.h"
 
 Renderer::Renderer()
@@ -8,15 +5,11 @@ Renderer::Renderer()
 	xPos = yPos = 0.0f;
 	timeOfDay = 0.0f;
 	timer = 10.0f;
-	lodState = 0;
-	previousLodState = 0;
 
 	toggleTextureShader = false;
 	returning = false;
 	toggleOtherPointLights = false;
 	drawWireFrame = false;
-
-	vegetationCount = 15000;
 }
 
 
@@ -162,7 +155,7 @@ bool Renderer::InitializeShaders( HWND hwnd )
 		return false;
 	}
 
-	mcubeShader = MCubesGBufferShader();
+	mcubeShader = MCGBufferTerrainShader();
 
 	result = mcubeShader.Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
@@ -258,30 +251,62 @@ bool Renderer::InitializeModels( HWND hwnd )
 {
 	bool result;
 
-	noise = SimplexNoise();
+	terrainManager = make_shared<TerrainManager>(d3D->GetDevice(), &noise, hwnd);
 
-	//metaBalls = MetaballsClass();
+	MarchingCubeChunk* tempChunk;
 
-	marchingCubes = shared_ptr<MarchingCubesClass>(new MarchingCubesClass(XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(100.0f, 100.0f, 100.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), &noise));
-	marchingCubes->SetMetaBalls(&metaBalls, 0.2f);
-	marchingCubes->GetTerrain()->SetTerrainType(7);
-	marchingCubes->CalculateMesh(d3D->GetDevice(), marchingCubes->GetChunk());
+	terrainManager->CreateChunk(d3D->GetDevice(), 0, 0);
+	terrainManager->CreateChunk(d3D->GetDevice(), 1, 0);
+	terrainManager->CreateChunk(d3D->GetDevice(), -1, 0);
+	terrainManager->CreateChunk(d3D->GetDevice(), 1, 1);
+	terrainManager->CreateChunk(d3D->GetDevice(), 0, 1);
 
-	//lSystem = LSystemClass();
-	//lSystem.Initialize();
+	result = terrainManager->GetChunk(0, 0, &tempChunk);
+	tempChunks.push_back(tempChunk);
 
-	//vegetationManager = VegetationManager();
-
-	result = vegetationManager.Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
+		MessageBox(hwnd, L"Something went wrong when calling TerrainManager::GetChunk.", L"Error", MB_OK);
 		return false;
 	}
 
-	GenerateVegetation(d3D->GetDevice(), true);
+	result = terrainManager->GetChunk(1, 0, &tempChunk);
+	tempChunks.push_back(tempChunk);
 
-	// Create the model object.
-	//sphereModel = ModelClass();
+	if(!result)
+	{
+		MessageBox(hwnd, L"Something went wrong when calling TerrainManager::GetChunk.", L"Error", MB_OK);
+		return false;
+	}
+
+	result = terrainManager->GetChunk(-1, 0, &tempChunk);
+	tempChunks.push_back(tempChunk);
+
+	if(!result)
+	{
+		MessageBox(hwnd, L"Something went wrong when calling TerrainManager::GetChunk.", L"Error", MB_OK);
+		return false;
+	}
+
+	result = terrainManager->GetChunk(1, 1, &tempChunk);
+	tempChunks.push_back(tempChunk);
+
+	if(!result)
+	{
+		MessageBox(hwnd, L"Something went wrong when calling TerrainManager::GetChunk.", L"Error", MB_OK);
+		return false;
+	}
+
+	result = terrainManager->GetChunk(0, 1, &tempChunk);
+	tempChunks.push_back(tempChunk);
+
+	if(!result)
+	{
+		MessageBox(hwnd, L"Something went wrong when calling TerrainManager::GetChunk.", L"Error", MB_OK);
+		return false;
+	}
+
+
 
 	// Initialize the model object. It really doesn't matter what textures it has because it's only used for point light volume culling.
 	result = sphereModel.Initialize(d3D->GetDevice(), "../Engine/data/skydome.txt", L"../Engine/data/grass.dds", L"../Engine/data/dirt.dds", L"../Engine/data/rock.dds");
@@ -300,15 +325,11 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 
 	text = make_shared<TextClass>(d3D->GetDevice(), d3D->GetDeviceContext(), hwnd, screenWidth, screenHeight);
 
-	textureAndMaterialHandler = TextureAndMaterialHandler();
-
 	result = textureAndMaterialHandler.Initialize(d3D->GetDevice(), d3D->GetDeviceContext(), &noise, &utility);
 	if(!result)
 	{
 		return false;
 	}
-
-	dayNightCycle = DayNightCycle();
 
 	result = dayNightCycle.Initialize(500.0f, DAY); //86400.0f/6 <-- This is realistic day/night cycle. 86400 seconds in a day.
 	if(!result)
@@ -341,7 +362,7 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 
 	// Create the frustum object.
 	frustum = FrustumClass();
-	frustum.SetInternals(((float)D3DX_PI/2.0f), 1.0f, nearClip, farClip);
+	frustum.SetInternals(XM_PIDIV2, 1.0f, nearClip, farClip);
 
 	testBoundingbox = Lemmi2DAABB(XMFLOAT2(0, 0), XMFLOAT2(60, 60));
 
@@ -535,118 +556,60 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 		}
 	}
 
-	if(inputManager->WasKeyPressed(DIK_NUMPAD0) || inputManager->WasKeyPressed(DIK_0))
-	{
-		marchingCubes->GetTerrain()->PulverizeWorldToggle();
-	}
+	//if(inputManager->WasKeyPressed(DIK_NUMPAD0) || inputManager->WasKeyPressed(DIK_0))
+	//{
+	//	marchingCubes->GetTerrain()->PulverizeWorldToggle();
+	//}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD1) || inputManager->WasKeyPressed(DIK_F1))
 	{
-		marchingCubes->GetTerrain()->SetTerrainType(1);
+		terrainManager->SetTerrainType(1);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD2) || inputManager->WasKeyPressed(DIK_F2))
 	{
-		marchingCubes->GetTerrain()->SetTerrainType(2);
+		terrainManager->SetTerrainType(2);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD3) || inputManager->WasKeyPressed(DIK_F3))
 	{
-		marchingCubes->GetTerrain()->SetTerrainType(3);
+		terrainManager->SetTerrainType(3);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD4) || inputManager->WasKeyPressed(DIK_F4))
 	{
-		marchingCubes->GetTerrain()->SetTerrainType(4);
+		terrainManager->SetTerrainType(4);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD5) || inputManager->WasKeyPressed(DIK_F5))
 	{
-		marchingCubes->GetTerrain()->SetTerrainType(5);
+		terrainManager->SetTerrainType(5);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD6) || inputManager->WasKeyPressed(DIK_F6))
 	{
-		marchingCubes->GetTerrain()->SetTerrainType(6);
+		terrainManager->SetTerrainType(6);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD7) || inputManager->WasKeyPressed(DIK_F7))
 	{
-		marchingCubes->GetTerrain()->SetTerrainType(7);
+		terrainManager->SetTerrainType(7);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD8) || inputManager->WasKeyPressed(DIK_F8))
 	{
-		marchingCubes->GetTerrain()->SetTerrainType(8);
+		terrainManager->SetTerrainType(8);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD9) || inputManager->WasKeyPressed(DIK_F9))
 	{
-		marchingCubes->GetTerrain()->SetTerrainType(9);
+		terrainManager->SetTerrainType(9);
 	}
-
-
-#pragma region LOD stuff
-	//Distance between camera and middle of mcube chunk. We'll have to do this for each chunk, and keep an individual lodState for each chunk.
-	if(timer >= 0.2f)
-	{
-		int distance = (int)utility.VectorDistance(camera->GetPosition(), XMFLOAT3(90.0f, 40.0f, 90.0f));
-
-		//if(distance <= 100)
-		//{
-		//	lodState = 3;
-		//}
-		//else if(distance <= 150)
-		//{
-		//	lodState = 2;
-		//}
-		//else if(distance <= 200)
-		//{
-		//	lodState = 1;
-		//}
-		//else
-		//{
-		//	lodState = 0;
-		//}
-		lodState = 3;
-
-		timer = 0.0f;
-	}
-#pragma endregion
 
 #pragma region Generate new marching cubes world
 	if(inputManager->WasKeyPressed(DIK_N))
 	{
-		previousLodState = 0; //We set previous lod state to something != lodState so that it'll trigger an instancebuffer rebuild
-		lodState = 3;
-
-		marchingCubes->Reset(&noise);
-		marchingCubes->CalculateMesh(d3D->GetDevice(), marchingCubes->GetChunk());
-
-		GenerateVegetation(d3D->GetDevice(), false);
-	}
-
-	//If the lod state has changed since last update, switch and rebuild vegetation instance buffers
-	if(lodState != previousLodState)
-	{
-		switch (lodState)
-		{
-		case 0:
-			assert(vegetationManager.BuildInstanceBuffer(d3D->GetDevice(), &LODVector500));
-			break;
-
-		case 1:
-			assert(vegetationManager.BuildInstanceBuffer(d3D->GetDevice(), &LODVector2500));
-			break;
-
-		case 2:
-			assert(vegetationManager.BuildInstanceBuffer(d3D->GetDevice(), &LODVector5000));
-			break;
-
-		case 3:
-			assert(vegetationManager.BuildInstanceBuffer(d3D->GetDevice(), &LODVector10000));
-			break;
-		}
+		
 	}
 #pragma endregion
 
@@ -659,122 +622,7 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 	XMStoreFloat3(&dirLight.Direction, XMVector3Normalize((lookAt - currentLightPos)));//XMLoadFloat3(&dirLight.Position)
 	XMStoreFloat4x4(&dirLight.View, XMMatrixLookAtLH(currentLightPos, lookAt, up)); //Generate light view matrix
 
-	previousLodState = lodState;
-
 	return true;
-}
-
-//TODO: THIS SHOULD BE INSIDE VEGETATION MANAGER
-void Renderer::GenerateVegetation( ID3D11Device* device, bool IfSetupThenTrue_IfUpdateThenFalse)
-{
-	float x,z,y, randValue;
-	int textureID = -1;
-
-	LODVector500.clear();
-	LODVector2500.clear();
-	LODVector5000.clear();
-	LODVector10000.clear();
-
-	//LODVector500.resize(vegetationCount/8);
-	//LODVector2500.resize(vegetationCount/4);
-	//LODVector5000.resize(vegetationCount/2);
-	//LODVector10000.resize(vegetationCount);
-
-	MarchingCubeChunk* tempChunk = marchingCubes->GetChunk();
-	MCTerrainClass* tempTerrain = marchingCubes->GetTerrain();
-
-	for(int i = 0; i < vegetationCount; i++)
-	{
-		textureID = -1;
-
-		x = (2.0f + (utility.RandomFloat() * tempChunk->GetStepCountX()-2.0f));
-		z = (2.0f + (utility.RandomFloat() * tempChunk->GetStepCountZ()-2.0f));
-
-		//Extract highest Y at this point
-		y = tempTerrain->GetHighestPositionOfCoordinate(tempChunk->GetVoxelField(), (int)x, (int)z);
-
-		randValue = (utility.RandomFloat()*360.0f);
-
-		//No vegetation below Y:20
-		if(y >= 20.0f)
-		{
-			if(y >= 45.0)
-			{
-				//But the grass should be sparse, so there is
-				//high chance that we won't actually add this to the instance list.
-				if(randValue > 300.0f)
-				{
-					textureID = 0;
-				}
-			}
-			else
-			{
-				if(randValue <= 40.0f)
-				{
-					textureID = 2; //Some kind of leaf branch that I've turned into a plant quad.
-				}
-				else if(randValue <= 330.0f) //By far biggest chance that we get normal grass
-				{
-					textureID = 1; //Normal grass.
-				}
-				else if(randValue <= 350.0f) //If 97-98
-				{
-					//textureID = 4; //Bush.
-					textureID = 1;
-				}
-				else //If 99-100.
-				{
-					//textureID = 3; //Flowers.
-					textureID = 1;
-				}
-			}
-
-			if(textureID != -1)
-			{
-				//Place texture ID in .w channel
-				VegetationManager::InstanceType temp;
-				temp.position = XMFLOAT4(x, y, z, (float)textureID);
-				temp.randomValue = randValue;
-
-				//We use i to control how many should be added to each LOD vector
-				if(i <= (vegetationCount / 8))
-				{
-					LODVector500.push_back(temp);
-				}
-
-				if(i <= (vegetationCount / 4))
-				{
-					LODVector2500.push_back(temp);
-				}
-
-				if(i <= (vegetationCount / 2))
-				{
-					LODVector5000.push_back(temp);
-				}
-
-				LODVector10000.push_back(temp);
-			}
-		}
-	}
-
-	if(LODVector10000.size() == 0)
-	{
-		VegetationManager::InstanceType temp;
-		temp.position = XMFLOAT4(5.0f, 0.0f, 5.0f, (float)1.0f);
-		temp.randomValue = 0.0f;
-
-		LODVector10000.push_back(temp);
-	}
-
-
-	if(IfSetupThenTrue_IfUpdateThenFalse)
-	{
-		vegetationManager.SetupQuads(d3D->GetDevice(), &LODVector10000);
-	}
-	else
-	{
-		vegetationManager.BuildInstanceBuffer(d3D->GetDevice(), &LODVector10000);
-	}
 }
 
 void Renderer::SetupRTsAndStuff()
@@ -927,12 +775,14 @@ bool Renderer::RenderShadowmap( ID3D11DeviceContext* deviceContext, XMMATRIX* li
 
 	d3D->SetNoCullRasterizer();
 
-	//Very elegant .......
-	marchingCubes->GetChunk()->GetMesh()->Render(deviceContext);
+	for(int i = 0; i < tempChunks.size(); i++)
+	{	
+		tempChunks[i]->GetMesh()->Render(deviceContext);
 
-	if(!depthOnlyShader.Render(deviceContext, marchingCubes->GetChunk()->GetMesh()->GetIndexCount(), lightWorldViewProj, lightWorldView))
-	{
-		return false;
+		if(!depthOnlyShader.Render(deviceContext, tempChunks[i]->GetMesh()->GetIndexCount(), lightWorldViewProj, lightWorldView))
+		{
+			return false;
+		}
 	}
 
 	//Uncomment to enable vegetation quad shadows
@@ -1035,21 +885,25 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 	//}
 	//} 
 
-	marchingCubes->GetChunk()->GetMesh()->Render(deviceContext);
 
-	if(!mcubeShader.Render(d3D->GetDeviceContext(), marchingCubes->GetChunk()->GetMesh()->GetIndexCount(), &worldMatrix, &worldView, 
-		identityWorldViewProj, textureAndMaterialHandler.GetTerrainTextureArray(), textureAndMaterialHandler.GetMaterialLookupTexture(), toggleColorMode, farClip))
-	{
-		return false;
+	for(int i = 0; i < tempChunks.size(); i++)
+	{	
+		tempChunks[i]->GetMesh()->Render(deviceContext);
+
+		if(!mcubeShader.Render(d3D->GetDeviceContext(), tempChunks[i]->GetMesh()->GetIndexCount(), &worldMatrix, &worldView, 
+			identityWorldViewProj, textureAndMaterialHandler.GetTerrainTextureArray(), textureAndMaterialHandler.GetMaterialLookupTexture(), toggleColorMode, farClip))
+		{
+			return false;
+		}
 	}
 
-	d3D->SetNoCullRasterizer();
-	d3D->TurnOnAlphaBlending();
-	if(!vegetationManager.Render(deviceContext, identityWorldViewProj, &worldView, &worldMatrix, textureAndMaterialHandler.GetVegetationTextureArray()))
-	{
-		return false;
-	}
-	d3D->TurnOffAlphaBlending();
+	//d3D->SetNoCullRasterizer();
+	//d3D->TurnOnAlphaBlending();
+	//if(!vegetationManager.Render(deviceContext, identityWorldViewProj, &worldView, &worldMatrix, textureAndMaterialHandler.GetVegetationTextureArray()))
+	//{
+	//	return false;
+	//}
+	//d3D->TurnOffAlphaBlending();
 
 	return true;
 }

@@ -10,39 +10,11 @@
 class MarchingCubesClass
 {
 public:
-	MarchingCubesClass(	XMFLOAT3 startPosition, XMFLOAT3 stepCount,
-		XMFLOAT3 stepSize, SimplexNoise* simplexNoise);
-
+	MarchingCubesClass();
 	~MarchingCubesClass();
 
 	//Converts a voxel field to a mesh
 	void CalculateMesh(ID3D11Device* device, MarchingCubeChunk* chunk);
-
-	//Calculates whether the points are inside or outside.
-	void ComputeMetaBalls();
-
-	//Reset the mesh
-	void Reset(SimplexNoise* simplexNoise);
-
-	float GetHeightOfXZpos();
-
-	MarchingCubeChunk* GetChunk() { return &temporaryChunk; }
-
-	TreeClass* GetTree(){ return tree; }
-	MCTerrainClass* GetTerrain() { return terrain; }
-
-	/* Setter for metaball pointer and isovalue */
-	void SetMetaBalls(MetaballsClass *mb, float isoValue)
-	{
-		this->mb = mb;
-		this->mb->SetIsoValue(isoValue);
-		this->metaballsIsoValue = isoValue;
-	}
-
-	void SetWireframe(bool s)
-	{
-		this->wireframe = s;
-	}
 
 private:
 	//Extract a cube from the .. voxel field...
@@ -55,7 +27,7 @@ private:
 	void ProcessCube(unsigned int lookupValue, MarchingCubeVoxel* verts, MarchingCubeVoxel** cube, vector<unsigned int>* indices, vector<MarchingCubeVectors>* vertices, unsigned int& indexCounter, unsigned int& vertexCounter, unsigned int sizeX,  unsigned int sizeY, unsigned int sizeZ);
 
 	//Create vertex and index buffers from the data that we've created
-	void CreateMesh(ID3D11Device* device, Mesh* mesh, vector<unsigned int>* indices, vector<MarchingCubeVectors>* vertices, unsigned int indexCount, unsigned int vertexCount);
+	void CreateMesh(ID3D11Device* device, IndexedMesh* mesh, vector<unsigned int>* indices, vector<MarchingCubeVectors>* vertices, unsigned int indexCount, unsigned int vertexCount);
 
 
 	// Returns a point that is interpolated with ten other points for both normals and possition
@@ -91,20 +63,10 @@ private:
 	}
 
 private:
-	//This will be removed in the future and moved to terrain manager, I'm just adding it right now to make the code runnable and to make sure that everything works. Because I'm a lazy piece of shit, basically.
-	MarchingCubeChunk temporaryChunk;
 	unsigned int x,y,z;
 	int index;
 
 	float metaballsIsoValue;
-
-	// Whether we want to draw with wireframe or not.
-	bool wireframe;
-
-	// Pointer to a metaball object 
-	MetaballsClass* mb;
-	TreeClass* tree;
-	MCTerrainClass* terrain;
 
 	// Tables for edge cases and triangle lookup 
 	const static int edgeTable[256];

@@ -19,7 +19,7 @@ struct VertexShaderOutput
 	float ViewDepth : TEXCOORD1;
 };
 
-VertexShaderOutput MCubesGBufferVertexShader(VertexShaderInput input)
+VertexShaderOutput MCGBufferTerrainVertexShader(VertexShaderInput input)
 {
 	VertexShaderOutput output;
 

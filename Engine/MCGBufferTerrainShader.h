@@ -10,7 +10,7 @@
 using namespace std;
 
 
-class MCubesGBufferShader
+class MCGBufferTerrainShader
 {
 
 private:
@@ -27,9 +27,9 @@ private:
 	};
 
 public:
-	MCubesGBufferShader();
-	MCubesGBufferShader(const MCubesGBufferShader&);
-	~MCubesGBufferShader();
+	MCGBufferTerrainShader();
+	MCGBufferTerrainShader(const MCGBufferTerrainShader&);
+	~MCGBufferTerrainShader();
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();

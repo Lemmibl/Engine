@@ -3,17 +3,16 @@
 #include <atlcomcli.h>
 #include "RenderableInterface.h"
 
-
 //////////////////////////////////////////////////////////////////////////
 // So, in order for this to be a functioning mesh, you need to use 
 // d3d11device->CreateBuffer()  on the indexBuffer and vertexBuffer object
 // Then you also need to fill out vertexCount, indexCount and vertexStride
 //////////////////////////////////////////////////////////////////////////
-class Mesh : public RenderableInterface
+class IndexedMesh : public RenderableInterface
 {
 public:
-	Mesh();
-	~Mesh();
+	IndexedMesh();
+	~IndexedMesh();
 	void Render(ID3D11DeviceContext* deviceContext);
 
 public:
@@ -40,5 +39,3 @@ private:
 	//Stride is == sizeof(IndividualVertex). Total size of vertexBuffer is vertexStride * vertexCount
 	unsigned int vertexStride; 
 };
-
-

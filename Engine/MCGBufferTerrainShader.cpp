@@ -1,6 +1,6 @@
-#include "MCubesGBufferShader.h"
+#include "MCGBufferTerrainShader.h"
 
-MCubesGBufferShader::MCubesGBufferShader()
+MCGBufferTerrainShader::MCGBufferTerrainShader()
 {
 	//vertexShader = 0;
 	//pixelShader = 0;
@@ -11,22 +11,22 @@ MCubesGBufferShader::MCubesGBufferShader()
 }
 
 
-MCubesGBufferShader::MCubesGBufferShader(const MCubesGBufferShader& other)
+MCGBufferTerrainShader::MCGBufferTerrainShader(const MCGBufferTerrainShader& other)
 {
 }
 
 
-MCubesGBufferShader::~MCubesGBufferShader()
+MCGBufferTerrainShader::~MCGBufferTerrainShader()
 {
 }
 
-bool MCubesGBufferShader::Initialize(ID3D11Device* device, HWND hwnd)
+bool MCGBufferTerrainShader::Initialize(ID3D11Device* device, HWND hwnd)
 {
 	bool result;
 
 
 	// Initialize the vertex and pixel shaders.
-	result = InitializeShader(device, hwnd, L"../Engine/MCubesGBufferShader.vsh", L"../Engine/MCubesGBufferShader.psh");
+	result = InitializeShader(device, hwnd, L"../Engine/MCGBufferTerrainShader.vsh", L"../Engine/MCGBufferTerrainShader.psh");
 	if(!result)
 	{
 		return false;
@@ -35,7 +35,7 @@ bool MCubesGBufferShader::Initialize(ID3D11Device* device, HWND hwnd)
 	return true;
 }
 
-void MCubesGBufferShader::Shutdown()
+void MCGBufferTerrainShader::Shutdown()
 {
 	// Shutdown the vertex and pixel shaders as well as the related objects.
 	ShutdownShader();
@@ -43,7 +43,7 @@ void MCubesGBufferShader::Shutdown()
 	return;
 }
 
-bool MCubesGBufferShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, XMMATRIX* worldViewMatrix, XMMATRIX* worldViewProjection, 
+bool MCGBufferTerrainShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, XMMATRIX* worldViewMatrix, XMMATRIX* worldViewProjection, 
 	ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** texAndMatLookupTable, int toggleColor, float farclip)
 {
 	bool result;
@@ -62,7 +62,7 @@ bool MCubesGBufferShader::Render(ID3D11DeviceContext* deviceContext, int indexCo
 	return true;
 }
 
-bool MCubesGBufferShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename)
+bool MCGBufferTerrainShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename)
 {
 	HRESULT result;
 	CComPtr<ID3D10Blob> errorMessage;
@@ -80,7 +80,7 @@ bool MCubesGBufferShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 	//pixelShaderBuffer = 0;
 
 	// Compile the vertex shader code.
-	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "MCubesGBufferVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 
+	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "MCGBufferTerrainVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 
 		0, NULL, &vertexShaderBuffer, &errorMessage.p, NULL);
 	if(FAILED(result))
 	{
@@ -99,7 +99,7 @@ bool MCubesGBufferShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 	}
 
 	// Compile the pixel shader code.
-	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "MCubesGBufferPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 
+	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "MCGBufferTerrainPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 
 		0, NULL, &pixelShaderBuffer, &errorMessage.p, NULL);
 	if(FAILED(result))
 	{
@@ -224,7 +224,7 @@ bool MCubesGBufferShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 	return true;
 }
 
-void MCubesGBufferShader::ShutdownShader()
+void MCGBufferTerrainShader::ShutdownShader()
 {
 
 
@@ -272,7 +272,7 @@ void MCubesGBufferShader::ShutdownShader()
 	return;
 }
 
-void MCubesGBufferShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename)
+void MCGBufferTerrainShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename)
 {
 	char* compileErrors;
 	unsigned long bufferSize, i;
@@ -307,7 +307,7 @@ void MCubesGBufferShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWN
 	return;
 }
 
-bool MCubesGBufferShader::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, XMMATRIX* worldViewMatrix, 
+bool MCGBufferTerrainShader::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, XMMATRIX* worldViewMatrix, 
 	XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** texAndMatLookupTable, int toggleColor, float farclip)
 {
 	HRESULT result;
@@ -369,7 +369,7 @@ bool MCubesGBufferShader::SetShaderParameters( ID3D11DeviceContext* deviceContex
 	return true;
 }
 
-void MCubesGBufferShader::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
+void MCGBufferTerrainShader::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
 {
 	// Set the vertex input layout.
 	deviceContext->IASetInputLayout(layout);

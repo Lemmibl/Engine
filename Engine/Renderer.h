@@ -1,6 +1,3 @@
-///////////////
-// MY CLASS INCLUDES //
-///////////////////////
 #pragma once;
 
 //System includes
@@ -14,18 +11,22 @@
 #include <string>
 #include <cassert>
 
+#include "VegetationManager.h"
+
 //Utility
 #include "Utility.h"
 #include "StructsAndEnums.h"
 #include "inputclass.h"
-#include "d3dclass.h"
 #include "timerclass.h"
 #include "controllerclass.h"
 #include "fpsmeter.h"
 #include "textclass.h"
 #include "renderToTextureClass.h"
 #include "DayNightCycle.h"
-#include "VegetationManager.h"
+
+//Managers
+#include "d3dclass.h"
+#include "TerrainManager.h"
 #include "TextureAndMaterialHandler.h"
 
 //Objects
@@ -38,10 +39,10 @@
 #include "MCTerrainClass.h"
 #include "LSystemClass.h"
 #include "SimplexNoise.h"
-#include "Mesh.h"
+#include "IndexedMesh.h"
 
 //Shaders
-#include "MCubesGBufferShader.h"
+#include "MCGBufferTerrainShader.h"
 #include "textureshaderclass.h"
 #include "VertexShaderOnly.h"
 #include "DepthOnlyShader.h"
@@ -81,15 +82,15 @@ public:
 	bool RenderPointLight(ID3D11DeviceContext* deviceContext, XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* viewProjection);
 	bool RenderComposedScene(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* worldView, XMMATRIX* view, XMMATRIX* invertedProjection, XMMATRIX* invertedViewProjection);
 	bool RenderDebugInfoAndText(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj);
-	void GenerateVegetation(ID3D11Device* device, bool IfSetupThenTrue_IfUpdateThenFalse);
 
 private:
 	shared_ptr<D3DClass> d3D;
 	shared_ptr<CameraClass> camera;
 	shared_ptr<InputClass> inputManager;
 	shared_ptr<TextClass> text;
-	shared_ptr<MarchingCubesClass> marchingCubes;
 
+	//Temp! Will be in World later.
+	shared_ptr<TerrainManager>  terrainManager;
 
 	FrustumClass frustum;
 
@@ -107,7 +108,6 @@ private:
 
 	ModelClass sphereModel;
 	Skysphere skySphere;
-	VegetationManager vegetationManager;
 
 	TextureShaderClass textureShader;
 	DebugWindowClass debugWindows[7];
@@ -120,14 +120,9 @@ private:
 
 	bool returning, toggleDebugInfo, toggleTextureShader, toggleOtherPointLights, drawWireFrame;
 	float fogMinimum;
-	
-	MetaballsClass metaBalls;
-	MCubesGBufferShader mcubeShader;
 
+	MCGBufferTerrainShader mcubeShader;
 	DayNightCycle dayNightCycle;
-	MCTerrainClass mcTerrain;
-
-	LSystemClass lSystem;
 	SimplexNoise noise;
 
 	Utility utility;
@@ -138,13 +133,13 @@ private:
 	vector<VegetationManager::InstanceType> LODVector2500;
 	vector<VegetationManager::InstanceType> LODVector5000;
 	vector<VegetationManager::InstanceType> LODVector10000;
-	int lodState, previousLodState, toggleSSAO, toggleColorMode;
-
-	int vegetationCount;
+	int toggleSSAO, toggleColorMode;
 
 	float xPos, yPos;
 
 	Lemmi2DAABB testBoundingbox;
+
+	vector<MarchingCubeChunk*> tempChunks;
 
 	XMFLOAT3 camPos, camDir;
 

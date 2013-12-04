@@ -28,12 +28,13 @@
     <ClCompile Include="frustumclass.cpp" />
     <ClCompile Include="GaussianBlur.cpp" />
     <ClCompile Include="GeometryShaderGrass.cpp" />
+    <ClCompile Include="IndexedInstancedMesh.cpp" />
     <ClCompile Include="Lemmi3DAABB.h" />
     <ClCompile Include="LemmiEntity.cpp" />
     <ClCompile Include="LemmiGridTable.cpp" />
     <ClCompile Include="LemmiQuadtree.h" />
     <ClCompile Include="LerpInstance.cpp" />
-    <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="IndexedMesh.cpp" />
     <ClCompile Include="SentenceManager.cpp" />
     <ClCompile Include="MarchingCubeChunk.cpp" />
     <ClCompile Include="TerrainManager.cpp" />
@@ -43,7 +44,7 @@
     <ClCompile Include="LSystemClass.cpp" />
     <ClCompile Include="VegetationManager.cpp" />
     <ClCompile Include="VegetationShader.cpp" />
-    <ClCompile Include="MCubesGBufferShader.cpp" />
+    <ClCompile Include="MCGBufferTerrainShader.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="inputclass.cpp" />
     <ClCompile Include="main.cpp" />
@@ -86,6 +87,7 @@
     <ClInclude Include="frustumclass.h" />
     <ClInclude Include="DRGBuffer.h" />
     <ClInclude Include="GaussianBlur.h" />
+    <ClInclude Include="IndexedInstancedMesh.h" />
     <ClInclude Include="RenderableInterface.h" />
     <ClInclude Include="GeometryShaderGrass.h" />
     <ClInclude Include="interfacepointers.h" />
@@ -94,7 +96,7 @@
     <ClInclude Include="LemmiGridTable.h" />
     <ClInclude Include="LemmiLinkedList.h" />
     <ClInclude Include="LerpInstance.h" />
-    <ClInclude Include="Mesh.h" />
+    <ClInclude Include="IndexedMesh.h" />
     <ClInclude Include="SentenceManager.h" />
     <ClInclude Include="MarchingCubeChunk.h" />
     <ClInclude Include="TerrainManager.h" />
@@ -103,7 +105,7 @@
     <ClInclude Include="Utility.h" />
     <ClInclude Include="LSystemClass.h" />
     <ClInclude Include="VegetationShader.h" />
-    <ClInclude Include="MCubesGBufferShader.h" />
+    <ClInclude Include="MCGBufferTerrainShader.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="inputclass.h" />
     <ClInclude Include="marchingCubesClass.h" />
@@ -149,8 +151,8 @@
     <None Include="DRPointLight.vsh" />
     <None Include="gaussianBlurX.psh" />
     <None Include="gaussianBlurY.psh" />
-    <None Include="MCubesGBufferShader.psh" />
-    <None Include="MCubesGBufferShader.vsh" />
+    <None Include="MCGBufferTerrainShader.psh" />
+    <None Include="MCGBufferTerrainShader.vsh" />
     <None Include="shader-error.txt" />
     <None Include="skysphere.psh" />
     <None Include="skysphere.vsh" />
@@ -204,9 +206,9 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <MinimalRebuild>false</MinimalRebuild>
+      <MultiProcessorCompilation>false</MultiProcessorCompilation>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
     <Link>

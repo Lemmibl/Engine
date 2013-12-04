@@ -1,3 +1,4 @@
+#pragma once
 #include <vector>
 #include <windows.h>
 #include <xnamath.h>
@@ -5,6 +6,7 @@
 #include "textureclass.h"
 #include <atlcomcli.h>
 #include <memory>
+#include "IndexedInstancedMesh.h"
 
 class VegetationManager
 {
@@ -24,6 +26,7 @@ public:
 		float randomValue;
 	};
 
+public:
 	VegetationManager();
 	VegetationManager(const VegetationManager&);
 	~VegetationManager();
@@ -34,9 +37,9 @@ public:
 	bool Render(ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, XMMATRIX* worldView, XMMATRIX* World, ID3D11ShaderResourceView** textures);
 	void RenderBuffers(ID3D11DeviceContext* deviceContext);
 
-	int GetIndexCount()		{	return indexCount;		};
-	int GetVertexCount()	{	return vertexCount;		};
-	int GetInstanceCount()	{	return instanceCount;	};
+	int GetIndexCount()		{	return mesh.GetIndexCount();		};
+	int GetVertexCount()	{	return mesh.GetVertexCount();		};
+	int GetInstanceCount()	{	return mesh.GetInstanceCount();		};
 
 	bool BuildInstanceBuffer(ID3D11Device* device, std::vector<InstanceType>* positions);
 
@@ -45,10 +48,7 @@ private:
 	XMFLOAT3 CalculateVertexNormals(XMFLOAT3* v1, XMFLOAT3* v2, XMFLOAT3* v3);
 
 private:
-	CComPtr<ID3D11Buffer> vertexBuffer;
-	CComPtr<ID3D11Buffer> instanceBuffer;
-	CComPtr<ID3D11Buffer> indexBuffer;
-	int vertexCount, indexCount, instanceCount;
+	IndexedInstancedMesh mesh;
 	unique_ptr<VegetationShader> vegetationShader;
 };
 

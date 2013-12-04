@@ -1,14 +1,14 @@
-#include "Mesh.h"
+#include "IndexedMesh.h"
 
-Mesh::Mesh() : RenderableInterface()
+IndexedMesh::IndexedMesh() : RenderableInterface()
 {	
 }
 
-Mesh::~Mesh()
+IndexedMesh::~IndexedMesh()
 {
 }
 
-void Mesh::Render( ID3D11DeviceContext* deviceContext )
+void IndexedMesh::Render( ID3D11DeviceContext* deviceContext )
 {
 	// Set vertex buffer stride and offset.
 	unsigned int stride = vertexStride;

@@ -3,7 +3,7 @@
 MarchingCubeChunk::MarchingCubeChunk(XMFLOAT3 startPos, XMFLOAT3 endPos, XMFLOAT3 stepSize, XMFLOAT3 stepCount)
 :	startPosition(startPos),
 	endPosition(endPos),
-	boundingBox(startPosition, endPosition),
+	//boundingBox(startPosition, endPosition),
 	stepSizeX(stepSize.x),
 	stepSizeY(stepSize.y),
 	stepSizeZ(stepSize.z),

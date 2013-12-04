@@ -3,8 +3,9 @@
 #include "Utility.h"
 #include <windows.h>
 #include <vector>
-#include "Mesh.h"
+#include "IndexedMesh.h"
 #include "Lemmi3DAABB.h"
+#include "VegetationManager.h"
 
 class MarchingCubeChunk
 {
@@ -12,10 +13,12 @@ public:
 	MarchingCubeChunk(XMFLOAT3 startPosition, XMFLOAT3 endPosition, XMFLOAT3 stepSize, XMFLOAT3 stepCount);
 	~MarchingCubeChunk();
 
-	Mesh* GetMesh() { return &mesh; }
+	IndexedMesh* GetMesh() { return &mesh; }
 	vector<MarchingCubeVoxel>* GetVoxelField() { return &voxels; }
 	vector<unsigned int>* GetIndices() { return &indices; }
-	const Lemmi3DAABB* GetBoundingBox() { return &boundingBox; }
+	vector<VegetationManager::InstanceType>* GetVegetationInstances() { return &vegetationInstances; }
+
+	//const Lemmi3DAABB* GetBoundingBox() { return &boundingBox; }
 
 	unsigned int GetTotalSize() const { return voxels.size(); }
 	unsigned int GetStepCountX() const { return stepCountX; }
@@ -34,9 +37,10 @@ private:
 	//voxels is sizeX*sizeY*sizeZ big
 	vector<MarchingCubeVoxel> voxels;
 	vector<unsigned int> indices;
+	vector<VegetationManager::InstanceType> vegetationInstances;
 
 	//Our mesh that we'll be rendering. Contains all vertex/index data.
-	Mesh mesh;
+	IndexedMesh mesh;
 
 	//Should be self explanatory. Defines the bounds of this chunk; where it starts and where it ends.
 	XMFLOAT3 startPosition, endPosition;
@@ -51,7 +55,7 @@ private:
 	unsigned int stepCountY;
 	unsigned int stepCountZ;
 
-	Lemmi3DAABB boundingBox;
+	//Lemmi3DAABB boundingBox;
 
 //Potential thing we might add to these chunks in the future:
 	//Vector of vegetation quads

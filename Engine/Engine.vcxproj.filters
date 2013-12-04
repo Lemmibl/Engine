@@ -34,9 +34,6 @@
     <ClCompile Include="inputclass.cpp">
       <Filter>General Code\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="MCubesGBufferShader.cpp">
-      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
-    </ClCompile>
     <ClCompile Include="Engine.cpp">
       <Filter>General Code</Filter>
     </ClCompile>
@@ -163,11 +160,17 @@
     <ClCompile Include="MarchingCubeChunk.cpp">
       <Filter>Procedural generation</Filter>
     </ClCompile>
-    <ClCompile Include="Mesh.cpp">
-      <Filter>Rendering\Objects</Filter>
-    </ClCompile>
     <ClCompile Include="GeometryShaderGrass.cpp">
       <Filter>Rendering\Shader wrappers</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexedMesh.cpp">
+      <Filter>Rendering\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexedInstancedMesh.cpp">
+      <Filter>Rendering\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="MCGBufferTerrainShader.cpp">
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -203,9 +206,6 @@
     </ClInclude>
     <ClInclude Include="inputclass.h">
       <Filter>General Code\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="MCubesGBufferShader.h">
-      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClInclude>
     <ClInclude Include="Engine.h">
       <Filter>General Code</Filter>
@@ -342,14 +342,20 @@
     <ClInclude Include="MarchingCubeChunk.h">
       <Filter>Procedural generation</Filter>
     </ClInclude>
-    <ClInclude Include="Mesh.h">
-      <Filter>Rendering\Objects</Filter>
-    </ClInclude>
     <ClInclude Include="GeometryShaderGrass.h">
       <Filter>Rendering\Shader wrappers</Filter>
     </ClInclude>
     <ClInclude Include="RenderableInterface.h">
       <Filter>Rendering\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexedMesh.h">
+      <Filter>Rendering\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexedInstancedMesh.h">
+      <Filter>Rendering\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="MCGBufferTerrainShader.h">
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -393,12 +399,6 @@
     <None Include="font.vsh">
       <Filter>Rendering\Shaders</Filter>
     </None>
-    <None Include="MCubesGBufferShader.psh">
-      <Filter>Rendering\Shaders\Deferred shaders</Filter>
-    </None>
-    <None Include="MCubesGBufferShader.vsh">
-      <Filter>Rendering\Shaders\Deferred shaders</Filter>
-    </None>
     <None Include="skysphere.psh">
       <Filter>Rendering\Shaders</Filter>
     </None>
@@ -433,6 +433,12 @@
       <Filter>Rendering\Shaders\Post processing</Filter>
     </None>
     <None Include="..\TODO.txt" />
+    <None Include="MCGBufferTerrainShader.psh">
+      <Filter>Rendering\Shaders\Deferred shaders</Filter>
+    </None>
+    <None Include="MCGBufferTerrainShader.vsh">
+      <Filter>Rendering\Shaders\Deferred shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Rendering">

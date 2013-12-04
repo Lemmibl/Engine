@@ -88,17 +88,17 @@ void MCTerrainClass::MCHeightMap()
 }
 
 
-void MCTerrainClass::Noise3D(vector<MarchingCubeVoxel>* marchingCubeVertices)
+void MCTerrainClass::Noise3D( vector<MarchingCubeVoxel>* marchingCubeVertices, unsigned int startX, unsigned int startY, unsigned int startZ, unsigned int endX, unsigned int endY, unsigned int endZ )
 {
 	maxDensity = -511.0f;
 	minDensity = 511.0f;
 	float density;
 
-	for (z = 1; z < (sizeZ-1); z++)
+	for (z = startZ; z < (endZ-1); ++z)
 	{
-		for (y = 1; y < (sizeY-1); y++)
+		for (y = startY; y < (endY-1); ++y)
 		{
-			for (x = 1; x < (sizeX-1); x++)
+			for (x = startX; x < (endX-1); ++x)
 			{
 				idx = x + (y*sizeY) + (z * sizeY * sizeZ);
 
@@ -267,7 +267,7 @@ void MCTerrainClass::Noise3D(vector<MarchingCubeVoxel>* marchingCubeVertices)
 				}
 				else if (density > 2)
 				{
-					density = 2;
+					density = 4;
 				}
 
 				(*marchingCubeVertices)[idx].density = density;
@@ -298,25 +298,25 @@ void MCTerrainClass::Noise3D(vector<MarchingCubeVoxel>* marchingCubeVertices)
 		densityRangeLower = 1 / densityRangeLower;
 	}
 
-	for (z = 1; z < (sizeZ-1); z++)
+	for (z = startZ; z < (endZ-1); ++z)
 	{
-		for (y = 1; y < (sizeY-1); y++)
+		for (y = startY; y < (endY-1); ++y)
 		{
-			for (x = 1; x < (sizeX-1); x++)
+			for (x = startX; x < (endX-1); ++x)
 			{
 				idx = x + y*sizeY + z * sizeY * sizeZ;
 
-				if ((*marchingCubeVertices)[idx].density > densityToBeInside)
-				{
-					(*marchingCubeVertices)[idx].density = ((*marchingCubeVertices)[idx].density ) * densityRangeUpper;
-				}
+				//if ((*marchingCubeVertices)[idx].density > densityToBeInside)
+				//{
+				//	(*marchingCubeVertices)[idx].density = ((*marchingCubeVertices)[idx].density ) * densityRangeUpper;
+				//}
 
-				if ((*marchingCubeVertices)[idx].density < densityToBeInside)
-				{
-					(*marchingCubeVertices)[idx].density = ((*marchingCubeVertices)[idx].density ) * densityRangeLower;
-				}
+				//if ((*marchingCubeVertices)[idx].density < densityToBeInside)
+				//{
+				//	(*marchingCubeVertices)[idx].density = ((*marchingCubeVertices)[idx].density ) * densityRangeLower;
+				//}
 
-				if ((*marchingCubeVertices)[idx].density > densityToBeInside)
+				if ((*marchingCubeVertices)[idx].density >= densityToBeInside)
 				{
 					(*marchingCubeVertices)[idx].inside = true;
 				}

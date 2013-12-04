@@ -332,60 +332,11 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 
 	MarchingCubesClass::~MarchingCubesClass()
 	{	
-		delete terrain;
-		terrain = 0;
 	}
 
-	MarchingCubesClass::MarchingCubesClass(	XMFLOAT3 startPos, XMFLOAT3 stepCount,
-		XMFLOAT3 stepSize, SimplexNoise* simplexNoise)
-	:	temporaryChunk(startPos, XMFLOAT3(startPos.x + stepSize.x*stepCount.x, startPos.y + stepSize.y*stepCount.y, startPos.z + stepSize.z*stepCount.z), stepSize, stepCount)
+	MarchingCubesClass::MarchingCubesClass()
 	{
-		this->wireframe = false;
-
-		//(int)((endPos.x - startPos.x) / stepSize.x);
-		//(int)((endPos.y - startPos.y) / stepSize.y);
-		//(int)((endPos.z - startPos.z) / stepSize.z);
-
-		//Terrain = new MCTerrainClass(sizeX, sizeY,sizeZ, marchingCubeVertices);
-
-		terrain = new MCTerrainClass();
-
-		terrain->Initialize(temporaryChunk.GetStepCountX(), temporaryChunk.GetStepCountY(), temporaryChunk.GetStepCountZ(), simplexNoise);
-		terrain->SetTerrainType(7); //Default.
-		terrain->Noise3D(temporaryChunk.GetVoxelField());
-		//this->Tree = new TreeClass(sizeX,sizeY,sizeZ,this->marchingCubeVertices);
-	}
-
-	void MarchingCubesClass::ComputeMetaBalls()
-	{
-		//for (z = 1; z < (this->sizeZ - 1); z++)
-		//{
-		//	for (y = 1; y < (this->sizeY - 1); y++)
-		//	{
-		//		for (x = 1; x < (this->sizeX - 1); x++)
-		//		{
-		//			index = x + y*this->sizeY + z * this->sizeY * this->sizeZ;
-
-		//			//this->marchingCubeVertices[index].density = this->mb->Get_vertex_value(this->marchingCubeVertices[index]);
-		//			Ground(index);
-		//			//LSystemTree(index);
-
-
-		//			if (this->marchingCubeVertices[index].density > this->metaballsIsoValue)
-		//			{
-		//				this->marchingCubeVertices[index].inside = true;
-		//			}
-		//			else
-		//			{
-		//				this->marchingCubeVertices[index].inside = false;
-		//			}
-
-		//			this->marchingCubeVertices[index].normal.x = this->marchingCubeVertices[index - 1].density - this->marchingCubeVertices[index+1].density;
-		//			this->marchingCubeVertices[index].normal.y = this->marchingCubeVertices[index - this->sizeY].density - this->marchingCubeVertices[index + this->sizeY].density;
-		//			this->marchingCubeVertices[index].normal.z = this->marchingCubeVertices[index - (this->sizeY * this->sizeZ)].density - this->marchingCubeVertices[index + (this->sizeY * this->sizeZ)].density; 
-		//		}
-		//	}
-		//}
+		metaballsIsoValue = 0.2f;
 	}
 
 	void MarchingCubesClass::CalculateMesh(ID3D11Device* device, MarchingCubeChunk* chunk)
@@ -537,7 +488,7 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 		}
 	}
 
-	void MarchingCubesClass::CreateMesh(ID3D11Device* device, Mesh* mesh, vector<unsigned int>* indices, vector<MarchingCubeVectors>* vertices, unsigned int indexCount, unsigned int vertexCount )
+	void MarchingCubesClass::CreateMesh(ID3D11Device* device, IndexedMesh* mesh, vector<unsigned int>* indices, vector<MarchingCubeVectors>* vertices, unsigned int indexCount, unsigned int vertexCount )
 	{
 		D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
 		D3D11_SUBRESOURCE_DATA vertexData, indexData;
@@ -578,28 +529,4 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 
 		// Create the index buffer.
 		result = device->CreateBuffer(&indexBufferDesc, &indexData, mesh->GetIndexBufferPP());
-	}
-
-	void MarchingCubesClass::Reset(SimplexNoise* simplexNoise)
-	{
-		simplexNoise->ReseedRandom();
-
-		bool tempPulverize = terrain->GetPulverizeWorld();
-		int tempTerrainType	= terrain->getTerrainType();
-
-		//delete terrain;
-		//terrain = 0;
-
-		//this->terrain = new MCTerrainClass();
-		terrain->Initialize(temporaryChunk.GetStepCountX(), temporaryChunk.GetStepCountY(), temporaryChunk.GetStepCountZ(), simplexNoise);
-		terrain->SetTerrainType(tempTerrainType);
-		terrain->SetPulverizeWorld(tempPulverize);
-		terrain->Noise3D(temporaryChunk.GetVoxelField());
-
-		//ComputeMetaBalls();
-	}
-
-	float MarchingCubesClass::GetHeightOfXZpos()
-	{
-		return 0;
 	}

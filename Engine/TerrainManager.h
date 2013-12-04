@@ -3,6 +3,10 @@
 #include "MarchingCubeChunk.h"
 #include <unordered_map>
 #include "MCTerrainClass.h"
+#include "VegetationManager.h"
+#include <memory>
+#include "marchingCubesClass.h"
+#include "d3dclass.h"
 
 class TerrainManager
 {
@@ -23,30 +27,48 @@ private:
 	};
 
 public:
-	TerrainManager();
+	TerrainManager(ID3D11Device* device, SimplexNoise* noise, HWND hwnd);
 	~TerrainManager();
 
-	void CreateChunk(int startPosX, int startPosZ);
-	bool GetChunk(int x, int z, MarchingCubeChunk* inOutChunk);
+	void ResetTerrain(int currentPosX, int currrentPosZ);
+
+	void CreateChunk(ID3D11Device* device, int startPosX, int startPosZ);
+	void MergeWithNeighbourChunks(MarchingCubeChunk* chunk,  int idX, int idZ);
+	bool GetChunk(int x, int z, MarchingCubeChunk** outChunk);
+	void GenerateVegetation(ID3D11Device* device, bool UpdateInstanceBuffer, MarchingCubeChunk* chunk);
+
 	vector<MarchingCubeChunk*>* GetActiveChunks(int x, int z);
 	vector<RenderableInterface*>* GetTerrainRenderables();
 
+	void SetTerrainType(unsigned int val) { mcTerrain.SetTerrainType(val); }
+
 private:
-	std::pair<int,int> AddPairs(std::pair<int,int> pairOne, std::pair<int,int> pairTwo)
+	inline std::pair<int,int> AddPairs(std::pair<int,int> pairOne, std::pair<int,int> pairTwo)
 	{
 		return std::make_pair<int, int>(pairOne.first+pairTwo.first, pairOne.second+pairTwo.second);
 	}
 
+	inline float RandomFloat()
+	{
+		float scale=RAND_MAX+1.0f;
+		float base=rand()/scale;
+		float fine=rand()/scale;
+		return base+fine/scale;
+	}
+
+
 private:
-	std::unordered_map<std::pair<int,int>, MarchingCubeChunk*, int_pair_hash> map;
+	MarchingCubesClass marchingCubes;
+	MCTerrainClass mcTerrain;
+	VegetationManager vegetationManager;
+	SimplexNoise* noise;
+	unsigned int vegetationCount;
+
+	std::unordered_map<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>, int_pair_hash> map;
 	vector<MarchingCubeChunk*> activeChunks;
 	vector<RenderableInterface*> activeRenderables; //We add each chunk's mesh to this list and only change it when our activechunks change
 
 	std::pair<int,int> lastUsedKey;
-
-	XMFLOAT3 stepSize, stepCount;
-
-	MCTerrainClass mcTerrain;
 
 	//What this class is supposed to do is handle the creation and lifetime of chunks. Potentially save/load them to hdd as well.
 	//Also: Culling, interaction with higher-up-in-hierarchy classes, ...rendering? idk

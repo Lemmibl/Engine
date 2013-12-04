@@ -51,7 +51,7 @@ float EncodeMaterialID(float id)
 	return (id / 255.0f);
 }
 
-PixelShaderOutput MCubesGBufferPixelShader(VertexShaderOutput input)
+PixelShaderOutput MCGBufferTerrainPixelShader(VertexShaderOutput input)
 {
 	PixelShaderOutput output;
 	int texture1, texture2;

@@ -32,7 +32,7 @@ public:
 	void LSystemTree();
 	void MCHeightMap();
 
-	void Noise3D(vector<MarchingCubeVoxel>* marchingCubeVertices);
+	void Noise3D(vector<MarchingCubeVoxel>* marchingCubeVertices, unsigned int startX, unsigned int startY, unsigned int startZ, unsigned int endX, unsigned int endY, unsigned int endZ);
 
 	float GetDensityRangeUpper()
 	{

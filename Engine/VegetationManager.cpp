@@ -3,8 +3,6 @@
 VegetationManager::VegetationManager()
 {
 	vegetationShader = 0;
-	vertexBuffer = 0;
-	instanceBuffer = 0;
 }
 
 VegetationManager::VegetationManager( const VegetationManager& )
@@ -78,7 +76,7 @@ bool VegetationManager::Render(ID3D11DeviceContext* deviceContext, XMMATRIX* wor
 {
 	RenderBuffers(deviceContext);
 
-	if(!vegetationShader->Render(deviceContext, indexCount, vertexCount, instanceCount, worldViewProjection, worldView, world, textures))
+	if(!vegetationShader->Render(deviceContext, mesh.GetIndexCount(), mesh.GetVertexCount(), mesh.GetInstanceCount(), worldViewProjection, worldView, world, textures))
 	{
 		return false;
 	}
@@ -88,32 +86,7 @@ bool VegetationManager::Render(ID3D11DeviceContext* deviceContext, XMMATRIX* wor
 
 void VegetationManager::RenderBuffers( ID3D11DeviceContext* deviceContext)
 {
-	unsigned int strides[2];
-	unsigned int offsets[2];
-	ID3D11Buffer* bufferPointers[2];
-
-	//Set the buffer strides.
-	strides[0] = sizeof(VertexType); 
-	strides[1] = sizeof(InstanceType); 
-
-	//Set the buffer offsets.
-	offsets[0] = 0;
-	offsets[1] = 0;
-
-	// Set the array of pointers to the vertex and instance buffers.
-	bufferPointers[0] = vertexBuffer.p;	
-	bufferPointers[1] = instanceBuffer.p;
-
-	// Set the vertex buffer to active in the input assembler so it can be rendered.
-	deviceContext->IASetVertexBuffers(0, 2, bufferPointers, strides, offsets);
-
-	//Set index buffer
-	deviceContext->IASetIndexBuffer(indexBuffer.p, DXGI_FORMAT_R32_UINT, 0);
-
-	// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
-	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	return;
+	mesh.Render(deviceContext);
 }
 
 bool VegetationManager::BuildVertexAndIndexBuffers( ID3D11Device* device )
@@ -131,8 +104,8 @@ bool VegetationManager::BuildVertexAndIndexBuffers( ID3D11Device* device )
 #pragma region Setting up the vertices
 
 	// Set the number of vertices in the vertex array.
-	vertexCount = 12;
-	indexCount = 18;
+	int vertexCount = 12;
+	int indexCount = 18;
 
 	// Create the vertex array.
 	vertices = unique_ptr<VertexType[]>(new VertexType[vertexCount]());
@@ -293,6 +266,9 @@ bool VegetationManager::BuildVertexAndIndexBuffers( ID3D11Device* device )
 	vertices[v+3].normal = vertexNormal;
 
 #pragma endregion
+	mesh.SetIndexCount(indexCount);
+	mesh.SetVertexCount(vertexCount);
+	mesh.SetVertexStride(sizeof(VertexType));
 
 	// Set up the description of the static vertex buffer.
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -308,7 +284,7 @@ bool VegetationManager::BuildVertexAndIndexBuffers( ID3D11Device* device )
 	vertexData.SysMemSlicePitch = 0;
 
 	// Now create the vertex buffer.
-	result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &vertexBuffer.p);
+	result = device->CreateBuffer(&vertexBufferDesc, &vertexData, mesh.GetVertexBufferPP());
 	if(FAILED(result))
 	{
 		return false;
@@ -328,18 +304,11 @@ bool VegetationManager::BuildVertexAndIndexBuffers( ID3D11Device* device )
 	indexData.SysMemSlicePitch = 0;
 
 	// Create the index buffer.
-	result = device->CreateBuffer(&indexBufferDesc, &indexData, &indexBuffer.p);
+	result = device->CreateBuffer(&indexBufferDesc, &indexData, mesh.GetIndexBufferPP());
 	if(FAILED(result))
 	{
 		return false;
 	}
-
-	// Release the vertex array now that the vertex buffer has been created and loaded.
-	//delete [] vertices;
-	//vertices = 0;
-
-	//delete [] indices;
-	//indices = 0;
 
 	return true;
 }
@@ -351,7 +320,9 @@ bool VegetationManager::BuildInstanceBuffer( ID3D11Device* device, std::vector<I
 	HRESULT result;
 
 	// Set the number of instances in the array.
-	instanceCount = positions->size();
+	unsigned int instanceCount = positions->size();
+
+	mesh.SetInstanceCount(instanceCount);
 
 	// Set up the description of the instance buffer.
 	instanceBufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -367,15 +338,11 @@ bool VegetationManager::BuildInstanceBuffer( ID3D11Device* device, std::vector<I
 	instanceData.SysMemSlicePitch = 0;
 
 	// Create the instance buffer.
-	result = device->CreateBuffer(&instanceBufferDesc, &instanceData, &instanceBuffer.p);
+	result = device->CreateBuffer(&instanceBufferDesc, &instanceData, mesh.GetInstanceBufferPP());
 	if(FAILED(result))
 	{
 		return false;
 	}
-
-	//// Release the instance array now that the instance buffer has been created and loaded.
-	//delete [] instances;
-	//instances = 0;
 
 	return true;
 }
