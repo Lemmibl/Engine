@@ -472,9 +472,9 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 				////Comment this if you want the edges back. :)
 				//if(y > 10)
 				//{
-				//	//And this.
-				//	if(x > 0 && z > 0 && x < sizeX-2 && z < sizeZ-2)
-				//	{
+					//And this.
+					if(x > 0 && z > 0 && x < sizeX-2 && z < sizeZ-2)
+					{
 						(*indices)[indexCounter] = vertexCounter;
 
 						(*vertices)[vertexCounter].position		= verts[tritableLookupValue].position;
@@ -482,7 +482,7 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 
 						vertexCounter++;
 						indexCounter++;	
-				//	}
+					}
 				//}
 			}
 		}

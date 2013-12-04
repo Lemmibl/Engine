@@ -75,8 +75,8 @@ void TerrainManager::CreateChunk(ID3D11Device* device, int startPosX, int startP
 	{
 		float actualPosX, actualPosZ;
 
-		actualPosX = startPosX * 98;
-		actualPosZ = startPosZ * 98;
+		actualPosX = startPosX * 95;
+		actualPosZ = startPosZ * 95;
 
 		shared_ptr<MarchingCubeChunk> newChunk = make_shared<MarchingCubeChunk>
 		(
