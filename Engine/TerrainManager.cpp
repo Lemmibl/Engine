@@ -52,7 +52,7 @@ TerrainManager::~TerrainManager()
 
 void TerrainManager::ResetTerrain( int currentPosX, int currrentPosZ )
 {
-	//... Maybe just empty map and create a new chunk at position
+	//... Maybe just empty map and create new chunks at position
 }
 
 void TerrainManager::CreateChunk(ID3D11Device* device, int startPosX, int startPosZ)
