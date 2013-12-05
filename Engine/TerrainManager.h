@@ -13,8 +13,8 @@ class TerrainManager
 private:
 
 	//http://stackoverflow.com/questions/919612/mapping-two-integers-to-one-in-a-unique-and-deterministic-way
-	//http://en.wikipedia.org/wiki/Cantor_pairing_function#Cantor_pairing_function
-	//	return ((p.first + p.second)*(p.first + p.second + 1)/2) + p.second;
+	//http://en.wikipedia.org/wiki/Cantor_pairing_function#Cantor_pairing_function << Apparently only works well with positive values, so not such a good candidate.
+	//	return ((v.first + v.second)*(v.first + v.second + 1)/2) + v.second;
 	struct int_pair_hash 
 	{
 		inline std::size_t operator()(const std::pair<int,int> & v) const 
@@ -30,17 +30,23 @@ public:
 	TerrainManager(ID3D11Device* device, SimplexNoise* noise, HWND hwnd);
 	~TerrainManager();
 
-	void ResetTerrain(int currentPosX, int currrentPosZ);
+	//Returns a bool to indicate if we've actually had to change anything. If true, it has changed and we should fetch the new data.
+	bool Update(XMFLOAT3 currentCameraPosition);
 
+	void ResetTerrain(int currentPosX, int currrentPosZ);
 	void CreateChunk(ID3D11Device* device, int startPosX, int startPosZ);
 	void MergeWithNeighbourChunks(MarchingCubeChunk* chunk,  int idX, int idZ);
+
+	VegetationManager* const GetVegetationManager() { return &vegetationManager; };
 	bool GetChunk(int x, int z, MarchingCubeChunk** outChunk);
-	void GenerateVegetation(ID3D11Device* device, bool UpdateInstanceBuffer, MarchingCubeChunk* chunk);
-
 	vector<MarchingCubeChunk*>* GetActiveChunks(int x, int z);
-	vector<RenderableInterface*>* GetTerrainRenderables();
+	vector<RenderableInterface*>* GetTerrainRenderables(int x, int z);
+	vector<RenderableInterface*>* GetActiveRenderables(){ return &activeRenderables; }
 
-	void SetTerrainType(unsigned int val) { mcTerrain.SetTerrainType(val); }
+	void GenerateVegetation(ID3D11Device* device, bool UpdateInstanceBuffer, vector<MarchingCubeChunk*>* activeChunks);
+	void RenderVegetation();
+
+	void SetTerrainType(MCTerrainClass::TerrainTypes val) { mcTerrain.SetTerrainType(val); }
 
 private:
 	inline std::pair<int,int> AddPairs(std::pair<int,int> pairOne, std::pair<int,int> pairTwo)

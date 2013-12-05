@@ -16,8 +16,8 @@ public:
 	IndexedMesh* GetMesh() { return &mesh; }
 	vector<MarchingCubeVoxel>* GetVoxelField() { return &voxels; }
 	vector<unsigned int>* GetIndices() { return &indices; }
-	vector<VegetationManager::InstanceType>* GetVegetationInstances() { return &vegetationInstances; }
-
+	
+	//vector<VegetationManager::InstanceType>* GetVegetationInstances() { return &vegetationInstances; }
 	//const Lemmi3DAABB* GetBoundingBox() { return &boundingBox; }
 
 	unsigned int GetTotalSize() const { return voxels.size(); }
@@ -33,11 +33,16 @@ public:
 	float GetSizeY() const { return stepSizeY * stepCountY; }
 	float GetSizeZ() const { return stepSizeZ * stepCountZ; }
 
+
+	float GetStartPosX() const { return startPosition.x; }
+	float GetStartPosY() const { return startPosition.y; }
+	float GetStartPosZ() const { return startPosition.z; }
+
 private:
 	//voxels is sizeX*sizeY*sizeZ big
 	vector<MarchingCubeVoxel> voxels;
 	vector<unsigned int> indices;
-	vector<VegetationManager::InstanceType> vegetationInstances;
+	//vector<VegetationManager::InstanceType> vegetationInstances;
 
 	//Our mesh that we'll be rendering. Contains all vertex/index data.
 	IndexedMesh mesh;

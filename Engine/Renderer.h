@@ -139,7 +139,7 @@ private:
 
 	Lemmi2DAABB testBoundingbox;
 
-	vector<MarchingCubeChunk*> tempChunks;
+	vector<RenderableInterface*> tempChunks;
 
 	XMFLOAT3 camPos, camDir;
 

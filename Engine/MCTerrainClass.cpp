@@ -88,215 +88,398 @@ void MCTerrainClass::MCHeightMap()
 }
 
 
-void MCTerrainClass::Noise3D( vector<MarchingCubeVoxel>* marchingCubeVertices, unsigned int startX, unsigned int startY, unsigned int startZ, unsigned int endX, unsigned int endY, unsigned int endZ )
+void MCTerrainClass::Noise3D( vector<MarchingCubeVoxel>* marchingCubeVoxels, unsigned int startX, unsigned int startY, unsigned int startZ, unsigned int endX, unsigned int endY, unsigned int endZ )
 {
 	maxDensity = -511.0f;
 	minDensity = 511.0f;
 	float density;
 
-	for (z = startZ; z < (endZ-1); ++z)
-	{
-		for (y = startY; y < (endY-1); ++y)
+switch ( terrainMode ) 
+{
+	case SeaBottom:
 		{
-			for (x = startX; x < (endX-1); ++x)
+			for (z = startZ; z < (endZ-1); ++z)
 			{
-				idx = x + (y*sizeY) + (z * sizeY * sizeZ);
+				for (y = startY; y < (endY-1); ++y)
+				{
+					for (x = startX; x < (endX-1); ++x)
+					{
+						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
 
-				switch ( terrainMode ) {
-				case terrainTypesSeaBottom:
-					density = 1 + sizeY * 0.1f - y;
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/220,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/220) *2.0f;
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/120,(*marchingCubeVertices)[idx].position.y/220,(*marchingCubeVertices)[idx].position.z/40) *2.0f;
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/20,(*marchingCubeVertices)[idx].position.y/420,(*marchingCubeVertices)[idx].position.z/20) *2.0f;
-					break;
-				case terrainTypePlains:
-					density = 1 + sizeY * 0.2f - y;
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/220,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/220) *10.0f;
-					break;
-				case terrainTypeHills:
-					density = 1 + sizeY * 0.2f - y;
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/220,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/220) *2.0f;
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/80,(*marchingCubeVertices)[idx].position.y/220,(*marchingCubeVertices)[idx].position.z/40) *20.0f;
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/20,(*marchingCubeVertices)[idx].position.y/420,(*marchingCubeVertices)[idx].position.z/20) *10.0f;
-					break;
-				case terrainTypeTerraces:
-					density = 1 + sizeY * 0.4f - y;
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/220,(*marchingCubeVertices)[idx].position.y/220,(*marchingCubeVertices)[idx].position.z/420) *20.0f;
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/120,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/20) *20.0f;
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/20,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/120) *20.0f;
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/120,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/120) *5.0f;
-
-					//**Toplvl**//
-					if(y > 20)
-					{
-						density -= 12.0f;
-					}
-					if(y > 25)
-					{
-						density -= 12.0f;
-					}
-					if(y > 30)
-					{
-						density -= 12.0f;
-					}
-					if(y > 35)
-					{
-						density -= 12.0f;
-					}
-					break;
-
-				case terrainTypeDramaticHills:
-					density = 1 + sizeY * 0.6f - y;
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/80,(*marchingCubeVertices)[idx].position.y/80,(*marchingCubeVertices)[idx].position.z/520) *30.0f;
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/40,(*marchingCubeVertices)[idx].position.y/30,(*marchingCubeVertices)[idx].position.z/500) *30.0f;
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/180,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/50) *20.0f;
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/120,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/120) *5.0f;
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/80,(*marchingCubeVertices)[idx].position.y/420,(*marchingCubeVertices)[idx].position.z/80) *30.0f;
-
-					//**Toplvl**//
-					if(y > 20)
-					{
-						density -= 12.0f;
-					}
-					if(y > 25)
-					{
-						density -= 12.0f;
-					}
-					if(y > 30)
-					{
-						density -= 12.0f;
-					}
-					if(y > 35)
-					{
-						density -= 12.0f;
-					}
-					break;
-				case terrainTypeFlyingIslands:
+						density = 1 + sizeY * 0.1f - y;
+						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/220,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/220) *2.0f;
+						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/120,(*marchingCubeVertices)[idx].position.y/220,(*marchingCubeVertices)[idx].position.z/40) *2.0f;
+						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/20,(*marchingCubeVertices)[idx].position.y/420,(*marchingCubeVertices)[idx].position.z/20) *2.0f;
 					
-					density = 0 + sizeY * 0.001f - y*0.1f;
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/40,(*marchingCubeVertices)[idx].position.y/10,(*marchingCubeVertices)[idx].position.z/25) *10.0f;
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/60,(*marchingCubeVertices)[idx].position.y/5,(*marchingCubeVertices)[idx].position.z/35) *10.0f;
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/21,(*marchingCubeVertices)[idx].position.y/10,(*marchingCubeVertices)[idx].position.z/43) *10.0f;
+						if(density < -2)
+						{
+							density = -2;
+						}
+						else if (density > 2)
+						{
+							density = 4;
+						}
 
-					break;
-				case terrainTypeAlien:
-					density = 1 + sizeY * 0.1f - y;
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/220,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/220) *20.0f;
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/120,(*marchingCubeVertices)[idx].position.y/220,(*marchingCubeVertices)[idx].position.z/40) *20.0f;
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/20,(*marchingCubeVertices)[idx].position.y/420,(*marchingCubeVertices)[idx].position.z/20) *10.0f;
-					break;
-				case terrainTypeFancy:
-					density = 1 + sizeY * 0.1f - y;
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/220,(*marchingCubeVertices)[idx].position.y/220,(*marchingCubeVertices)[idx].position.z/420) *2.0f;
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/120,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/20) *20.0f;
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/20,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/120) *20.0f;
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/120,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/120) *2.0f;
-					break;
-				case terrainTypeCave:
-					density = 7;
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/60,(*marchingCubeVertices)[idx].position.y/60,(*marchingCubeVertices)[idx].position.z/60) *20.0f;
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/20,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/120) *10.0f;
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/20,(*marchingCubeVertices)[idx].position.y/120,(*marchingCubeVertices)[idx].position.z/20) *10.0f;
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/120,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/20) *10.0f;
-					break;
-				default:
-
-
-					density = 1 + sizeY * 0.1f - y;
-
-					break;
-				}
-
-				if (pulverize == true)
-				{
-					density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x*0.2f,(*marchingCubeVertices)[idx].position.y*0.2f,(*marchingCubeVertices)[idx].position.z*0.2f)*2.0f;
-				}
-
-				/*
-				density = 1 + sizeY * 0.15f - y;
-				density += noise->noise3D2((*marchingCubeVertices)[idx].position.x/220,(*marchingCubeVertices)[idx].position.y/220,(*marchingCubeVertices)[idx].position.z/420) *2.0f;
-				density += noise->noise3D2((*marchingCubeVertices)[idx].position.x/120,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/20) *3.0f;
-				density += noise->noise3D2((*marchingCubeVertices)[idx].position.x/20,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/120) *2.0f;
-				density += noise->noise3D2((*marchingCubeVertices)[idx].position.x/80,(*marchingCubeVertices)[idx].position.y/80,(*marchingCubeVertices)[idx].position.z/80) *2.0f;
-				density += noise->noise3D2((*marchingCubeVertices)[idx].position.x/120,(*marchingCubeVertices)[idx].position.y/320,(*marchingCubeVertices)[idx].position.z/20) *3.0f;
-				density += noise->noise3D2((*marchingCubeVertices)[idx].position.x/10,(*marchingCubeVertices)[idx].position.y/10,(*marchingCubeVertices)[idx].position.z/10) *3.0f;
-				density += noise->noise3D2((*marchingCubeVertices)[idx].position.x/15,(*marchingCubeVertices)[idx].position.y/15,(*marchingCubeVertices)[idx].position.z/30) *5.0f;
-				density += noise->noise3D2((*marchingCubeVertices)[idx].position.x/5,(*marchingCubeVertices)[idx].position.y/5,(*marchingCubeVertices)[idx].position.z/5) *5.0f;
-				density += noise->noise3D2((*marchingCubeVertices)[idx].position.x/120,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/220) *3.0f;
-				*/
-
-				/*
-				density = 1;// + sizeY * 0.1f - y;
-				density += noise->noise3D2(sin ((*marchingCubeVertices)[idx].position.x*PI/180)*0.5f,sin ((*marchingCubeVertices)[idx].position.y*PI/180)*0.5f,sin ((*marchingCubeVertices)[idx].position.z*PI/180)*0.5f) *20.0f;
-				density += noise->noise3D2(sin ((*marchingCubeVertices)[idx].position.x*PI/180)*0.5f,sin ((*marchingCubeVertices)[idx].position.y*PI/180)*0.2f,sin ((*marchingCubeVertices)[idx].position.z*PI/180)*0.5f) *20.0f;
-				density += noise->noise3D2(sin ((*marchingCubeVertices)[idx].position.x*PI/180),sin ((*marchingCubeVertices)[idx].position.y*PI/180),sin ((*marchingCubeVertices)[idx].position.z*PI/180)) *20.0f;
-				density += noise->noise3D2(sin ((*marchingCubeVertices)[idx].position.x*PI/180)*0.1f,sin ((*marchingCubeVertices)[idx].position.y*PI/180)*0.1f,sin ((*marchingCubeVertices)[idx].position.z*PI/180)*0.2f) *20.0f;
-				density += noise->noise3D2(sin ((*marchingCubeVertices)[idx].position.x*PI/180)*0.2f,sin ((*marchingCubeVertices)[idx].position.y*PI/180)*0.1f,sin ((*marchingCubeVertices)[idx].position.z*PI/180)*0.1f) *20.0f;
-				*/
-
-				//**Hardfloor**//
-				if(y < 13)
-				{
-					density += 1000000.0f;
-				}
-
-
-				//**Toplvl**//
-				//
-				//if(y > 10)
-				//{
-				//density -= 7.0f;
-				//}
-				//if(y > 15)
-				//{
-				//density -= 7.0f;
-				//}
-				//if(y > 20)
-				//{
-				//density -= 7.0f;
-				//}
-				//if(y > 25)
-				//{
-				//density -= 7.0f;
-				//}
-
-
-				if(density < -2)
-				{
-					density = -2;
-				}
-				else if (density > 2)
-				{
-					density = 4;
-				}
-
-				(*marchingCubeVertices)[idx].density = density;
-
-				if (maxDensity < density)
-				{
-					maxDensity = density;
-				}
-				else if (minDensity > density)
-				{
-					minDensity = density;
+						(*marchingCubeVertices)[idx].density = density;
+					}
 				}
 			}
+			break;
 		}
+
+	case Plains:
+		{
+			for (z = startZ; z < (endZ-1); ++z)
+			{
+				for (y = startY; y < (endY-1); ++y)
+				{
+					for (x = startX; x < (endX-1); ++x)
+					{
+						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
+
+						density = 1 + sizeY * 0.2f - y;
+						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/220,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/220) *10.0f;
+					
+						if(density < -2)
+						{
+							density = -2;
+						}
+						else if (density > 2)
+						{
+							density = 4;
+						}
+
+						(*marchingCubeVertices)[idx].density = density;
+					}
+				}
+			}
+			break;
+		}
+
+	case Hills:
+		{
+			for (z = startZ; z < (endZ-1); ++z)
+			{
+				for (y = startY; y < (endY-1); ++y)
+				{
+					for (x = startX; x < (endX-1); ++x)
+					{
+						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
+
+						density = 1 + sizeY * 0.2f - y;
+						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/220,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/220) *2.0f;
+						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/80,(*marchingCubeVertices)[idx].position.y/220,(*marchingCubeVertices)[idx].position.z/40) *20.0f;
+						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/20,(*marchingCubeVertices)[idx].position.y/420,(*marchingCubeVertices)[idx].position.z/20) *10.0f;
+
+						if(density < -2)
+						{
+							density = -2;
+						}
+						else if (density > 2)
+						{
+							density = 4;
+						}
+
+						(*marchingCubeVertices)[idx].density = density;
+					}
+				}
+			}
+			break;
+		}
+
+	case Terraces:
+		{
+			for (z = startZ; z < (endZ-1); ++z)
+			{
+				for (y = startY; y < (endY-1); ++y)
+				{
+					for (x = startX; x < (endX-1); ++x)
+					{
+						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
+
+						density = 1 + sizeY * 0.4f - y;
+						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/220,(*marchingCubeVertices)[idx].position.y/220,(*marchingCubeVertices)[idx].position.z/420) *20.0f;
+						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/120,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/20) *20.0f;
+						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/20,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/120) *20.0f;
+						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/120,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/120) *5.0f;
+
+
+						//**Toplvl**//
+						if(y > 20)
+						{
+							density -= 12.0f*((y-20)/5);
+						}
+						//if(y > 25)
+						//{
+						//	density -= 12.0f;
+						//}
+						//if(y > 30)
+						//{
+						//	density -= 12.0f;
+						//}
+						//if(y > 35)
+						//{
+						//	density -= 12.0f;
+						//}
+
+						if(density < -2)
+						{
+							density = -2;
+						}
+						else if (density > 2)
+						{
+							density = 4;
+						}
+
+						(*marchingCubeVertices)[idx].density = density;
+					}
+				}
+			}
+			break;
+		}
+
+
+	case DramaticHills:
+		{
+			for (z = startZ; z < (endZ-1); ++z)
+			{
+				for (y = startY; y < (endY-1); ++y)
+				{
+					for (x = startX; x < (endX-1); ++x)
+					{
+						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
+
+						density = 1 + sizeY * 0.6f - y;
+						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/80,(*marchingCubeVertices)[idx].position.y/80,(*marchingCubeVertices)[idx].position.z/520) *30.0f;
+						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/40,(*marchingCubeVertices)[idx].position.y/30,(*marchingCubeVertices)[idx].position.z/500) *30.0f;
+						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/180,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/50) *20.0f;
+						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/120,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/120) *5.0f;
+						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/80,(*marchingCubeVertices)[idx].position.y/420,(*marchingCubeVertices)[idx].position.z/80) *30.0f;
+
+						//**Toplvl**//
+						if(y > 20)
+						{
+							density -= 12.0f*((y-20)/5);
+						}
+						//if(y > 25)
+						//{
+						//	density -= 12.0f;
+						//}
+						//if(y > 30)
+						//{
+						//	density -= 12.0f;
+						//}
+						//if(y > 35)
+						//{
+						//	density -= 12.0f;
+						//}
+
+						if(density < -2)
+						{
+							density = -2;
+						}
+						else if (density > 2)
+						{
+							density = 4;
+						}
+
+						(*marchingCubeVertices)[idx].density = density;
+					}
+				}
+			}
+			break;
+		}
+
+
+	case FlyingIslands:
+		{
+			for (z = startZ; z < (endZ-1); ++z)
+			{
+				for (y = startY; y < (endY-1); ++y)
+				{
+					for (x = startX; x < (endX-1); ++x)
+					{
+						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
+
+						density = 0 + sizeY * 0.001f - y*0.1f;
+						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/40,(*marchingCubeVertices)[idx].position.y/10,(*marchingCubeVertices)[idx].position.z/25) *10.0f;
+						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/60,(*marchingCubeVertices)[idx].position.y/5,(*marchingCubeVertices)[idx].position.z/35) *10.0f;
+						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/21,(*marchingCubeVertices)[idx].position.y/10,(*marchingCubeVertices)[idx].position.z/43) *10.0f;
+
+						if(density < -2)
+						{
+							density = -2;
+						}
+						else if (density > 2)
+						{
+							density = 4;
+						}
+
+						(*marchingCubeVertices)[idx].density = density;
+					}
+				}
+			}
+			break;
+		}
+
+	case Alien:
+		{
+			for (z = startZ; z < (endZ-1); ++z)
+			{
+				for (y = startY; y < (endY-1); ++y)
+				{
+					for (x = startX; x < (endX-1); ++x)
+					{
+						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
+
+						density = 1 + sizeY * 0.1f - y;
+						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/220,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/220) *20.0f;
+						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/120,(*marchingCubeVertices)[idx].position.y/220,(*marchingCubeVertices)[idx].position.z/40) *20.0f;
+						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/20,(*marchingCubeVertices)[idx].position.y/420,(*marchingCubeVertices)[idx].position.z/20) *10.0f;
+
+						if(density < -2)
+						{
+							density = -2;
+						}
+						else if (density > 2)
+						{
+							density = 4;
+						}
+
+						(*marchingCubeVertices)[idx].density = density;
+					}
+				}
+			}
+			break;
+		}
+
+
+	case Fancy:
+		{
+			for (z = startZ; z < (endZ-1); ++z)
+			{
+				for (y = startY; y < (endY-1); ++y)
+				{
+					for (x = startX; x < (endX-1); ++x)
+					{
+						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
+
+						density = 1 + sizeY * 0.1f - y;
+						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/220,(*marchingCubeVertices)[idx].position.y/220,(*marchingCubeVertices)[idx].position.z/420) *2.0f;
+						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/120,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/20) *20.0f;
+						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/20,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/120) *20.0f;
+						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/120,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/120) *2.0f;
+
+						if(density < -2)
+						{
+							density = -2;
+						}
+						else if (density > 2)
+						{
+							density = 4;
+						}
+
+						(*marchingCubeVertices)[idx].density = density;
+					}
+				}
+			}
+			break;
+		}
+
+		break;
+	case Cave:
+	{
+			for (z = startZ; z < (endZ-1); ++z)
+			{
+				for (y = startY; y < (endY-1); ++y)
+				{
+					for (x = startX; x < (endX-1); ++x)
+					{
+						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
+
+						density = 7;
+						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/60,(*marchingCubeVertices)[idx].position.y/60,(*marchingCubeVertices)[idx].position.z/60) *20.0f;
+						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/20,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/120) *10.0f;
+						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/20,(*marchingCubeVertices)[idx].position.y/120,(*marchingCubeVertices)[idx].position.z/20) *10.0f;
+						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/120,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/20) *10.0f;
+
+						if(density < -2)
+						{
+							density = -2;
+						}
+						else if (density > 2)
+						{
+							density = 4;
+						}
+
+						(*marchingCubeVertices)[idx].density = density;
+					}
+				}
+			}
+			break;
 	}
 
-	//maxDensity = maxDensity;
-	//minDensity = minDensity;
+	default:
+	{
+			density = 1 + sizeY * 0.1f - y;
 
-	densityRangeUpper = maxDensity - densityToBeInside;
-	if (densityRangeUpper != 0)
-	{
-		densityRangeUpper = 1 / densityRangeUpper;
+			if(density < -2)
+			{
+				density = -2;
+			}
+			else if (density > 2)
+			{
+				density = 4;
+			}
+
+			(*marchingCubeVertices)[idx].density = density;
+
+			break;
 	}
-	densityRangeLower = densityToBeInside - minDensity;
-	if (densityRangeUpper != 0)
-	{
-		densityRangeLower = 1 / densityRangeLower;
-	}
+}
+
+//if (pulverize == true)
+//{
+//	density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x*0.2f,(*marchingCubeVertices)[idx].position.y*0.2f,(*marchingCubeVertices)[idx].position.z*0.2f)*2.0f;
+//}
+//
+//	////**Hardfloor**//
+//if(y < 13)
+//{
+//	density += 1000000.0f;
+//}
+//
+//
+//if(density < -2)
+//{
+//	density = -2;
+//}
+//else if (density > 2)
+//{
+//	density = 4;
+//}
+//
+//(*marchingCubeVertices)[idx].density = density;
+
+//if (maxDensity < density)
+//{
+//	maxDensity = density;
+//}
+//else if (minDensity > density)
+//{
+//	minDensity = density;
+//}
+
+	//densityRangeUpper = maxDensity - densityToBeInside;
+	//if (densityRangeUpper != 0)
+	//{
+	//	densityRangeUpper = 1 / densityRangeUpper;
+	//}
+	//densityRangeLower = densityToBeInside - minDensity;
+	//if (densityRangeUpper != 0)
+	//{
+	//	densityRangeLower = 1 / densityRangeLower;
+	//}
 
 	for (z = startZ; z < (endZ-1); ++z)
 	{
@@ -339,14 +522,14 @@ void MCTerrainClass::Noise3D( vector<MarchingCubeVoxel>* marchingCubeVertices, u
 				//}
 
 				//densityArray3D[x][y][z] = (*marchingCubeVertices)[idx].density;
-				
+
 				CreateMCVerts(marchingCubeVertices);
 			}
 		}
 	}
 }
 
-void MCTerrainClass::CreateMCVerts(vector<MarchingCubeVoxel>* marchingCubeVertices)
+void MCTerrainClass::CreateMCVerts(vector<MarchingCubeVoxel>* marchingCubeVoxels)
 {
 	(*marchingCubeVertices)[idx].normal.x = ((*marchingCubeVertices)[idx - 1].density -					(*marchingCubeVertices)[idx+1].density)					* XFactor;
 	(*marchingCubeVertices)[idx].normal.y = ((*marchingCubeVertices)[idx - sizeY].density -				(*marchingCubeVertices)[idx + sizeY].density)			* YFactor;
@@ -368,7 +551,7 @@ void MCTerrainClass::CreateMCVerts(vector<MarchingCubeVoxel>* marchingCubeVertic
 	//(*marchingCubeVertices)[idx].normal.z = normalZ/vectorLength;
 }
 
-float MCTerrainClass::GetHighestPositionOfCoordinate(vector<MarchingCubeVoxel>* marchingCubeVertices, int x, int z)
+float MCTerrainClass::GetHighestPositionOfCoordinate(int x, int z) //vector<MarchingCubeVoxel>* marchingCubeVoxels, 
 {
 	int idx;
 	float j = 0.0f;

@@ -39,15 +39,91 @@ TerrainManager::TerrainManager(ID3D11Device* device, SimplexNoise* externalNoise
 	vegetationCount = 15000;
 
 	mcTerrain.Initialize(100, 100, 100, externalNoise);
-	mcTerrain.SetTerrainType(6);
+	mcTerrain.SetTerrainType(MCTerrainClass::Hills);
 
 	assert(vegetationManager.Initialize(device, hwnd));
 	noise = externalNoise;
-}
 
+	int startGridX, startGridZ;
+
+	startGridX = 1;
+	startGridZ = 1;
+
+	CreateChunk(device, startGridX, startGridZ-1);
+	CreateChunk(device, startGridX, startGridZ+0);
+	CreateChunk(device, startGridX, startGridZ+1);
+
+	CreateChunk(device, startGridX+1, startGridZ-1);
+	CreateChunk(device, startGridX+1, startGridZ+0);
+	CreateChunk(device, startGridX+1, startGridZ+1);
+
+	CreateChunk(device, startGridX-1, startGridZ-1);
+	CreateChunk(device, startGridX-1, startGridZ+0);
+	CreateChunk(device, startGridX-1, startGridZ+1);
+
+	CreateChunk(device, startGridX+2, startGridZ-1);
+	CreateChunk(device, startGridX+2, startGridZ+0);
+	CreateChunk(device, startGridX+2, startGridZ+1);
+
+	CreateChunk(device, startGridX-2, startGridZ-1);
+	CreateChunk(device, startGridX-2, startGridZ+0);
+	CreateChunk(device, startGridX-2, startGridZ+1);
+
+	GenerateVegetation(device, false, GetActiveChunks(startGridX, startGridZ));
+
+	//Fetch the active chunk
+	auto chunks = GetActiveChunks(startGridX, startGridZ);
+
+	//Clean them up and remove the HUGE index and vertex vectors because they are no longer needed.
+	for(auto it = chunks->begin(); it != chunks->end(); ++it)
+	{
+		(*it)->GetIndices()->clear();
+		(*it)->GetVoxelField()->clear();
+	}
+}
 
 TerrainManager::~TerrainManager()
 {
+}
+
+bool TerrainManager::Update( XMFLOAT3 currentCameraPosition )
+{
+	std::pair<int,int> key((int)(currentCameraPosition.x*0.01f), (int)(currentCameraPosition.z*0.01f));
+
+	if(key != lastUsedKey)
+	{
+		//////////////////////////////////////////////////////////////////////////
+		/*
+		*	Update active chunks and active renderables.
+		*/
+		//////////////////////////////////////////////////////////////////////////
+
+		//Temp chunk to hold pointer from each GetChunk call.
+		MarchingCubeChunk* tempChunk;
+
+		//Clear active chunks
+		activeChunks.clear();
+		activeRenderables.clear();
+
+		//Add all new relevant chunks
+		for(int i=0; i < 9; i++)
+		{
+			bool result;
+			result = GetChunk(key.first + (edgePairs[i].first), key.second + (edgePairs[i].second), &tempChunk);
+
+			//If this chunk is valid
+			if(result == true)
+			{
+				//Add ptr to active chunk vector
+				activeChunks.push_back(tempChunk);
+				activeRenderables.push_back(tempChunk->GetMesh());
+			}
+		}
+
+		return true;
+	}
+
+	return false;
 }
 
 void TerrainManager::ResetTerrain( int currentPosX, int currrentPosZ )
@@ -75,20 +151,21 @@ void TerrainManager::CreateChunk(ID3D11Device* device, int startPosX, int startP
 	{
 		float actualPosX, actualPosZ;
 
-		actualPosX = startPosX * 95;
-		actualPosZ = startPosZ * 95;
+		actualPosX = (float)(startPosX * 95);
+		actualPosZ = (float)(startPosZ * 95);
 
 		shared_ptr<MarchingCubeChunk> newChunk = make_shared<MarchingCubeChunk>
-		(
+			(
 			XMFLOAT3(actualPosX, 0, actualPosZ), 
 			XMFLOAT3(actualPosX + stepSize.x*stepCount.x, 0 + stepSize.y*stepCount.y, actualPosZ + stepSize.z*stepCount.z), 
 			stepSize, 
 			stepCount
-		);
+			);
 
 		//Noise the chunk
+		mcTerrain.SetCurrentVoxelField(newChunk->GetVoxelField());
 		mcTerrain.Noise3D(newChunk->GetVoxelField(), 1, 1, 1, 100, 100, 100);
-		
+
 		//Create the mesh for the chunk with marching cubes algorithm
 		marchingCubes.CalculateMesh(device, newChunk.get());
 
@@ -188,122 +265,143 @@ vector<MarchingCubeChunk*>* TerrainManager::GetActiveChunks( int x, int z )
 			result = GetChunk(x + (edgePairs[i].first), z + (edgePairs[i].second), &tempChunk);
 
 			//If this chunk is valid
-			if(result)
+			if(result == true)
 			{
-				//Add ptr to activechunk
+				//Add ptr to active chunk vector
 				activeChunks.push_back(tempChunk);
 			}
 		}
 
+		//Save the key
 		lastUsedKey = key;
 	}
 
 	return &activeChunks;
 }
 
-void TerrainManager::GenerateVegetation( ID3D11Device* device, bool UpdateInstanceBuffer, MarchingCubeChunk* chunk)
+void TerrainManager::GenerateVegetation( ID3D11Device* device, bool UpdateInstanceBuffer, vector<MarchingCubeChunk*>* activeChunks)
 {
-	//float x,z,y, randValue;
-	//int textureID = -1;
+	vector<VegetationManager::InstanceType> tempVec;
+	tempVec.reserve(vegetationCount * activeChunks->size());
 
-	////LODVector500.clear();
-	////LODVector2500.clear();
-	////LODVector5000.clear();
-	////LODVector10000.clear();
+	VegetationManager::InstanceType temp;
+	float x,z,y, randValue;
+	int textureID = -1;
+	unsigned int stepCountX, stepCountZ;
+	stepCountX = (*activeChunks)[0]->GetStepCountX();
+	stepCountZ = (*activeChunks)[0]->GetStepCountZ();
 
-	//MarchingCubeChunk* tempChunk = marchingCubes->GetChunk();
-	////MCTerrainClass* tempTerrain = marchingCubes->GetTerrain();
+	for(int i = 0; i < activeChunks->size(); i++)
+	{
+		mcTerrain.SetCurrentVoxelField((*activeChunks)[i]->GetVoxelField());
 
-	//for(int i = 0; i < vegetationCount; i++)
-	//{
-	//	textureID = -1;
+		for(int j = 0; j < vegetationCount; j++)
+		{
+			textureID = -1;
 
-	//	x = (2.0f + (RandomFloat() * tempChunk->GetStepCountX()-2.0f));
-	//	z = (2.0f + (RandomFloat() * tempChunk->GetStepCountZ()-2.0f));
+			x = (2.0f + (RandomFloat() * stepCountX-2.0f));
+			z = (2.0f + (RandomFloat() * stepCountZ-2.0f));
 
-	//	//Extract highest Y at this point
-	//	y = mcTerrain.GetHighestPositionOfCoordinate(tempChunk->GetVoxelField(), (int)x, (int)z);
+			//Extract highest Y at this point
+			y = mcTerrain.GetHighestPositionOfCoordinate((int)x, (int)z);//(*activeChunks)[i]->GetVoxelField(), 
 
-	//	randValue = (RandomFloat()*360.0f);
+			randValue = (RandomFloat()*360.0f);
 
-	//	//No vegetation below Y:20
-	//	if(y >= 20.0f)
-	//	{
-	//		if(y >= 45.0)
-	//		{
-	//			//But the grass should be sparse, so there is
-	//			//high chance that we won't actually add this to the instance list.
-	//			if(randValue > 300.0f)
-	//			{
-	//				textureID = 0;
-	//			}
-	//		}
-	//		else
-	//		{
-	//			if(randValue <= 40.0f)
-	//			{
-	//				textureID = 2; //Some kind of leaf branch that I've turned into a plant quad.
-	//			}
-	//			else if(randValue <= 330.0f) //By far biggest chance that we get normal grass
-	//			{
-	//				textureID = 1; //Normal grass.
-	//			}
-	//			else if(randValue <= 350.0f) //If 97-98
-	//			{
-	//				//textureID = 4; //Bush.
-	//				textureID = 1;
-	//			}
-	//			else //If 99-100.
-	//			{
-	//				//textureID = 3; //Flowers.
-	//				textureID = 1;
-	//			}
-	//		}
+			//No vegetation below Y:20
+			if(y >= 20.0f)
+			{
+				if(y >= 45.0)
+				{
+					//But the grass should be sparse, so there is
+					//high chance that we won't actually add this to the instance list.
+					if(randValue > 300.0f)
+					{
+						textureID = 0;
+					}
+				}
+				else
+				{
+					if(randValue <= 40.0f)
+					{
+						textureID = 2; //Some kind of leaf branch that I've turned into a plant quad.
+					}
+					else if(randValue <= 330.0f) //By far biggest chance that we get normal grass
+					{
+						textureID = 1; //Normal grass.
+					}
+					else if(randValue <= 350.0f) //If 97-98
+					{
+						textureID = 4; //Bush.
+						textureID = 1;
+					}
+					else //If 99-100.
+					{
+						textureID = 3; //Flowers.
+						textureID = 1;
+					}
+				}
 
-	//		if(textureID != -1)
-	//		{
-	//			//Place texture ID in .w channel
-	//			VegetationManager::InstanceType temp;
-	//			temp.position = XMFLOAT4(x, y, z, (float)textureID);
-	//			temp.randomValue = randValue;
+				if(textureID != -1)
+				{
+					//Place texture ID in .w channel
+					temp.position = XMFLOAT4((*activeChunks)[i]->GetStartPosX()+x, y, (*activeChunks)[i]->GetStartPosZ()+z, (float)textureID);
+					temp.randomValue = randValue;
 
-	//			//We use i to control how many should be added to each LOD vector
-	//			if(i <= (vegetationCount / 8))
-	//			{
-	//				LODVector500.push_back(temp);
-	//			}
+					////We use i to control how many should be added to each LOD vector
+					//if(i <= (vegetationCount / 8))
+					//{
+					//	LODVector500.push_back(temp);
+					//}
 
-	//			if(i <= (vegetationCount / 4))
-	//			{
-	//				LODVector2500.push_back(temp);
-	//			}
+					//if(i <= (vegetationCount / 4))
+					//{
+					//	LODVector2500.push_back(temp);
+					//}
 
-	//			if(i <= (vegetationCount / 2))
-	//			{
-	//				LODVector5000.push_back(temp);
-	//			}
+					//if(i <= (vegetationCount / 2))
+					//{
+					//	LODVector5000.push_back(temp);
+					//}
 
-	//			LODVector10000.push_back(temp);
-	//		}
-	//	}
-	//}
+					//(*activeChunks)[i]->GetVegetationInstances()->push_back(temp);
+					tempVec.push_back(temp);
+				}
+			}
+		}
+	}
 
-	//if(LODVector10000.size() == 0)
-	//{
-	//	VegetationManager::InstanceType temp;
-	//	temp.position = XMFLOAT4(5.0f, 0.0f, 5.0f, (float)1.0f);
-	//	temp.randomValue = 0.0f;
+	if(tempVec.size() == 0)
+	{
+		temp.position = XMFLOAT4(10.0f, 0.0f, 10.0f, (float)1.0f);
+		temp.randomValue = 0.0f;
 
-	//	LODVector10000.push_back(temp);
-	//}
+		tempVec.push_back(temp);
+	}
 
+	if(!UpdateInstanceBuffer)
+	{
+		vegetationManager.SetupQuads(device, &tempVec);
+	}
+	else
+	{
+		vegetationManager.BuildInstanceBuffer(device, &tempVec);
+	}
+}
 
-	////if(!UpdateInstanceBuffer)
-	////{
-	////	vegetationManager.SetupQuads(device, &LODVector10000);
-	////}
-	////else
-	////{
-	////	vegetationManager.BuildInstanceBuffer(device, &LODVector10000);
-	////}
+vector<RenderableInterface*>* TerrainManager::GetTerrainRenderables(int x, int z)
+{
+	//Make a key out of the values
+	std::pair<int,int> key(x, z);
+
+	if(key != lastUsedKey || activeRenderables.size() == 0)
+	{
+		activeRenderables.clear();
+
+		for(auto it = activeChunks.begin(); it != activeChunks.end(); ++it)
+		{
+			activeRenderables.push_back((*it)->GetMesh());
+		}
+	}
+
+	return &activeRenderables;
 }

@@ -10,17 +10,19 @@ using std::vector;
 
 class MCTerrainClass
 {
-private:
-	//Terrain modes
-	static const unsigned int terrainTypesSeaBottom = 1;
-	static const unsigned int terrainTypePlains = 2;
-	static const unsigned int terrainTypeHills = 3;
-	static const unsigned int terrainTypeTerraces = 4;
-	static const unsigned int terrainTypeDramaticHills = 5;
-	static const unsigned int terrainTypeFlyingIslands = 6;
-	static const unsigned int terrainTypeAlien = 7;
-	static const unsigned int terrainTypeFancy = 8;
-	static const unsigned int terrainTypeCave = 9;
+public:
+	enum TerrainTypes
+	{
+		SeaBottom = 1,
+		Plains = 2,
+		Hills = 3,
+		Terraces = 4,
+		DramaticHills = 5,
+		FlyingIslands = 6,
+		Alien = 7,
+		Fancy = 8,
+		Cave = 9
+	};
 
 public:
 	MCTerrainClass();
@@ -31,6 +33,8 @@ public:
 	void LSystem();
 	void LSystemTree();
 	void MCHeightMap();
+
+	void SetCurrentVoxelField(vector<MarchingCubeVoxel>* val){ marchingCubeVertices = val; }
 
 	void Noise3D(vector<MarchingCubeVoxel>* marchingCubeVertices, unsigned int startX, unsigned int startY, unsigned int startZ, unsigned int endX, unsigned int endY, unsigned int endZ);
 
@@ -44,7 +48,7 @@ public:
 		return densityRangeLower;
 	}
 	
-	void SetTerrainType(int terrainMode)
+	void SetTerrainType(TerrainTypes terrainMode)
 	{
 		this->terrainMode = terrainMode;
 	}
@@ -72,7 +76,8 @@ public:
 		return terrainMode;
 	}
 
-	float GetHighestPositionOfCoordinate(vector<MarchingCubeVoxel>* marchingCubeVertices, int x, int z);
+	//float GetHighestPositionOfCoordinate(vector<MarchingCubeVoxel>* marchingCubeVertices, int x, int z);
+	float GetHighestPositionOfCoordinate(int x, int z);
 
 private:
 	void CreateMCVerts(vector<MarchingCubeVoxel>* marchingCubeVertices);
@@ -82,9 +87,9 @@ private:
 	int sizeX, sizeY, sizeZ;
 	int worldSize;
 	int worldSizeMargin;
-	int x,y,z, idx;
+	unsigned int x,y,z, idx;
 	int worldArraySize;
-	int terrainMode;
+	TerrainTypes terrainMode;
 	float densityToBeInside;
 	float maxDensity, minDensity, densityRangeUpper,densityRangeLower;
 	float XFactor;

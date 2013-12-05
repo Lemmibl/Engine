@@ -323,6 +323,7 @@ bool VegetationManager::BuildInstanceBuffer( ID3D11Device* device, std::vector<I
 	unsigned int instanceCount = positions->size();
 
 	mesh.SetInstanceCount(instanceCount);
+	mesh.SetInstanceStride(sizeof(InstanceType));
 
 	// Set up the description of the instance buffer.
 	instanceBufferDesc.Usage = D3D11_USAGE_DEFAULT;

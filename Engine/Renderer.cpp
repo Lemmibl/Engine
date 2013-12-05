@@ -253,58 +253,52 @@ bool Renderer::InitializeModels( HWND hwnd )
 
 	terrainManager = make_shared<TerrainManager>(d3D->GetDevice(), &noise, hwnd);
 
-	MarchingCubeChunk* tempChunk;
+	tempChunks = *terrainManager->GetTerrainRenderables(1, 1);
 
-	terrainManager->CreateChunk(d3D->GetDevice(), 0, 0);
-	terrainManager->CreateChunk(d3D->GetDevice(), 1, 0);
-	terrainManager->CreateChunk(d3D->GetDevice(), -1, 0);
-	terrainManager->CreateChunk(d3D->GetDevice(), 1, 1);
-	terrainManager->CreateChunk(d3D->GetDevice(), 0, 1);
+	//result = terrainManager->GetChunk(0, 0, &tempChunk);
+	//tempChunks.push_back(tempChunk);
 
-	result = terrainManager->GetChunk(0, 0, &tempChunk);
-	tempChunks.push_back(tempChunk);
+	//if(!result)
+	//{
+	//	MessageBox(hwnd, L"Something went wrong when calling TerrainManager::GetChunk.", L"Error", MB_OK);
+	//	return false;
+	//}
 
-	if(!result)
-	{
-		MessageBox(hwnd, L"Something went wrong when calling TerrainManager::GetChunk.", L"Error", MB_OK);
-		return false;
-	}
+	//result = terrainManager->GetChunk(1, 0, &tempChunk);
+	//tempChunks.push_back(tempChunk);
 
-	result = terrainManager->GetChunk(1, 0, &tempChunk);
-	tempChunks.push_back(tempChunk);
+	//if(!result)
+	//{
+	//	MessageBox(hwnd, L"Something went wrong when calling TerrainManager::GetChunk.", L"Error", MB_OK);
+	//	return false;
+	//}
 
-	if(!result)
-	{
-		MessageBox(hwnd, L"Something went wrong when calling TerrainManager::GetChunk.", L"Error", MB_OK);
-		return false;
-	}
+	//result = terrainManager->GetChunk(-1, 0, &tempChunk);
+	//tempChunks.push_back(tempChunk);
 
-	result = terrainManager->GetChunk(-1, 0, &tempChunk);
-	tempChunks.push_back(tempChunk);
+	//if(!result)
+	//{
+	//	MessageBox(hwnd, L"Something went wrong when calling TerrainManager::GetChunk.", L"Error", MB_OK);
+	//	return false;
+	//}
 
-	if(!result)
-	{
-		MessageBox(hwnd, L"Something went wrong when calling TerrainManager::GetChunk.", L"Error", MB_OK);
-		return false;
-	}
+	//result = terrainManager->GetChunk(1, 1, &tempChunk);
+	//tempChunks.push_back(tempChunk);
 
-	result = terrainManager->GetChunk(1, 1, &tempChunk);
-	tempChunks.push_back(tempChunk);
+	//if(!result)
+	//{
+	//	MessageBox(hwnd, L"Something went wrong when calling TerrainManager::GetChunk.", L"Error", MB_OK);
+	//	return false;
+	//}
 
-	if(!result)
-	{
-		MessageBox(hwnd, L"Something went wrong when calling TerrainManager::GetChunk.", L"Error", MB_OK);
-		return false;
-	}
+	//result = terrainManager->GetChunk(0, 1, &tempChunk);
+	//tempChunks.push_back(tempChunk);
 
-	result = terrainManager->GetChunk(0, 1, &tempChunk);
-	tempChunks.push_back(tempChunk);
-
-	if(!result)
-	{
-		MessageBox(hwnd, L"Something went wrong when calling TerrainManager::GetChunk.", L"Error", MB_OK);
-		return false;
-	}
+	//if(!result)
+	//{
+	//	MessageBox(hwnd, L"Something went wrong when calling TerrainManager::GetChunk.", L"Error", MB_OK);
+	//	return false;
+	//}
 
 
 
@@ -563,47 +557,47 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD1) || inputManager->WasKeyPressed(DIK_F1))
 	{
-		terrainManager->SetTerrainType(1);
+		terrainManager->SetTerrainType(MCTerrainClass::SeaBottom);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD2) || inputManager->WasKeyPressed(DIK_F2))
 	{
-		terrainManager->SetTerrainType(2);
+		terrainManager->SetTerrainType(MCTerrainClass::Plains);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD3) || inputManager->WasKeyPressed(DIK_F3))
 	{
-		terrainManager->SetTerrainType(3);
+		terrainManager->SetTerrainType(MCTerrainClass::Hills);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD4) || inputManager->WasKeyPressed(DIK_F4))
 	{
-		terrainManager->SetTerrainType(4);
+		terrainManager->SetTerrainType(MCTerrainClass::Terraces);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD5) || inputManager->WasKeyPressed(DIK_F5))
 	{
-		terrainManager->SetTerrainType(5);
+		terrainManager->SetTerrainType(MCTerrainClass::DramaticHills);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD6) || inputManager->WasKeyPressed(DIK_F6))
 	{
-		terrainManager->SetTerrainType(6);
+		terrainManager->SetTerrainType(MCTerrainClass::FlyingIslands);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD7) || inputManager->WasKeyPressed(DIK_F7))
 	{
-		terrainManager->SetTerrainType(7);
+		terrainManager->SetTerrainType(MCTerrainClass::Alien);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD8) || inputManager->WasKeyPressed(DIK_F8))
 	{
-		terrainManager->SetTerrainType(8);
+		terrainManager->SetTerrainType(MCTerrainClass::Fancy);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD9) || inputManager->WasKeyPressed(DIK_F9))
 	{
-		terrainManager->SetTerrainType(9);
+		terrainManager->SetTerrainType(MCTerrainClass::Cave);
 	}
 
 #pragma region Generate new marching cubes world
@@ -612,6 +606,14 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 		
 	}
 #pragma endregion
+
+
+
+	if(terrainManager->Update(camera->GetPosition()))
+	{
+		tempChunks.clear();
+		tempChunks = *terrainManager->GetActiveRenderables();
+	}
 
 	timeOfDay = dayNightCycle.Update(seconds, &dirLight, &skySphere);
 
@@ -777,9 +779,9 @@ bool Renderer::RenderShadowmap( ID3D11DeviceContext* deviceContext, XMMATRIX* li
 
 	for(int i = 0; i < tempChunks.size(); i++)
 	{	
-		tempChunks[i]->GetMesh()->Render(deviceContext);
+		tempChunks[i]->Render(deviceContext);
 
-		if(!depthOnlyShader.Render(deviceContext, tempChunks[i]->GetMesh()->GetIndexCount(), lightWorldViewProj, lightWorldView))
+		if(!depthOnlyShader.Render(deviceContext, ((IndexedMesh*)tempChunks[i])->GetIndexCount(), lightWorldViewProj, lightWorldView))
 		{
 			return false;
 		}
@@ -888,22 +890,22 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 
 	for(int i = 0; i < tempChunks.size(); i++)
 	{	
-		tempChunks[i]->GetMesh()->Render(deviceContext);
+		tempChunks[i]->Render(deviceContext);
 
-		if(!mcubeShader.Render(d3D->GetDeviceContext(), tempChunks[i]->GetMesh()->GetIndexCount(), &worldMatrix, &worldView, 
+		if(!mcubeShader.Render(d3D->GetDeviceContext(), ((IndexedMesh*)tempChunks[i])->GetIndexCount(), &worldMatrix, &worldView, 
 			identityWorldViewProj, textureAndMaterialHandler.GetTerrainTextureArray(), textureAndMaterialHandler.GetMaterialLookupTexture(), toggleColorMode, farClip))
 		{
 			return false;
 		}
 	}
 
-	//d3D->SetNoCullRasterizer();
-	//d3D->TurnOnAlphaBlending();
-	//if(!vegetationManager.Render(deviceContext, identityWorldViewProj, &worldView, &worldMatrix, textureAndMaterialHandler.GetVegetationTextureArray()))
-	//{
-	//	return false;
-	//}
-	//d3D->TurnOffAlphaBlending();
+	d3D->SetNoCullRasterizer();
+	d3D->TurnOnAlphaBlending();
+	if(!(terrainManager->GetVegetationManager()->Render(deviceContext, identityWorldViewProj, &worldView, &worldMatrix, textureAndMaterialHandler.GetVegetationTextureArray())))
+	{
+		return false;
+	}
+	d3D->TurnOffAlphaBlending();
 
 	return true;
 }
