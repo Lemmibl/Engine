@@ -31,7 +31,7 @@ public:
 	~TerrainManager();
 
 	//Returns a bool to indicate if we've actually had to change anything. If true, it has changed and we should fetch the new data.
-	bool Update(XMFLOAT3 currentCameraPosition);
+	bool Update(ID3D11Device* device, XMFLOAT3 currentCameraPosition);
 
 	void ResetTerrain(int currentPosX, int currrentPosZ);
 	void CreateChunk(ID3D11Device* device, int startPosX, int startPosZ);
@@ -43,7 +43,7 @@ public:
 	vector<RenderableInterface*>* GetTerrainRenderables(int x, int z);
 	vector<RenderableInterface*>* GetActiveRenderables(){ return &activeRenderables; }
 
-	void GenerateVegetation(ID3D11Device* device, bool UpdateInstanceBuffer, vector<MarchingCubeChunk*>* activeChunks);
+	void GenerateVegetation(ID3D11Device* device, bool UpdateInstanceBuffer, MarchingCubeChunk* chunk);
 	void RenderVegetation();
 
 	void SetTerrainType(MCTerrainClass::TerrainTypes val) { mcTerrain.SetTerrainType(val); }

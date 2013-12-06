@@ -51,20 +51,6 @@ bool VegetationManager::SetupQuads( ID3D11Device* device, std::vector<InstanceTy
 
 void VegetationManager::Shutdown()
 {
-	//// Release the instance buffer.
-	//if(instanceBuffer)
-	//{
-	//	instanceBuffer->Release();
-	//	instanceBuffer = 0;
-	//}
-
-	//// Release the vertex buffer.
-	//if(vertexBuffer)
-	//{
-	//	vertexBuffer->Release();
-	//	vertexBuffer = 0;
-	//}
-
 	if(vegetationShader)
 	{
 		vegetationShader->Shutdown();
@@ -337,6 +323,11 @@ bool VegetationManager::BuildInstanceBuffer( ID3D11Device* device, std::vector<I
 	instanceData.pSysMem = positions->data();
 	instanceData.SysMemPitch = 0;
 	instanceData.SysMemSlicePitch = 0;
+
+	if(mesh.GetInstanceBuffer() != 0)
+	{
+		mesh.GetInstanceBuffer()->Release();
+	}
 
 	// Create the instance buffer.
 	result = device->CreateBuffer(&instanceBufferDesc, &instanceData, mesh.GetInstanceBufferPP());

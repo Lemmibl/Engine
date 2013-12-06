@@ -609,7 +609,7 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 
 
 
-	if(terrainManager->Update(camera->GetPosition()))
+	if(terrainManager->Update(d3D->GetDevice(), camera->GetPosition()))
 	{
 		tempChunks.clear();
 		tempChunks = *terrainManager->GetActiveRenderables();
@@ -777,7 +777,7 @@ bool Renderer::RenderShadowmap( ID3D11DeviceContext* deviceContext, XMMATRIX* li
 
 	d3D->SetNoCullRasterizer();
 
-	for(int i = 0; i < tempChunks.size(); i++)
+	for(unsigned int i = 0; i < tempChunks.size(); i++)
 	{	
 		tempChunks[i]->Render(deviceContext);
 
@@ -888,7 +888,7 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 	//} 
 
 
-	for(int i = 0; i < tempChunks.size(); i++)
+	for(unsigned int i = 0; i < tempChunks.size(); i++)
 	{	
 		tempChunks[i]->Render(deviceContext);
 
