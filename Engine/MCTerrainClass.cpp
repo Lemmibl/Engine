@@ -88,19 +88,19 @@ void MCTerrainClass::MCHeightMap()
 }
 
 
-void MCTerrainClass::Noise3D( vector<MarchingCubeVoxel>* marchingCubeVoxels, unsigned int startX, unsigned int startY, unsigned int startZ, unsigned int endX, unsigned int endY, unsigned int endZ )
+void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned int startZ, unsigned int endX, unsigned int endY, unsigned int endZ )
 {
 	maxDensity = -511.0f;
 	minDensity = 511.0f;
 	float density;
 
-switch ( terrainMode ) 
-{
+	switch ( terrainMode ) 
+	{
 	case SeaBottom:
 		{
-			for (z = startZ; z < (endZ-1); ++z)
+			for (y = startY; y < (endY-1); ++y)
 			{
-				for (y = startY; y < (endY-1); ++y)
+				for (z = startZ; z < (endZ-1); ++z)
 				{
 					for (x = startX; x < (endX-1); ++x)
 					{
@@ -110,7 +110,7 @@ switch ( terrainMode )
 						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/220,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/220) *2.0f;
 						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/120,(*marchingCubeVertices)[idx].position.y/220,(*marchingCubeVertices)[idx].position.z/40) *2.0f;
 						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/20,(*marchingCubeVertices)[idx].position.y/420,(*marchingCubeVertices)[idx].position.z/20) *2.0f;
-					
+
 						if(density < -2)
 						{
 							density = -2;
@@ -129,9 +129,9 @@ switch ( terrainMode )
 
 	case Plains:
 		{
-			for (z = startZ; z < (endZ-1); ++z)
+			for (y = startY; y < (endY-1); ++y)
 			{
-				for (y = startY; y < (endY-1); ++y)
+				for (z = startZ; z < (endZ-1); ++z)
 				{
 					for (x = startX; x < (endX-1); ++x)
 					{
@@ -139,7 +139,7 @@ switch ( terrainMode )
 
 						density = 1 + sizeY * 0.2f - y;
 						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/220,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/220) *10.0f;
-					
+
 						if(density < -2)
 						{
 							density = -2;
@@ -158,9 +158,9 @@ switch ( terrainMode )
 
 	case Hills:
 		{
-			for (z = startZ; z < (endZ-1); ++z)
+			for (y = startY; y < (endY-1); ++y)
 			{
-				for (y = startY; y < (endY-1); ++y)
+				for (z = startZ; z < (endZ-1); ++z)
 				{
 					for (x = startX; x < (endX-1); ++x)
 					{
@@ -189,9 +189,9 @@ switch ( terrainMode )
 
 	case Terraces:
 		{
-			for (z = startZ; z < (endZ-1); ++z)
+			for (y = startY; y < (endY-1); ++y)
 			{
-				for (y = startY; y < (endY-1); ++y)
+				for (z = startZ; z < (endZ-1); ++z)
 				{
 					for (x = startX; x < (endX-1); ++x)
 					{
@@ -241,9 +241,9 @@ switch ( terrainMode )
 
 	case DramaticHills:
 		{
-			for (z = startZ; z < (endZ-1); ++z)
+			for (y = startY; y < (endY-1); ++y)
 			{
-				for (y = startY; y < (endY-1); ++y)
+				for (z = startZ; z < (endZ-1); ++z)
 				{
 					for (x = startX; x < (endX-1); ++x)
 					{
@@ -293,9 +293,9 @@ switch ( terrainMode )
 
 	case FlyingIslands:
 		{
-			for (z = startZ; z < (endZ-1); ++z)
+			for (y = startY; y < (endY-1); ++y)
 			{
-				for (y = startY; y < (endY-1); ++y)
+				for (z = startZ; z < (endZ-1); ++z)
 				{
 					for (x = startX; x < (endX-1); ++x)
 					{
@@ -324,9 +324,9 @@ switch ( terrainMode )
 
 	case Alien:
 		{
-			for (z = startZ; z < (endZ-1); ++z)
+			for (y = startY; y < (endY-1); ++y)
 			{
-				for (y = startY; y < (endY-1); ++y)
+				for (z = startZ; z < (endZ-1); ++z)
 				{
 					for (x = startX; x < (endX-1); ++x)
 					{
@@ -356,9 +356,9 @@ switch ( terrainMode )
 
 	case Fancy:
 		{
-			for (z = startZ; z < (endZ-1); ++z)
+			for (y = startY; y < (endY-1); ++y)
 			{
-				for (y = startY; y < (endY-1); ++y)
+				for (z = startZ; z < (endZ-1); ++z)
 				{
 					for (x = startX; x < (endX-1); ++x)
 					{
@@ -388,10 +388,10 @@ switch ( terrainMode )
 
 		break;
 	case Cave:
-	{
-			for (z = startZ; z < (endZ-1); ++z)
+		{
+			for (y = startY; y < (endY-1); ++y)
 			{
-				for (y = startY; y < (endY-1); ++y)
+				for (z = startZ; z < (endZ-1); ++z)
 				{
 					for (x = startX; x < (endX-1); ++x)
 					{
@@ -417,10 +417,10 @@ switch ( terrainMode )
 				}
 			}
 			break;
-	}
+		}
 
 	default:
-	{
+		{
 			density = 1 + sizeY * 0.1f - y;
 
 			if(density < -2)
@@ -435,40 +435,40 @@ switch ( terrainMode )
 			(*marchingCubeVertices)[idx].density = density;
 
 			break;
+		}
 	}
-}
 
-//if (pulverize == true)
-//{
-//	density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x*0.2f,(*marchingCubeVertices)[idx].position.y*0.2f,(*marchingCubeVertices)[idx].position.z*0.2f)*2.0f;
-//}
-//
-//	////**Hardfloor**//
-//if(y < 13)
-//{
-//	density += 1000000.0f;
-//}
-//
-//
-//if(density < -2)
-//{
-//	density = -2;
-//}
-//else if (density > 2)
-//{
-//	density = 4;
-//}
-//
-//(*marchingCubeVertices)[idx].density = density;
+	//if (pulverize == true)
+	//{
+	//	density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x*0.2f,(*marchingCubeVertices)[idx].position.y*0.2f,(*marchingCubeVertices)[idx].position.z*0.2f)*2.0f;
+	//}
+	//
+	//	////**Hardfloor**//
+	//if(y < 13)
+	//{
+	//	density += 1000000.0f;
+	//}
+	//
+	//
+	//if(density < -2)
+	//{
+	//	density = -2;
+	//}
+	//else if (density > 2)
+	//{
+	//	density = 4;
+	//}
+	//
+	//(*marchingCubeVertices)[idx].density = density;
 
-//if (maxDensity < density)
-//{
-//	maxDensity = density;
-//}
-//else if (minDensity > density)
-//{
-//	minDensity = density;
-//}
+	//if (maxDensity < density)
+	//{
+	//	maxDensity = density;
+	//}
+	//else if (minDensity > density)
+	//{
+	//	minDensity = density;
+	//}
 
 	//densityRangeUpper = maxDensity - densityToBeInside;
 	//if (densityRangeUpper != 0)
@@ -481,9 +481,9 @@ switch ( terrainMode )
 	//	densityRangeLower = 1 / densityRangeLower;
 	//}
 
-	for (z = startZ; z < (endZ-1); ++z)
+	for (y = startY; y < (endY-1); ++y)
 	{
-		for (y = startY; y < (endY-1); ++y)
+		for (z = startZ; z < (endZ-1); ++z)
 		{
 			for (x = startX; x < (endX-1); ++x)
 			{
@@ -523,35 +523,27 @@ switch ( terrainMode )
 
 				//densityArray3D[x][y][z] = (*marchingCubeVertices)[idx].density;
 
-				CreateMCVerts(marchingCubeVertices);
+				CreateMCVerts();
 			}
 		}
 	}
 }
 
-void MCTerrainClass::CreateMCVerts(vector<MarchingCubeVoxel>* marchingCubeVoxels)
+void MCTerrainClass::CreateMCVerts()
 {
 	(*marchingCubeVertices)[idx].normal.x = ((*marchingCubeVertices)[idx - 1].density -					(*marchingCubeVertices)[idx+1].density)					* XFactor;
 	(*marchingCubeVertices)[idx].normal.y = ((*marchingCubeVertices)[idx - sizeY].density -				(*marchingCubeVertices)[idx + sizeY].density)			* YFactor;
 	(*marchingCubeVertices)[idx].normal.z = ((*marchingCubeVertices)[idx - (sizeY * sizeZ)].density -	(*marchingCubeVertices)[idx + (sizeY * sizeZ)].density)	* ZFactor;
 
-	//float normalX = ((densityArray3D[x-1][y][z]	- densityArray3D[x+1][y][z])) * XFactor;
-	//float normalY = ((densityArray3D[x][y-1][z]	- densityArray3D[x][y+1][z])) * YFactor;
-	//float normalZ = ((densityArray3D[x][y][z-1]	- densityArray3D[x][y][z+1])) * ZFactor;
-
-	//(*marchingCubeVertices)[idx].normal.x = normalX;
-	//(*marchingCubeVertices)[idx].normal.y = normalY;
-	//(*marchingCubeVertices)[idx].normal.z = normalZ;
-
 	////Normalize results.
 	//float vectorLength = (normalX*normalX) + (normalY*normalY) + (normalZ*normalZ);
 
-	//(*marchingCubeVertices)[idx].normal.x = normalX/vectorLength;
-	//(*marchingCubeVertices)[idx].normal.y = normalY/vectorLength;
-	//(*marchingCubeVertices)[idx].normal.z = normalZ/vectorLength;
+	//(*marchingCubeVertices)[idx].normal.x = (*marchingCubeVertices)[idx].normal.x/vectorLength;
+	//(*marchingCubeVertices)[idx].normal.y = (*marchingCubeVertices)[idx].normal.y/vectorLength;
+	//(*marchingCubeVertices)[idx].normal.z = (*marchingCubeVertices)[idx].normal.z/vectorLength;
 }
 
-float MCTerrainClass::GetHighestPositionOfCoordinate(int x, int z) //vector<MarchingCubeVoxel>* marchingCubeVoxels, 
+float MCTerrainClass::GetHighestPositionOfCoordinate(int x, int z)
 {
 	int idx;
 	float j = 0.0f;

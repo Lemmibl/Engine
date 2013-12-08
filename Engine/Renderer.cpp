@@ -251,9 +251,9 @@ bool Renderer::InitializeModels( HWND hwnd )
 {
 	bool result;
 
-	terrainManager = make_shared<TerrainManager>(d3D->GetDevice(), &noise, hwnd);
+	terrainManager = make_shared<TerrainManager>(d3D->GetDevice(), &noise, hwnd, camera->GetPosition());
 
-	tempChunks = *terrainManager->GetTerrainRenderables(1, 1);
+	tempChunks = *terrainManager->GetTerrainRenderables(camera->GetPosition().x*0.01f, camera->GetPosition().z*0.01f);
 
 	//result = terrainManager->GetChunk(0, 0, &tempChunk);
 	//tempChunks.push_back(tempChunk);
@@ -606,8 +606,6 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 		
 	}
 #pragma endregion
-
-
 
 	if(terrainManager->Update(d3D->GetDevice(), camera->GetPosition()))
 	{

@@ -361,9 +361,9 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 		unsigned int sizeY = chunk->GetStepCountY();
 		unsigned int sizeZ = chunk->GetStepCountZ();
 
-		for (z = 0; z < sizeZ; ++z)
+		for (y = 0; y < sizeY; ++y)
 		{
-			for (y = 0; y < sizeY; ++y)
+			for (z = 0; z < sizeZ; ++z)
 			{
 				for (x = 0; x < sizeX; ++x)
 				{

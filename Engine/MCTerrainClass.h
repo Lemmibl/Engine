@@ -36,7 +36,7 @@ public:
 
 	void SetCurrentVoxelField(vector<MarchingCubeVoxel>* val){ marchingCubeVertices = val; }
 
-	void Noise3D(vector<MarchingCubeVoxel>* marchingCubeVertices, unsigned int startX, unsigned int startY, unsigned int startZ, unsigned int endX, unsigned int endY, unsigned int endZ);
+	void Noise3D(unsigned int startX, unsigned int startY, unsigned int startZ, unsigned int endX, unsigned int endY, unsigned int endZ);
 
 	float GetDensityRangeUpper()
 	{
@@ -80,7 +80,7 @@ public:
 	float GetHighestPositionOfCoordinate(int x, int z);
 
 private:
-	void CreateMCVerts(vector<MarchingCubeVoxel>* marchingCubeVertices);
+	void CreateMCVerts();
 
 
 private:

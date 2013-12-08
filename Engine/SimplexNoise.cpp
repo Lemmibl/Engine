@@ -66,14 +66,14 @@ void SimplexNoise::ReseedRandom()
 		perm[i] = 1+(rand() % 255);
 	}
 
-	//for(int i=0; i<512; i++)
-	//{
-	//	float x = (-1.0f + 2.0f*(static_cast<float>(rand()) / static_cast<float>(RAND_MAX))); // * 0.7f; //
-	//	float y = (-1.0f + 2.0f*(static_cast<float>(rand()) / static_cast<float>(RAND_MAX))); // * 0.7f; //
-	//	float z = (-1.0f + 2.0f*(static_cast<float>(rand()) / static_cast<float>(RAND_MAX))); // * 0.7f; //
+	for(int i=0; i<512; i++)
+	{
+		float x = (-1.0f + 2.0f*(static_cast<float>(rand()) / static_cast<float>(RAND_MAX))); // * 0.7f; //
+		float y = (-1.0f + 2.0f*(static_cast<float>(rand()) / static_cast<float>(RAND_MAX))); // * 0.7f; //
+		float z = (-1.0f + 2.0f*(static_cast<float>(rand()) / static_cast<float>(RAND_MAX))); // * 0.7f; //
 
-	//	grads[i] = Grad(p[i & 255], x, y, z);
-	//}
+		grads[i] = Grad(p[i & 255], x, y, z);
+	}
 }
 
 SimplexNoise::~SimplexNoise()
@@ -265,46 +265,46 @@ float SimplexNoise::SimplexNoise3DZeroToOne( float xin, float yin, float zin )
 }
 
 //http://mrl.nyu.edu/~perlin/noise/
-//float SimplexNoise::PerlinNoise3D( float x, float y, float z )
-//{
-//		int X = fastfloor(x);                  // FIND UNIT CUBE THAT
-//		int	Y = fastfloor(y);                  // CONTAINS POINT.
-//		int	Z = fastfloor(z);
-//		x -= X;                                // FIND RELATIVE X,Y,Z
-//		y -= Y;                                // OF POINT IN CUBE.
-//		z -= Z;
-//
-//		X = X & 255;
-//		Y = Y & 255;
-//		Z = Z & 255;
-//
-//		float u = Fade(x);                                // COMPUTE FADE CURVES
-//		float v = Fade(y);                                // FOR EACH OF X,Y,Z.
-//		float w = Fade(z);
-//		int A = p[X  ]+Y, AA = p[A]+Z, AB = p[A+1]+Z,      // HASH COORDINATES OF
-//			B = p[X+1]+Y, BA = p[B]+Z, BB = p[B+1]+Z;      // THE 8 CUBE CORNERS,
-//
-//		float returnValue = Lerp(w, Lerp(v, Lerp(u, Grad(p[AA  ], x  , y  , z   ),	// AND ADD
-//			Grad(p[BA  ], x-1, y  , z   )),								// BLENDED
-//			Lerp(u, Grad(p[AB  ], x  , y-1, z   ),						// RESULTS
-//			Grad(p[BB  ], x-1, y-1, z   ))),							// FROM  8
-//			Lerp(v, Lerp(u, Grad(p[AA+1], x  , y  , z-1 ),				// CORNERS
-//			Grad(p[BA+1], x-1, y  , z-1 )),								// OF CUBE
-//			Lerp(u, Grad(p[AB+1], x  , y-1, z-1 ),
-//			Grad(p[BB+1], x-1, y-1, z-1 ))));
-//
-//		//"Optimized" version that produces slightly blockier noise.
-//		//http://www.gamedev.net/blog/73/entry-1382657-fast-perlin-noise/
-//		//float returnValue = 		
-//		//	(
-//		//	Lerp(w, 
-//		//	Lerp(v, Lerp(u, grads[AA],		grads[BA]), 
-//		//	Lerp(u, grads[AB],		grads[BB])),
-//
-//		//	Lerp(v,	Lerp(u, grads[AA + 1],	grads[BA + 1]), 
-//		//	Lerp(u, grads[AB + 1],	grads[BB + 1]))
-//		//	)
-//		//	);
-//
-//		return returnValue;
-//}
+float SimplexNoise::PerlinNoise3D( float x, float y, float z )
+{
+		int X = fastfloor(x);                  // FIND UNIT CUBE THAT
+		int	Y = fastfloor(y);                  // CONTAINS POINT.
+		int	Z = fastfloor(z);
+		x -= X;                                // FIND RELATIVE X,Y,Z
+		y -= Y;                                // OF POINT IN CUBE.
+		z -= Z;
+
+		X = X & 255;
+		Y = Y & 255;
+		Z = Z & 255;
+
+		float u = Fade(x);                                // COMPUTE FADE CURVES
+		float v = Fade(y);                                // FOR EACH OF X,Y,Z.
+		float w = Fade(z);
+		int A = p[X  ]+Y, AA = p[A]+Z, AB = p[A+1]+Z,      // HASH COORDINATES OF
+			B = p[X+1]+Y, BA = p[B]+Z, BB = p[B+1]+Z;      // THE 8 CUBE CORNERS,
+
+		float returnValue = Lerp(w, Lerp(v, Lerp(u, Grad(p[AA  ], x  , y  , z   ),	// AND ADD
+			Grad(p[BA  ], x-1, y  , z   )),								// BLENDED
+			Lerp(u, Grad(p[AB  ], x  , y-1, z   ),						// RESULTS
+			Grad(p[BB  ], x-1, y-1, z   ))),							// FROM  8
+			Lerp(v, Lerp(u, Grad(p[AA+1], x  , y  , z-1 ),				// CORNERS
+			Grad(p[BA+1], x-1, y  , z-1 )),								// OF CUBE
+			Lerp(u, Grad(p[AB+1], x  , y-1, z-1 ),
+			Grad(p[BB+1], x-1, y-1, z-1 ))));
+
+		//"Optimized" version that produces slightly blockier noise.
+		//http://www.gamedev.net/blog/73/entry-1382657-fast-perlin-noise/
+		//float returnValue = 		
+		//	(
+		//	Lerp(w, 
+		//	Lerp(v, Lerp(u, grads[AA],		grads[BA]), 
+		//	Lerp(u, grads[AB],		grads[BB])),
+
+		//	Lerp(v,	Lerp(u, grads[AA + 1],	grads[BA + 1]), 
+		//	Lerp(u, grads[AB + 1],	grads[BB + 1]))
+		//	)
+		//	);
+
+		return returnValue;
+}

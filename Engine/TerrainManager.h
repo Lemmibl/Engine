@@ -27,7 +27,7 @@ private:
 	};
 
 public:
-	TerrainManager(ID3D11Device* device, SimplexNoise* noise, HWND hwnd);
+	TerrainManager(ID3D11Device* device, SimplexNoise* noise, HWND hwnd,  XMFLOAT3 cameraPosition);
 	~TerrainManager();
 
 	//Returns a bool to indicate if we've actually had to change anything. If true, it has changed and we should fetch the new data.
@@ -70,7 +70,7 @@ private:
 	SimplexNoise* noise;
 	unsigned int vegetationCount;
 
-	std::unordered_map<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>, int_pair_hash> map;
+	std::shared_ptr<std::unordered_map<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>, int_pair_hash>> map;
 	vector<MarchingCubeChunk*> activeChunks;
 	vector<RenderableInterface*> activeRenderables; //We add each chunk's mesh to this list and only change it when our activechunks change
 

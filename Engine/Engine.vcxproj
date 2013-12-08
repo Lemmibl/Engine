@@ -215,6 +215,11 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <Profile>false</Profile>
+      <HeapReserveSize>
+      </HeapReserveSize>
+      <StackReserveSize>
+      </StackReserveSize>
+      <LargeAddressAware>true</LargeAddressAware>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

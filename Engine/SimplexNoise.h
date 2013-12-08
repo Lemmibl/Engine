@@ -13,13 +13,13 @@ public:
 	float Noise2D(float xin, float yin);
 	float SimplexNoise3D(float xin, float yin, float zin);
 	float SimplexNoise3DZeroToOne(float xin, float yin, float zin);
-//	float PerlinNoise3D(float x, float y,  float z);
+	float PerlinNoise3D(float x, float y,  float z);
 
 	void ReseedRandom();
 
 	int perm[512];
 	int p[260];
-	//float grads[512];
+	float grads[512];
 
 
 private:

@@ -20,7 +20,7 @@ public:
 	vector<VegetationManager::InstanceType>* GetVegetationInstances() { return &vegetationInstances; }
 	//const Lemmi3DAABB* GetBoundingBox() { return &boundingBox; }
 
-	unsigned int GetTotalSize() const { return voxels.size(); }
+	unsigned int GetTotalSize() const { return ((stepCountX+1) * (stepCountY+1) * (stepCountZ+1)); }
 	unsigned int GetStepCountX() const { return stepCountX; }
 	unsigned int GetStepCountY() const { return stepCountY; }
 	unsigned int GetStepCountZ() const { return stepCountZ; }

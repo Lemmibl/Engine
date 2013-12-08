@@ -13,7 +13,7 @@ MarchingCubeChunk::MarchingCubeChunk(XMFLOAT3 startPos, XMFLOAT3 endPos, XMFLOAT
 	mesh()
 {
 	voxels.resize((stepCountX+1) * (stepCountY+1) * (stepCountZ+1));
-	indices.resize(voxels.size());
+	indices.resize((stepCountX+1) * (stepCountY+1) * (stepCountZ+1));
 
 	int index = 0;
 

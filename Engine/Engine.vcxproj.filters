@@ -16,13 +16,7 @@
     <ClCompile Include="DepthOnlyShader.cpp">
       <Filter>Rendering\Shader wrappers\Shadow shader wrappers</Filter>
     </ClCompile>
-    <ClCompile Include="DRDirectionalLight.cpp">
-      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
-    </ClCompile>
     <ClCompile Include="DRGBuffer.cpp">
-      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
-    </ClCompile>
-    <ClCompile Include="DRPointLight.cpp">
       <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClCompile>
     <ClCompile Include="fpsmeter.cpp">
@@ -59,9 +53,6 @@
       <Filter>General Code</Filter>
     </ClCompile>
     <ClCompile Include="SkysphereShader.cpp">
-      <Filter>Rendering\Shader wrappers</Filter>
-    </ClCompile>
-    <ClCompile Include="VegetationShader.cpp">
       <Filter>Rendering\Shader wrappers</Filter>
     </ClCompile>
     <ClCompile Include="VertexShaderOnly.cpp">
@@ -160,16 +151,25 @@
     <ClCompile Include="MarchingCubeChunk.cpp">
       <Filter>Procedural generation</Filter>
     </ClCompile>
-    <ClCompile Include="GeometryShaderGrass.cpp">
-      <Filter>Rendering\Shader wrappers</Filter>
-    </ClCompile>
     <ClCompile Include="IndexedMesh.cpp">
       <Filter>Rendering\Objects</Filter>
     </ClCompile>
     <ClCompile Include="IndexedInstancedMesh.cpp">
       <Filter>Rendering\Objects</Filter>
     </ClCompile>
+    <ClCompile Include="GeometryShaderGrass.cpp">
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
+    </ClCompile>
     <ClCompile Include="MCGBufferTerrainShader.cpp">
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
+    </ClCompile>
+    <ClCompile Include="DRPointLight.cpp">
+      <Filter>Rendering\Shader wrappers\Post processing</Filter>
+    </ClCompile>
+    <ClCompile Include="DRDirectionalLight.cpp">
+      <Filter>Rendering\Shader wrappers\Post processing</Filter>
+    </ClCompile>
+    <ClCompile Include="VegetationShader.cpp">
       <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClCompile>
   </ItemGroup>
@@ -189,13 +189,7 @@
     <ClInclude Include="DepthOnlyQuadShader.h">
       <Filter>Rendering\Shader wrappers\Shadow shader wrappers</Filter>
     </ClInclude>
-    <ClInclude Include="DRDirectionalLight.h">
-      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
-    </ClInclude>
     <ClInclude Include="DRGBuffer.h">
-      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
-    </ClInclude>
-    <ClInclude Include="DRPointLight.h">
       <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClInclude>
     <ClInclude Include="fpsmeter.h">
@@ -229,9 +223,6 @@
       <Filter>General Code</Filter>
     </ClInclude>
     <ClInclude Include="SkysphereShader.h">
-      <Filter>Rendering\Shader wrappers</Filter>
-    </ClInclude>
-    <ClInclude Include="VegetationShader.h">
       <Filter>Rendering\Shader wrappers</Filter>
     </ClInclude>
     <ClInclude Include="VertexShaderOnly.h">
@@ -342,9 +333,6 @@
     <ClInclude Include="MarchingCubeChunk.h">
       <Filter>Procedural generation</Filter>
     </ClInclude>
-    <ClInclude Include="GeometryShaderGrass.h">
-      <Filter>Rendering\Shader wrappers</Filter>
-    </ClInclude>
     <ClInclude Include="RenderableInterface.h">
       <Filter>Rendering\Objects</Filter>
     </ClInclude>
@@ -354,7 +342,19 @@
     <ClInclude Include="IndexedInstancedMesh.h">
       <Filter>Rendering\Objects</Filter>
     </ClInclude>
+    <ClInclude Include="GeometryShaderGrass.h">
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
+    </ClInclude>
     <ClInclude Include="MCGBufferTerrainShader.h">
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="DRPointLight.h">
+      <Filter>Rendering\Shader wrappers\Post processing</Filter>
+    </ClInclude>
+    <ClInclude Include="DRDirectionalLight.h">
+      <Filter>Rendering\Shader wrappers\Post processing</Filter>
+    </ClInclude>
+    <ClInclude Include="VegetationShader.h">
       <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClInclude>
   </ItemGroup>
