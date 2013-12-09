@@ -31,18 +31,21 @@ enum Direction
 	WEST = 3
 };
 
-static const XMFLOAT3 stepSize(1.0f, 1.0f, 1.0f);
-static const XMFLOAT3 stepCount(100.0f, 100.0f, 100.0f);
+static const XMFLOAT3 stepSize(2.0f, 2.0f, 2.0f);
+static const XMFLOAT3 stepCount(50.0f, 50.0f, 50.0f);
 
-TerrainManager::TerrainManager(ID3D11Device* device, SimplexNoise* externalNoise, HWND hwnd, XMFLOAT3 cameraPosition)
+TerrainManager::TerrainManager(ID3D11Device* device, NoiseClass* externalNoise, HWND hwnd, XMFLOAT3 cameraPosition)
+: marchingCubes((int)stepCount.x, (int)stepCount.y, (int)stepCount.z)
 {
+	stepScaling = (stepSize.x*stepCount.x) / 10000;
 	map = make_shared<std::unordered_map<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>, int_pair_hash>>();
 
 	vegetationCount = 10000;
 
 	mcTerrain.Initialize((int)stepCount.x, (int)stepCount.y, (int)stepCount.z, externalNoise);
 
-	MCTerrainClass::TerrainTypes terrainType = (MCTerrainClass::TerrainTypes)(1 + rand()%8);
+	//MCTerrainClass::TerrainTypes terrainType = (MCTerrainClass::TerrainTypes)(1 + rand()%8);
+	MCTerrainClass::TerrainTypes terrainType = MCTerrainClass::Plains;
 
 	mcTerrain.SetTerrainType(terrainType);
 
@@ -51,8 +54,8 @@ TerrainManager::TerrainManager(ID3D11Device* device, SimplexNoise* externalNoise
 
 	int startGridX, startGridZ;
 
-	startGridX = (int)(cameraPosition.x*0.01f);
-	startGridZ = (int)(cameraPosition.z*0.01f);
+	startGridX = (int)(cameraPosition.x*stepScaling);
+	startGridZ = (int)(cameraPosition.z*stepScaling);
 
 	CreateChunk(device, startGridX, startGridZ-1);
 	CreateChunk(device, startGridX, startGridZ+0);
@@ -65,14 +68,6 @@ TerrainManager::TerrainManager(ID3D11Device* device, SimplexNoise* externalNoise
 	CreateChunk(device, startGridX-1, startGridZ-1);
 	CreateChunk(device, startGridX-1, startGridZ+0);
 	CreateChunk(device, startGridX-1, startGridZ+1);
-
-	CreateChunk(device, startGridX+2, startGridZ-1);
-	CreateChunk(device, startGridX+2, startGridZ+0);
-	CreateChunk(device, startGridX+2, startGridZ+1);
-
-	CreateChunk(device, startGridX-2, startGridZ-1);
-	CreateChunk(device, startGridX-2, startGridZ+0);
-	CreateChunk(device, startGridX-2, startGridZ+1);
 
 	//Fetch the active chunks
 	auto chunks = GetActiveChunks(startGridX, startGridZ);
@@ -96,7 +91,7 @@ TerrainManager::~TerrainManager()
 
 bool TerrainManager::Update(ID3D11Device* device, XMFLOAT3 currentCameraPosition)
 {
-	std::pair<int,int> key((int)((currentCameraPosition.x)*0.01f), (int)((currentCameraPosition.z)*0.01f));
+	std::pair<int,int> key((int)((currentCameraPosition.x)*stepScaling), (int)((currentCameraPosition.z)*stepScaling));
 	std::pair<int,int> neighbourKey;
 
 	if(key != lastUsedKey)
@@ -141,7 +136,7 @@ bool TerrainManager::Update(ID3D11Device* device, XMFLOAT3 currentCameraPosition
 		}
 
 		//Send temporary vector to be built into a vegetation instance buffer
-		vegetationManager.BuildInstanceBuffer(device, &tempVec);
+		//vegetationManager.BuildInstanceBuffer(device, &tempVec);
 
 		return true;
 	}
@@ -167,8 +162,8 @@ void TerrainManager::CreateChunk(ID3D11Device* device, int startPosX, int startP
 	{
 		float actualPosX, actualPosZ;
 
-		actualPosX = (float)(startPosX * (stepCount.x-3));
-		actualPosZ = (float)(startPosZ * (stepCount.z-3));
+		actualPosX = (float)(startPosX * ((stepCount.x-3)*stepSize.x));
+		actualPosZ = (float)(startPosZ * ((stepCount.z-3)*stepSize.z));
 
 		shared_ptr<MarchingCubeChunk> newChunk = make_shared<MarchingCubeChunk>
 		(
@@ -186,7 +181,7 @@ void TerrainManager::CreateChunk(ID3D11Device* device, int startPosX, int startP
 		marchingCubes.CalculateMesh(device, newChunk.get());
 
 		//...Generate and place vegetation based on data from the chunk.
-		GenerateVegetation(device, false, newChunk.get());
+		//GenerateVegetation(device, false, newChunk.get());
 
 		//Clean up and remove the HUGE index and vertex vectors because they are no longer needed.
 		newChunk->GetIndices()->clear();

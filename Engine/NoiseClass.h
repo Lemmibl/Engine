@@ -4,11 +4,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-class SimplexNoise
+class NoiseClass
 {
 public:
-	SimplexNoise();
-	~SimplexNoise();
+	NoiseClass();
+	~NoiseClass();
 
 	float Noise2D(float xin, float yin);
 	float SimplexNoise3D(float xin, float yin, float zin);

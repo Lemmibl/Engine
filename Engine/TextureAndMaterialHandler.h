@@ -50,7 +50,7 @@ public:
 	ID3D11ShaderResourceView** GetSSAORandomTexture()		{ return &ssaoRandomTextureSRV.p;		};
 	ID3D11ShaderResourceView** GetNoiseTexture()			{ return &noiseSRV.p;					};
 
-	bool Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, SimplexNoise* noise, Utility* utility);
+	bool Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, NoiseClass* noise, Utility* utility);
 
 	//To access the texture, call GetSSAORandomTexture()
 	void RebuildSSAOTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
@@ -103,7 +103,7 @@ private:
 	};
 
 private:
-	std::shared_ptr<SimplexNoise> noise;
+	std::shared_ptr<NoiseClass> noise;
 	std::shared_ptr<Utility> utility;
 	
 	CComPtr<ID3D11ShaderResourceView> vegetationTextureArraySRV;

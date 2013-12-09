@@ -9,12 +9,12 @@ TextureAndMaterialHandler::~TextureAndMaterialHandler()
 	//Empty, 'cause CComPtr and shared_ptr
 }
 
-bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, SimplexNoise* simplexNoise, Utility* utility)
+bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, NoiseClass* simplexNoise, Utility* utility)
 {
 	HRESULT hResult;
 
 	//Initialize local variable to hold our noise generating class for future use.
-	noise = std::make_shared<SimplexNoise>(*simplexNoise);
+	noise = std::make_shared<NoiseClass>(*simplexNoise);
 	this->utility = std::make_shared<Utility>(*utility);
 
 	//If this SRV has been initialized before, release it first.

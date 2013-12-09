@@ -38,7 +38,7 @@
 #include "marchingCubesClass.h"
 #include "MCTerrainClass.h"
 #include "LSystemClass.h"
-#include "SimplexNoise.h"
+#include "NoiseClass.h"
 #include "IndexedMesh.h"
 
 //Shaders
@@ -123,7 +123,7 @@ private:
 
 	MCGBufferTerrainShader mcubeShader;
 	DayNightCycle dayNightCycle;
-	SimplexNoise noise;
+	NoiseClass noise;
 
 	Utility utility;
 	TextureAndMaterialHandler textureAndMaterialHandler;

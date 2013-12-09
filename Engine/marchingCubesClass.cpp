@@ -334,8 +334,9 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 	{	
 	}
 
-	MarchingCubesClass::MarchingCubesClass()
-	{
+	MarchingCubesClass::MarchingCubesClass(unsigned int sizeX,  unsigned int sizeY, unsigned int sizeZ)
+	: sizeX(sizeX), sizeY(sizeY), sizeZ(sizeZ)
+	{									  
 		metaballsIsoValue = 0.2f;
 	}
 
@@ -352,14 +353,8 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 		//Temporary holding until we make a vertexbuffer
 		std::vector<MarchingCubeVectors> vertices;
 
-		vertices.resize(chunk->GetTotalSize());
-
 		unsigned int vertexCounter = 0;
 		unsigned int indexCounter = 0;
-
-		unsigned int sizeX = chunk->GetStepCountX();
-		unsigned int sizeY = chunk->GetStepCountY();
-		unsigned int sizeZ = chunk->GetStepCountZ();
 
 		for (y = 0; y < sizeY; ++y)
 		{
@@ -393,7 +388,7 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 		cube[5]	= &(*vertices)[index + 1 + (sizeY * sizeZ)];
 		cube[4]	= &(*vertices)[index + (sizeY * sizeZ)];
 		cube[3]	= &(*vertices)[index + sizeY];
-		cube[2]	= &(*vertices)[index + 1 +sizeY];
+		cube[2]	= &(*vertices)[index + 1 + sizeY];
 		cube[1]	= &(*vertices)[index + 1 + sizeY + (sizeY * sizeZ)];
 		cube[0]	= &(*vertices)[index + sizeY + (sizeY * sizeZ)];
 
@@ -475,10 +470,16 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 					//And this.
 					if(x > 0 && z > 0 && x < sizeX-2 && z < sizeZ-2)
 					{
-						(*indices)[indexCounter] = vertexCounter;
+						//(*indices)[indexCounter] = vertexCounter;
+						indices->push_back(vertexCounter);
 
-						(*vertices)[vertexCounter].position		= verts[tritableLookupValue].position;
-						(*vertices)[vertexCounter].normal		= verts[tritableLookupValue].normal;
+						//(*vertices)[vertexCounter].position		= verts[tritableLookupValue].position;
+						//(*vertices)[vertexCounter].normal		= verts[tritableLookupValue].normal;
+						MarchingCubeVectors temp;
+						temp.position = verts[tritableLookupValue].position;
+						temp.normal =	verts[tritableLookupValue].normal;
+						
+						vertices->push_back(temp);
 
 						vertexCounter++;
 						indexCounter++;	

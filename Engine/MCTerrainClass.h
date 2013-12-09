@@ -1,7 +1,7 @@
 #pragma once
 #include <math.h>
 #include "customStructs.h"
-#include "SimplexNoise.h"
+#include "NoiseClass.h"
 #include <stdlib.h> //srand
 #include <time.h>
 #include <vector>
@@ -29,7 +29,7 @@ public:
 	~MCTerrainClass();
 
 
-	void Initialize(int sizeX, int sizeY, int sizeZ, SimplexNoise* simplexNoise);
+	void Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass* simplexNoise);
 	void LSystem();
 	void LSystemTree();
 	void MCHeightMap();
@@ -98,5 +98,5 @@ private:
 	bool pulverize;
 
 	vector<MarchingCubeVoxel>* marchingCubeVertices;
-	SimplexNoise *noise;
+	NoiseClass *noise;
 };

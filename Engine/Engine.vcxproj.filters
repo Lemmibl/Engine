@@ -79,9 +79,6 @@
     <ClCompile Include="renderToTextureClass.cpp">
       <Filter>Rendering\Rendering utility</Filter>
     </ClCompile>
-    <ClCompile Include="SimplexNoise.cpp">
-      <Filter>Procedural generation\Noise</Filter>
-    </ClCompile>
     <ClCompile Include="marchingCubesClass.cpp">
       <Filter>Procedural generation\MC</Filter>
     </ClCompile>
@@ -98,10 +95,10 @@
       <Filter>Procedural generation\LSystem</Filter>
     </ClCompile>
     <ClCompile Include="GaussianBlur.cpp">
-      <Filter>Rendering\Shader wrappers\Post processing</Filter>
+      <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
     </ClCompile>
     <ClCompile Include="DRCompose.cpp">
-      <Filter>Rendering\Shader wrappers\Post processing</Filter>
+      <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
     </ClCompile>
     <ClCompile Include="StructsAndEnums.cpp">
       <Filter>General Code</Filter>
@@ -157,20 +154,23 @@
     <ClCompile Include="IndexedInstancedMesh.cpp">
       <Filter>Rendering\Objects</Filter>
     </ClCompile>
-    <ClCompile Include="GeometryShaderGrass.cpp">
-      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
-    </ClCompile>
     <ClCompile Include="MCGBufferTerrainShader.cpp">
       <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClCompile>
     <ClCompile Include="DRPointLight.cpp">
-      <Filter>Rendering\Shader wrappers\Post processing</Filter>
+      <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
     </ClCompile>
     <ClCompile Include="DRDirectionalLight.cpp">
-      <Filter>Rendering\Shader wrappers\Post processing</Filter>
+      <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
     </ClCompile>
     <ClCompile Include="VegetationShader.cpp">
-      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\Vegetation shader wrappers</Filter>
+    </ClCompile>
+    <ClCompile Include="GeometryShaderGrass.cpp">
+      <Filter>Rendering\Shader wrappers\Vegetation shader wrappers</Filter>
+    </ClCompile>
+    <ClCompile Include="NoiseClass.cpp">
+      <Filter>Procedural generation\Noise</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -252,9 +252,6 @@
     <ClInclude Include="renderToTextureClass.h">
       <Filter>Rendering\Rendering utility</Filter>
     </ClInclude>
-    <ClInclude Include="SimplexNoise.h">
-      <Filter>Procedural generation\Noise</Filter>
-    </ClInclude>
     <ClInclude Include="metaballsClass.h">
       <Filter>Procedural generation\MC</Filter>
     </ClInclude>
@@ -274,10 +271,10 @@
       <Filter>Procedural generation\LSystem</Filter>
     </ClInclude>
     <ClInclude Include="GaussianBlur.h">
-      <Filter>Rendering\Shader wrappers\Post processing</Filter>
+      <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
     </ClInclude>
     <ClInclude Include="DRCompose.h">
-      <Filter>Rendering\Shader wrappers\Post processing</Filter>
+      <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
     </ClInclude>
     <ClInclude Include="StructsAndEnums.h">
       <Filter>General Code</Filter>
@@ -342,20 +339,23 @@
     <ClInclude Include="IndexedInstancedMesh.h">
       <Filter>Rendering\Objects</Filter>
     </ClInclude>
-    <ClInclude Include="GeometryShaderGrass.h">
-      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
-    </ClInclude>
     <ClInclude Include="MCGBufferTerrainShader.h">
       <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClInclude>
     <ClInclude Include="DRPointLight.h">
-      <Filter>Rendering\Shader wrappers\Post processing</Filter>
+      <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
     </ClInclude>
     <ClInclude Include="DRDirectionalLight.h">
-      <Filter>Rendering\Shader wrappers\Post processing</Filter>
+      <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
     </ClInclude>
     <ClInclude Include="VegetationShader.h">
-      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\Vegetation shader wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="GeometryShaderGrass.h">
+      <Filter>Rendering\Shader wrappers\Vegetation shader wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="NoiseClass.h">
+      <Filter>Procedural generation\Noise</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -414,12 +414,6 @@
     <None Include="texture.vsh">
       <Filter>Rendering\Shaders</Filter>
     </None>
-    <None Include="VegetationQuad.vsh">
-      <Filter>Rendering\Shaders</Filter>
-    </None>
-    <None Include="VegetationQuad.psh">
-      <Filter>Rendering\Shaders</Filter>
-    </None>
     <None Include="gaussianBlurX.psh">
       <Filter>Rendering\Shaders\Post processing</Filter>
     </None>
@@ -438,6 +432,21 @@
     </None>
     <None Include="MCGBufferTerrainShader.vsh">
       <Filter>Rendering\Shaders\Deferred shaders</Filter>
+    </None>
+    <None Include="VegetationQuad.psh">
+      <Filter>Rendering\Shaders\Vegetation</Filter>
+    </None>
+    <None Include="VegetationQuad.vsh">
+      <Filter>Rendering\Shaders\Vegetation</Filter>
+    </None>
+    <None Include="GeometryShaderGrass.gsh">
+      <Filter>Rendering\Shaders\Vegetation</Filter>
+    </None>
+    <None Include="GeometryShaderGrass.vsh">
+      <Filter>Rendering\Shaders\Vegetation</Filter>
+    </None>
+    <None Include="GeometryShaderGrass.psh">
+      <Filter>Rendering\Shaders\Vegetation</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -477,9 +486,6 @@
     <Filter Include="Procedural generation\Noise">
       <UniqueIdentifier>{4c131b98-83f6-4745-8390-4b7d567fe47d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Rendering\Shader wrappers\Post processing">
-      <UniqueIdentifier>{ea2d2fbd-617c-455c-a898-27414fc8c13a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Procedural generation\MC">
       <UniqueIdentifier>{12a28744-5ce8-4b0e-8813-557be086ce68}</UniqueIdentifier>
     </Filter>
@@ -497,6 +503,15 @@
     </Filter>
     <Filter Include="Rendering\Objects">
       <UniqueIdentifier>{965eb527-364b-4c1c-9609-492d29014ef3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shader wrappers\Vegetation shader wrappers">
+      <UniqueIdentifier>{772f7d36-6add-4357-9074-bba23b6d478d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shader wrappers\Post processing wrappers">
+      <UniqueIdentifier>{ea2d2fbd-617c-455c-a898-27414fc8c13a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shaders\Vegetation">
+      <UniqueIdentifier>{80065f5a-aa04-421f-b7a2-375306199981}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

@@ -12,7 +12,7 @@ MCTerrainClass::~MCTerrainClass()
 {
 }
 
-void MCTerrainClass::Initialize(int sizeX, int sizeY, int sizeZ, SimplexNoise* simplexNoise )
+void MCTerrainClass::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass* simplexNoise )
 {
 	noise = simplexNoise;
 	this->sizeX = sizeX;

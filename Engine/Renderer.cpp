@@ -251,55 +251,11 @@ bool Renderer::InitializeModels( HWND hwnd )
 {
 	bool result;
 
+	//Initialize terrain manager
 	terrainManager = make_shared<TerrainManager>(d3D->GetDevice(), &noise, hwnd, camera->GetPosition());
 
+	//Get the meshes from current terrain
 	tempChunks = *terrainManager->GetTerrainRenderables(camera->GetPosition().x*0.01f, camera->GetPosition().z*0.01f);
-
-	//result = terrainManager->GetChunk(0, 0, &tempChunk);
-	//tempChunks.push_back(tempChunk);
-
-	//if(!result)
-	//{
-	//	MessageBox(hwnd, L"Something went wrong when calling TerrainManager::GetChunk.", L"Error", MB_OK);
-	//	return false;
-	//}
-
-	//result = terrainManager->GetChunk(1, 0, &tempChunk);
-	//tempChunks.push_back(tempChunk);
-
-	//if(!result)
-	//{
-	//	MessageBox(hwnd, L"Something went wrong when calling TerrainManager::GetChunk.", L"Error", MB_OK);
-	//	return false;
-	//}
-
-	//result = terrainManager->GetChunk(-1, 0, &tempChunk);
-	//tempChunks.push_back(tempChunk);
-
-	//if(!result)
-	//{
-	//	MessageBox(hwnd, L"Something went wrong when calling TerrainManager::GetChunk.", L"Error", MB_OK);
-	//	return false;
-	//}
-
-	//result = terrainManager->GetChunk(1, 1, &tempChunk);
-	//tempChunks.push_back(tempChunk);
-
-	//if(!result)
-	//{
-	//	MessageBox(hwnd, L"Something went wrong when calling TerrainManager::GetChunk.", L"Error", MB_OK);
-	//	return false;
-	//}
-
-	//result = terrainManager->GetChunk(0, 1, &tempChunk);
-	//tempChunks.push_back(tempChunk);
-
-	//if(!result)
-	//{
-	//	MessageBox(hwnd, L"Something went wrong when calling TerrainManager::GetChunk.", L"Error", MB_OK);
-	//	return false;
-	//}
-
 
 
 	// Initialize the model object. It really doesn't matter what textures it has because it's only used for point light volume culling.

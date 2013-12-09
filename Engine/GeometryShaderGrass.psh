@@ -12,6 +12,7 @@ struct PixelInputType
 	float4 Position : SV_POSITION;
 	float3 Normal :	NORMAL;
 	float4 TexCoord : TEXCOORD0;
+	bool IsGrassQuad : SV_Coverage;
 };
 
 struct PixelShaderOutput
@@ -41,8 +42,14 @@ float2 Encode(float3 n)
 ////////////////////////////////////////////////////////////////////////////////
 // Pixel Shader
 ////////////////////////////////////////////////////////////////////////////////
-PixelShaderOutput VegetationQuadPixelShader(PixelInputType input)
+PixelShaderOutput GeometryGrassPixelShader(PixelInputType input)
 {
+	//If the primitive is part of the actual mesh as opposed to being a grass primitive, we immediately discard.
+	if(IsGrassQuad == false)
+	{
+		discard;
+	}
+
 	//Viewspace depth is saved in the .w channel. Divide it by screen's farClip.
 	float depth = (input.TexCoord.w / 500.0f);
 
@@ -52,7 +59,6 @@ PixelShaderOutput VegetationQuadPixelShader(PixelInputType input)
 	}
 
 	PixelShaderOutput output;
-
 	float fadeValue =  (depth*depth); //depth; //
 
 	//No branching cuz texture array. Yay. To clarify -- our texCoord.z channel contains texture ID, which we extract from each instance of vegetation.

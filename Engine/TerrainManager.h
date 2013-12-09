@@ -27,7 +27,7 @@ private:
 	};
 
 public:
-	TerrainManager(ID3D11Device* device, SimplexNoise* noise, HWND hwnd,  XMFLOAT3 cameraPosition);
+	TerrainManager(ID3D11Device* device, NoiseClass* noise, HWND hwnd,  XMFLOAT3 cameraPosition);
 	~TerrainManager();
 
 	//Returns a bool to indicate if we've actually had to change anything. If true, it has changed and we should fetch the new data.
@@ -67,8 +67,9 @@ private:
 	MarchingCubesClass marchingCubes;
 	MCTerrainClass mcTerrain;
 	VegetationManager vegetationManager;
-	SimplexNoise* noise;
+	NoiseClass* noise;
 	unsigned int vegetationCount;
+	float stepScaling;
 
 	std::shared_ptr<std::unordered_map<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>, int_pair_hash>> map;
 	vector<MarchingCubeChunk*> activeChunks;

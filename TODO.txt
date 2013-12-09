@@ -3,21 +3,12 @@
 /*						TODO AND THINGS OF THAT SORT							*/
 /********************************************************************************/
 
-* Fix marching cubes terrain
-	- MCubeChunk that contains: A mesh (vertices+indices), stepX+sizeY, stepY+sizeY, stepZ+sizeZ, startPos+endPos (and a vector with positions)?
-	- Refactor marching cubes class to work around external chunks that it recieves through functions, instead of chunks that it owns
-
-* Add a "Apply a 2D simplex noise texture on terrain as a height map" function
-
-* Geometry shader grass?
+* Geometry shader grass
 
 * Skysphere texture mapping!!! Clouds?
-
-* Procedurally generated grass/rock/dirt textures with a random chance to get small blotches of say, gray or brown to break up the monotony?
 * Try to change point lights render pass to two big render passes, instead of 121212121212... X numPointlights
 * Shadow manager...?
 * Light manager
-* Expand vegetationmanager to make it encompass everything related to vegetation (remove all of the vegetation things from renderer)
 * Some sort of XML loader/reader for configs / keybindings / texture&material IDs
 
 * Create a function that reads a vertex buffer and creates a bounding box that covers it. 
@@ -25,33 +16,7 @@ http://stackoverflow.com/questions/17414491/how-to-read-vertices-from-vertex-buf
 https://www.braynzarsoft.net/~braynzar/index.php?p=BoundingBox And this.
 
 /*
-THE LINK DUNGEON
-
-OK, SO! This is how I think I will manage and send renderable objects to my renderer every frame:
-
-I keep a struct or class that could be called, say, RenderableBundle. This is one object that you'll send to the renderer's render function by pointer.
-
-RenderableBundle will contain:
-a vector<queue<>>. One queue for each sort of renderable.
-
-http://www.dataorienteddesign.com/dodmain/node14.html VVVVVVVVVVVVV
-We will also keep a separate vector with render settings for each queue. This means that each queue contains different sorts of renderables, and that each of these queues can have their own settings, modes etc.
-
-So inside renderer we'll do something like this:
-
-for(int i = 0; i < RenderableBundle.vector.size(); i++)
-{
-	
-	<Change settings that we find through RenderableBundle.RenderSettings[i]>
-
-	while(!RenderableBundle.vector[i].empty())
-	{
-		RenderMesh(RenderableBundle.vector[i][j].front());
-		RenderableBundle.vector[i][j].pop();
-
-		SomeShader.Render();
-	}
-}
+*******THE LINK DUNGEON*******
 
 Tiling perlin noise:
 http://gamedev.stackexchange.com/questions/23625/how-do-you-generate-tileable-perlin-noise

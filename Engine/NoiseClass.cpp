@@ -1,4 +1,4 @@
-#include "SimplexNoise.h"
+#include "NoiseClass.h"
 
 //http://webstaff.itn.liu.se/~stegu/simplexnoise/SimplexNoise.java
 
@@ -47,12 +47,12 @@ static const float G3 = 1.0f/6.0f; // Very nice and simple unskew factor, too. 1
 static const float G3TimesTwo = (1.0f/6.0f)*2.0f;
 static const float G3TimesThree = (3.0f*(1.0f/6.0f));
 
-SimplexNoise::SimplexNoise()
+NoiseClass::NoiseClass()
 {
 	ReseedRandom();
 }
 
-void SimplexNoise::ReseedRandom()
+void NoiseClass::ReseedRandom()
 {
 	//260 instead of 256 to avoid out of bounds errors that appear.
 	for(int i=0; i<260; i++)
@@ -76,12 +76,12 @@ void SimplexNoise::ReseedRandom()
 	}
 }
 
-SimplexNoise::~SimplexNoise()
+NoiseClass::~NoiseClass()
 {
 }
 
 //2D noise
-float SimplexNoise::Noise2D(float xin, float yin)
+float NoiseClass::Noise2D(float xin, float yin)
 {
 	float n0, n1, n2;
 
@@ -161,7 +161,7 @@ float SimplexNoise::Noise2D(float xin, float yin)
 	return 72.0f * (n0 + n1 + n2);
 }
 
-float SimplexNoise::SimplexNoise3D(float xin, float yin, float zin) 
+float NoiseClass::SimplexNoise3D(float xin, float yin, float zin) 
 {
 	float n0, n1, n2, n3; // Noise contributions from the four corners
 
@@ -259,13 +259,13 @@ float SimplexNoise::SimplexNoise3D(float xin, float yin, float zin)
 	return (32.0f*(n0 + n1 + n2 + n3)); //-1 -> 1
 }
 
-float SimplexNoise::SimplexNoise3DZeroToOne( float xin, float yin, float zin )
+float NoiseClass::SimplexNoise3DZeroToOne( float xin, float yin, float zin )
 {
 	return (1.0f+SimplexNoise3D(xin, yin, zin))*0.5f;
 }
 
 //http://mrl.nyu.edu/~perlin/noise/
-float SimplexNoise::PerlinNoise3D( float x, float y, float z )
+float NoiseClass::PerlinNoise3D( float x, float y, float z )
 {
 		int X = fastfloor(x);                  // FIND UNIT CUBE THAT
 		int	Y = fastfloor(y);                  // CONTAINS POINT.

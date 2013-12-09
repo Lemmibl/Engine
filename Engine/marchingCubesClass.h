@@ -10,7 +10,7 @@
 class MarchingCubesClass
 {
 public:
-	MarchingCubesClass();
+	MarchingCubesClass(unsigned int sizeX,  unsigned int sizeY, unsigned int sizeZ);
 	~MarchingCubesClass();
 
 	//Converts a voxel field to a mesh
@@ -64,6 +64,7 @@ private:
 
 private:
 	unsigned int x,y,z;
+	unsigned int sizeX, sizeY, sizeZ;
 	int index;
 
 	float metaballsIsoValue;

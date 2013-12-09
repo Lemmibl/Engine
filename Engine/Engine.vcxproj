@@ -54,7 +54,7 @@
     <ClCompile Include="modellistclass.cpp" />
     <ClCompile Include="DRPointLight.cpp" />
     <ClCompile Include="renderToTextureClass.cpp" />
-    <ClCompile Include="SimplexNoise.cpp" />
+    <ClCompile Include="NoiseClass.cpp" />
     <ClCompile Include="SkySphere.cpp" />
     <ClCompile Include="SkysphereShader.cpp" />
     <ClCompile Include="StructsAndEnums.cpp" />
@@ -115,7 +115,7 @@
     <ClInclude Include="modellistclass.h" />
     <ClInclude Include="DRPointLight.h" />
     <ClInclude Include="renderToTextureClass.h" />
-    <ClInclude Include="SimplexNoise.h" />
+    <ClInclude Include="NoiseClass.h" />
     <ClInclude Include="SkySphere.h" />
     <ClInclude Include="SkysphereShader.h" />
     <ClInclude Include="StructsAndEnums.h" />
@@ -151,6 +151,9 @@
     <None Include="DRPointLight.vsh" />
     <None Include="gaussianBlurX.psh" />
     <None Include="gaussianBlurY.psh" />
+    <None Include="GeometryShaderGrass.gsh" />
+    <None Include="GeometryShaderGrass.psh" />
+    <None Include="GeometryShaderGrass.vsh" />
     <None Include="MCGBufferTerrainShader.psh" />
     <None Include="MCGBufferTerrainShader.vsh" />
     <None Include="shader-error.txt" />
