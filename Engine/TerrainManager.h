@@ -1,12 +1,12 @@
 #pragma once
-#include <map>
 #include "MarchingCubeChunk.h"
-#include <unordered_map>
+#include <unordered_map> //For unordered_map ......... yeah.
 #include "MCTerrainClass.h"
 #include "VegetationManager.h"
-#include <memory>
+#include <memory> //For shared_ptrs
 #include "marchingCubesClass.h"
 #include "d3dclass.h"
+#include <math.h>
 
 class TerrainManager
 {
@@ -60,6 +60,11 @@ private:
 		float base=rand()/scale;
 		float fine=rand()/scale;
 		return base+fine/scale;
+	}
+
+	inline int RoundToNearest(float num) 
+	{
+		return (int)((num > 0.0f) ? floor(num + 0.2f) : ceil(num - 0.2f));
 	}
 
 

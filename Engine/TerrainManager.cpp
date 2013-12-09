@@ -44,8 +44,8 @@ TerrainManager::TerrainManager(ID3D11Device* device, NoiseClass* externalNoise, 
 
 	mcTerrain.Initialize((int)stepCount.x, (int)stepCount.y, (int)stepCount.z, externalNoise);
 
-	//MCTerrainClass::TerrainTypes terrainType = (MCTerrainClass::TerrainTypes)(1 + rand()%8);
-	MCTerrainClass::TerrainTypes terrainType = MCTerrainClass::Plains;
+	MCTerrainClass::TerrainTypes terrainType = (MCTerrainClass::TerrainTypes)(1 + rand()%8);
+	//MCTerrainClass::TerrainTypes terrainType = MCTerrainClass::Plains;
 
 	mcTerrain.SetTerrainType(terrainType);
 
@@ -54,8 +54,8 @@ TerrainManager::TerrainManager(ID3D11Device* device, NoiseClass* externalNoise, 
 
 	int startGridX, startGridZ;
 
-	startGridX = (int)(cameraPosition.x*stepScaling);
-	startGridZ = (int)(cameraPosition.z*stepScaling);
+	startGridX = RoundToNearest(cameraPosition.x*stepScaling);
+	startGridZ = RoundToNearest(cameraPosition.z*stepScaling);
 
 	CreateChunk(device, startGridX, startGridZ-1);
 	CreateChunk(device, startGridX, startGridZ+0);
@@ -91,7 +91,7 @@ TerrainManager::~TerrainManager()
 
 bool TerrainManager::Update(ID3D11Device* device, XMFLOAT3 currentCameraPosition)
 {
-	std::pair<int,int> key((int)((currentCameraPosition.x)*stepScaling), (int)((currentCameraPosition.z)*stepScaling));
+	std::pair<int,int> key(RoundToNearest((currentCameraPosition.x)*stepScaling), RoundToNearest((currentCameraPosition.z)*stepScaling));
 	std::pair<int,int> neighbourKey;
 
 	if(key != lastUsedKey)
