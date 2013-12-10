@@ -21,6 +21,12 @@ private:
 		XMMATRIX WorldViewProjection;
 	};
 
+	struct GeometryShaderBuffer
+	{
+		XMMATRIX World;
+		XMMATRIX WorldViewProjection;
+	};
+
 	struct ColorTypeBuffer
 	{
 		XMFLOAT4 colorModeInX_FarClipInY_ZWUnused;
@@ -52,6 +58,7 @@ private:
 	CComPtr<ID3D11GeometryShader> geometryShader;
 	CComPtr<ID3D11InputLayout> layout;
 	CComPtr<ID3D11Buffer> matrixBuffer;
+	CComPtr<ID3D11Buffer> geometryShaderMatrixBuffer;
 	CComPtr<ID3D11Buffer> colorTypeBuffer;
 	CComPtr<ID3D11SamplerState> sampler;
 };

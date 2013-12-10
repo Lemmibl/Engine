@@ -4,6 +4,8 @@
 /********************************************************************************/
 
 * Geometry shader grass
+	- IF implementing fancy grass in geom shader, maybe using the SSAO random texture to decide positions around each point. So you put in like... 
+		the point position as load coordinates or something.
 
 * Skysphere texture mapping!!! Clouds?
 * Try to change point lights render pass to two big render passes, instead of 121212121212... X numPointlights

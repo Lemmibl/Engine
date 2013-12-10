@@ -22,13 +22,13 @@ VertexShaderOutput GeometryGrassVertexShader(VertexShaderInput input)
 {
 	VertexShaderOutput output;
 
-	output.Position	= mul(input.Position, WorldViewProjection);
+	output.Position	= input.Position;//mul(input.Position, WorldViewProjection);
 	output.Normal = float4(input.Normal, 1.0f);
 
 	output.WorldYAndViewDepth.x	= mul(input.Position, World).y;
 
 	//You can only do this if you are using a perspective projection matrix! Beware!
-	output.WorldYAndViewDepth.y = output.Position.w;
+	output.WorldYAndViewDepth.y = mul(input.Position, WorldView).z;
 
 	return output;
 }

@@ -32,12 +32,12 @@ enum Direction
 };
 
 static const XMFLOAT3 stepSize(2.0f, 2.0f, 2.0f);
-static const XMFLOAT3 stepCount(50.0f, 50.0f, 50.0f);
+static const XMFLOAT3 stepCount(53.0f, 53.0f, 53.0f);
 
 TerrainManager::TerrainManager(ID3D11Device* device, NoiseClass* externalNoise, HWND hwnd, XMFLOAT3 cameraPosition)
 : marchingCubes((int)stepCount.x, (int)stepCount.y, (int)stepCount.z)
 {
-	stepScaling = (stepSize.x*stepCount.x) / 10000;
+	stepScaling = (stepSize.x*(stepCount.x-3)) / 10000;
 	map = make_shared<std::unordered_map<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>, int_pair_hash>>();
 
 	vegetationCount = 10000;

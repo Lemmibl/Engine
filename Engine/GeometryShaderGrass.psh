@@ -7,12 +7,11 @@ SamplerState linearSampler;
 //////////////
 // TYPEDEFS //
 //////////////
-struct PixelInputType
+struct PixelShaderInput
 {
 	float4 Position : SV_POSITION;
 	float3 Normal :	NORMAL;
 	float4 TexCoord : TEXCOORD0;
-	bool IsGrassQuad : SV_Coverage;
 };
 
 struct PixelShaderOutput
@@ -42,14 +41,8 @@ float2 Encode(float3 n)
 ////////////////////////////////////////////////////////////////////////////////
 // Pixel Shader
 ////////////////////////////////////////////////////////////////////////////////
-PixelShaderOutput GeometryGrassPixelShader(PixelInputType input)
+PixelShaderOutput GeometryGrassPixelShader(PixelShaderInput input)
 {
-	//If the primitive is part of the actual mesh as opposed to being a grass primitive, we immediately discard.
-	if(IsGrassQuad == false)
-	{
-		discard;
-	}
-
 	//Viewspace depth is saved in the .w channel. Divide it by screen's farClip.
 	float depth = (input.TexCoord.w / 500.0f);
 

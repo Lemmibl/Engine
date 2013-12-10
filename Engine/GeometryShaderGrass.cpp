@@ -200,6 +200,19 @@ bool GeometryShaderGrass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 		return false;
 	}
 
+	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	matrixBufferDesc.ByteWidth = sizeof(GeometryShaderBuffer);
+	matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	matrixBufferDesc.MiscFlags = 0;
+	matrixBufferDesc.StructureByteStride = 0;
+
+	result = device->CreateBuffer(&matrixBufferDesc, NULL, &geometryShaderMatrixBuffer);
+	if(FAILED(result))
+	{
+		return false;
+	}
+
 	// Setup the description of the matrix dynamic constant buffer that is in the vertex shader.
 	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	matrixBufferDesc.ByteWidth = sizeof(ColorTypeBuffer);
@@ -208,7 +221,6 @@ bool GeometryShaderGrass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 	matrixBufferDesc.MiscFlags = 0;
 	matrixBufferDesc.StructureByteStride = 0;
 
-	// Create the matrix constant buffer pointer so we can access the vertex shader constant buffer from within this class.
 	result = device->CreateBuffer(&matrixBufferDesc, NULL, &colorTypeBuffer);
 	if(FAILED(result))
 	{
@@ -287,7 +299,11 @@ bool GeometryShaderGrass::SetShaderParameters( ID3D11DeviceContext* deviceContex
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	MatrixBufferType* dataPtr;
 	ColorTypeBuffer* dataPtr2;
+	GeometryShaderBuffer* dataPtr3;
 	unsigned int bufferNumber;
+
+	//////////////////////////////////////////////////////////////////////////
+	//#1
 
 	// Lock the matrix constant buffer so it can be written to.
 	result = deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -313,6 +329,39 @@ bool GeometryShaderGrass::SetShaderParameters( ID3D11DeviceContext* deviceContex
 	// Now set the matrix constant buffer in the vertex shader with the updated values.
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &matrixBuffer.p);
 
+
+
+	//////////////////////////////////////////////////////////////////////////
+	//#2
+	
+	// Lock the matrix constant buffer so it can be written to.
+	result = deviceContext->Map(geometryShaderMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if(FAILED(result))
+	{
+		return false;
+	}
+
+	// Get a pointer to the data in the constant buffer.
+	dataPtr3 = (GeometryShaderBuffer*)mappedResource.pData;
+
+	// Copy the matrices into the constant buffer.
+	dataPtr3->World = *worldMatrix;
+	dataPtr3->WorldViewProjection = *worldViewProjection;
+
+	// Unlock the matrix constant buffer.
+	deviceContext->Unmap(geometryShaderMatrixBuffer, 0);
+
+	// Set the position of the matrix constant buffer in the vertex sh§ader.
+	bufferNumber = 0;
+
+	// Now set the matrix constant buffer in the vertex shader with the updated values.
+	deviceContext->GSSetConstantBuffers(bufferNumber, 1, &geometryShaderMatrixBuffer.p);
+
+
+
+	//////////////////////////////////////////////////////////////////////////
+	//#3
+
 	// Lock the matrix constant buffer so it can be written to.
 	result = deviceContext->Map(colorTypeBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if(FAILED(result))
@@ -334,6 +383,9 @@ bool GeometryShaderGrass::SetShaderParameters( ID3D11DeviceContext* deviceContex
 
 	// Now set the matrix constant buffer in the vertex shader with the updated values.
 	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &colorTypeBuffer.p);
+
+	//////////////////////////////////////////////////////////////////////////
+	// Assorted shit
 
 	// Set shader texture array resource in the pixel shader.
 	deviceContext->PSSetShaderResources(0, 1, textureArray);

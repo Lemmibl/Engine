@@ -117,7 +117,7 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 						}
 						else if (density > 2)
 						{
-							density = 4;
+							density = 2;
 						}
 
 						(*marchingCubeVertices)[idx].density = density;
@@ -146,7 +146,7 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 						}
 						else if (density > 2)
 						{
-							density = 4;
+							density = 2;
 						}
 
 						(*marchingCubeVertices)[idx].density = density;
@@ -177,7 +177,7 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 						}
 						else if (density > 2)
 						{
-							density = 4;
+							density = 2;
 						}
 
 						(*marchingCubeVertices)[idx].density = density;
@@ -228,7 +228,7 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 						}
 						else if (density > 2)
 						{
-							density = 4;
+							density = 2;
 						}
 
 						(*marchingCubeVertices)[idx].density = density;
@@ -280,7 +280,7 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 						}
 						else if (density > 2)
 						{
-							density = 4;
+							density = 2;
 						}
 
 						(*marchingCubeVertices)[idx].density = density;
@@ -312,7 +312,7 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 						}
 						else if (density > 2)
 						{
-							density = 4;
+							density = 2;
 						}
 
 						(*marchingCubeVertices)[idx].density = density;
@@ -343,7 +343,7 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 						}
 						else if (density > 2)
 						{
-							density = 4;
+							density = 2;
 						}
 
 						(*marchingCubeVertices)[idx].density = density;
@@ -376,7 +376,7 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 						}
 						else if (density > 2)
 						{
-							density = 4;
+							density = 2;
 						}
 
 						(*marchingCubeVertices)[idx].density = density;
@@ -409,7 +409,7 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 						}
 						else if (density > 2)
 						{
-							density = 4;
+							density = 2;
 						}
 
 						(*marchingCubeVertices)[idx].density = density;
@@ -429,7 +429,7 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 			}
 			else if (density > 2)
 			{
-				density = 4;
+				density = 2;
 			}
 
 			(*marchingCubeVertices)[idx].density = density;
