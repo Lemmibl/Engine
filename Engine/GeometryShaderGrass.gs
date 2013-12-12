@@ -22,6 +22,7 @@ struct PS_INPUT
 
 static const float vegetationScale = 2.0f;
 static const float4 UpNormal = normalize(float4(0.0f, 1.0f, 0.0f, 1.0f));
+static const float vegetationFalloff = 250.0f;
 
 //http://www.braynzarsoft.net/index.php?p=D3D11BILLBOARDS
 //http://upvoid.com/devblog/2013/02/prototype-grass/
@@ -30,14 +31,14 @@ void MakeFin(VS_OUTPUT v1, VS_OUTPUT v2, inout TriangleStream<PS_INPUT> TriStrea
 { 
 	float viewDepth = v1.YPosDepthAndRand.y;
 
-	if(viewDepth < 200.0f && v2.YPosDepthAndRand.z >= 0.2f)
+	if(viewDepth < vegetationFalloff && v2.YPosDepthAndRand.z <= 0.65f)
 	{
 		PS_INPUT output[4];
 		int textureID = 1.0f;
 
 		//Taking [0, 1] rand values and changing them to [-1, 1]
-		float rand1 = 2.0f * v1.YPosDepthAndRand.z - 0.5f;
-		float rand2 = 2.0f * v2.YPosDepthAndRand.z - 0.5f;
+		float rand1 = 1.2f * (v1.YPosDepthAndRand.z - 0.5f);
+		float rand2 = 1.2f * (v2.YPosDepthAndRand.z - 0.5f);
 
 		//Randomizing our positions
 		float4 pos1 = v1.Position - float4(rand1, 0.0f, rand2, 0.0f);
@@ -51,29 +52,30 @@ void MakeFin(VS_OUTPUT v1, VS_OUTPUT v2, inout TriangleStream<PS_INPUT> TriStrea
 		//pos1.xz -= v1.YPosDepthAndRand.z;
 		//pos2.xz += v2.YPosDepthAndRand.z;
 
-		float height = (vegetationScale * (1.0f - viewDepth/200.0f));
-		float4 randomizedNormal = float4(0.0f, height, 0.0f, 0.0f);
+		float opacity = (1.0f - viewDepth/vegetationFalloff);
+		float height = (vegetationScale * opacity);
+		float4 randomizedNormal = float4(rand1*0.5f, height, rand2*0.5f, 0.0f);
 
 
 		output[0].Position = mul(pos1, WorldViewProjection); //(v1.Position + (0.0f + float4(v1.Normal.xyz, 1.0f))*length);//
 		output[0].Normal = normalize(mul(v1.Normal, World));
 		output[0].TexCoord = float4(0.0f, 1.0f, textureID, viewDepth);
-		output[0].Opacity = height;
+		output[0].Opacity = opacity;
 
 		output[1].Position = mul(pos2, WorldViewProjection); //(v2.Position + (0.0f * float4(v2.Normal.xyz, 1.0f))*length);//
 		output[1].Normal = normalize(mul(v2.Normal, World));
 		output[1].TexCoord = float4(1.0f, 1.0f, textureID, viewDepth);
-		output[1].Opacity = height;
+		output[1].Opacity = opacity;
 
 		output[2].Position = mul((pos1 + randomizedNormal), WorldViewProjection); //(v1.Position + (1.0f * float4(v1.Normal.xyz, 1.0f))*length);//
-		output[2].Normal = normalize(mul(v1.Normal, World));
+		output[2].Normal = normalize(mul(v1.Normal+ randomizedNormal, World));
 		output[2].TexCoord = float4(0.0f, 0.0f, textureID, viewDepth);
-		output[2].Opacity = height;
+		output[2].Opacity = opacity;
 
 		output[3].Position = mul((pos2 + randomizedNormal), WorldViewProjection); //(v2.Position + (1.0f * float4(v2.Normal.xyz, 1.0f))*length);//
-		output[3].Normal = normalize(mul(v2.Normal, World));
+		output[3].Normal = normalize(mul(v2.Normal+ randomizedNormal, World));
 		output[3].TexCoord = float4(1.0f, 0.0f, textureID, viewDepth);
-		output[3].Opacity = height;
+		output[3].Opacity = opacity;
 
 		//We're forming a quad out of two triangles, meaning four vertices.
 		TriStream.Append(output[0]);

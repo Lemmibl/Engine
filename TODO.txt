@@ -4,6 +4,9 @@
 /********************************************************************************/
 
 * Make geometry shader grass more fancy. offset positions slightly and other stuff.
+	- Density maps?
+	- Wind system?
+	- ... Biomes?
 
 * Skysphere texture mapping!!! Clouds?
 * Try to change point lights render pass to two big render passes, instead of 121212121212... X numPointlights
