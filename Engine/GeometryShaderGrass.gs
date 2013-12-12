@@ -54,26 +54,28 @@ void MakeFin(VS_OUTPUT v1, VS_OUTPUT v2, inout TriangleStream<PS_INPUT> TriStrea
 
 		float opacity = (1.0f - viewDepth/vegetationFalloff);
 		float height = (vegetationScale * opacity);
-		float4 randomizedNormal = float4(rand1*0.5f, height, rand2*0.5f, 0.0f);
+		float4 randomizedNormal = float4(rand1*0.8f, height, rand2*0.8f, 0.0f);
 
+		float4 normal1 = mul(v1.Normal, World);
+		float4 normal2 = mul(v2.Normal, World);
 
 		output[0].Position = mul(pos1, WorldViewProjection); //(v1.Position + (0.0f + float4(v1.Normal.xyz, 1.0f))*length);//
-		output[0].Normal = normalize(mul(v1.Normal, World));
+		output[0].Normal = normalize(normal1);
 		output[0].TexCoord = float4(0.0f, 1.0f, textureID, viewDepth);
 		output[0].Opacity = opacity;
 
 		output[1].Position = mul(pos2, WorldViewProjection); //(v2.Position + (0.0f * float4(v2.Normal.xyz, 1.0f))*length);//
-		output[1].Normal = normalize(mul(v2.Normal, World));
+		output[1].Normal = normalize(normal2);
 		output[1].TexCoord = float4(1.0f, 1.0f, textureID, viewDepth);
 		output[1].Opacity = opacity;
 
 		output[2].Position = mul((pos1 + randomizedNormal), WorldViewProjection); //(v1.Position + (1.0f * float4(v1.Normal.xyz, 1.0f))*length);//
-		output[2].Normal = normalize(mul(v1.Normal+ randomizedNormal, World));
+		output[2].Normal = normalize(normal1+randomizedNormal);
 		output[2].TexCoord = float4(0.0f, 0.0f, textureID, viewDepth);
 		output[2].Opacity = opacity;
 
 		output[3].Position = mul((pos2 + randomizedNormal), WorldViewProjection); //(v2.Position + (1.0f * float4(v2.Normal.xyz, 1.0f))*length);//
-		output[3].Normal = normalize(mul(v2.Normal+ randomizedNormal, World));
+		output[3].Normal = normalize(normal2 + randomizedNormal);
 		output[3].TexCoord = float4(1.0f, 0.0f, textureID, viewDepth);
 		output[3].Opacity = opacity;
 
