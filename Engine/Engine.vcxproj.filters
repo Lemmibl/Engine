@@ -439,13 +439,13 @@
     <None Include="VegetationQuad.vsh">
       <Filter>Rendering\Shaders\Vegetation</Filter>
     </None>
-    <None Include="GeometryShaderGrass.gsh">
-      <Filter>Rendering\Shaders\Vegetation</Filter>
-    </None>
     <None Include="GeometryShaderGrass.vsh">
       <Filter>Rendering\Shaders\Vegetation</Filter>
     </None>
     <None Include="GeometryShaderGrass.psh">
+      <Filter>Rendering\Shaders\Vegetation</Filter>
+    </None>
+    <None Include="GeometryShaderGrass.gs">
       <Filter>Rendering\Shaders\Vegetation</Filter>
     </None>
   </ItemGroup>

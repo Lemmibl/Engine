@@ -151,7 +151,7 @@
     <None Include="DRPointLight.vsh" />
     <None Include="gaussianBlurX.psh" />
     <None Include="gaussianBlurY.psh" />
-    <None Include="GeometryShaderGrass.gsh" />
+    <None Include="GeometryShaderGrass.gs" />
     <None Include="GeometryShaderGrass.psh" />
     <None Include="GeometryShaderGrass.vsh" />
     <None Include="MCGBufferTerrainShader.psh" />

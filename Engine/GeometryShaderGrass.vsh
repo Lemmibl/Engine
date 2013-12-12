@@ -11,16 +11,16 @@ struct VertexShaderInput
 	float3 Normal : NORMAL;
 };
 
-struct VertexShaderOutput
+struct VS_OUTPUT
 {
 	float4 Position : SV_POSITION;
-	float4 Normal : NORMAL;
-	float2 WorldYAndViewDepth : TEXCOORD0;
+	float4 Normal : TEXCOORD0;
+	float2 WorldYAndViewDepth : TEXCOORD1;
 };
 
-VertexShaderOutput GeometryGrassVertexShader(VertexShaderInput input)
+VS_OUTPUT GrassVS(VertexShaderInput input)
 {
-	VertexShaderOutput output;
+	VS_OUTPUT output;
 
 	output.Position	= input.Position;//mul(input.Position, WorldViewProjection);
 	output.Normal = float4(input.Normal, 1.0f);

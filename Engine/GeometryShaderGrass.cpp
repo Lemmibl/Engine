@@ -26,7 +26,7 @@ bool GeometryShaderGrass::Initialize(ID3D11Device* device, HWND hwnd)
 
 
 	// Initialize the vertex and pixel shaders.
-	result = InitializeShader(device, hwnd, L"../Engine/GeometryShaderGrass.vsh", L"../Engine/GeometryShaderGrass.gsh", L"../Engine/GeometryShaderGrass.psh");
+	result = InitializeShader(device, hwnd, L"../Engine/GeometryShaderGrass.vsh", L"../Engine/GeometryShaderGrass.gs", L"../Engine/GeometryShaderGrass.psh");
 	if(!result)
 	{
 		return false;
@@ -76,7 +76,7 @@ bool GeometryShaderGrass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 	D3D11_SAMPLER_DESC samplerDesc;
 
 	// Compile the vertex shader code.
-	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "GeometryGrassVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 
+	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "GrassVS", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 
 		0, NULL, &vertexShaderBuffer, &errorMessage.p, NULL);
 	if(FAILED(result))
 	{
@@ -95,7 +95,7 @@ bool GeometryShaderGrass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 	}
 
 	// Compile the pixel shader code.
-	result = D3DX11CompileFromFile(gsFilename, NULL, NULL, "GeometryGrassGeometryShader", "gs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 
+	result = D3DX11CompileFromFile(gsFilename, NULL, NULL, "GrassGS", "gs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 
 		0, NULL, &geometryShaderBuffer, &errorMessage.p, NULL);
 	if(FAILED(result))
 	{
@@ -114,7 +114,7 @@ bool GeometryShaderGrass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 	}
 
 	// Compile the pixel shader code.
-	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "GeometryGrassPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 
+	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "GrassPS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 
 		0, NULL, &pixelShaderBuffer, &errorMessage.p, NULL);
 	if(FAILED(result))
 	{
@@ -139,6 +139,21 @@ bool GeometryShaderGrass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 	{
 		return false;
 	}
+
+	// semantic name, semantic index, start component, component count, output slot
+	//D3D11_SO_DECLARATION_ENTRY pDecl[3] =
+	//{
+	//	{ 0, "SV_POSITION", 0, 0, 4, 0 },   // output all components of position
+	//	{ 0, "NORMAL", 0, 0, 3, 0 },     // output the first 3 of the normal
+	//	{ 0, "TEXCOORD", 0, 0, 2, 0 }    // output the first 2 texture coordinates
+	//};
+
+	//result = device->CreateGeometryShaderWithStreamOutput(geometryShaderBuffer->GetBufferPointer(), geometryShaderBuffer->GetBufferSize(), pDecl, 
+	//	sizeof(pDecl), NULL, 0, 0, NULL, &geometryShader.p);
+	//if(FAILED(result))
+	//{
+	//	return false;
+	//}
 
 	result = device->CreateGeometryShader(geometryShaderBuffer->GetBufferPointer(), geometryShaderBuffer->GetBufferSize(), NULL, 
 		&geometryShader);
@@ -228,7 +243,7 @@ bool GeometryShaderGrass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 	}
 
 	// Create a texture sampler state description.
-	samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -349,7 +364,7 @@ bool GeometryShaderGrass::SetShaderParameters( ID3D11DeviceContext* deviceContex
 	dataPtr3->WorldViewProjection = *worldViewProjection;
 
 	// Unlock the matrix constant buffer.
-	deviceContext->Unmap(geometryShaderMatrixBuffer, 0);
+	deviceContext->Unmap(geometryShaderMatrixBuffer.p, 0);
 
 	// Set the position of the matrix constant buffer in the vertex sh§ader.
 	bufferNumber = 0;
@@ -389,7 +404,7 @@ bool GeometryShaderGrass::SetShaderParameters( ID3D11DeviceContext* deviceContex
 
 	// Set shader texture array resource in the pixel shader.
 	deviceContext->PSSetShaderResources(0, 1, textureArray);
-	deviceContext->PSSetShaderResources(1, 1, texAndMatLookupTable);
+	//deviceContext->PSSetShaderResources(1, 1, texAndMatLookupTable);
 
 	return true;
 }
@@ -410,6 +425,8 @@ void GeometryShaderGrass::RenderShader(ID3D11DeviceContext* deviceContext, int i
 	// Render the triangles.
 	deviceContext->DrawIndexed(indexCount, 0, 0);
 
+	//Set GS shader back to null after we've drawn. Else it'll do work on everything else we draw. :)
+	deviceContext->GSSetShader(NULL, NULL, 0);
 
 	return;
 }

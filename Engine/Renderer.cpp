@@ -83,15 +83,11 @@ bool Renderer::InitializeShaders( HWND hwnd )
 {
 	bool result;
 
-	//skySphere();
-
 	result = skySphere.Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		return false;
 	}
-
-	pointLightShader = DRPointLight();
 
 	result = pointLightShader.Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
@@ -100,16 +96,12 @@ bool Renderer::InitializeShaders( HWND hwnd )
 		return false;
 	}
 
-	vertexOnlyShader = VertexShaderOnly();
-
 	result = vertexOnlyShader.Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Vertex only shader couldn't be initialized.", L"Error", MB_OK);
 		return false;
 	}
-
-	depthOnlyShader = DepthOnlyShader();
 
 	result = depthOnlyShader.Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
@@ -118,16 +110,12 @@ bool Renderer::InitializeShaders( HWND hwnd )
 		return false;
 	}
 
-	depthOnlyQuadShader = DepthOnlyQuadShader();
-
 	result = depthOnlyQuadShader.Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Depth only quad shader couldn't be initialized.", L"Error", MB_OK);
 		return false;
 	}
-
-	composeShader = DRCompose();
 
 	result = composeShader.Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
@@ -136,17 +124,12 @@ bool Renderer::InitializeShaders( HWND hwnd )
 		return false;
 	}
 
-	gaussianBlurShader = GaussianBlur();
-
 	result = gaussianBlurShader.Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Gaussian blur shader couldn't be initialized.", L"Error", MB_OK);
 		return false;
 	}
-
-
-	textureShader = TextureShaderClass();
 
 	result = textureShader.Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
@@ -155,12 +138,17 @@ bool Renderer::InitializeShaders( HWND hwnd )
 		return false;
 	}
 
-	mcubeShader = MCGBufferTerrainShader();
-
 	result = mcubeShader.Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Marching cubes gbuffer shader couldn't be initialized.", L"Error", MB_OK);
+		return false;
+	}
+
+	result = geometryShaderGrass.Initialize(d3D->GetDevice(), hwnd);
+	if(!result)
+	{
+		MessageBox(hwnd, L"Geometry shader grass shader couldn't be initialized.", L"Error", MB_OK);
 		return false;
 	}
 
@@ -255,7 +243,7 @@ bool Renderer::InitializeModels( HWND hwnd )
 	terrainManager = make_shared<TerrainManager>(d3D->GetDevice(), &noise, hwnd, camera->GetPosition());
 
 	//Get the meshes from current terrain
-	tempChunks = *terrainManager->GetTerrainRenderables(camera->GetPosition().x*0.01f, camera->GetPosition().z*0.01f);
+	tempChunks = *terrainManager->GetTerrainRenderables((int)camera->GetPosition().x*0.01f, (int)camera->GetPosition().z*0.01f);
 
 
 	// Initialize the model object. It really doesn't matter what textures it has because it's only used for point light volume culling.
@@ -741,20 +729,6 @@ bool Renderer::RenderShadowmap( ID3D11DeviceContext* deviceContext, XMMATRIX* li
 		}
 	}
 
-	//Uncomment to enable vegetation quad shadows
-	//Just doesn't look good right now. Will have to wait for cascaded shadowmaps or something similar before this is even worth it.
-	/*********************************************************************************************/
-
-	//d3D->TurnOnShadowBlendState();
-	//vegetationManager->RenderBuffers(deviceContext);
-
-	//depthOnlyQuadShader.Render(deviceContext, vegetationManager->GetVertexCount(), vegetationManager->GetInstanceCount(),
-	//	lightWorldViewProj, lightWorldView, textureAndMaterialHandler.GetVegetationTextureArray());
-
-	//d3D->ResetBlendState();
-
-	/*********************************************************************************************/
-
 	return true;
 }
 
@@ -806,7 +780,7 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 	deviceContext->OMSetRenderTargets(3, &gbufferRenderTargets[0].p, depthStencil);
 	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	deviceContext->ClearRenderTargetView(gbufferRenderTargets[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
+	deviceContext->ClearRenderTargetView(gbufferRenderTargets[0], D3DXVECTOR4(0.0f, 0.125f, 0.3f, 1.0f));
 	deviceContext->ClearRenderTargetView(gbufferRenderTargets[1], D3DXVECTOR4(0.5f, 0.5f, 0.5f, 0.5f));
 	deviceContext->ClearRenderTargetView(gbufferRenderTargets[2], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 
@@ -835,12 +809,6 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 	worldView = XMMatrixTranspose(worldMatrix * (*viewMatrix));
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
-	//if(!marchingCubes->Render(deviceContext))
-	//{
-	//	return false;
-	//}
-	//} 
-
 
 	for(unsigned int i = 0; i < tempChunks.size(); i++)
 	{	
@@ -855,11 +823,29 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 
 	d3D->SetNoCullRasterizer();
 	d3D->TurnOnAlphaBlending();
-	if(!(terrainManager->GetVegetationManager()->Render(deviceContext, identityWorldViewProj, &worldView, &worldMatrix, textureAndMaterialHandler.GetVegetationTextureArray())))
-	{
-		return false;
+
+	for(unsigned int i = 0; i < tempChunks.size(); i++)
+	{	
+		tempChunks[i]->Render(deviceContext);
+
+		if(!geometryShaderGrass.Render(d3D->GetDeviceContext(), ((IndexedMesh*)tempChunks[i])->GetIndexCount(), &worldMatrix, &worldView, 
+			identityWorldViewProj, textureAndMaterialHandler.GetVegetationTextureArray(), textureAndMaterialHandler.GetMaterialLookupTexture(), toggleColorMode, farClip))
+		{
+			return false;
+		}
 	}
+
 	d3D->TurnOffAlphaBlending();
+	d3D->SetBackFaceCullingRasterizer();
+
+	//d3D->SetNoCullRasterizer();
+	//d3D->TurnOnAlphaBlending();
+	//if(!(terrainManager->GetVegetationManager()->Render(deviceContext, identityWorldViewProj, &worldView, &worldMatrix, textureAndMaterialHandler.GetVegetationTextureArray())))
+	//{
+	//	return false;
+	//}
+	
+	//d3D->TurnOffAlphaBlending();
 
 	return true;
 }
@@ -1070,166 +1056,5 @@ bool Renderer::RenderDebugInfoAndText(ID3D11DeviceContext* deviceContext, XMMATR
 
 void Renderer::Shutdown()
 {
-	/*if(utility)
-	{
-	delete utility;
-	utility = 0;
-	}
-
-	if (text)
-	{
-	text->Shutdown();
-	delete text;
-	text = 0;
-	}
-
-	if(frustum)
-	{
-	delete frustum;
-	frustum = 0;
-	}
-
-	if(textureAndMaterialHandler)
-	{
-	delete textureAndMaterialHandler;
-	textureAndMaterialHandler = 0;
-	}
-
-	if(textureShader)
-	{
-	textureShader.Shutdown();
-	delete textureShader;
-	textureShader = 0;
-	}
-
-	if(pointLightShader)
-	{
-	pointLightShader.Shutdown();
-	delete pointLightShader;
-	pointLightShader = 0;
-	}
-
-	if(dirLight)
-	{
-	delete dirLight;
-	dirLight = 0;
-	}
-
-	if(depthOnlyShader)
-	{
-	depthOnlyShader.Shutdown();
-	delete depthOnlyShader;
-	depthOnlyShader = 0;
-	}
-
-	if(vertexOnlyShader)
-	{
-	vertexOnlyShader.Shutdown();
-	delete vertexOnlyShader;
-	vertexOnlyShader = 0;
-	}
-
-	if(dirLightShader)
-	{
-	dirLightShader.Shutdown();
-	delete dirLightShader;
-	dirLightShader = 0;
-	}
-
-	if(composeShader)
-	{
-	composeShader.Shutdown();
-	delete composeShader;
-	composeShader = 0;
-	}
-
-	if(gaussianBlurShader)
-	{
-	gaussianBlurShader.Shutdown();
-	delete gaussianBlurShader;
-	gaussianBlurShader = 0;
-	}
-
-	if(colorRT)
-	{
-	delete colorRT;
-	colorRT = 0;
-	}
-
-	if(normalRT)
-	{
-	delete normalRT;
-	normalRT = 0;
-	}
-
-	if(depthRT)
-	{
-	delete depthRT;
-	depthRT = 0;
-	}
-
-	if(lightRT)
-	{
-	delete lightRT;
-	lightRT = 0;
-	}
-
-	if(shadowRT)
-	{
-	delete shadowRT;
-	shadowRT = 0;
-	}
-
-	if(gaussianBlurPingPongRT)
-	{
-	delete gaussianBlurPingPongRT;
-	gaussianBlurPingPongRT  = 0;
-	}
-
-	if(sphereModel)
-	{
-	sphereModel->Shutdown();
-	delete sphereModel;
-	sphereModel = 0;
-	}
-
-	if(skySphere)
-	{
-	skySphere->Shutdown();
-	delete skySphere;
-	skySphere = 0;
-	}
-
-	if(vegetationManager)
-	{
-	vegetationManager->Shutdown();
-	delete vegetationManager;
-	vegetationManager = 0;
-	}
-
-	if(marchingCubes)
-	{
-	delete marchingCubes;
-	marchingCubes = 0;
-	}
-
-	if(mcubeShader)
-	{
-	mcubeShader.Shutdown();
-	mcubeShader = 0;
-	}
-
-	if(dayNightCycle)
-	{
-	delete dayNightCycle;
-	dayNightCycle = 0;
-	}
-
-	if(noise)
-	{
-	delete noise;
-	noise = 0;
-	}*/
-
 	return;
 }

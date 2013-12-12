@@ -52,6 +52,7 @@
 #include "fontshaderclass.h"
 #include "DepthOnlyQuadShader.h"
 #include "GaussianBlur.h"
+#include "GeometryShaderGrass.h"
 
 class Renderer
 {
@@ -102,6 +103,7 @@ private:
 	DepthOnlyQuadShader depthOnlyQuadShader;
 	DRCompose composeShader;
 	GaussianBlur gaussianBlurShader;
+	GeometryShaderGrass geometryShaderGrass;
 
 	DRDirLight dirLightShader;
 	DirLight dirLight;

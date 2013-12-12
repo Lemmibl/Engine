@@ -64,7 +64,7 @@ private:
 
 	inline int RoundToNearest(float num) 
 	{
-		return ((num > 0.0f) ? (num + 0.5f) : (num - 0.5f));
+		return (int)((num > 0.0f) ? (num + 0.5f) : (num - 0.5f));
 	}
 
 

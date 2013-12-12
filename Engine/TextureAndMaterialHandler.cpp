@@ -61,7 +61,7 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	WCHAR* vegetationFilenames[5] = 
 	{
 		L"../Engine/data/Vegetation/yellowGrassQuad.dds",
-		L"../Engine/data/Vegetation/greenGrassQuad.dds",
+		L"../Engine/data/Vegetation/greenGrassQuad2.dds",
 		L"../Engine/data/Vegetation/leafbranch.dds",
 		L"../Engine/data/Vegetation/flower.dds",
 		L"../Engine/data/Vegetation/bush3.dds"
