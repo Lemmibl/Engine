@@ -12,6 +12,7 @@ struct PixelShaderInput
 	float4 Position : SV_POSITION;
 	float3 Normal :	NORMAL;
 	float4 TexCoord : TEXCOORD;
+	float Opacity : OPACITY;
 };
 
 struct PixelShaderOutput
@@ -51,19 +52,27 @@ PixelShaderOutput GrassPS(PixelShaderInput input)
 		discard;
 	}
 	
+	//PixelShaderOutput output;
+	//float fadeValue =  (depth*depth); //depth; //
+	//
+	////No branching cuz texture array. Yay. To clarify -- our texCoord.z channel contains texture ID, which we extract from each instance of vegetation.
+	////output.Color = lerp(shaderTexture.Sample(linearSampler, input.TexCoord.xyz), float4(0.2f, 0.3f, 0.2f, 0.3f), depth);
+	//output.Color = shaderTexture.Sample(linearSampler, input.TexCoord.xyz);
+
+	////I fade in the alpha depending on depth, to make the vegetation appear smoothly. Works pretty well despite its' simplicity.
+	//if((output.Color.w * fadeValue) >= 0.7f) //Alpha testing and tiny optimization for the break-early cases.
+	//{
+	//	discard;
+	//}
+	
+	//if(input.Opacity <= 0.3f) //Alpha testing and tiny optimization for the break-early cases.
+	//{
+	//	discard;
+	//}
+
 	PixelShaderOutput output;
-	float fadeValue =  (depth*depth); //depth; //
-	
-	//No branching cuz texture array. Yay. To clarify -- our texCoord.z channel contains texture ID, which we extract from each instance of vegetation.
-	//output.Color = lerp(shaderTexture.Sample(linearSampler, input.TexCoord.xyz), float4(0.2f, 0.3f, 0.2f, 0.3f), depth);
-	output.Color = shaderTexture.Sample(linearSampler, input.TexCoord.xyz);
-	
-	//I fade in the alpha depending on depth, to make the vegetation appear smoothly. Works pretty well despite its' simplicity.
-	if((output.Color.w * fadeValue) >= 0.7f) //Alpha testing and tiny optimization for the break-early cases.
-	{
-		discard;
-	}
-	
+	output.Color = shaderTexture.Sample(linearSampler, input.TexCoord.xyz) * input.Opacity;
+
 	output.Depth = depth;
 	
 	output.Normal.xy = Encode(normalize(input.Normal));

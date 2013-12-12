@@ -9,7 +9,7 @@ struct VS_OUTPUT
 {
 	float4 Position : SV_POSITION;
 	float4 Normal : TEXCOORD0;
-	float2 WorldYAndViewDepth : TEXCOORD1;
+	float3 YPosDepthAndRand : TEXCOORD1;
 };
 
 struct PS_INPUT
@@ -17,49 +17,63 @@ struct PS_INPUT
 	float4 Position : SV_POSITION;
 	float4 Normal :	TEXCOORD0;
 	float4 TexCoord : TEXCOORD1;
+	float Opacity : OPACITY;
 };
 
+static const float vegetationScale = 2.0f;
 static const float4 UpNormal = normalize(float4(0.0f, 1.0f, 0.0f, 1.0f));
-static const float4 length = float4(0.0f, 3.5f, 0.0f, 0.0f);
 
 //http://www.braynzarsoft.net/index.php?p=D3D11BILLBOARDS
+//http://upvoid.com/devblog/2013/02/prototype-grass/
 
 void MakeFin(VS_OUTPUT v1, VS_OUTPUT v2, inout TriangleStream<PS_INPUT> TriStream)
 { 
-	float viewDepth = v1.WorldYAndViewDepth.y;
+	float viewDepth = v1.YPosDepthAndRand.y;
 
-	/*
-								1,1		 1,0
-								v1       v3
-								+--------+
-								|		 | 
-	VertexShaderOutput 1	<<	|		 |		>>	VertexShaderOutput 2
-	 is X == 0					+--------+			  is X == 1
-								v0		v2
-								0,1		0,0
-	
-	*/
-
-	if((viewDepth < 100.0f))
+	if(viewDepth < 200.0f && v2.YPosDepthAndRand.z >= 0.2f)
 	{
 		PS_INPUT output[4];
 		int textureID = 1.0f;
 
-		output[0].Position = mul(v1.Position, WorldViewProjection); //(v1.Position + (0.0f + float4(v1.Normal.xyz, 1.0f))*length);//
+		//Taking [0, 1] rand values and changing them to [-1, 1]
+		float rand1 = 2.0f * v1.YPosDepthAndRand.z - 0.5f;
+		float rand2 = 2.0f * v2.YPosDepthAndRand.z - 0.5f;
+
+		//Randomizing our positions
+		float4 pos1 = v1.Position - float4(rand1, 0.0f, rand2, 0.0f);
+		float4 pos2 = v2.Position + float4(rand2, 0.0f, rand1, 0.0f);
+
+		//float4 dirVector = normalize(pos1 - pos2);
+
+		//pos2 = pos1 + (1.5f * dirVector);
+		//pos2.y = v2.Position.y;
+
+		//pos1.xz -= v1.YPosDepthAndRand.z;
+		//pos2.xz += v2.YPosDepthAndRand.z;
+
+		float height = (vegetationScale * (1.0f - viewDepth/200.0f));
+		float4 randomizedNormal = float4(0.0f, height, 0.0f, 0.0f);
+
+
+		output[0].Position = mul(pos1, WorldViewProjection); //(v1.Position + (0.0f + float4(v1.Normal.xyz, 1.0f))*length);//
 		output[0].Normal = normalize(mul(v1.Normal, World));
 		output[0].TexCoord = float4(0.0f, 1.0f, textureID, viewDepth);
+		output[0].Opacity = height;
 
-		output[1].Position = mul(v2.Position, WorldViewProjection); //(v2.Position + (0.0f * float4(v2.Normal.xyz, 1.0f))*length);//
+		output[1].Position = mul(pos2, WorldViewProjection); //(v2.Position + (0.0f * float4(v2.Normal.xyz, 1.0f))*length);//
 		output[1].Normal = normalize(mul(v2.Normal, World));
 		output[1].TexCoord = float4(1.0f, 1.0f, textureID, viewDepth);
+		output[1].Opacity = height;
 
-		output[2].Position = mul((v1.Position + (UpNormal*length)), WorldViewProjection); //(v1.Position + (1.0f * float4(v1.Normal.xyz, 1.0f))*length);//
+		output[2].Position = mul((pos1 + randomizedNormal), WorldViewProjection); //(v1.Position + (1.0f * float4(v1.Normal.xyz, 1.0f))*length);//
 		output[2].Normal = normalize(mul(v1.Normal, World));
 		output[2].TexCoord = float4(0.0f, 0.0f, textureID, viewDepth);
+		output[2].Opacity = height;
 
-		output[3].Position = mul((v2.Position + (UpNormal*length)), WorldViewProjection); //(v2.Position + (1.0f * float4(v2.Normal.xyz, 1.0f))*length);//
+		output[3].Position = mul((pos2 + randomizedNormal), WorldViewProjection); //(v2.Position + (1.0f * float4(v2.Normal.xyz, 1.0f))*length);//
 		output[3].Normal = normalize(mul(v2.Normal, World));
 		output[3].TexCoord = float4(1.0f, 0.0f, textureID, viewDepth);
+		output[3].Opacity = height;
 
 		//We're forming a quad out of two triangles, meaning four vertices.
 		TriStream.Append(output[0]);
@@ -73,6 +87,8 @@ void MakeFin(VS_OUTPUT v1, VS_OUTPUT v2, inout TriangleStream<PS_INPUT> TriStrea
 
 [maxvertexcount(18)] void GrassGS(triangle VS_OUTPUT Input[3], inout TriangleStream<PS_INPUT> TriStream)
 { 
+	//http://upvoid.com/devblog/2013/02/prototype-grass/
+
 	//compute the triangle’s normal
 	float4 averageNormal = normalize(Input[0].Normal);//normalize(cross( Input[0].Position - Input[2].Position, Input[0].Position - Input[1].Position)); //
 	
