@@ -13,6 +13,7 @@ public:
 	float Noise2D(float xin, float yin);
 	float SimplexNoise3D(float xin, float yin, float zin);
 	float SimplexNoise3DZeroToOne(float xin, float yin, float zin);
+	float SimplexNoise4D(float x, float y, float z, float w);
 	float PerlinNoise3D(float x, float y,  float z);
 
 	void ReseedRandom();
@@ -76,6 +77,11 @@ private:
 	inline float dot(const Grads& g, float x, float y, float z)
 	{
 		return x*g.x + y*g.y + z*g.z; 
+	}
+
+	inline float dot(const int* g, const float x, const float y, const float z, const float w)
+	{
+		return g[0]*x + g[1]*y + g[2]*z + g[3]*w;
 	}
 };
 

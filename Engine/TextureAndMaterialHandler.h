@@ -58,6 +58,8 @@ public:
 	//To access the texture, call GetNoiseTexture()
 	void RebuildSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
 
+	void RebuildSeamlessSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, float startPosX, float startPosY, float stepsX, float stepsY);
+
 	//To access the texture, call GetNoiseTexture()
 	void RebuildRandom2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
 
@@ -65,6 +67,8 @@ public:
 	void RebuildMirroredSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
 
 	void RebuildTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, TextureID textureID, int width, int height, float startPosX, float startPosY, bool reseedRandomAfterwards);
+
+	HRESULT CreateSeamlessSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv, float startPosX, float startPosY, float stepsX, float stepsY);
 
 	bool SaveLTreeTextureToFile(ID3D11DeviceContext* deviceContext, D3DX11_IMAGE_FILE_FORMAT format, LPCSTR fileName);
 	void SaveTextureToFile(ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView* texture, D3DX11_IMAGE_FILE_FORMAT format, LPCSTR fileName);
@@ -74,7 +78,10 @@ private:
 	HRESULT CreateRandom2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv);
 	HRESULT CreateSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv);
 	HRESULT CreateMirroredSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv);
-	void CreateMaterialTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, int width, int height, ID3D11ShaderResourceView** textureSRV, MaterialColorSpectrumUINT8 colorSpectrum, float startPosX, float startPosY);
+
+
+	void CreateMaterialTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, int width, int height, ID3D11ShaderResourceView** textureSRV, 
+		MaterialColorSpectrumUINT8 colorSpectrum, float startPosX, float startPosY);
 
 	void CreateMaterialLookupTable(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** textureSRV, int worldMaxYValue);
 
@@ -101,6 +108,15 @@ private:
 		//Adding +1 to prevent division by zero (modulus by zero)
 		return (rand()%((max+1)-min))+min;
 	};
+
+	inline void MovePointAroundInACircle(float* x, float* y, float originX, float originY, float radius, float scale)
+	{
+		for (float t = 0; t < 2*XM_PI; t += scale) 
+		{
+			*x = radius*cos(t) + originX;
+			*y = radius*sin(t) + originY;
+		}
+	}
 
 private:
 	std::shared_ptr<NoiseClass> noise;

@@ -7,6 +7,7 @@
 #include "marchingCubesClass.h"
 #include "d3dclass.h"
 #include <math.h>
+#include "TextureAndMaterialHandler.h"
 
 class TerrainManager
 {
@@ -27,14 +28,14 @@ private:
 	};
 
 public:
-	TerrainManager(ID3D11Device* device, NoiseClass* noise, HWND hwnd,  XMFLOAT3 cameraPosition);
+	TerrainManager(ID3D11Device* device, ID3D11DeviceContext* deviceContext, NoiseClass* noise, TextureAndMaterialHandler* texAndMatHandler, HWND hwnd,  XMFLOAT3 cameraPosition);
 	~TerrainManager();
 
 	//Returns a bool to indicate if we've actually had to change anything. If true, it has changed and we should fetch the new data.
-	bool Update(ID3D11Device* device, XMFLOAT3 currentCameraPosition);
+	bool Update(ID3D11Device* device, ID3D11DeviceContext* deviceContext, XMFLOAT3 currentCameraPosition);
 
 	void ResetTerrain(int currentPosX, int currrentPosZ);
-	void CreateChunk(ID3D11Device* device, int startPosX, int startPosZ);
+	void CreateChunk(ID3D11Device* device, ID3D11DeviceContext* deviceContext, int startPosX, int startPosZ);
 	void MergeWithNeighbourChunks(MarchingCubeChunk* chunk,  int idX, int idZ);
 
 	VegetationManager* const GetVegetationManager() { return &vegetationManager; };
@@ -72,6 +73,7 @@ private:
 	MarchingCubesClass marchingCubes;
 	MCTerrainClass mcTerrain;
 	VegetationManager vegetationManager;
+	TextureAndMaterialHandler* textureAndMaterialHandler;
 	NoiseClass* noise;
 	unsigned int vegetationCount;
 	float stepScaling;

@@ -47,7 +47,7 @@ VS_OUTPUT GrassVS(VertexShaderInput input)
 	output.YPosDepthAndRand.y = mul(input.Position, WorldView).z;
 
 	//Creates a random value with world positions as seeds. Means it'll never change. TODO: Move to cpu/mesh creation? Probably needed.
-	output.YPosDepthAndRand.z = random(float2(input.Position.z*5000.0f, input.Position.x*333.0f));
+	output.YPosDepthAndRand.z = random(float2(input.Position.z*3.5f, input.Position.x*11.0f));
 
 	return output;
 }

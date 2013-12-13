@@ -20,7 +20,7 @@ struct PS_INPUT
 	float Opacity : OPACITY;
 };
 
-static const float vegetationScale = 2.0f;
+static const float vegetationScale = 2.5f;
 static const float4 UpNormal = normalize(float4(0.0f, 1.0f, 0.0f, 1.0f));
 static const float vegetationFalloff = 200.0f;
 
@@ -32,8 +32,10 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, inout TriangleStream<PS_INPUT> TriStre
 { 
 	float viewDepth = v1.YPosDepthAndRand.y;
 
+	float randSum = v2.YPosDepthAndRand.z + v1.YPosDepthAndRand.z;
+
 	//Skip if distance is too far, or if one of the random values is within a certain range. This was added to make sure that there are some spots that are barren.
-	if(viewDepth < vegetationFalloff && v2.YPosDepthAndRand.z <= 0.50f)
+	if(viewDepth < vegetationFalloff && randSum <= 1.55f)
 	{
 		//Allocate four output values
 		PS_INPUT output[4];
@@ -42,21 +44,21 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, inout TriangleStream<PS_INPUT> TriStre
 		int textureID = 1.0f;
 
 		//Taking [0, 1] rand values and changing them to a span that can go negative.
-		float rand1 = 1.2f * (v1.YPosDepthAndRand.z - 0.5f);
-		float rand2 = 1.2f * (v2.YPosDepthAndRand.z - 0.5f);
+		float rand1 = 2.0f * (v1.YPosDepthAndRand.z - 0.5f);
+		float rand2 = 2.0f * (v2.YPosDepthAndRand.z - 0.5f);
 
 		//Randomizing our positions
-		float4 pos1 = v1.Position - float4(rand1, 0.0f, rand2, 0.0f);
+		float4 pos1 = v1.Position + float4(-rand1, 0.0f, -rand2, 0.0f);
 		float4 pos2 = v2.Position + float4(rand2, 0.0f, rand1, 0.0f);
 
-		float opacity = (1.0f - viewDepth/vegetationFalloff);
+		float opacity = (1.0f - (viewDepth/vegetationFalloff));
 		float height = (vegetationScale * opacity);
 
 		//Just a temporary wind direction
 		float4 WindDirection = normalize(float4(0.2f, 0.0f, 2.0f, 0.0f));
 
 		//Add wind direction to our already randomized normal. This value will be 
-		float4 randomizedNormal = float4(rand1*0.8f, height, rand2*0.8f, 0.0f) + (WindDirection*sin(0.5f*v1.Position.z + 2.0f*DeltaTime));
+		float4 randomizedNormal = float4(rand1*0.8f, height, rand2*0.8f, 0.0f) + (WindDirection*(1.0f*sin(0.5f*v1.Position.z + (3.0f * DeltaTime))));
 
 		float4 normal1 = mul(v1.Normal, World);
 		float4 normal2 = mul(v2.Normal, World);

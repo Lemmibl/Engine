@@ -29,7 +29,7 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	{
 		noiseSRV.Release();
 	}
-	CreateSimplex2DTexture(device, deviceContext, &noiseSRV.p);
+	CreateSeamlessSimplex2DTexture(device, deviceContext, &noiseSRV.p, 0, 0, 100, 100);
 
 	int terrainTextureCount = 6;
 	WCHAR* terrainFilenames[6] = 
@@ -730,10 +730,6 @@ HRESULT TextureAndMaterialHandler::CreateRandom2DTexture(ID3D11Device* device, I
 	return Build2DTextureProgrammatically(device, deviceContext, pixelData, textureWidth, textureHeight, srv);
 }
 
-/*
-TILING NOISE: http://webstaff.itn.liu.se/~stegu/TNM022-2005/perlinnoiselinks/perlin-noise-math-faq.html
- */
-
 HRESULT TextureAndMaterialHandler::CreateSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv)
 {
 	int textureWidth, textureHeight,i;
@@ -903,6 +899,18 @@ void TextureAndMaterialHandler::RebuildSimplex2DTexture( ID3D11Device* device, I
 	CreateSimplex2DTexture(device, deviceContext, &noiseSRV.p);
 }
 
+void TextureAndMaterialHandler::RebuildSeamlessSimplex2DTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
+	float startPosX, float startPosY, float stepsX, float stepsY )
+{
+	//If this SRV has been initialized before, release it first.
+	if(noiseSRV)
+	{
+		noiseSRV.Release();
+	}
+
+	CreateSeamlessSimplex2DTexture(device, deviceContext, &noiseSRV.p, startPosX, startPosY, stepsX, stepsY);
+}
+
 void TextureAndMaterialHandler::RebuildRandom2DTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext )
 {
 	//If this SRV has been initialized before, release it first.
@@ -1020,3 +1028,83 @@ void TextureAndMaterialHandler::RebuildTexture( ID3D11Device* device, ID3D11Devi
 		noise->ReseedRandom();
 	}
 }
+
+
+//http://www.sjeiti.com/creating-tileable-noise-maps/
+/*
+ fNoiseScale = .003;
+ drawNoise(function(i,x,y){
+ var  fNX = x/iSize
+ ,fNY = y/iSize
+ ,fRdx = fNX*2*Math.PI
+ ,fRdy = fNY*2*Math.PI
+ ,a = fRds*Math.sin(fRdx)
+ ,b = fRds*Math.cos(fRdx)
+ ,c = fRds*Math.sin(fRdy)
+ ,d = fRds*Math.cos(fRdy)
+ ,v = Simplex.noise(
+ 123+a*fNoiseScale
+ ,231+b*fNoiseScale
+ ,312+c*fNoiseScale
+ ,273+d*fNoiseScale
+ )
+ ;
+ return (Math.min(Math.max(2*(v -.5)+.5,0),1)*255)<<0;
+ }).img().div(2,2);
+*/
+
+HRESULT TextureAndMaterialHandler::CreateSeamlessSimplex2DTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
+	ID3D11ShaderResourceView** srv, float startPosX, float startPosY, float stepsX, float stepsY)
+{
+	int textureWidth, textureHeight,i;
+	textureWidth = stepsX;
+	textureHeight = stepsY;
+	i = 0;
+
+	float noiseScale = 0.5f;
+	float radius = (textureWidth/2)-2.0f;
+
+	vector<PixelData> pixelData;
+	pixelData.resize(textureWidth*textureHeight);
+
+	for(float x = startPosX; x < startPosX+textureWidth; x++)
+	{
+		for(float y = startPosY; y < startPosY+textureHeight; y++)
+		{
+			float xScale = x / textureWidth;
+			float yScale = y / textureHeight;
+			float xPi = xScale * 2 * XM_PI;
+			float yPi = yScale * 2 * XM_PI;
+
+			//Produce the four points we'll make noise from
+			float nx = radius+sin(xPi);
+			float ny = radius+cos(xPi);
+			float nz = radius+sin(yPi);
+			float nw = radius+cos(yPi);
+
+			//Produce noise, rescale it from [-1, 1] to [0, 1] then multiply to [0, 256] to make full use of the 8bit channels of the texture it'll be stored in.
+			int noiseResult = (0.5f * noise->SimplexNoise4D(nx*noiseScale, ny*noiseScale, nz*noiseScale, nw*noiseScale) + 0.5f) * 256;
+
+			pixelData[i].x = noiseResult;
+			pixelData[i].y = noiseResult;
+			pixelData[i].z = noiseResult;
+			pixelData[i].w = 1; //Alpha.
+
+			i++;
+		}
+	}
+
+	//Build texture
+	if(FAILED(Build2DTextureProgrammatically(device, deviceContext, pixelData, textureWidth, textureHeight, srv)))
+	{
+		MessageBox(GetDesktopWindow(), L"Something went wrong when calling CreateMaterialTexture. Look in TextureAndMaterialHandler::CreateMaterialTexture.", L"Error", MB_OK);
+		return S_FALSE;
+	}
+
+	//Reseed the random for next time we'll call this function
+	noise->ReseedRandom();
+
+	return S_OK;
+}
+
+

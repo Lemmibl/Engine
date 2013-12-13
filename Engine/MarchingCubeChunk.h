@@ -16,11 +16,9 @@ public:
 	IndexedMesh* GetMesh() { return &mesh; }
 	vector<MarchingCubeVoxel>* GetVoxelField() { return &voxels; }
 	vector<unsigned int>* GetIndices() { return &indices; }
-	
-	vector<VegetationManager::InstanceType>* GetVegetationInstances() { return &vegetationInstances; }
-	//const Lemmi3DAABB* GetBoundingBox() { return &boundingBox; }
+	ID3D11ShaderResourceView* GetWindTexture() { return windTexture.p; }
+	ID3D11ShaderResourceView** GetWindTexturePP() { return &windTexture.p; }
 
-	unsigned int GetTotalSize() const { return ((stepCountX+1) * (stepCountY+1) * (stepCountZ+1)); }
 	unsigned int GetStepCountX() const { return stepCountX; }
 	unsigned int GetStepCountY() const { return stepCountY; }
 	unsigned int GetStepCountZ() const { return stepCountZ; }
@@ -28,11 +26,6 @@ public:
 	float GetStepSizeX() const { return stepSizeX ; }
 	float GetStepSizeY() const { return stepSizeY ; }
 	float GetStepSizeZ() const { return stepSizeZ ; }
-
-	float GetSizeX() const { return stepSizeX * stepCountX; }
-	float GetSizeY() const { return stepSizeY * stepCountY; }
-	float GetSizeZ() const { return stepSizeZ * stepCountZ; }
-
 
 	float GetStartPosX() const { return startPosition.x; }
 	float GetStartPosY() const { return startPosition.y; }
@@ -42,7 +35,7 @@ private:
 	//voxels is sizeX*sizeY*sizeZ big
 	vector<MarchingCubeVoxel> voxels;
 	vector<unsigned int> indices;
-	vector<VegetationManager::InstanceType> vegetationInstances;
+	CComPtr<ID3D11ShaderResourceView> windTexture;
 
 	//Our mesh that we'll be rendering. Contains all vertex/index data.
 	IndexedMesh mesh;

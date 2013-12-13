@@ -1,7 +1,7 @@
 struct VertexShaderOutput
 {
 	float4 Position : SV_POSITION;
-	float4 ViewPosition : TEXCOORD0;
+	float ViewPositionDepth : TEXCOORD0;
 };
 
 float2 ComputeMoments(float depth)  
@@ -23,5 +23,5 @@ float2 ComputeMoments(float depth)
 
 float2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 {
-	return ComputeMoments(input.ViewPosition.z/500.0f);
+	return ComputeMoments(input.ViewPositionDepth/500.0f);
 };

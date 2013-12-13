@@ -57,13 +57,13 @@ bool Renderer::Initialize(HWND hwnd, shared_ptr<CameraClass> camera, shared_ptr<
 		return false;
 	}
 
-	result = InitializeModels(hwnd);
+	result = InitializeEverythingElse(hwnd);
 	if(!result)
 	{
 		return false;
 	}
 
-	result = InitializeEverythingElse(hwnd);
+	result = InitializeModels(hwnd);
 	if(!result)
 	{
 		return false;
@@ -241,11 +241,10 @@ bool Renderer::InitializeModels( HWND hwnd )
 	bool result;
 
 	//Initialize terrain manager
-	terrainManager = make_shared<TerrainManager>(d3D->GetDevice(), &noise, hwnd, camera->GetPosition());
+	terrainManager = make_shared<TerrainManager>(d3D->GetDevice(), d3D->GetDeviceContext(), &noise, &textureAndMaterialHandler, hwnd, camera->GetPosition());
 
 	//Get the meshes from current terrain
-	tempChunks = *terrainManager->GetTerrainRenderables((int)camera->GetPosition().x*0.01f, (int)camera->GetPosition().z*0.01f);
-
+	tempChunks = *terrainManager->GetTerrainRenderables((int)(camera->GetPosition().x*0.01f), (int)(camera->GetPosition().z*0.01f));
 
 	// Initialize the model object. It really doesn't matter what textures it has because it's only used for point light volume culling.
 	result = sphereModel.Initialize(d3D->GetDevice(), "../Engine/data/skydome.txt", L"../Engine/data/grass.dds", L"../Engine/data/dirt.dds", L"../Engine/data/rock.dds");
@@ -409,7 +408,7 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 
 	if(inputManager->WasKeyPressed(DIK_O))
 	{
-		textureAndMaterialHandler.RebuildSimplex2DTexture(d3D->GetDevice(), d3D->GetDeviceContext());
+		textureAndMaterialHandler.RebuildSeamlessSimplex2DTexture(d3D->GetDevice(), d3D->GetDeviceContext(), 0, 0, 100, 100);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_J))
@@ -573,7 +572,7 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 	}
 #pragma endregion
 
-	if(terrainManager->Update(d3D->GetDevice(), camera->GetPosition()))
+	if(terrainManager->Update(d3D->GetDevice(), d3D->GetDeviceContext(), camera->GetPosition()))
 	{
 		tempChunks.clear();
 		tempChunks = *terrainManager->GetActiveRenderables();
