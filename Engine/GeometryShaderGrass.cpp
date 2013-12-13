@@ -44,13 +44,13 @@ void GeometryShaderGrass::Shutdown()
 }
 
 bool GeometryShaderGrass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, XMMATRIX* worldViewMatrix, XMMATRIX* worldViewProjection, 
-	ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** texAndMatLookupTable, int toggleColor, float farclip)
+	ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** texAndMatLookupTable, int toggleColor, float farclip, float deltaTime)
 {
 	bool result;
 
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldMatrix, worldViewMatrix, worldViewProjection, textureArray, texAndMatLookupTable, toggleColor, farclip);
+	result = SetShaderParameters(deviceContext, worldMatrix, worldViewMatrix, worldViewProjection, textureArray, texAndMatLookupTable, toggleColor, farclip, deltaTime);
 	if(!result)
 	{
 		return false;
@@ -308,7 +308,7 @@ void GeometryShaderGrass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWN
 }
 
 bool GeometryShaderGrass::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, XMMATRIX* worldViewMatrix, 
-	XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** texAndMatLookupTable, int toggleColor, float farclip)
+	XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** texAndMatLookupTable, int toggleColor, float farclip, float deltaTime)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -362,6 +362,7 @@ bool GeometryShaderGrass::SetShaderParameters( ID3D11DeviceContext* deviceContex
 	// Copy the matrices into the constant buffer.
 	dataPtr3->World = *worldMatrix;
 	dataPtr3->WorldViewProjection = *worldViewProjection;
+	dataPtr3->DeltaTime = deltaTime;
 
 	// Unlock the matrix constant buffer.
 	deviceContext->Unmap(geometryShaderMatrixBuffer.p, 0);

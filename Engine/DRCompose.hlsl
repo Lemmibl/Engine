@@ -15,8 +15,8 @@ static const float intensity = 4.0f; //AO intensity. The higher this value is, t
 static const float scale = 0.8f; //Scales distance between occluders and occludee. Still a little unsure as to what values would be good to use.
 static const float bias = 0.2f; //Cutoff value. The higher this value is, the harsher we are with cutting off low AO values. 0.01f to 0.4f values are pretty ok.
 static const float CameraFarClip = 500.0f;
-static const float FogEnd = 350.0f;
-static const float FogStart = 150.0f;
+static const float FogEnd = 250.0f;
+static const float FogStart = 50.0f;
 static const float2 screenSize = float2(1024.0f, 768.0f);
 static const float2 randomSize = float2(64.0f, 64.0f);
 
@@ -113,27 +113,27 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		float2 rand = normalize(randomTexture.Sample(samplers[0], (screenSize*input.TexCoord / randomSize)) * 2.0f - 1.0f);//
 
 		float ao = 1.0f;
-		float rad = sampleRadius / position.z;
+		//float rad = sampleRadius / position.z;
 
-		int iterations = lerp(8, 2, depth); //primitive SSAO LOD; scales with how close to the pixel we are
+		//int iterations = lerp(8, 2, depth); //primitive SSAO LOD; scales with how close to the pixel we are
 
-		//SSAO Calculation
-		[unroll]
-		for (int i = 0; i < iterations; i++)
-		{
-			float2 coord1 = reflect(vec[i], rand)*rad;
-			float2 coord2 = float2(	coord1.x*0.707 - coord1.y*0.707,
-									coord1.x*0.707 + coord1.y*0.707);
-		
-			ao += DoAmbientOcclusion(input.TexCoord, coord1*0.25,	input.ScreenPosition, position, normal);
-			ao += DoAmbientOcclusion(input.TexCoord, coord2*0.5,	input.ScreenPosition, position, normal);
-			ao += DoAmbientOcclusion(input.TexCoord, coord1*0.75,	input.ScreenPosition, position, normal);
-			ao += DoAmbientOcclusion(input.TexCoord, coord2,		input.ScreenPosition, position, normal);
-		}
+		////SSAO Calculation
+		//[unroll]
+		//for (int i = 0; i < iterations; i++)
+		//{
+		//	float2 coord1 = reflect(vec[i], rand)*rad;
+		//	float2 coord2 = float2(	coord1.x*0.707 - coord1.y*0.707,
+		//							coord1.x*0.707 + coord1.y*0.707);
+		//
+		//	ao += DoAmbientOcclusion(input.TexCoord, coord1*0.25,	input.ScreenPosition, position, normal);
+		//	ao += DoAmbientOcclusion(input.TexCoord, coord2*0.5,	input.ScreenPosition, position, normal);
+		//	ao += DoAmbientOcclusion(input.TexCoord, coord1*0.75,	input.ScreenPosition, position, normal);
+		//	ao += DoAmbientOcclusion(input.TexCoord, coord2,		input.ScreenPosition, position, normal);
+		//}
 
-		ao /= (float)iterations*4.0f;
+		//ao /= (float)iterations*4.0f;
 
-		ao = max((1.0f - ao), 0.4f); //We don't want the ssao to make things completely black (0.0f), so we cap it at a minimum of 0.4f.
+		//ao = max((1.0f - ao), 0.4f); //We don't want the ssao to make things completely black (0.0f), so we cap it at a minimum of 0.4f.
 
 		//Add AO to final calculation ...
 

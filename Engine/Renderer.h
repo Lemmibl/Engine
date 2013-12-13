@@ -137,7 +137,7 @@ private:
 	vector<VegetationManager::InstanceType> LODVector10000;
 	int toggleSSAO, toggleColorMode;
 
-	float xPos, yPos;
+	float xPos, yPos, backAndForth;
 
 	Lemmi2DAABB testBoundingbox;
 

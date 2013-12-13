@@ -2,8 +2,8 @@ cbuffer MatrixBuffer
 {
 	float4x4 World;
 	float4x4 WorldViewProjection;
+	float DeltaTime;
 };
-
 
 struct VS_OUTPUT
 {
@@ -22,21 +22,26 @@ struct PS_INPUT
 
 static const float vegetationScale = 2.0f;
 static const float4 UpNormal = normalize(float4(0.0f, 1.0f, 0.0f, 1.0f));
-static const float vegetationFalloff = 250.0f;
+static const float vegetationFalloff = 200.0f;
 
 //http://www.braynzarsoft.net/index.php?p=D3D11BILLBOARDS
 //http://upvoid.com/devblog/2013/02/prototype-grass/
 
-void MakeFin(VS_OUTPUT v1, VS_OUTPUT v2, inout TriangleStream<PS_INPUT> TriStream)
+//Function for making grass quads
+void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, inout TriangleStream<PS_INPUT> TriStream)
 { 
 	float viewDepth = v1.YPosDepthAndRand.y;
 
-	if(viewDepth < vegetationFalloff && v2.YPosDepthAndRand.z <= 0.65f)
+	//Skip if distance is too far, or if one of the random values is within a certain range. This was added to make sure that there are some spots that are barren.
+	if(viewDepth < vegetationFalloff && v2.YPosDepthAndRand.z <= 0.50f)
 	{
+		//Allocate four output values
 		PS_INPUT output[4];
+
+		//In the future, this ID will be loaded from a lookup table
 		int textureID = 1.0f;
 
-		//Taking [0, 1] rand values and changing them to [-1, 1]
+		//Taking [0, 1] rand values and changing them to a span that can go negative.
 		float rand1 = 1.2f * (v1.YPosDepthAndRand.z - 0.5f);
 		float rand2 = 1.2f * (v2.YPosDepthAndRand.z - 0.5f);
 
@@ -44,42 +49,41 @@ void MakeFin(VS_OUTPUT v1, VS_OUTPUT v2, inout TriangleStream<PS_INPUT> TriStrea
 		float4 pos1 = v1.Position - float4(rand1, 0.0f, rand2, 0.0f);
 		float4 pos2 = v2.Position + float4(rand2, 0.0f, rand1, 0.0f);
 
-		//float4 dirVector = normalize(pos1 - pos2);
-
-		//pos2 = pos1 + (1.5f * dirVector);
-		//pos2.y = v2.Position.y;
-
-		//pos1.xz -= v1.YPosDepthAndRand.z;
-		//pos2.xz += v2.YPosDepthAndRand.z;
-
 		float opacity = (1.0f - viewDepth/vegetationFalloff);
 		float height = (vegetationScale * opacity);
-		float4 randomizedNormal = float4(rand1*0.8f, height, rand2*0.8f, 0.0f);
+
+		//Just a temporary wind direction
+		float4 WindDirection = normalize(float4(0.2f, 0.0f, 2.0f, 0.0f));
+
+		//Add wind direction to our already randomized normal. This value will be 
+		float4 randomizedNormal = float4(rand1*0.8f, height, rand2*0.8f, 0.0f) + (WindDirection*sin(0.5f*v1.Position.z + 2.0f*DeltaTime));
 
 		float4 normal1 = mul(v1.Normal, World);
 		float4 normal2 = mul(v2.Normal, World);
 
-		output[0].Position = mul(pos1, WorldViewProjection); //(v1.Position + (0.0f + float4(v1.Normal.xyz, 1.0f))*length);//
+
+		//Define the four vertices, corners
+		output[0].Position = mul(pos1, WorldViewProjection);
 		output[0].Normal = normalize(normal1);
 		output[0].TexCoord = float4(0.0f, 1.0f, textureID, viewDepth);
 		output[0].Opacity = opacity;
 
-		output[1].Position = mul(pos2, WorldViewProjection); //(v2.Position + (0.0f * float4(v2.Normal.xyz, 1.0f))*length);//
+		output[1].Position = mul(pos2, WorldViewProjection);
 		output[1].Normal = normalize(normal2);
 		output[1].TexCoord = float4(1.0f, 1.0f, textureID, viewDepth);
 		output[1].Opacity = opacity;
 
-		output[2].Position = mul((pos1 + randomizedNormal), WorldViewProjection); //(v1.Position + (1.0f * float4(v1.Normal.xyz, 1.0f))*length);//
+		output[2].Position = mul((pos1 + randomizedNormal), WorldViewProjection);
 		output[2].Normal = normalize(normal1+randomizedNormal);
 		output[2].TexCoord = float4(0.0f, 0.0f, textureID, viewDepth);
 		output[2].Opacity = opacity;
 
-		output[3].Position = mul((pos2 + randomizedNormal), WorldViewProjection); //(v2.Position + (1.0f * float4(v2.Normal.xyz, 1.0f))*length);//
+		output[3].Position = mul((pos2 + randomizedNormal), WorldViewProjection);
 		output[3].Normal = normalize(normal2 + randomizedNormal);
 		output[3].TexCoord = float4(1.0f, 0.0f, textureID, viewDepth);
 		output[3].Opacity = opacity;
 
-		//We're forming a quad out of two triangles, meaning four vertices.
+		//We're form a quad out of two triangles, meaning four vertices.
 		TriStream.Append(output[0]);
 		TriStream.Append(output[1]);
 		TriStream.Append(output[2]);
@@ -89,20 +93,16 @@ void MakeFin(VS_OUTPUT v1, VS_OUTPUT v2, inout TriangleStream<PS_INPUT> TriStrea
 	}
 };
 
-[maxvertexcount(18)] void GrassGS(triangle VS_OUTPUT Input[3], inout TriangleStream<PS_INPUT> TriStream)
+[maxvertexcount(12)] void GrassGS(triangle VS_OUTPUT Input[3], inout TriangleStream<PS_INPUT> TriStream)
 { 
 	//http://upvoid.com/devblog/2013/02/prototype-grass/
+	float dotResult = dot(Input[0].Normal, UpNormal);
 
-	//compute the triangle’s normal
-	float4 averageNormal = normalize(Input[0].Normal);//normalize(cross( Input[0].Position - Input[2].Position, Input[0].Position - Input[1].Position)); //
-	
-	float dotResult = dot(averageNormal, UpNormal);
-
-	//if the central triangle is front facing, check the other triangles
+	//if the surface is or is pretty close to being perpendicular to the Up vector, we make grass.
 	if(dotResult > 0.8f || dotResult < -0.8f)
 	{
-		MakeFin(Input[1], Input[2], TriStream);
-		MakeFin(Input[2], Input[0], TriStream);
-		MakeFin(Input[0], Input[1], TriStream); 
+		MakeQuad(Input[1], Input[2], TriStream);
+		MakeQuad(Input[2], Input[0], TriStream);
+		MakeQuad(Input[0], Input[1], TriStream); 
 	}
 }

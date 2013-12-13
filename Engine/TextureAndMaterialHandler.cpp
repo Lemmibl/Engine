@@ -730,6 +730,10 @@ HRESULT TextureAndMaterialHandler::CreateRandom2DTexture(ID3D11Device* device, I
 	return Build2DTextureProgrammatically(device, deviceContext, pixelData, textureWidth, textureHeight, srv);
 }
 
+/*
+TILING NOISE: http://webstaff.itn.liu.se/~stegu/TNM022-2005/perlinnoiselinks/perlin-noise-math-faq.html
+ */
+
 HRESULT TextureAndMaterialHandler::CreateSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv)
 {
 	int textureWidth, textureHeight,i;
@@ -743,9 +747,9 @@ HRESULT TextureAndMaterialHandler::CreateSimplex2DTexture(ID3D11Device* device, 
 
 	noise->ReseedRandom();
 
-	for(float yCounter = -textureHeight*0.5f; yCounter < textureHeight*0.5f; yCounter++)
+	for(float yCounter = 0; yCounter < textureHeight; yCounter++)
 	{
-		for(float xCounter = -textureWidth*0.5f; xCounter < textureWidth*0.5f; xCounter++)
+		for(float xCounter = 0; xCounter < textureWidth; xCounter++)
 		{
 			y = yCounter;
 			x = xCounter;
@@ -763,15 +767,15 @@ HRESULT TextureAndMaterialHandler::CreateSimplex2DTexture(ID3D11Device* device, 
 			float firstIteration = (noise->SimplexNoise3D(x*0.01f,y*0.01f, 10.0f)*250);
 			//firstIteration = (firstIteration > 0) ? firstIteration : -firstIteration;
 
-			float seccondIteration = (noise->SimplexNoise3D(x*0.001f,y*0.001f, 30.0f)*250);
+			float secondIteration = (noise->SimplexNoise3D(x*0.001f,y*0.001f, 10.0f)*250);
 			//seccondIteration = (seccondIteration > 0) ? seccondIteration : -seccondIteration;
 
-			float thirdIteration = (noise->SimplexNoise3D(x*0.0005f,y*0.0005f, 45.0f)*250);
+			float thirdIteration = (noise->SimplexNoise3D(x*0.0005f,y*0.0005f, 10.0f)*250);
 			//thirdIteration = (thirdIteration > 0) ? thirdIteration : -thirdIteration;
 
-			pixelData[i].x = (int)(firstIteration + seccondIteration + thirdIteration);
-			pixelData[i].y = (int)(firstIteration + seccondIteration + thirdIteration);
-			pixelData[i].z = (int)(firstIteration + seccondIteration + thirdIteration);
+			pixelData[i].x = (int)(firstIteration);
+			pixelData[i].y = (int)(secondIteration);
+			pixelData[i].z = (int)(thirdIteration);
 			pixelData[i].w = 1; //Alpha.
 
 			i++;

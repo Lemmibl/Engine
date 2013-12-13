@@ -5,6 +5,7 @@ Renderer::Renderer()
 	xPos = yPos = 0.0f;
 	timeOfDay = 0.0f;
 	timer = 10.0f;
+	backAndForth = 0.0f;
 
 	toggleTextureShader = false;
 	returning = false;
@@ -312,6 +313,27 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 	bool result;
 
 	timer += seconds;
+
+	backAndForth += seconds;
+
+	//if(!returning)
+	//{
+	//	backAndForth += (seconds*1.1f);
+
+	//	if(backAndForth >= 1.0f)
+	//	{
+	//		returning = true;
+	//	}
+	//}
+	//else
+	//{
+	//	backAndForth -= (seconds*1.1f);
+
+	//	if(backAndForth <= -1.0f)
+	//	{
+	//		returning = false;
+	//	}
+	//}
 
 	if(inputManager->WasKeyPressed(DIK_E))
 	{
@@ -829,7 +851,7 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 		tempChunks[i]->Render(deviceContext);
 
 		if(!geometryShaderGrass.Render(d3D->GetDeviceContext(), ((IndexedMesh*)tempChunks[i])->GetIndexCount(), &worldMatrix, &worldView, 
-			identityWorldViewProj, textureAndMaterialHandler.GetVegetationTextureArray(), textureAndMaterialHandler.GetMaterialLookupTexture(), toggleColorMode, farClip))
+			identityWorldViewProj, textureAndMaterialHandler.GetVegetationTextureArray(), textureAndMaterialHandler.GetMaterialLookupTexture(), toggleColorMode, farClip, backAndForth))
 		{
 			return false;
 		}
