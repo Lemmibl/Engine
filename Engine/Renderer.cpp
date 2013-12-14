@@ -244,7 +244,7 @@ bool Renderer::InitializeModels( HWND hwnd )
 	terrainManager = make_shared<TerrainManager>(d3D->GetDevice(), d3D->GetDeviceContext(), &noise, &textureAndMaterialHandler, hwnd, camera->GetPosition());
 
 	//Get the meshes from current terrain
-	tempChunks = *terrainManager->GetTerrainRenderables((int)(camera->GetPosition().x*0.01f), (int)(camera->GetPosition().z*0.01f));
+	tempChunks = terrainManager->GetActiveChunks();
 
 	// Initialize the model object. It really doesn't matter what textures it has because it's only used for point light volume culling.
 	result = sphereModel.Initialize(d3D->GetDevice(), "../Engine/data/skydome.txt", L"../Engine/data/grass.dds", L"../Engine/data/dirt.dds", L"../Engine/data/rock.dds");
@@ -315,24 +315,10 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 
 	backAndForth += seconds;
 
-	//if(!returning)
-	//{
-	//	backAndForth += (seconds*1.1f);
-
-	//	if(backAndForth >= 1.0f)
-	//	{
-	//		returning = true;
-	//	}
-	//}
-	//else
-	//{
-	//	backAndForth -= (seconds*1.1f);
-
-	//	if(backAndForth <= -1.0f)
-	//	{
-	//		returning = false;
-	//	}
-	//}
+	if(backAndForth >= 100.0f)
+	{
+		backAndForth = 0.0f;
+	}
 
 	if(inputManager->WasKeyPressed(DIK_E))
 	{
@@ -575,7 +561,7 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 	if(terrainManager->Update(d3D->GetDevice(), d3D->GetDeviceContext(), camera->GetPosition()))
 	{
 		tempChunks.clear();
-		tempChunks = *terrainManager->GetActiveRenderables();
+		tempChunks = terrainManager->GetActiveChunks();
 	}
 
 	timeOfDay = dayNightCycle.Update(seconds, &dirLight, &skySphere);
@@ -742,9 +728,9 @@ bool Renderer::RenderShadowmap( ID3D11DeviceContext* deviceContext, XMMATRIX* li
 
 	for(unsigned int i = 0; i < tempChunks.size(); i++)
 	{	
-		tempChunks[i]->Render(deviceContext);
+		tempChunks[i]->GetMesh()->Render(deviceContext);
 
-		if(!depthOnlyShader.Render(deviceContext, ((IndexedMesh*)tempChunks[i])->GetIndexCount(), lightWorldViewProj, lightWorldView))
+		if(!depthOnlyShader.Render(deviceContext, tempChunks[i]->GetMesh()->GetIndexCount(), lightWorldViewProj, lightWorldView))
 		{
 			return false;
 		}
@@ -833,9 +819,9 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 
 	for(unsigned int i = 0; i < tempChunks.size(); i++)
 	{	
-		tempChunks[i]->Render(deviceContext);
+		tempChunks[i]->GetMesh()->Render(deviceContext);
 
-		if(!mcubeShader.Render(d3D->GetDeviceContext(), ((IndexedMesh*)tempChunks[i])->GetIndexCount(), &worldMatrix, &worldView, 
+		if(!mcubeShader.Render(d3D->GetDeviceContext(), tempChunks[i]->GetMesh()->GetIndexCount(), &worldMatrix, &worldView, 
 			identityWorldViewProj, textureAndMaterialHandler.GetTerrainTextureArray(), textureAndMaterialHandler.GetMaterialLookupTexture(), toggleColorMode, farClip))
 		{
 			return false;
@@ -847,10 +833,11 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 
 	for(unsigned int i = 0; i < tempChunks.size(); i++)
 	{	
-		tempChunks[i]->Render(deviceContext);
+		tempChunks[i]->GetMesh()->Render(deviceContext);
 
-		if(!geometryShaderGrass.Render(d3D->GetDeviceContext(), ((IndexedMesh*)tempChunks[i])->GetIndexCount(), &worldMatrix, &worldView, 
-			identityWorldViewProj, textureAndMaterialHandler.GetVegetationTextureArray(), textureAndMaterialHandler.GetMaterialLookupTexture(), toggleColorMode, farClip, backAndForth))
+		if(!geometryShaderGrass.Render(d3D->GetDeviceContext(), tempChunks[i]->GetMesh()->GetIndexCount(), &worldMatrix, &worldView, 
+			identityWorldViewProj, textureAndMaterialHandler.GetVegetationTextureArray(), textureAndMaterialHandler.GetMaterialLookupTexture(), 
+			tempChunks[i]->GetWindTexturePP(), toggleColorMode, farClip, backAndForth))
 		{
 			return false;
 		}
@@ -858,15 +845,6 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 
 	d3D->TurnOffAlphaBlending();
 	d3D->SetBackFaceCullingRasterizer();
-
-	//d3D->SetNoCullRasterizer();
-	//d3D->TurnOnAlphaBlending();
-	//if(!(terrainManager->GetVegetationManager()->Render(deviceContext, identityWorldViewProj, &worldView, &worldMatrix, textureAndMaterialHandler.GetVegetationTextureArray())))
-	//{
-	//	return false;
-	//}
-	
-	//d3D->TurnOffAlphaBlending();
 
 	return true;
 }

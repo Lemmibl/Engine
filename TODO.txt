@@ -3,12 +3,10 @@
 /*						TODO AND THINGS OF THAT SORT							*/
 /********************************************************************************/
 
-* Make geometry shader grass more fancy. offset positions slightly and other stuff.
-	- Density maps?
-	- Implement wind system
-	- ... Biomes?
+* Make geometry shader grass more fancy.
+	-Should pretty much be finished now, just need to do the lookup-based-on-height thing.
 
-* Investigate if you can merge shadowmap and gbuffer draw stage in one
+* .. Water?
 
 * Skysphere texture mapping!!! Clouds?
 * Try to change point lights render pass to two big render passes, instead of 121212121212... X numPointlights

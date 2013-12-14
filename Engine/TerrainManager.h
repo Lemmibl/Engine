@@ -40,9 +40,10 @@ public:
 
 	VegetationManager* const GetVegetationManager() { return &vegetationManager; };
 	bool GetChunk(int x, int z, MarchingCubeChunk** outChunk);
-	vector<MarchingCubeChunk*>* GetActiveChunks(int x, int z);
 	vector<RenderableInterface*>* GetTerrainRenderables(int x, int z);
-	vector<RenderableInterface*>* GetActiveRenderables(){ return &activeRenderables; }
+
+	vector<MarchingCubeChunk*>& GetActiveChunks() { return activeChunks; }
+	vector<RenderableInterface*>& GetActiveRenderables(){ return activeRenderables; }
 
 	void GenerateVegetation(ID3D11Device* device, bool UpdateInstanceBuffer, MarchingCubeChunk* chunk);
 	void RenderVegetation();

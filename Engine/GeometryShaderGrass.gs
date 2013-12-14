@@ -1,9 +1,13 @@
+Texture2D windTexture;
+SamplerState linearSampler;
+
 cbuffer MatrixBuffer
 {
 	float4x4 World;
 	float4x4 WorldViewProjection;
 	float DeltaTime;
 };
+//TODO: float4(windDirection.xyz, deltaTime)
 
 struct VS_OUTPUT
 {
@@ -23,9 +27,18 @@ struct PS_INPUT
 static const float vegetationScale = 2.5f;
 static const float4 UpNormal = normalize(float4(0.0f, 1.0f, 0.0f, 1.0f));
 static const float vegetationFalloff = 200.0f;
+static const float forceScale = 0.8f;
+static const float waveLength = 0.2f;
+static const float traversalSpeed = 0.1f;
 
 //http://www.braynzarsoft.net/index.php?p=D3D11BILLBOARDS
 //http://upvoid.com/devblog/2013/02/prototype-grass/
+
+//TODO: Sample level........ yeah..
+float LoadWindPowerValue(float2 coords)
+{
+	return windTexture.SampleLevel(linearSampler, coords, 0);
+}
 
 //Function for making grass quads
 void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, inout TriangleStream<PS_INPUT> TriStream)
@@ -55,10 +68,10 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, inout TriangleStream<PS_INPUT> TriStre
 		float height = (vegetationScale * opacity);
 
 		//Just a temporary wind direction
-		float4 WindDirection = normalize(float4(0.2f, 0.0f, 2.0f, 0.0f));
+		float4 WindDirection = normalize(float4(0.2f, 0.0f, 0.2f, 0.0f));
 
 		//Add wind direction to our already randomized normal. This value will be 
-		float4 randomizedNormal = float4(rand1*0.8f, height, rand2*0.8f, 0.0f) + (WindDirection*(1.0f*sin(0.5f*v1.Position.z + (3.0f * DeltaTime))));
+		float4 randomizedNormal = float4(rand1*0.8f, height, rand2*0.8f, 0.0f) + (WindDirection * (forceScale*LoadWindPowerValue((v1.Position.xz*waveLength) + (traversalSpeed*DeltaTime)) ));
 
 		float4 normal1 = mul(v1.Normal, World);
 		float4 normal2 = mul(v2.Normal, World);

@@ -37,6 +37,7 @@ static const XMFLOAT3 stepCount(53.0f, 53.0f, 53.0f);
 TerrainManager::TerrainManager(ID3D11Device* device, ID3D11DeviceContext* deviceContext, NoiseClass* externalNoise, TextureAndMaterialHandler* texAndMatHandler, HWND hwnd, XMFLOAT3 cameraPosition)
 : marchingCubes((int)stepCount.x, (int)stepCount.y, (int)stepCount.z)
 {
+	lastUsedKey = make_pair<int, int>(99, -99);
 	stepScaling = (stepSize.x*(stepCount.x-3)) / 10000;
 	map = make_shared<std::unordered_map<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>, int_pair_hash>>();
 
@@ -70,20 +71,7 @@ TerrainManager::TerrainManager(ID3D11Device* device, ID3D11DeviceContext* device
 	CreateChunk(device, deviceContext, startGridX-1, startGridZ+0);
 	CreateChunk(device, deviceContext, startGridX-1, startGridZ+1);
 
-	//Fetch the active chunks
-	auto chunks = GetActiveChunks(startGridX, startGridZ);
-
-	//Temp vector to hold vegetation instances
-	//vector<VegetationManager::InstanceType> tempVec;
-
-	////For all the active chunks...
-	//for(auto it = chunks->cbegin(); it != chunks->cend(); ++it)
-	//{
-	//	tempVec.insert(tempVec.end(), (*it)->GetVegetationInstances()->begin(), (*it)->GetVegetationInstances()->end());
-	//}
-
-	////Send the first vegetation instances while setting up.
-	//vegetationManager.SetupQuads(device, &tempVec);
+	Update(device, deviceContext, cameraPosition);
 }
 
 TerrainManager::~TerrainManager()
@@ -105,7 +93,6 @@ bool TerrainManager::Update(ID3D11Device* device, ID3D11DeviceContext* deviceCon
 
 		//Temp chunk to hold pointer from each GetChunk call.
 		MarchingCubeChunk* tempChunk;
-		//vector<VegetationManager::InstanceType> tempVec;
 
 		//Clear active chunks
 		activeChunks.clear();
@@ -138,6 +125,8 @@ bool TerrainManager::Update(ID3D11Device* device, ID3D11DeviceContext* deviceCon
 
 		//Send temporary vector to be built into a vegetation instance buffer
 		//vegetationManager.BuildInstanceBuffer(device, &tempVec);
+
+		lastUsedKey = key;
 
 		return true;
 	}
@@ -264,44 +253,6 @@ bool TerrainManager::GetChunk(int x, int z, MarchingCubeChunk** outChunk)
 	}
 
 	return false;
-}
-
-vector<MarchingCubeChunk*>* TerrainManager::GetActiveChunks( int x, int z )
-{	
-	//Make a key out of the values
-	std::pair<int,int> key(x, z);
-
-	//If activeChunks.size()==0, it means that this is the first time this function has been called.
-	//Thus we add all 9 chunks around this point to activechunks.
-	//We also check to see if this key has already been used, which means that the player is still in the same area, 
-	//hence we don't need to change anything, and we just return the list of active chunks.
-	if(activeChunks.size() == 0 || key != lastUsedKey)
-	{
-		//Temp chunk to hold pointer from each GetChunk call.
-		MarchingCubeChunk* tempChunk;
-
-		//Clear active chunks
-		activeChunks.clear();
-
-		//Add all new relevant chunks
-		for(int i=0; i < 9; i++)
-		{
-			bool result;
-			result = GetChunk(x + (edgePairs[i].first), z + (edgePairs[i].second), &tempChunk);
-
-			//If this chunk is valid
-			if(result == true)
-			{
-				//Add ptr to active chunk vector
-				activeChunks.push_back(tempChunk);
-			}
-		}
-
-		//Save the key
-		lastUsedKey = key;
-	}
-
-	return &activeChunks;
 }
 
 void TerrainManager::GenerateVegetation( ID3D11Device* device, bool UpdateInstanceBuffer, MarchingCubeChunk* chunk)

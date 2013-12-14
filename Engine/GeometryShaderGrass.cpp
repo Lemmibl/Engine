@@ -44,13 +44,13 @@ void GeometryShaderGrass::Shutdown()
 }
 
 bool GeometryShaderGrass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, XMMATRIX* worldViewMatrix, XMMATRIX* worldViewProjection, 
-	ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** texAndMatLookupTable, int toggleColor, float farclip, float deltaTime)
+	ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** texAndMatLookupTable, ID3D11ShaderResourceView** windForceTexture, int toggleColor, float farclip, float deltaTime)
 {
 	bool result;
 
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldMatrix, worldViewMatrix, worldViewProjection, textureArray, texAndMatLookupTable, toggleColor, farclip, deltaTime);
+	result = SetShaderParameters(deviceContext, worldMatrix, worldViewMatrix, worldViewProjection, textureArray, texAndMatLookupTable, windForceTexture, toggleColor, farclip, deltaTime);
 	if(!result)
 	{
 		return false;
@@ -308,7 +308,8 @@ void GeometryShaderGrass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWN
 }
 
 bool GeometryShaderGrass::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, XMMATRIX* worldViewMatrix, 
-	XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** texAndMatLookupTable, int toggleColor, float farclip, float deltaTime)
+	XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** texAndMatLookupTable, ID3D11ShaderResourceView** windForceTexture, 
+	int toggleColor, float farclip, float deltaTime)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -367,7 +368,7 @@ bool GeometryShaderGrass::SetShaderParameters( ID3D11DeviceContext* deviceContex
 	// Unlock the matrix constant buffer.
 	deviceContext->Unmap(geometryShaderMatrixBuffer.p, 0);
 
-	// Set the position of the matrix constant buffer in the vertex sh§ader.
+	// Set the position of the matrix constant buffer in the vertex shader.
 	bufferNumber = 0;
 
 	// Now set the matrix constant buffer in the vertex shader with the updated values.
@@ -403,6 +404,9 @@ bool GeometryShaderGrass::SetShaderParameters( ID3D11DeviceContext* deviceContex
 	//////////////////////////////////////////////////////////////////////////
 	// Assorted shit
 
+	// Set shader texture resource for geometry shader
+	deviceContext->GSSetShaderResources(0, 1, windForceTexture);
+
 	// Set shader texture array resource in the pixel shader.
 	deviceContext->PSSetShaderResources(0, 1, textureArray);
 	//deviceContext->PSSetShaderResources(1, 1, texAndMatLookupTable);
@@ -422,6 +426,7 @@ void GeometryShaderGrass::RenderShader(ID3D11DeviceContext* deviceContext, int i
 
 	// Set the sampler state in the pixel shader.
 	deviceContext->PSSetSamplers(0, 1, &sampler.p);
+	deviceContext->GSSetSamplers(0, 1, &sampler.p);
 
 	// Render the triangles.
 	deviceContext->DrawIndexed(indexCount, 0, 0);

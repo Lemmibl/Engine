@@ -1030,29 +1030,7 @@ void TextureAndMaterialHandler::RebuildTexture( ID3D11Device* device, ID3D11Devi
 }
 
 
-//http://www.sjeiti.com/creating-tileable-noise-maps/
-/*
- fNoiseScale = .003;
- drawNoise(function(i,x,y){
- var  fNX = x/iSize
- ,fNY = y/iSize
- ,fRdx = fNX*2*Math.PI
- ,fRdy = fNY*2*Math.PI
- ,a = fRds*Math.sin(fRdx)
- ,b = fRds*Math.cos(fRdx)
- ,c = fRds*Math.sin(fRdy)
- ,d = fRds*Math.cos(fRdy)
- ,v = Simplex.noise(
- 123+a*fNoiseScale
- ,231+b*fNoiseScale
- ,312+c*fNoiseScale
- ,273+d*fNoiseScale
- )
- ;
- return (Math.min(Math.max(2*(v -.5)+.5,0),1)*255)<<0;
- }).img().div(2,2);
-*/
-
+//Credits: http://www.sjeiti.com/creating-tileable-noise-maps/
 HRESULT TextureAndMaterialHandler::CreateSeamlessSimplex2DTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
 	ID3D11ShaderResourceView** srv, float startPosX, float startPosY, float stepsX, float stepsY)
 {
@@ -1061,10 +1039,10 @@ HRESULT TextureAndMaterialHandler::CreateSeamlessSimplex2DTexture( ID3D11Device*
 	textureHeight = stepsY;
 	i = 0;
 
-	float noiseScale = 0.5f;
+	float noiseScale = 0.6f;
 	float radius = (textureWidth/2)-2.0f;
 
-	vector<PixelData> pixelData;
+	vector<UINT8> pixelData;
 	pixelData.resize(textureWidth*textureHeight);
 
 	for(float x = startPosX; x < startPosX+textureWidth; x++)
@@ -1085,17 +1063,14 @@ HRESULT TextureAndMaterialHandler::CreateSeamlessSimplex2DTexture( ID3D11Device*
 			//Produce noise, rescale it from [-1, 1] to [0, 1] then multiply to [0, 256] to make full use of the 8bit channels of the texture it'll be stored in.
 			int noiseResult = (0.5f * noise->SimplexNoise4D(nx*noiseScale, ny*noiseScale, nz*noiseScale, nw*noiseScale) + 0.5f) * 256;
 
-			pixelData[i].x = noiseResult;
-			pixelData[i].y = noiseResult;
-			pixelData[i].z = noiseResult;
-			pixelData[i].w = 1; //Alpha.
+			pixelData[i] = noiseResult;
 
 			i++;
 		}
 	}
 
 	//Build texture
-	if(FAILED(Build2DTextureProgrammatically(device, deviceContext, pixelData, textureWidth, textureHeight, srv)))
+	if(FAILED(Build8Bit2DTextureProgrammatically(device, deviceContext, pixelData, textureWidth, textureHeight, srv)))
 	{
 		MessageBox(GetDesktopWindow(), L"Something went wrong when calling CreateMaterialTexture. Look in TextureAndMaterialHandler::CreateMaterialTexture.", L"Error", MB_OK);
 		return S_FALSE;
@@ -1103,6 +1078,62 @@ HRESULT TextureAndMaterialHandler::CreateSeamlessSimplex2DTexture( ID3D11Device*
 
 	//Reseed the random for next time we'll call this function
 	noise->ReseedRandom();
+
+	return S_OK;
+}
+
+HRESULT TextureAndMaterialHandler::Build8Bit2DTextureProgrammatically( ID3D11Device* device, ID3D11DeviceContext* deviceContext, const std::vector<UINT8>& pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV )
+{
+	HRESULT hResult;
+	D3D11_TEXTURE2D_DESC texDesc;
+	D3D11_SUBRESOURCE_DATA texInitializeData;
+	D3D11_SHADER_RESOURCE_VIEW_DESC viewDesc;
+
+	//Set up texture description
+	texDesc.Width              = textureWidth;
+	texDesc.Height             = textureHeight;
+	texDesc.MipLevels          = 1;
+	texDesc.ArraySize          = 1;
+	texDesc.Format             = DXGI_FORMAT_R8_UNORM;
+	texDesc.SampleDesc.Count   = 1;
+	texDesc.SampleDesc.Quality = 0;
+	texDesc.Usage              = D3D11_USAGE_DEFAULT;
+	texDesc.BindFlags          = D3D11_BIND_SHADER_RESOURCE;
+	texDesc.CPUAccessFlags     = 0;
+	texDesc.MiscFlags          = 0;
+
+	//Initialize the subresource that will be used to send the pixel data from dataArray to the texture
+	ZeroMemory(&texInitializeData, sizeof(D3D11_SUBRESOURCE_DATA));
+	texInitializeData.pSysMem = pixelData.data();
+	texInitializeData.SysMemPitch = textureWidth*(sizeof(UINT8));
+	//texInitializeData.SysMemSlicePitch = textureWidth*textureHeight*(sizeof(float)*4);
+
+	if(placeHolderTexture != 0)
+	{
+		placeHolderTexture.Release();
+	}
+
+	//Create texture with the description and the subresource that contains all the pixel data
+	hResult = device->CreateTexture2D(&texDesc, &texInitializeData, &placeHolderTexture);
+	if(FAILED(hResult))
+	{
+		return hResult;
+	}
+
+	//Set up shader resource view description
+	viewDesc.Format = DXGI_FORMAT_R8_UNORM;
+	viewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	viewDesc.Texture2DArray.MostDetailedMip = 0;
+	viewDesc.Texture2DArray.MipLevels = 1;
+	viewDesc.Texture2DArray.FirstArraySlice = 0;
+	viewDesc.Texture2DArray.ArraySize = 1;
+
+	//Initialize the texture shader resource view and fill it with data
+	hResult = device->CreateShaderResourceView(placeHolderTexture, &viewDesc, textureSRV);
+	if(FAILED(hResult))
+	{
+		return hResult;
+	}
 
 	return S_OK;
 }
