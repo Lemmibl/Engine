@@ -465,26 +465,23 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 				int tritableLookupValue = triTable[lookupValue][j];
 
 				////Comment this if you want the edges back. :)
-				//if(y > 10)
-				//{
+				if(y > 3)
+				{
 					//And this.
 					if(x > 0 && z > 0 && x < sizeX-2 && z < sizeZ-2)
 					{
-						//(*indices)[indexCounter] = vertexCounter;
 						indices->push_back(vertexCounter);
 
-						//(*vertices)[vertexCounter].position		= verts[tritableLookupValue].position;
-						//(*vertices)[vertexCounter].normal		= verts[tritableLookupValue].normal;
 						MarchingCubeVectors temp;
 						temp.position = verts[tritableLookupValue].position;
-						temp.normal =	verts[tritableLookupValue].normal;
+						temp.normal = verts[tritableLookupValue].normal;
 						
 						vertices->push_back(temp);
 
 						vertexCounter++;
 						indexCounter++;	
 					}
-				//}
+				}
 			}
 		}
 	}

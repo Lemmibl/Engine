@@ -111,13 +111,27 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, inout TriangleStream<PS_INPUT> TriStre
 [maxvertexcount(12)] void GrassGS(triangle VS_OUTPUT Input[3], inout TriangleStream<PS_INPUT> TriStream)
 { 
 	//http://upvoid.com/devblog/2013/02/prototype-grass/
-	float dotResult = dot(Input[0].Normal, UpNormal);
+	float dotResult = dot(Input[1].Normal, UpNormal);
 
 	//if the surface is or is pretty close to being perpendicular to the Up vector, we make grass.
-	if(dotResult > 0.8f || dotResult < -0.8f)
+	if(dotResult > 0.9f || dotResult < -0.9f)
 	{
 		MakeQuad(Input[1], Input[2], TriStream);
-		MakeQuad(Input[2], Input[0], TriStream);
-		MakeQuad(Input[0], Input[1], TriStream); 
 	}
+
+	dotResult = dot(Input[2].Normal, UpNormal);
+
+	//if the surface is or is pretty close to being perpendicular to the Up vector, we make grass.
+	if(dotResult > 0.9f || dotResult < -0.9f)
+	{
+		MakeQuad(Input[2], Input[0], TriStream);
+	}
+
+	dotResult = dot(Input[0].Normal, UpNormal);
+
+	//if the surface is or is pretty close to being perpendicular to the Up vector, we make grass.
+	if(dotResult > 0.9f || dotResult < -0.9f)
+	{
+		MakeQuad(Input[0], Input[1], TriStream); 
+	}	
 }
