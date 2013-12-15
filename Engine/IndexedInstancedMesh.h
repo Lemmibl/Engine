@@ -9,7 +9,7 @@ class IndexedInstancedMesh :
 public:
 	IndexedInstancedMesh();
 	~IndexedInstancedMesh();
-	void Render(ID3D11DeviceContext* deviceContext);
+	bool Render(ID3D11DeviceContext* deviceContext);
 
 public:
 	const unsigned int GetVertexCount() const { return vertexCount; }

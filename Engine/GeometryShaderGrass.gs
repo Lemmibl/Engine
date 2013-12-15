@@ -26,10 +26,17 @@ struct PS_INPUT
 
 static const float vegetationScale = 2.5f;
 static const float4 UpNormal = normalize(float4(0.0f, 1.0f, 0.0f, 1.0f));
+
+//TODO: Add all of these to the constant buffer to make them tweakable in normal code 
+//Just a temporary wind direction
+static const float4 WindDirection = normalize(float4(-0.2f, 0.0f, -0.2f, 0.0f));
 static const float vegetationFalloff = 200.0f;
-static const float forceScale = 0.8f;
-static const float waveLength = 0.2f;
-static const float traversalSpeed = 0.1f;
+static const float forceScale = 0.7f;
+static const float waveLength = 0.08f; //0.008f; //
+static const float traversalSpeed = 0.15f; //0.05f; //
+
+//In the future, this ID will be loaded from a lookup table
+static const int textureID = 1;
 
 //http://www.braynzarsoft.net/index.php?p=D3D11BILLBOARDS
 //http://upvoid.com/devblog/2013/02/prototype-grass/
@@ -44,17 +51,16 @@ float LoadWindPowerValue(float2 coords)
 void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, inout TriangleStream<PS_INPUT> TriStream)
 { 
 	float viewDepth = v1.YPosDepthAndRand.y;
-
-	float randSum = v2.YPosDepthAndRand.z + v1.YPosDepthAndRand.z;
+	float randSum = v2.YPosDepthAndRand.z + v1.YPosDepthAndRand.z; //LoadWindPowerValue( (v1.Position.xz*waveLength) + (traversalSpeed*DeltaTime) );//
+	
+	//&& randSum <= 0.6f
+	//
 
 	//Skip if distance is too far, or if one of the random values is within a certain range. This was added to make sure that there are some spots that are barren.
 	if(viewDepth < vegetationFalloff && randSum <= 1.55f)
 	{
 		//Allocate four output values
 		PS_INPUT output[4];
-
-		//In the future, this ID will be loaded from a lookup table
-		int textureID = 1.0f;
 
 		//Taking [0, 1] rand values and changing them to a span that can go negative.
 		float rand1 = 2.0f * (v1.YPosDepthAndRand.z - 0.5f);
@@ -67,11 +73,8 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, inout TriangleStream<PS_INPUT> TriStre
 		float opacity = (1.0f - (viewDepth/vegetationFalloff));
 		float height = (vegetationScale * opacity);
 
-		//Just a temporary wind direction
-		float4 WindDirection = normalize(float4(0.2f, 0.0f, 0.2f, 0.0f));
-
 		//Add wind direction to our already randomized normal. This value will be 
-		float4 randomizedNormal = float4(rand1*0.8f, height, rand2*0.8f, 0.0f) + (WindDirection * (forceScale*LoadWindPowerValue((v1.Position.xz*waveLength) + (traversalSpeed*DeltaTime)) ));
+		float4 randomizedNormal = float4(rand1*0.8f, height, rand2*0.8f, 0.0f) + (WindDirection * (forceScale * LoadWindPowerValue( (v1.Position.xz*waveLength) + (traversalSpeed*DeltaTime) )));
 
 		float4 normal1 = mul(v1.Normal, World);
 		float4 normal2 = mul(v2.Normal, World);
@@ -114,24 +117,27 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, inout TriangleStream<PS_INPUT> TriStre
 	float dotResult = dot(Input[1].Normal, UpNormal);
 
 	//if the surface is or is pretty close to being perpendicular to the Up vector, we make grass.
-	if(dotResult > 0.9f || dotResult < -0.9f)
+	if(dotResult > 0.9f )
 	{
 		MakeQuad(Input[1], Input[2], TriStream);
-	}
-
-	dotResult = dot(Input[2].Normal, UpNormal);
-
-	//if the surface is or is pretty close to being perpendicular to the Up vector, we make grass.
-	if(dotResult > 0.9f || dotResult < -0.9f)
-	{
 		MakeQuad(Input[2], Input[0], TriStream);
-	}
-
-	dotResult = dot(Input[0].Normal, UpNormal);
-
-	//if the surface is or is pretty close to being perpendicular to the Up vector, we make grass.
-	if(dotResult > 0.9f || dotResult < -0.9f)
-	{
 		MakeQuad(Input[0], Input[1], TriStream); 
-	}	
+	}
+	//}
+
+	//dotResult = dot(Input[2].Normal, UpNormal);
+
+	////if the surface is or is pretty close to being perpendicular to the Up vector, we make grass.
+	//if(dotResult > 0.9f)
+	//{
+	//	MakeQuad(Input[2], Input[0], TriStream);
+	//}
+
+	//dotResult = dot(Input[0].Normal, UpNormal);
+
+	////if the surface is or is pretty close to being perpendicular to the Up vector, we make grass.
+	//if(dotResult > 0.9f)
+	//{
+	//	MakeQuad(Input[0], Input[1], TriStream); 
+	//}	
 }

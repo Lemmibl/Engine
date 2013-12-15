@@ -4,6 +4,6 @@
 class RenderableInterface
 {
 public:
-	virtual void Render(ID3D11DeviceContext* deviceContext) = 0;
+	virtual bool Render(ID3D11DeviceContext* deviceContext) = 0;
 };
 

@@ -29,6 +29,8 @@ private:
 	//Create vertex and index buffers from the data that we've created
 	void CreateMesh(ID3D11Device* device, IndexedMesh* mesh, vector<unsigned int>* indices, vector<MarchingCubeVectors>* vertices, unsigned int indexCount, unsigned int vertexCount);
 
+	//Creates a flat mesh from a min and max pos.
+	void CreateWaterMesh(ID3D11Device* device, MarchingCubeChunk* chunk, IndexedMesh* waterMesh, XMFLOAT2 minPos, XMFLOAT2 maxPos);
 
 	// Returns a point that is interpolated with ten other points for both normals and possition
 	inline MarchingCubeVoxel Interpolate(MarchingCubeVoxel v1, MarchingCubeVoxel v2)
@@ -63,13 +65,15 @@ private:
 	}
 
 private:
-	unsigned int x,y,z;
+	unsigned int indexX, indexY, indexZ;
 	unsigned int sizeX, sizeY, sizeZ;
 	int index;
-
 	float metaballsIsoValue;
 
 	// Tables for edge cases and triangle lookup 
 	const static int edgeTable[256];
 	const static int triTable[256][16];
+
+	XMFLOAT2 minPos, maxPos;
+	bool createWater;
 };

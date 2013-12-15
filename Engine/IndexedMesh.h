@@ -13,7 +13,7 @@ class IndexedMesh : public RenderableInterface
 public:
 	IndexedMesh();
 	~IndexedMesh();
-	void Render(ID3D11DeviceContext* deviceContext);
+	bool Render(ID3D11DeviceContext* deviceContext);
 
 public:
 	const unsigned int GetVertexCount() const { return vertexCount; }
@@ -30,9 +30,12 @@ public:
 	void SetIndexCount(unsigned int val) { indexCount = val; }
 	void SetVertexStride(unsigned int val) { vertexStride = val; }
 
+	void SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY topology) { primitiveTopology = topology; }
+
 private:
 	//These can be set to whatever you want, as long as they match vertexStride, indexCount and vertexCount
 	CComPtr<ID3D11Buffer> vertexBuffer, indexBuffer;
+	D3D11_PRIMITIVE_TOPOLOGY primitiveTopology;
 
 	unsigned int vertexCount, indexCount;
 

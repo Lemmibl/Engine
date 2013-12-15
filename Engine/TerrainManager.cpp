@@ -45,8 +45,8 @@ TerrainManager::TerrainManager(ID3D11Device* device, ID3D11DeviceContext* device
 
 	mcTerrain.Initialize((int)stepCount.x, (int)stepCount.y, (int)stepCount.z, externalNoise);
 
-	//MCTerrainClass::TerrainTypes terrainType = (MCTerrainClass::TerrainTypes)(1 + rand()%8);
-	MCTerrainClass::TerrainTypes terrainType = MCTerrainClass::Plains;
+	//MCTerrainClass::TerrainTypes terrainType = MCTerrainClass::FlyingIslands;
+	MCTerrainClass::TerrainTypes terrainType = (MCTerrainClass::TerrainTypes)(1 + rand()%8);
 
 	mcTerrain.SetTerrainType(terrainType);
 
@@ -112,7 +112,7 @@ bool TerrainManager::Update(ID3D11Device* device, ID3D11DeviceContext* deviceCon
 			{
 				//Add ptr to active chunk vector
 				activeChunks.push_back(tempChunk);
-				activeRenderables.push_back(tempChunk->GetMesh());
+				activeRenderables.push_back(tempChunk->GetTerrainMesh());
 
 				////Add this chunk's instances to the temporary vector
 				//tempVec.insert(tempVec.end(), tempChunk->GetVegetationInstances()->cbegin(), tempChunk->GetVegetationInstances()->cend());
@@ -349,7 +349,7 @@ vector<RenderableInterface*>* TerrainManager::GetTerrainRenderables(int x, int z
 
 		for(auto it = activeChunks.begin(); it != activeChunks.end(); ++it)
 		{
-			activeRenderables.push_back((*it)->GetMesh());
+			activeRenderables.push_back((*it)->GetTerrainMesh());
 		}
 	}
 

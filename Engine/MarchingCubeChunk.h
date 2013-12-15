@@ -13,7 +13,9 @@ public:
 	MarchingCubeChunk(XMFLOAT3 startPosition, XMFLOAT3 endPosition, XMFLOAT3 stepSize, XMFLOAT3 stepCount);
 	~MarchingCubeChunk();
 
-	IndexedMesh* GetMesh() { return &mesh; }
+	IndexedMesh* GetTerrainMesh() { return &terrainMesh; }
+	IndexedMesh* GetWaterMesh() { return &waterMesh; }
+
 	vector<MarchingCubeVoxel>* GetVoxelField() { return &voxels; }
 	vector<unsigned int>* GetIndices() { return &indices; }
 	ID3D11ShaderResourceView* GetWindTexture() { return windTexture.p; }
@@ -38,7 +40,8 @@ private:
 	CComPtr<ID3D11ShaderResourceView> windTexture;
 
 	//Our mesh that we'll be rendering. Contains all vertex/index data.
-	IndexedMesh mesh;
+	IndexedMesh terrainMesh;
+	IndexedMesh waterMesh;
 
 	//Should be self explanatory. Defines the bounds of this chunk; where it starts and where it ends.
 	XMFLOAT3 startPosition, endPosition;

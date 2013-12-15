@@ -35,7 +35,7 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	WCHAR* terrainFilenames[6] = 
 	{
 		L"../Engine/data/dirt.dds",//dirt //0
-		L"../Engine/data/grassTileTest01.dds", //1
+		L"../Engine/data/grassTileTest01.dds", //1d
 		//L"../Engine/data/randomGrass.dds", //1
 		L"../Engine/data/rock4.dds",
 		L"../Engine/data/seafloor.dds", //4
@@ -60,7 +60,7 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	int vegetationTextureCount = 5;
 	WCHAR* vegetationFilenames[5] = 
 	{
-		L"../Engine/data/Vegetation/yellowGrassQuad.dds",
+		L"../Engine/data/Vegetation/yellowGrassQuad2.dds",
 		L"../Engine/data/Vegetation/greenGrassQuad2.dds",
 		L"../Engine/data/Vegetation/leafbranch.dds",
 		L"../Engine/data/Vegetation/flower.dds",
@@ -1039,7 +1039,7 @@ HRESULT TextureAndMaterialHandler::CreateSeamlessSimplex2DTexture( ID3D11Device*
 	textureHeight = stepsY;
 	i = 0;
 
-	float noiseScale = 0.6f;
+	float noiseScale = 0.5f;
 	float radius = (textureWidth/2)-2.0f;
 
 	vector<UINT8> pixelData;

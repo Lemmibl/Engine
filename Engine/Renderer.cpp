@@ -728,9 +728,9 @@ bool Renderer::RenderShadowmap( ID3D11DeviceContext* deviceContext, XMMATRIX* li
 
 	for(unsigned int i = 0; i < tempChunks.size(); i++)
 	{	
-		tempChunks[i]->GetMesh()->Render(deviceContext);
+		tempChunks[i]->GetTerrainMesh()->Render(deviceContext);
 
-		if(!depthOnlyShader.Render(deviceContext, tempChunks[i]->GetMesh()->GetIndexCount(), lightWorldViewProj, lightWorldView))
+		if(!depthOnlyShader.Render(deviceContext, tempChunks[i]->GetTerrainMesh()->GetIndexCount(), lightWorldViewProj, lightWorldView))
 		{
 			return false;
 		}
@@ -819,9 +819,9 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 
 	for(unsigned int i = 0; i < tempChunks.size(); i++)
 	{	
-		tempChunks[i]->GetMesh()->Render(deviceContext);
+		tempChunks[i]->GetTerrainMesh()->Render(deviceContext);
 
-		if(!mcubeShader.Render(d3D->GetDeviceContext(), tempChunks[i]->GetMesh()->GetIndexCount(), &worldMatrix, &worldView, 
+		if(!mcubeShader.Render(d3D->GetDeviceContext(), tempChunks[i]->GetTerrainMesh()->GetIndexCount(), &worldMatrix, &worldView, 
 			identityWorldViewProj, textureAndMaterialHandler.GetTerrainTextureArray(), textureAndMaterialHandler.GetMaterialLookupTexture(), toggleColorMode, farClip))
 		{
 			return false;
@@ -833,9 +833,9 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 
 	for(unsigned int i = 0; i < tempChunks.size(); i++)
 	{	
-		tempChunks[i]->GetMesh()->Render(deviceContext);
+		tempChunks[i]->GetTerrainMesh()->Render(deviceContext);
 
-		if(!geometryShaderGrass.Render(d3D->GetDeviceContext(), tempChunks[i]->GetMesh()->GetIndexCount(), &worldMatrix, &worldView, 
+		if(!geometryShaderGrass.Render(d3D->GetDeviceContext(), tempChunks[i]->GetTerrainMesh()->GetIndexCount(), &worldMatrix, &worldView, 
 			identityWorldViewProj, textureAndMaterialHandler.GetVegetationTextureArray(), textureAndMaterialHandler.GetMaterialLookupTexture(), 
 			tempChunks[i]->GetWindTexturePP(), toggleColorMode, farClip, backAndForth))
 		{

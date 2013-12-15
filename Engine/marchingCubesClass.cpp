@@ -335,7 +335,7 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 	}
 
 	MarchingCubesClass::MarchingCubesClass(unsigned int sizeX,  unsigned int sizeY, unsigned int sizeZ)
-	: sizeX(sizeX), sizeY(sizeY), sizeZ(sizeZ)
+		: sizeX(sizeX), sizeY(sizeY), sizeZ(sizeZ)
 	{									  
 		metaballsIsoValue = 0.2f;
 	}
@@ -349,6 +349,9 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 		MarchingCubeVoxel* cube[8];
 
 		unsigned int lookup = 0;
+		minPos = XMFLOAT2((float)chunk->GetStartPosX() + chunk->GetStepCountX(),			(float)chunk->GetStartPosZ() + chunk->GetStepCountZ());
+		maxPos = XMFLOAT2(0.0f,	0.0f);
+		createWater = false;
 
 		//Temporary holding until we make a vertexbuffer
 		std::vector<MarchingCubeVectors> vertices;
@@ -356,14 +359,14 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 		unsigned int vertexCounter = 0;
 		unsigned int indexCounter = 0;
 
-		for (y = 0; y < sizeY; ++y)
+		for (indexY = 0; indexY < sizeY; ++indexY)
 		{
-			for (z = 0; z < sizeZ; ++z)
+			for (indexZ = 0; indexZ < sizeZ; ++indexZ)
 			{
-				for (x = 0; x < sizeX; ++x)
+				for (indexX = 0; indexX < sizeX; ++indexX)
 				{
 					// Calculate index for where in the field we are
-					index = x + (y*sizeY) + (z * sizeY * sizeZ);
+					index = indexX + (indexY*sizeY) + (indexZ * sizeY * sizeZ);
 
 					//Extract a cube from the voxel field of the chunk
 					ExtractCube(cube, chunk->GetVoxelField(), sizeX, sizeY, sizeZ);
@@ -377,8 +380,11 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 			}
 		}
 
-		//Create the mesh
-		CreateMesh(device, chunk->GetMesh(), chunk->GetIndices(), &vertices, indexCounter, vertexCounter);
+		//Create the terrain mesh
+		CreateMesh(device, chunk->GetTerrainMesh(), chunk->GetIndices(), &vertices, indexCounter, vertexCounter);
+
+		//Create a water mesh
+		CreateWaterMesh(device, chunk, chunk->GetWaterMesh(), minPos, maxPos);
 	}
 
 	void MarchingCubesClass::ExtractCube( MarchingCubeVoxel** cube, vector<MarchingCubeVoxel>* vertices, unsigned int sizeX, unsigned int sizeY, unsigned int sizeZ )
@@ -440,7 +446,7 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 	}
 
 	void MarchingCubesClass::ProcessCube( unsigned int lookupValue, MarchingCubeVoxel* verts, MarchingCubeVoxel** cube, vector<unsigned int>* indices, 
-	vector<MarchingCubeVectors>* vertices, unsigned int& indexCounter, unsigned int& vertexCounter, unsigned int sizeX, unsigned int sizeY, unsigned int sizeZ )
+		vector<MarchingCubeVectors>* vertices, unsigned int& indexCounter, unsigned int& vertexCounter, unsigned int sizeX, unsigned int sizeY, unsigned int sizeZ )
 	{
 		if(lookupValue == 0)
 			return;
@@ -464,23 +470,39 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 			{
 				int tritableLookupValue = triTable[lookupValue][j];
 
-				////Comment this if you want the edges back. :)
-				if(y > 3)
+				float yPos = verts[tritableLookupValue].position.y;
+
+				//Comment this if you want the edges back. :)
+				if(indexY > 2)
 				{
 					//And this.
-					if(x > 0 && z > 0 && x < sizeX-2 && z < sizeZ-2)
+					if(indexX > 0 && indexZ > 0 && indexX < sizeX-2 && indexZ < sizeZ-2)
 					{
 						indices->push_back(vertexCounter);
 
 						MarchingCubeVectors temp;
 						temp.position = verts[tritableLookupValue].position;
 						temp.normal = verts[tritableLookupValue].normal;
-						
+
 						vertices->push_back(temp);
 
 						vertexCounter++;
 						indexCounter++;	
 					}
+				}
+				else if(yPos < 2.0f && yPos > 0.5f)	
+				{			
+					//If we're below Y:2, we want to create water.
+					createWater = true;
+
+					//We measure the positions of each vertex that is below Y:2.
+					//And keep track of each minimum and maximum value, so that when we've processed the entire mesh of this chunk, 
+					// we know the MinXY and MaxXY values for when we want to create the water mesh!
+					minPos.x = min(minPos.x, verts[tritableLookupValue].position.x);
+					minPos.y = min(minPos.y, verts[tritableLookupValue].position.z);
+
+					maxPos.x = max(maxPos.x, verts[tritableLookupValue].position.x);
+					maxPos.y = max(maxPos.y, verts[tritableLookupValue].position.z);
 				}
 			}
 		}
@@ -491,6 +513,8 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 		D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
 		D3D11_SUBRESOURCE_DATA vertexData, indexData;
 		HRESULT result;
+
+		mesh->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		mesh->SetVertexCount(vertexCount);
 		mesh->SetIndexCount(indexCount);
@@ -527,4 +551,102 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 
 		// Create the index buffer.
 		result = device->CreateBuffer(&indexBufferDesc, &indexData, mesh->GetIndexBufferPP());
+	}
+
+	//http://stackoverflow.com/questions/5915753/generate-a-plane-with-triangle-strips
+	void MarchingCubesClass::CreateWaterMesh(ID3D11Device* device, MarchingCubeChunk* chunk, IndexedMesh* waterMesh, XMFLOAT2 minPos, XMFLOAT2 maxPos)
+	{
+		if(createWater)
+		{
+			D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
+			D3D11_SUBRESOURCE_DATA vertexData, indexData;
+			HRESULT result;
+
+			waterMesh->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+			//Okay, so. I have already decided that the spacing will be 1.0f between each vertex.
+			int stepsX = abs(maxPos.x) - abs(minPos.x);
+			int stepsZ = abs(maxPos.y) - abs(minPos.y);
+
+			vector<XMFLOAT3> vertices;
+			vector<unsigned int> indices;
+
+
+			//Based upon: http://www.learnopengles.com/android-lesson-eight-an-introduction-to-index-buffer-objects-ibos/
+
+			// Set up vertices
+			for (int z = 0; z < stepsZ; ++z) 
+			{
+				for (int x = 0; x < stepsX; ++x) 
+				{
+					vertices.push_back(XMFLOAT3(minPos.x + x, 2.0f, minPos.y + z));
+				}
+			}
+
+			//Set up indices
+			for (int z = 0; z < stepsZ - 1; ++z) 
+			{      
+				if (z > 0) 
+				{
+					// Degenerate begin: repeat first vertex
+					indices.push_back((z * stepsZ));
+				}
+
+				for (int x = 0; x < stepsX; ++x) 
+				{
+					// One part of the strip
+					indices.push_back((z * stepsZ) + x);
+					indices.push_back(((z + 1) * stepsZ) + x);
+				}
+
+				if (z < stepsZ - 2) 
+				{
+					// Degenerate end: repeat last vertex
+					indices.push_back(((z + 1) * stepsZ) + (stepsX - 1));
+				}
+			}
+
+			waterMesh->SetVertexCount(vertices.size());
+			waterMesh->SetIndexCount(indices.size());
+			waterMesh->SetVertexStride(sizeof(XMFLOAT3));
+
+			// Set up the description of the static vertex buffer.
+			vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+			vertexBufferDesc.ByteWidth = sizeof(XMFLOAT3) * vertices.size();
+			vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+			vertexBufferDesc.CPUAccessFlags = 0;
+			vertexBufferDesc.MiscFlags = 0;
+			vertexBufferDesc.StructureByteStride = 0;
+
+			// Give the sub resource texture a pointer to the vertex data.
+			vertexData.pSysMem = vertices.data();
+			vertexData.SysMemPitch = 0;
+			vertexData.SysMemSlicePitch = 0;
+
+			// Now create the vertex buffer.
+			result = device->CreateBuffer(&vertexBufferDesc, &vertexData, waterMesh->GetVertexBufferPP());
+
+			// Set up the description of the static index buffer.
+			indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+			indexBufferDesc.ByteWidth = sizeof(unsigned int) * indices.size();
+			indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+			indexBufferDesc.CPUAccessFlags = 0;
+			indexBufferDesc.MiscFlags = 0;
+			indexBufferDesc.StructureByteStride = 0;
+
+			// Give the sub resource texture a pointer to the index data.
+			indexData.pSysMem = indices.data();
+			indexData.SysMemPitch = 0;
+			indexData.SysMemSlicePitch = 0;
+
+			// Create the index buffer.
+			result = device->CreateBuffer(&indexBufferDesc, &indexData, waterMesh->GetIndexBufferPP());
+		}
+		else
+		{
+			//We don't create any water. We'll just add some dummy values so that it won't try to render the that doesn't exist.
+			waterMesh->SetVertexCount(0);
+			waterMesh->SetIndexCount(0);
+			waterMesh->SetVertexStride(0);
+		}
 	}
