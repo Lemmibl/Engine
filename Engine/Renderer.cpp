@@ -819,32 +819,32 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 
 	for(unsigned int i = 0; i < tempChunks.size(); i++)
 	{	
-		tempChunks[i]->GetWaterMesh()->Render(deviceContext);
+		tempChunks[i]->GetTerrainMesh()->Render(deviceContext);
 
-		if(!mcubeShader.Render(d3D->GetDeviceContext(), tempChunks[i]->GetWaterMesh()->GetIndexCount(), &worldMatrix, &worldView, 
+		if(!mcubeShader.Render(d3D->GetDeviceContext(), tempChunks[i]->GetTerrainMesh()->GetIndexCount(), &worldMatrix, &worldView, 
 			identityWorldViewProj, textureAndMaterialHandler.GetTerrainTextureArray(), textureAndMaterialHandler.GetMaterialLookupTexture(), toggleColorMode, farClip))
 		{
 			return false;
 		}
 	}
 
-	//d3D->SetNoCullRasterizer();
-	//d3D->TurnOnAlphaBlending();
+	d3D->SetNoCullRasterizer();
+	d3D->TurnOnAlphaBlending();
 
-	//for(unsigned int i = 0; i < tempChunks.size(); i++)
-	//{	
-	//	tempChunks[i]->GetTerrainMesh()->Render(deviceContext);
+	for(unsigned int i = 0; i < tempChunks.size(); i++)
+	{	
+		tempChunks[i]->GetTerrainMesh()->Render(deviceContext);
 
-	//	if(!geometryShaderGrass.Render(d3D->GetDeviceContext(), tempChunks[i]->GetTerrainMesh()->GetIndexCount(), &worldMatrix, &worldView, 
-	//		identityWorldViewProj, textureAndMaterialHandler.GetVegetationTextureArray(), textureAndMaterialHandler.GetMaterialLookupTexture(), 
-	//		tempChunks[i]->GetWindTexturePP(), toggleColorMode, farClip, backAndForth))
-	//	{
-	//		return false;
-	//	}
-	//}
+		if(!geometryShaderGrass.Render(d3D->GetDeviceContext(), tempChunks[i]->GetTerrainMesh()->GetIndexCount(), &worldMatrix, &worldView, 
+			identityWorldViewProj, textureAndMaterialHandler.GetVegetationTextureArray(), textureAndMaterialHandler.GetMaterialLookupTexture(), 
+			tempChunks[i]->GetWindTexturePP(), toggleColorMode, farClip, backAndForth))
+		{
+			return false;
+		}
+	}
 
-	//d3D->TurnOffAlphaBlending();
-	//d3D->SetBackFaceCullingRasterizer();
+	d3D->TurnOffAlphaBlending();
+	d3D->SetBackFaceCullingRasterizer();
 
 	return true;
 }
