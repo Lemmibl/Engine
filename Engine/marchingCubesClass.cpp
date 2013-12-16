@@ -565,46 +565,79 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 			waterMesh->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 			//Okay, so. I have already decided that the spacing will be 1.0f between each vertex.
-			int stepsX = abs(maxPos.x) - abs(minPos.x);
-			int stepsZ = abs(maxPos.y) - abs(minPos.y);
+
+			int stepsX;
+			int stepsZ;
+
+			if(abs(maxPos.x) > abs(minPos.x))
+			{
+				stepsX = abs(maxPos.x) - abs(minPos.x);
+			}
+			else
+			{
+				stepsX = abs(minPos.x) - abs(maxPos.x);
+			}
+
+			if(abs(maxPos.y) > abs(minPos.y))
+			{
+				stepsZ = abs(maxPos.y) - abs(minPos.y);
+			}
+			else
+			{
+				stepsZ	= abs(minPos.y) - abs(maxPos.y);
+			}
 
 			vector<XMFLOAT3> vertices;
 			vector<unsigned int> indices;
 
 
-			//Based upon: http://www.learnopengles.com/android-lesson-eight-an-introduction-to-index-buffer-objects-ibos/
+			//http://www.uniqsoft.co.uk/directx/html/tut3/tut3.htm
 
-			// Set up vertices
-			for (int z = 0; z < stepsZ; ++z) 
+			// Create the structure to hold the height map data.
+			vertices.resize((stepsX) * (stepsZ));
+
+			// Read the image data into the height map.
+			for(int j=0; j < stepsZ; j++)
 			{
-				for (int x = 0; x < stepsX; ++x) 
+				for(int i=0; i < stepsX; i++)
 				{
-					vertices.push_back(XMFLOAT3(minPos.x + x, 2.0f, minPos.y + z));
+					index = i + (stepsX * j);
+
+					vertices[index].x = minPos.x + (float)i;
+					vertices[index].y = 2.0f;
+					vertices[index].z = minPos.y + (float)j;
 				}
 			}
 
-			//Set up indices
-			for (int z = 0; z < stepsZ - 1; ++z) 
-			{      
-				if (z > 0) 
+
+			int indexOffset = 0;
+			indices.resize(((stepsX + 1) * (stepsZ + 1) * 2 ) - 2);
+
+			for( int z = 0; z < stepsZ-1; z++ )
+			{
+				for( int x = 0; x < stepsX; x++ )
 				{
-					// Degenerate begin: repeat first vertex
-					indices.push_back((z * stepsZ));
+					index = x + ( z * stepsX );
+					indices[indexOffset] = index;
+
+					indexOffset++;
+					index = x +( (z+1) * stepsX );
+
+					indices[indexOffset] = index;
+					indexOffset++;
 				}
 
-				for (int x = 0; x < stepsX; ++x) 
-				{
-					// One part of the strip
-					indices.push_back((z * stepsZ) + x);
-					indices.push_back(((z + 1) * stepsZ) + x);
-				}
+				//Place in copy of previous one
+				indices[indexOffset] = index;
+				indexOffset++;
 
-				if (z < stepsZ - 2) 
-				{
-					// Degenerate end: repeat last vertex
-					indices.push_back(((z + 1) * stepsZ) + (stepsX - 1));
-				}
+				//Place in first one for next row
+				index = 0 + ( (z+1) * stepsX );
+				indices[indexOffset] = index;
+				indexOffset++;
 			}
+
+
 
 			waterMesh->SetVertexCount(vertices.size());
 			waterMesh->SetIndexCount(indices.size());
