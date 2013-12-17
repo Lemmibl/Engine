@@ -23,6 +23,7 @@
     <ClCompile Include="DRDirectionalLight.cpp" />
     <ClCompile Include="DRCompose.cpp" />
     <ClCompile Include="DRGBuffer.cpp" />
+    <ClCompile Include="DRWaterClass.cpp" />
     <ClCompile Include="fontshaderclass.cpp" />
     <ClCompile Include="fpsmeter.cpp" />
     <ClCompile Include="frustumclass.cpp" />
@@ -81,6 +82,7 @@
     <ClInclude Include="DepthOnlyShader.h" />
     <ClInclude Include="DRDirectionalLight.h" />
     <ClInclude Include="DRCompose.h" />
+    <ClInclude Include="DRWaterClass.h" />
     <ClInclude Include="fontclass.h" />
     <ClInclude Include="fontshaderclass.h" />
     <ClInclude Include="fpsmeter.h" />
@@ -164,6 +166,9 @@
     <None Include="texture.vsh" />
     <None Include="VegetationQuad.psh" />
     <None Include="VegetationQuad.vsh" />
+    <None Include="WaterShader.gsh" />
+    <None Include="WaterShader.psh" />
+    <None Include="WaterShader.vsh" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{06865CFB-43FF-4F0C-B8D0-4D834721545B}</ProjectGuid>

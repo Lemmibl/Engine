@@ -338,6 +338,7 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 		: sizeX(sizeX), sizeY(sizeY), sizeZ(sizeZ)
 	{									  
 		metaballsIsoValue = 0.2f;
+		waterLevel = 15.0f;
 	}
 
 	void MarchingCubesClass::CalculateMesh(ID3D11Device* device, MarchingCubeChunk* chunk)
@@ -349,8 +350,6 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 		MarchingCubeVoxel* cube[8];
 
 		unsigned int lookup = 0;
-		minPos = XMFLOAT2((float)chunk->GetStartPosX() + chunk->GetStepCountX(),			(float)chunk->GetStartPosZ() + chunk->GetStepCountZ());
-		maxPos = XMFLOAT2(0.0f,	0.0f);
 		createWater = false;
 
 		//Temporary holding until we make a vertexbuffer
@@ -384,7 +383,7 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 		CreateMesh(device, chunk->GetTerrainMesh(), chunk->GetIndices(), &vertices, indexCounter, vertexCounter);
 
 		//Create a water mesh
-		CreateWaterMesh(device, chunk, chunk->GetWaterMesh(), minPos, maxPos);
+		CreateWaterMesh(device, chunk, chunk->GetWaterMesh());
 	}
 
 	void MarchingCubesClass::ExtractCube( MarchingCubeVoxel** cube, vector<MarchingCubeVoxel>* vertices, unsigned int sizeX, unsigned int sizeY, unsigned int sizeZ )
@@ -472,37 +471,26 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 
 				float yPos = verts[tritableLookupValue].position.y;
 
-				//Comment this if you want the edges back. :)
-				if(indexY > 2)
+
+				//Uncomment this if you want edges of the world back...... you don't.
+				if(indexX > 0 && indexZ > 0 && indexX < sizeX-2 && indexZ < sizeZ-2)
 				{
-					//And this.
-					if(indexX > 0 && indexZ > 0 && indexX < sizeX-2 && indexZ < sizeZ-2)
-					{
-						indices->push_back(vertexCounter);
+					indices->push_back(vertexCounter);
 
-						MarchingCubeVectors temp;
-						temp.position = verts[tritableLookupValue].position;
-						temp.normal = verts[tritableLookupValue].normal;
+					MarchingCubeVectors temp;
+					temp.position = verts[tritableLookupValue].position;
+					temp.normal = verts[tritableLookupValue].normal;
 
-						vertices->push_back(temp);
+					vertices->push_back(temp);
 
-						vertexCounter++;
-						indexCounter++;	
-					}
+					vertexCounter++;
+					indexCounter++;	
 				}
-				else if(yPos < 2.0f && yPos > 0.5f)	
+
+				if(yPos < waterLevel)	
 				{			
-					//If we're below Y:2, we want to create water.
+					//ANY triangle in this mesh is below waterlevel, we want to create water.
 					createWater = true;
-
-					//We measure the positions of each vertex that is below Y:2.
-					//And keep track of each minimum and maximum value, so that when we've processed the entire mesh of this chunk, 
-					// we know the MinXY and MaxXY values for when we want to create the water mesh!
-					minPos.x = min(minPos.x, verts[tritableLookupValue].position.x);
-					minPos.y = min(minPos.y, verts[tritableLookupValue].position.z);
-
-					maxPos.x = max(maxPos.x, verts[tritableLookupValue].position.x);
-					maxPos.y = max(maxPos.y, verts[tritableLookupValue].position.z);
 				}
 			}
 		}
@@ -554,7 +542,7 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 	}
 
 	//http://stackoverflow.com/questions/5915753/generate-a-plane-with-triangle-strips
-	void MarchingCubesClass::CreateWaterMesh(ID3D11Device* device, MarchingCubeChunk* chunk, IndexedMesh* waterMesh, XMFLOAT2 minPos, XMFLOAT2 maxPos)
+	void MarchingCubesClass::CreateWaterMesh(ID3D11Device* device, MarchingCubeChunk* chunk, IndexedMesh* waterMesh)
 	{
 		if(createWater)
 		{
@@ -562,56 +550,45 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 			D3D11_SUBRESOURCE_DATA vertexData, indexData;
 			HRESULT result;
 
+			XMFLOAT2 minPos;
+
+			//We measure the positions of each vertex that is below Y:2.
+			//And keep track of each minimum and maximum value, so that when we've processed the entire mesh of this chunk, 
+			// we know the MinXY and MaxXY values for when we want to create the water mesh!
+			minPos.x = chunk->GetStartPosX();
+			minPos.y = chunk->GetStartPosZ();
+
 			waterMesh->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 			//Okay, so. I have already decided that the spacing will be 1.0f between each vertex.
-
-			int stepsX;
-			int stepsZ;
-
-			if(abs(maxPos.x) > abs(minPos.x))
-			{
-				stepsX = abs(maxPos.x) - abs(minPos.x);
-			}
-			else
-			{
-				stepsX = abs(minPos.x) - abs(maxPos.x);
-			}
-
-			if(abs(maxPos.y) > abs(minPos.y))
-			{
-				stepsZ = abs(maxPos.y) - abs(minPos.y);
-			}
-			else
-			{
-				stepsZ	= abs(minPos.y) - abs(maxPos.y);
-			}
+			unsigned int stepsX = ((chunk->GetStepCountX())*chunk->GetStepSizeX());
+			unsigned int stepsZ = ((chunk->GetStepCountZ())*chunk->GetStepSizeZ());
 
 			vector<XMFLOAT3> vertices;
 			vector<unsigned int> indices;
 
-
+			//Rather shitty tutorial with wrong algorithms in some places, but I managed to piece it together anyway.
 			//http://www.uniqsoft.co.uk/directx/html/tut3/tut3.htm
 
 			// Create the structure to hold the height map data.
 			vertices.resize((stepsX) * (stepsZ));
 
 			// Read the image data into the height map.
-			for(int j=0; j < stepsZ; j++)
+			for(float z=0; z < stepsZ; z++)
 			{
-				for(int i=0; i < stepsX; i++)
+				for(float x = 0; x < stepsX; x++)
 				{
-					index = i + (stepsX * j);
+					index = x + (z * stepsX);
 
-					vertices[index].x = minPos.x + (float)i;
-					vertices[index].y = 2.0f;
-					vertices[index].z = minPos.y + (float)j;
+					vertices[index].x = (minPos.x + x-(x*0.0475f));
+					vertices[index].y = waterLevel;
+					vertices[index].z = (minPos.y + z-(z*0.0475f));
 				}
 			}
 
 
 			int indexOffset = 0;
-			indices.resize(((stepsX + 1) * (stepsZ + 1) * 2 ) - 2);
+			indices.resize(((stepsX * 2) + 2) * (stepsZ - 1));
 
 			for( int z = 0; z < stepsZ-1; z++ )
 			{

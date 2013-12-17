@@ -1,0 +1,43 @@
+Texture2D waterTexture;
+SamplerState linearSampler;
+
+struct PSInput
+{
+	float4 Position : SV_POSITION;
+	float4 Normal	: NORMAL;
+	float WaterHeight : TEXCOORD0;
+};
+
+struct PSOutput
+{
+	float4 Color : SV_TARGET0; //R8G8B8A8
+	float4 Normal : SV_TARGET1; //R8G8B8A8
+	float Depth : SV_TARGET2; //R32
+};
+
+//http://aras-p.info/texts/CompactNormalStorage.html#method04spheremap
+//Normal Encoding Function
+float2 Encode(float3 n)
+{
+	float p = sqrt(n.z*8.0f+8.0f);
+	return float2(n.xy/p + 0.5f);
+}
+
+PSOutput WaterShaderPS(PSInput input)
+{
+	PSOutput output = (PSOutput)0;
+
+	float waterColorOffset = input.WaterHeight;
+
+	//Depth has been stored in normal .w channel.
+	output.Depth = (input.Normal.w / 500.0f);
+
+	output.Normal.xy = Encode(input.Normal.xyz);
+	output.Normal.zw = 0.0f; //Both channels are reserved for material ID. We just assign some temporary ID for now. I'll make a special material later, I think.
+
+	//So my mode of thinking here is that the higher the water is, the brighter the colors I want. 
+	//I feel this reflects reality because more light escapes the thinner the water is, if you know what I mean.
+	output.Color = float4(0.1f, 0.6f, 0.9f, 0.85f) * float4(waterColorOffset, waterColorOffset, waterColorOffset, 1.0f);
+
+	return output;
+}

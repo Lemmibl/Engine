@@ -59,6 +59,7 @@ public:
 	void TurnZBufferOff();
 	void TurnOnAlphaBlending();
 	void TurnOffAlphaBlending();
+	void TurnOnTransparencyBlending();
 
 	void ChangeBlendState(ID3D11BlendState* blendState);
 	void TurnOnLightBlending();
@@ -118,12 +119,14 @@ private:
 
 	XMFLOAT4X4 projectionMatrix, worldMatrix, orthoMatrix;
 
+	CComPtr<ID3D11BlendState> defaultBlendstate;
 	CComPtr<ID3D11BlendState> alphaEnableBlendingState;
 	CComPtr<ID3D11BlendState> shadowBlendState;
 	CComPtr<ID3D11BlendState> alphaDisableBlendingState;
 	CComPtr<ID3D11BlendState> lightAddBlendState;
 	CComPtr<ID3D11BlendState> colorDisabledBlendState;
 	CComPtr<ID3D11BlendState> previousBlendState;
+	CComPtr<ID3D11BlendState> transparencyBlendstate;
 
 	//Shadowmapping stuff
 	CComPtr<ID3D11Texture2D>			shadowmapTexture;

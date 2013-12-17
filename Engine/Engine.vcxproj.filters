@@ -157,12 +157,6 @@
     <ClCompile Include="MCGBufferTerrainShader.cpp">
       <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClCompile>
-    <ClCompile Include="DRPointLight.cpp">
-      <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
-    </ClCompile>
-    <ClCompile Include="DRDirectionalLight.cpp">
-      <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
-    </ClCompile>
     <ClCompile Include="VegetationShader.cpp">
       <Filter>Rendering\Shader wrappers\Vegetation shader wrappers</Filter>
     </ClCompile>
@@ -171,6 +165,15 @@
     </ClCompile>
     <ClCompile Include="NoiseClass.cpp">
       <Filter>Procedural generation\Noise</Filter>
+    </ClCompile>
+    <ClCompile Include="DRPointLight.cpp">
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
+    </ClCompile>
+    <ClCompile Include="DRDirectionalLight.cpp">
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
+    </ClCompile>
+    <ClCompile Include="DRWaterClass.cpp">
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -342,12 +345,6 @@
     <ClInclude Include="MCGBufferTerrainShader.h">
       <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClInclude>
-    <ClInclude Include="DRPointLight.h">
-      <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
-    </ClInclude>
-    <ClInclude Include="DRDirectionalLight.h">
-      <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
-    </ClInclude>
     <ClInclude Include="VegetationShader.h">
       <Filter>Rendering\Shader wrappers\Vegetation shader wrappers</Filter>
     </ClInclude>
@@ -356,6 +353,15 @@
     </ClInclude>
     <ClInclude Include="NoiseClass.h">
       <Filter>Procedural generation\Noise</Filter>
+    </ClInclude>
+    <ClInclude Include="DRPointLight.h">
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="DRDirectionalLight.h">
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="DRWaterClass.h">
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -447,6 +453,15 @@
     </None>
     <None Include="GeometryShaderGrass.gs">
       <Filter>Rendering\Shaders\Vegetation</Filter>
+    </None>
+    <None Include="WaterShader.vsh">
+      <Filter>Rendering\Shaders\Deferred shaders</Filter>
+    </None>
+    <None Include="WaterShader.gsh">
+      <Filter>Rendering\Shaders\Deferred shaders</Filter>
+    </None>
+    <None Include="WaterShader.psh">
+      <Filter>Rendering\Shaders\Deferred shaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

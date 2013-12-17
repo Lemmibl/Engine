@@ -53,6 +53,7 @@
 #include "DepthOnlyQuadShader.h"
 #include "GaussianBlur.h"
 #include "GeometryShaderGrass.h"
+#include "DRWaterClass.h"
 
 class Renderer
 {
@@ -104,6 +105,7 @@ private:
 	DRCompose composeShader;
 	GaussianBlur gaussianBlurShader;
 	GeometryShaderGrass geometryShaderGrass;
+	DRWaterClass waterShader;
 
 	DRDirLight dirLightShader;
 	DirLight dirLight;

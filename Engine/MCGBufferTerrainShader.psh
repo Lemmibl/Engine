@@ -29,12 +29,10 @@ static const float textureScale = 0.1f;
 
 //http://aras-p.info/texts/CompactNormalStorage.html#method04spheremap
 //Normal Encoding Function
-float3 Encode(float3 n)
+float2 Encode(float3 n)
 {
 	float p = sqrt(n.z*8.0f+8.0f);
-	return float3(n.xy/p + 0.5f, 0.0f);
-
-	return n;
+	return float2(n.xy/p + 0.5f);
 }
 
 void ExtractMaterialAndTextureID(float4 encodedValues, out int texture1, out int texture2, out float material1, out float material2)

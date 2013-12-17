@@ -48,6 +48,7 @@ bool Renderer::Initialize(HWND hwnd, shared_ptr<CameraClass> camera, shared_ptr<
 	fogMinimum = 1.0f;
 
 	utility = Utility();
+	noise.ReseedRandom();
 
 	XMStoreFloat4x4(&baseViewMatrix, camera->GetView());
 
@@ -150,6 +151,13 @@ bool Renderer::InitializeShaders( HWND hwnd )
 	if(!result)
 	{
 		MessageBox(hwnd, L"Geometry shader grass shader couldn't be initialized.", L"Error", MB_OK);
+		return false;
+	}
+
+	result = waterShader.Initialize(d3D->GetDevice(), hwnd);
+	if(!result)
+	{
+		MessageBox(hwnd, L"Water shader couldn't be initialized.", L"Error", MB_OK);
 		return false;
 	}
 
@@ -828,8 +836,22 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 		}
 	}
 
-	d3D->SetNoCullRasterizer();
+	d3D->TurnOnTransparencyBlending();
+
+	for(unsigned int i = 0; i < tempChunks.size(); i++)
+	{	
+		tempChunks[i]->GetWaterMesh()->Render(deviceContext);
+
+		if(!waterShader.Render(d3D->GetDeviceContext(), tempChunks[i]->GetWaterMesh()->GetIndexCount(), &worldMatrix, &worldView, 
+			identityWorldViewProj, textureAndMaterialHandler.GetVegetationTextureArray(), tempChunks[0]->GetWindTexturePP(), 
+			farClip, backAndForth))
+		{
+			return false;
+		}
+	}
+
 	d3D->TurnOnAlphaBlending();
+	d3D->SetNoCullRasterizer();
 
 	for(unsigned int i = 0; i < tempChunks.size(); i++)
 	{	
@@ -843,8 +865,7 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 		}
 	}
 
-	d3D->TurnOffAlphaBlending();
-	d3D->SetBackFaceCullingRasterizer();
+	d3D->ResetBlendState();
 
 	return true;
 }

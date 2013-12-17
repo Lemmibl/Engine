@@ -45,8 +45,8 @@ TerrainManager::TerrainManager(ID3D11Device* device, ID3D11DeviceContext* device
 
 	mcTerrain.Initialize((int)stepCount.x, (int)stepCount.y, (int)stepCount.z, externalNoise);
 
-	//MCTerrainClass::TerrainTypes terrainType = MCTerrainClass::FlyingIslands;
-	MCTerrainClass::TerrainTypes terrainType = (MCTerrainClass::TerrainTypes)(1 + rand()%8);
+	MCTerrainClass::TerrainTypes terrainType = MCTerrainClass::Alien;
+	//MCTerrainClass::TerrainTypes terrainType = (MCTerrainClass::TerrainTypes)(1 + rand()%8);
 
 	mcTerrain.SetTerrainType(terrainType);
 

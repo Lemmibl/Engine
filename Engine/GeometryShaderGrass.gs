@@ -111,13 +111,14 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, inout TriangleStream<PS_INPUT> TriStre
 	}
 };
 
-[maxvertexcount(12)] void GrassGS(triangle VS_OUTPUT Input[3], inout TriangleStream<PS_INPUT> TriStream)
+[maxvertexcount(12)] 
+void GrassGS(triangle VS_OUTPUT Input[3], inout TriangleStream<PS_INPUT> TriStream)
 { 
 	//http://upvoid.com/devblog/2013/02/prototype-grass/
 	float dotResult = dot(Input[1].Normal, UpNormal);
 
 	//if the surface is or is pretty close to being perpendicular to the Up vector, we make grass.
-	if(dotResult > 0.9f )
+	if(dotResult > 0.9f && Input[0].YPosDepthAndRand.x > 20.5f)
 	{
 		MakeQuad(Input[1], Input[2], TriStream);
 		MakeQuad(Input[2], Input[0], TriStream);
