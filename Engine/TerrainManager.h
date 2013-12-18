@@ -44,6 +44,11 @@ public:
 
 	vector<MarchingCubeChunk*>& GetActiveChunks() { return activeChunks; }
 	vector<RenderableInterface*>& GetActiveRenderables(){ return activeRenderables; }
+	ID3D11ShaderResourceView* GetWindTexture() { return windTexture.p; }
+	ID3D11ShaderResourceView** GetWindTexturePP() { return &windTexture.p; }
+
+	ID3D11ShaderResourceView* GetWindNormalMapTexture() { return windTextureNormalMap.p; }
+	ID3D11ShaderResourceView** GetWindNormalMapTexturePP() { return &windTextureNormalMap.p; }
 
 	void GenerateVegetation(ID3D11Device* device, bool UpdateInstanceBuffer, MarchingCubeChunk* chunk);
 	void RenderVegetation();
@@ -71,6 +76,9 @@ private:
 
 
 private:
+	CComPtr<ID3D11ShaderResourceView> windTexture;
+	CComPtr<ID3D11ShaderResourceView> windTextureNormalMap;
+
 	MarchingCubesClass marchingCubes;
 	MCTerrainClass mcTerrain;
 	VegetationManager vegetationManager;
@@ -78,6 +86,7 @@ private:
 	NoiseClass* noise;
 	unsigned int vegetationCount;
 	float stepScaling;
+
 
 	std::shared_ptr<std::unordered_map<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>, int_pair_hash>> map;
 	vector<MarchingCubeChunk*> activeChunks;

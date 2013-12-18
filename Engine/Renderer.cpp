@@ -797,7 +797,7 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 
 	deviceContext->ClearRenderTargetView(gbufferRenderTargets[0], D3DXVECTOR4(0.0f, 0.125f, 0.3f, 1.0f));
 	deviceContext->ClearRenderTargetView(gbufferRenderTargets[1], D3DXVECTOR4(0.5f, 0.5f, 0.5f, 0.5f));
-	deviceContext->ClearRenderTargetView(gbufferRenderTargets[2], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
+	deviceContext->ClearRenderTargetView(gbufferRenderTargets[2], D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f));
 
 	d3D->SetNoCullRasterizer();
 	d3D->TurnZBufferOff();
@@ -842,9 +842,9 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 	{	
 		tempChunks[i]->GetWaterMesh()->Render(deviceContext);
 
-		if(!waterShader.Render(d3D->GetDeviceContext(), tempChunks[i]->GetWaterMesh()->GetIndexCount(), &worldMatrix, &worldView, 
-			identityWorldViewProj, textureAndMaterialHandler.GetVegetationTextureArray(), tempChunks[0]->GetWindTexturePP(), 
-			farClip, backAndForth))
+		if(!waterShader.Render(d3D->GetDeviceContext(), tempChunks[i]->GetWaterMesh()->GetIndexCount(), &worldMatrix, &worldView, identityWorldViewProj, 
+		textureAndMaterialHandler.GetVegetationTextureArray(), terrainManager->GetWindTexturePP(), terrainManager->GetWindNormalMapTexturePP(), 
+		farClip, backAndForth))
 		{
 			return false;
 		}
@@ -859,7 +859,7 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 
 		if(!geometryShaderGrass.Render(d3D->GetDeviceContext(), tempChunks[i]->GetTerrainMesh()->GetIndexCount(), &worldMatrix, &worldView, 
 			identityWorldViewProj, textureAndMaterialHandler.GetVegetationTextureArray(), textureAndMaterialHandler.GetMaterialLookupTexture(), 
-			tempChunks[i]->GetWindTexturePP(), toggleColorMode, farClip, backAndForth))
+			terrainManager->GetWindTexturePP(), toggleColorMode, farClip, backAndForth))
 		{
 			return false;
 		}
@@ -1037,8 +1037,9 @@ bool Renderer::RenderDebugInfoAndText(ID3D11DeviceContext* deviceContext, XMMATR
 			return false;
 		}
 
+		//*textureAndMaterialHandler.GetNoiseTexture()
 		if(!textureShader.Render(d3D->GetDeviceContext(), debugWindows[5].GetIndexCount(), 
-			worldBaseViewOrthoProj, *textureAndMaterialHandler.GetNoiseTexture()))
+			worldBaseViewOrthoProj, terrainManager->GetWindNormalMapTexture()))
 		{
 			return false;
 		}
@@ -1049,7 +1050,7 @@ bool Renderer::RenderDebugInfoAndText(ID3D11DeviceContext* deviceContext, XMMATR
 		}
 
 		if(!textureShader.Render(d3D->GetDeviceContext(), debugWindows[6].GetIndexCount(), 
-			worldBaseViewOrthoProj, *textureAndMaterialHandler.GetTerrainTexture()))
+			worldBaseViewOrthoProj, terrainManager->GetWindTexture()))
 		{
 			return false;
 		}

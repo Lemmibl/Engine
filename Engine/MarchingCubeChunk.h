@@ -18,8 +18,6 @@ public:
 
 	vector<MarchingCubeVoxel>* GetVoxelField() { return &voxels; }
 	vector<unsigned int>* GetIndices() { return &indices; }
-	ID3D11ShaderResourceView* GetWindTexture() { return windTexture.p; }
-	ID3D11ShaderResourceView** GetWindTexturePP() { return &windTexture.p; }
 
 	unsigned int GetStepCountX() const { return stepCountX; }
 	unsigned int GetStepCountY() const { return stepCountY; }
@@ -37,7 +35,6 @@ private:
 	//voxels is sizeX*sizeY*sizeZ big
 	vector<MarchingCubeVoxel> voxels;
 	vector<unsigned int> indices;
-	CComPtr<ID3D11ShaderResourceView> windTexture;
 
 	//Our mesh that we'll be rendering. Contains all vertex/index data.
 	IndexedMesh terrainMesh;

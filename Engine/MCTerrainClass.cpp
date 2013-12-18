@@ -12,9 +12,11 @@ MCTerrainClass::~MCTerrainClass()
 {
 }
 
-void MCTerrainClass::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass* simplexNoise )
+void MCTerrainClass::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass* simplexNoise, TerrainTypes terrainType)
 {
+	terrainMode = terrainType;
 	noise = simplexNoise;
+
 	this->sizeX = sizeX;
 	this->sizeY = sizeY;
 	this->sizeZ = sizeZ;
@@ -180,6 +182,11 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 							density = 2;
 						}
 
+						if(y <= 1)
+						{
+							density += 1000000.0f;
+						}
+
 						(*marchingCubeVertices)[idx].density = density;
 					}
 				}
@@ -229,6 +236,11 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 						else if (density > 2)
 						{
 							density = 2;
+						}
+
+						if(y <= 1)
+						{
+							density += 1000000.0f;
 						}
 
 						(*marchingCubeVertices)[idx].density = density;
@@ -281,6 +293,11 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 						else if (density > 2)
 						{
 							density = 2;
+						}
+
+						if(y <= 1)
+						{
+							density += 1000000.0f;
 						}
 
 						(*marchingCubeVertices)[idx].density = density;
@@ -346,6 +363,11 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 							density = 2;
 						}
 
+						if(y <= 1)
+						{
+							density += 1000000.0f;
+						}
+
 						(*marchingCubeVertices)[idx].density = density;
 					}
 				}
@@ -377,6 +399,11 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 						else if (density > 2)
 						{
 							density = 2;
+						}
+
+						if(y <= 1)
+						{
+							density += 1000000.0f;
 						}
 
 						(*marchingCubeVertices)[idx].density = density;
@@ -412,6 +439,11 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 							density = 2;
 						}
 
+						if(y <= 1)
+						{
+							density += 1000000.0f;
+						}
+
 						(*marchingCubeVertices)[idx].density = density;
 					}
 				}
@@ -444,7 +476,7 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 	//}
 	//
 	//	////**Hardfloor**//
-	//if(y < 13)
+	//if(y <= 1)
 	//{
 	//	density += 1000000.0f;
 	//}
@@ -531,16 +563,17 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 
 void MCTerrainClass::CreateMCVerts()
 {
-	(*marchingCubeVertices)[idx].normal.x = ((*marchingCubeVertices)[idx - 1].density -					(*marchingCubeVertices)[idx+1].density)					* XFactor;
+	//  this is case where the resolution is too low anyway
+	(*marchingCubeVertices)[idx].normal.x = abs((*marchingCubeVertices)[idx - 1].density -					(*marchingCubeVertices)[idx+1].density)					* XFactor;
 	(*marchingCubeVertices)[idx].normal.y = ((*marchingCubeVertices)[idx - sizeY].density -				(*marchingCubeVertices)[idx + sizeY].density)			* YFactor;
-	(*marchingCubeVertices)[idx].normal.z = ((*marchingCubeVertices)[idx - (sizeY * sizeZ)].density -	(*marchingCubeVertices)[idx + (sizeY * sizeZ)].density)	* ZFactor;
+	(*marchingCubeVertices)[idx].normal.z = abs((*marchingCubeVertices)[idx - (sizeY * sizeZ)].density -	(*marchingCubeVertices)[idx + (sizeY * sizeZ)].density)	* ZFactor;
 
-	////Normalize results.
-	//float vectorLength = (normalX*normalX) + (normalY*normalY) + (normalZ*normalZ);
+	//Normalize results.
+	float vectorLength = ((*marchingCubeVertices)[idx].normal.x*(*marchingCubeVertices)[idx].normal.x) + ((*marchingCubeVertices)[idx].normal.y*(*marchingCubeVertices)[idx].normal.y) + ((*marchingCubeVertices)[idx].normal.z*(*marchingCubeVertices)[idx].normal.z);
 
-	//(*marchingCubeVertices)[idx].normal.x = (*marchingCubeVertices)[idx].normal.x/vectorLength;
-	//(*marchingCubeVertices)[idx].normal.y = (*marchingCubeVertices)[idx].normal.y/vectorLength;
-	//(*marchingCubeVertices)[idx].normal.z = (*marchingCubeVertices)[idx].normal.z/vectorLength;
+	(*marchingCubeVertices)[idx].normal.x = (*marchingCubeVertices)[idx].normal.x/vectorLength;
+	(*marchingCubeVertices)[idx].normal.y = (*marchingCubeVertices)[idx].normal.y/vectorLength;
+	(*marchingCubeVertices)[idx].normal.z = (*marchingCubeVertices)[idx].normal.z/vectorLength;
 }
 
 float MCTerrainClass::GetHighestPositionOfCoordinate(int x, int z)

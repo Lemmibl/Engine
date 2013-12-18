@@ -54,12 +54,12 @@ private:
 		v.normal.y = v1.normal.y + (v2.normal.y - v1.normal.y) * diff;
 		v.normal.z = v1.normal.z + (v2.normal.z - v1.normal.z) * diff;
 
-		//Normalize the normal
-		float vectorLength = sqrt((v.normal.x*v.normal.x) + (v.normal.y*v.normal.y) + (v.normal.z*v.normal.z));
+		////Normalize the normal
+		//float vectorLength = sqrt((v.normal.x*v.normal.x) + (v.normal.y*v.normal.y) + (v.normal.z*v.normal.z));
 
-		v.normal.x /= vectorLength;
-		v.normal.y /= vectorLength;
-		v.normal.z /= vectorLength;
+		//v.normal.x /= vectorLength;
+		//v.normal.y /= vectorLength;
+		//v.normal.z /= vectorLength;
 
 		return v;
 	}

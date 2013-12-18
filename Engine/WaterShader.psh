@@ -1,11 +1,16 @@
-Texture2D waterTexture;
+Texture2D normalTexture : register( ps_5_0, t0 );
+Texture2D waterTexture : register( ps_5_0, t1 );
 SamplerState linearSampler;
+
+cbuffer PixelMatrixBuffer
+{
+	float4x4 World;
+};
 
 struct PSInput
 {
 	float4 Position : SV_POSITION;
-	float4 Normal	: NORMAL;
-	float WaterHeight : TEXCOORD0;
+	float4 TexCoord	: TEXCOORD0; //xy channels are real texture coordinates. .z channel is height offset for coloring etc. .w channel is viewspace depth.
 };
 
 struct PSOutput
@@ -23,21 +28,33 @@ float2 Encode(float3 n)
 	return float2(n.xy/p + 0.5f);
 }
 
+//Since it's an 8bit UNORM channel, it means every value will end up in the 0..1 spectrum, so we have to do some trickery to save it and unload it properly.
+float EncodeMaterialID(float id)
+{
+	return (id / 255.0f);
+}
+
 PSOutput WaterShaderPS(PSInput input)
 {
-	PSOutput output = (PSOutput)0;
+	PSOutput output;
 
-	float waterColorOffset = input.WaterHeight;
+	float waterColorOffset = 0.5f + (input.TexCoord.z*0.5f);
 
 	//Depth has been stored in normal .w channel.
-	output.Depth = (input.Normal.w / 500.0f);
+	output.Depth = (input.TexCoord.w / 500.0f);
 
-	output.Normal.xy = Encode(input.Normal.xyz);
-	output.Normal.zw = 0.0f; //Both channels are reserved for material ID. We just assign some temporary ID for now. I'll make a special material later, I think.
+	float3 UpNormal = normalize(float3(0.0f, 0.3f, 0.0f));
+
+	float4 PreCalcNormal = normalize(float4(UpNormal + normalTexture.Sample(linearSampler, (input.TexCoord.xy*0.85f)).xyz, 1.0f));
+
+	float3 normal = mul(PreCalcNormal, World).xyz;
+
+	output.Normal.xy = Encode(normal);
+	output.Normal.zw = EncodeMaterialID(6.0f); //Both channels are reserved for material ID. We just assign some temporary ID for now. I'll make a special material later, I think.
 
 	//So my mode of thinking here is that the higher the water is, the brighter the colors I want. 
 	//I feel this reflects reality because more light escapes the thinner the water is, if you know what I mean.
-	output.Color = float4(0.1f, 0.6f, 0.9f, 0.85f) * float4(waterColorOffset, waterColorOffset, waterColorOffset, 1.0f);
+	output.Color = float4(0.0f, 0.2f, 0.35f, 0.9f) * float4(waterColorOffset, waterColorOffset, waterColorOffset, 1.0f);
 
 	return output;
 }

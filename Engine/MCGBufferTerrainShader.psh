@@ -23,7 +23,7 @@ Texture2D materialAndTextureLookupTable;
 SamplerState textureSampler;
 
 static const float3 UpNormal = float3(0.0f, 1.0f, 0.0f);
-static const float tighten = 0.435f;
+static const float tighten = 0.46f;
 static const float textureScale = 0.1f;
 
 

@@ -68,12 +68,14 @@ public:
 
 	void RebuildTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, TextureID textureID, int width, int height, float startPosX, float startPosY, bool reseedRandomAfterwards);
 
-	HRESULT CreateSeamlessSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv, float startPosX, float startPosY, float stepsX, float stepsY);
+	HRESULT CreateSeamlessSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv, float startPosX, float startPosY, float stepsX, float stepsY, float noiseScale);
+	HRESULT Create2DNormalMapFromHeightmap(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** destTex, float textureWidth, float textureHeight);
 
 	bool SaveLTreeTextureToFile(ID3D11DeviceContext* deviceContext, D3DX11_IMAGE_FILE_FORMAT format, LPCSTR fileName);
 	void SaveTextureToFile(ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView* texture, D3DX11_IMAGE_FILE_FORMAT format, LPCSTR fileName);
 
 private:
+
 	HRESULT Create2DSSAORandomTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv);
 	HRESULT CreateRandom2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv);
 	HRESULT CreateSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv);
@@ -134,6 +136,7 @@ private:
 	CComPtr<ID3D11ShaderResourceView> ssaoRandomTextureSRV;
 
 	CComPtr<ID3D11Texture2D> placeHolderTexture;
+	CComPtr<ID3D11Texture2D> windNoiseTexture;
 
 	MaterialColorSpectrumUINT8 dirtColor;
 	MaterialColorSpectrumUINT8 grassColor;

@@ -35,30 +35,39 @@ static const XMFLOAT3 stepSize(2.0f, 2.0f, 2.0f);
 static const XMFLOAT3 stepCount(53.0f, 53.0f, 53.0f);
 
 TerrainManager::TerrainManager(ID3D11Device* device, ID3D11DeviceContext* deviceContext, NoiseClass* externalNoise, TextureAndMaterialHandler* texAndMatHandler, HWND hwnd, XMFLOAT3 cameraPosition)
-: marchingCubes((int)stepCount.x, (int)stepCount.y, (int)stepCount.z)
+:	marchingCubes((int)stepCount.x, (int)stepCount.y, (int)stepCount.z)
 {
-	lastUsedKey = make_pair<int, int>(99, -99);
-	stepScaling = (stepSize.x*(stepCount.x-3)) / 10000;
 	map = make_shared<std::unordered_map<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>, int_pair_hash>>();
 
-	//vegetationCount = 10000;
-
-	mcTerrain.Initialize((int)stepCount.x, (int)stepCount.y, (int)stepCount.z, externalNoise);
-
-	MCTerrainClass::TerrainTypes terrainType = MCTerrainClass::Alien;
-	//MCTerrainClass::TerrainTypes terrainType = (MCTerrainClass::TerrainTypes)(1 + rand()%8);
-
-	mcTerrain.SetTerrainType(terrainType);
-
-	assert(vegetationManager.Initialize(device, hwnd));
 	noise = externalNoise;
+
 	textureAndMaterialHandler = texAndMatHandler;
 
+	lastUsedKey = make_pair<int, int>(99, -99);
+	stepScaling = (stepSize.x*(stepCount.x-3)) / 10000;
+
+	MCTerrainClass::TerrainTypes terrainType = MCTerrainClass::Alien;//(MCTerrainClass::TerrainTypes)(1 + rand()%8); //
+
+	mcTerrain.Initialize((int)stepCount.x, (int)stepCount.y, (int)stepCount.z, externalNoise, terrainType);
+
+	assert(vegetationManager.Initialize(device, hwnd));
+
+	float randVal = (int)(RandomFloat()*100.0f);
+	
+	float noiseTexWidth = 1024.0f;
+	float noiseTexHeight = 1024.0f;
+
+	//Create a BIG noise texture for water and wind purposes
+	textureAndMaterialHandler->CreateSeamlessSimplex2DTexture(device, deviceContext, &windTexture.p, randVal, randVal, noiseTexWidth, noiseTexHeight, 0.5f);
+	textureAndMaterialHandler->Create2DNormalMapFromHeightmap(device, deviceContext, &windTextureNormalMap.p, noiseTexWidth, noiseTexHeight);
+
+	//Define starting point for chunk generation
 	int startGridX, startGridZ;
 
 	startGridX = RoundToNearest(cameraPosition.x*stepScaling);
 	startGridZ = RoundToNearest(cameraPosition.z*stepScaling);
 
+	//Create 9 chunks around the starting point
 	CreateChunk(device, deviceContext, startGridX, startGridZ-1);
 	CreateChunk(device, deviceContext, startGridX, startGridZ+0);
 	CreateChunk(device, deviceContext, startGridX, startGridZ+1);
@@ -169,9 +178,6 @@ void TerrainManager::CreateChunk(ID3D11Device* device, ID3D11DeviceContext* devi
 
 		//Create the mesh for the chunk with marching cubes algorithm
 		marchingCubes.CalculateMesh(device, newChunk.get());
-
-		textureAndMaterialHandler->CreateSeamlessSimplex2DTexture(device, deviceContext, 
-			newChunk->GetWindTexturePP(), newChunk->GetStartPosX(), newChunk->GetStartPosZ(), stepCount.x, stepCount.z);
 
 		//...Generate and place vegetation based on data from the chunk.
 		//GenerateVegetation(device, false, newChunk.get());

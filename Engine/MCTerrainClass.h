@@ -29,7 +29,7 @@ public:
 	~MCTerrainClass();
 
 
-	void Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass* simplexNoise);
+	void Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass* simplexNoise, TerrainTypes terrainType);
 	void LSystem();
 	void LSystemTree();
 	void MCHeightMap();
