@@ -25,7 +25,7 @@
 #include "DayNightCycle.h"
 
 //Managers
-#include "d3dclass.h"
+#include "d3dmanager.h"
 #include "TerrainManager.h"
 #include "TextureAndMaterialHandler.h"
 
@@ -62,7 +62,7 @@ public:
 	Renderer(const Renderer&);
 	~Renderer();
 
-	bool Initialize(HWND hwnd, shared_ptr<CameraClass> camera, shared_ptr<InputClass> inputManager, shared_ptr<D3DClass> d3D, UINT screenWidth, 
+	bool Initialize(HWND hwnd, shared_ptr<CameraClass> camera, shared_ptr<InputClass> inputManager, shared_ptr<D3DManager> d3D, UINT screenWidth, 
 		UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear, bool toggleDebug);
 
 	bool InitializeShaders(HWND hwnd);
@@ -86,7 +86,7 @@ public:
 	bool RenderDebugInfoAndText(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj);
 
 private:
-	shared_ptr<D3DClass> d3D;
+	shared_ptr<D3DManager> d3D;
 	shared_ptr<CameraClass> camera;
 	shared_ptr<InputClass> inputManager;
 	shared_ptr<TextClass> text;

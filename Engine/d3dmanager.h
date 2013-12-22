@@ -27,12 +27,12 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: D3DClass
 ////////////////////////////////////////////////////////////////////////////////
-class D3DClass
+class D3DManager
 {
 public:
-	D3DClass();
-	D3DClass(const D3DClass&);
-	~D3DClass();
+	D3DManager();
+	D3DManager(const D3DManager&);
+	~D3DManager();
 
 	bool Initialize(HWND hwnd, bool vsync, bool fullscreen, float screenNear, float screenFar, 
 		int screenWidth, int screenHeight, UINT shadowMapWidth, UINT shadowMapHeight);

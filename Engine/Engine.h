@@ -62,7 +62,7 @@ private:
 	HINSTANCE hinstance;
 	HWND hwnd;
 
-	shared_ptr<D3DClass> d3D;
+	shared_ptr<D3DManager> d3D;
 	shared_ptr<InputClass> input;
 	shared_ptr<ControllerClass> cameraController;
 	shared_ptr<CameraClass> camera;

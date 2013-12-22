@@ -45,7 +45,7 @@ PSOutput WaterShaderPS(PSInput input)
 
 	float3 UpNormal = normalize(float3(0.0f, 0.3f, 0.0f));
 
-	float4 PreCalcNormal = normalize(float4(UpNormal + normalTexture.Sample(linearSampler, (input.TexCoord.xy*0.85f)).xyz, 1.0f));
+	float4 PreCalcNormal = normalize(float4(UpNormal + normalTexture.Sample(linearSampler, (input.TexCoord.xy * 0.85f)).xyz, 1.0f));
 
 	float3 normal = mul(PreCalcNormal, World).xyz;
 

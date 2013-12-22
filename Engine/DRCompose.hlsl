@@ -62,7 +62,6 @@ float DoAmbientOcclusion(float2 TexCoord, float2 Offset, float4 ScreenPosition, 
 	//Sample depth from our new offset position
 	float offsetDepth = shaderTextures[2].Sample(samplers[0], (TexCoord + Offset));
 	
-
 	//Reconstruct an offset position with the help of our offset screenpos and offset depth
 	float3 offsetPosition = float3(TexCoord + Offset, offsetDepth);//DepthToPosition(ScreenPosition, offsetDepth);
 
@@ -110,51 +109,54 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		
 		//float3 normal = normalize(DecodeNormal(shaderTextures[3].Sample(samplers[0], input.TexCoord).xy)); //Worldspace normals
 
-		float2 rand = normalize(randomTexture.Sample(samplers[0], (screenSize*input.TexCoord / randomSize)) * 2.0f - 1.0f);//
 
-		float ao = 1.0f;
-		//float rad = sampleRadius / position.z;
 
-		//int iterations = lerp(8, 2, depth); //primitive SSAO LOD; scales with how close to the pixel we are
+		float ao = 1.0f;		
+		
+		if(toggleSSAO >= 1)
+		{
+			float2 rand = normalize(randomTexture.Sample(samplers[0], (screenSize*input.TexCoord / randomSize)) * 2.0f - 1.0f);//
+			float rad = sampleRadius / position.z;
 
-		////SSAO Calculation
-		//[unroll]
-		//for (int i = 0; i < iterations; i++)
-		//{
-		//	float2 coord1 = reflect(vec[i], rand)*rad;
-		//	float2 coord2 = float2(	coord1.x*0.707 - coord1.y*0.707,
-		//							coord1.x*0.707 + coord1.y*0.707);
-		//
-		//	ao += DoAmbientOcclusion(input.TexCoord, coord1*0.25,	input.ScreenPosition, position, normal);
-		//	ao += DoAmbientOcclusion(input.TexCoord, coord2*0.5,	input.ScreenPosition, position, normal);
-		//	ao += DoAmbientOcclusion(input.TexCoord, coord1*0.75,	input.ScreenPosition, position, normal);
-		//	ao += DoAmbientOcclusion(input.TexCoord, coord2,		input.ScreenPosition, position, normal);
-		//}
+			int iterations = lerp(8, 2, depth); //primitive SSAO LOD; scales with how close to the pixel we are
 
-		//ao /= (float)iterations*4.0f;
+			//SSAO Calculation
+			[unroll]
+			for (int i = 0; i < iterations; i++)
+			{
+				float2 coord1 = reflect(vec[i], rand)*rad;
+				float2 coord2 = float2(	coord1.x*0.707 - coord1.y*0.707,
+										coord1.x*0.707 + coord1.y*0.707);
+			
+				ao += DoAmbientOcclusion(input.TexCoord, coord1*0.25,	input.ScreenPosition, position, normal);
+				ao += DoAmbientOcclusion(input.TexCoord, coord2*0.5,	input.ScreenPosition, position, normal);
+				ao += DoAmbientOcclusion(input.TexCoord, coord1*0.75,	input.ScreenPosition, position, normal);
+				ao += DoAmbientOcclusion(input.TexCoord, coord2,		input.ScreenPosition, position, normal);
+			}
 
-		//ao = max((1.0f - ao), 0.4f); //We don't want the ssao to make things completely black (0.0f), so we cap it at a minimum of 0.4f.
+			ao /= (float)iterations*4.0f;
 
-		//Add AO to final calculation ...
+			//Add AO to final calculation ...
+			ao = max((1.0f - ao), 0.4f); //We don't want the ssao to make things completely black (0.0f), so we cap it at a minimum of 0.4f.
+
+		}
+
+
 
 		//specular intensity is stored in the color map's alpha channel.
 		float4 light = shaderTextures[1].Sample(samplers[0], input.TexCoord);
 		float3 diffuseLight = light.rgb;
 		float specularLight = light.a;
 		
-		//Not going to apply specular here, it'll be applied in the final composition stage.
-		if(toggleSSAO == 0)
+		if(toggleSSAO == 2)
 		{
-			return ao * lerp((float4((baseColor) * (diffuseLight + specularLight), 1.0f)),  FogColor, fogFactor);
-		}
-		else if(toggleSSAO == 1)
-		{
-			return lerp(float4((baseColor) * (specularLight + diffuseLight), 1.0f),  FogColor, fogFactor);
+			return float4(ao, ao, ao, 1.0f);//lerp((float4((ao * baseColor) * (diffuseLight + specularLight), 1.0f)),  FogColor, fogFactor); // float4(ao, ao, ao, 1.0f);//
 		}
 		else
 		{
-			return float4(ao, ao, ao, 1.0f);//lerp((float4((ao * baseColor) * (diffuseLight + specularLight), 1.0f)),  FogColor, fogFactor); // float4(ao, ao, ao, 1.0f);//
-		}	
+			//Default case
+			return ao * lerp((float4((baseColor) * (diffuseLight + specularLight), 1.0f)),  FogColor, fogFactor);
+		}
 }
 /*
 

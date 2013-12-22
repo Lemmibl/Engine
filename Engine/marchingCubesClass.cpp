@@ -338,7 +338,7 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 		: sizeX(sizeX), sizeY(sizeY), sizeZ(sizeZ)
 	{									  
 		metaballsIsoValue = 0.2f;
-		waterLevel = 15.0f;
+		waterLevel = 2.0f;
 	}
 
 	void MarchingCubesClass::CalculateMesh(ID3D11Device* device, MarchingCubeChunk* chunk)
@@ -580,13 +580,15 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 				{
 					index = x + (z * stepsX);
 
-					vertices[index].x = (minPos.x + x-(x*0.0475f));
+					//Offset each position with a magic number to make sure there are no seams between the different water meshes.
+					vertices[index].x = (minPos.x + x-(x*0.0905f)); //0.0475f
 					vertices[index].y = waterLevel;
-					vertices[index].z = (minPos.y + z-(z*0.0475f));
+					vertices[index].z = (minPos.y + z-(z*0.0905f));
 				}
 			}
 
 
+			//TODO: this index buffer is the same for every mesh. Maybe create once and copy it.
 			int indexOffset = 0;
 			indices.resize(((stepsX * 2) + 2) * (stepsZ - 1));
 

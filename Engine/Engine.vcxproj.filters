@@ -22,9 +22,6 @@
     <ClCompile Include="fpsmeter.cpp">
       <Filter>General Code\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="frustumclass.cpp">
-      <Filter>General Code\Utility</Filter>
-    </ClCompile>
     <ClCompile Include="inputclass.cpp">
       <Filter>General Code\Utility</Filter>
     </ClCompile>
@@ -34,9 +31,6 @@
     <ClCompile Include="main.cpp">
       <Filter>General Code</Filter>
     </ClCompile>
-    <ClCompile Include="fontshaderclass.cpp">
-      <Filter>Rendering\Shader wrappers</Filter>
-    </ClCompile>
     <ClCompile Include="Utility.cpp">
       <Filter>General Code\Utility</Filter>
     </ClCompile>
@@ -45,21 +39,6 @@
     </ClCompile>
     <ClCompile Include="cameraclass.cpp">
       <Filter>General Code</Filter>
-    </ClCompile>
-    <ClCompile Include="d3dclass.cpp">
-      <Filter>General Code</Filter>
-    </ClCompile>
-    <ClCompile Include="DayNightCycle.cpp">
-      <Filter>General Code</Filter>
-    </ClCompile>
-    <ClCompile Include="SkysphereShader.cpp">
-      <Filter>Rendering\Shader wrappers</Filter>
-    </ClCompile>
-    <ClCompile Include="VertexShaderOnly.cpp">
-      <Filter>Rendering\Shader wrappers</Filter>
-    </ClCompile>
-    <ClCompile Include="textureshaderclass.cpp">
-      <Filter>Rendering\Shader wrappers</Filter>
     </ClCompile>
     <ClCompile Include="texturearray.cpp">
       <Filter>Rendering\Rendering utility</Filter>
@@ -115,9 +94,6 @@
     <ClCompile Include="LemmiEntity.cpp">
       <Filter>General Code\Data classes</Filter>
     </ClCompile>
-    <ClCompile Include="LerpInstance.cpp">
-      <Filter>General Code\Utility</Filter>
-    </ClCompile>
     <ClCompile Include="TextureAndMaterialHandler.cpp">
       <Filter>Rendering\Managers</Filter>
     </ClCompile>
@@ -135,12 +111,6 @@
     </ClCompile>
     <ClCompile Include="modelclass.cpp">
       <Filter>Rendering\Objects</Filter>
-    </ClCompile>
-    <ClCompile Include="SentenceManager.cpp">
-      <Filter>General Code</Filter>
-    </ClCompile>
-    <ClCompile Include="World.cpp">
-      <Filter>General Code</Filter>
     </ClCompile>
     <ClCompile Include="TerrainManager.cpp">
       <Filter>Procedural generation</Filter>
@@ -175,6 +145,40 @@
     <ClCompile Include="DRWaterClass.cpp">
       <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClCompile>
+    <ClCompile Include="fontshaderclass.cpp">
+      <Filter>Rendering\Shader wrappers\General shader wrappers</Filter>
+    </ClCompile>
+    <ClCompile Include="SkysphereShader.cpp">
+      <Filter>Rendering\Shader wrappers\General shader wrappers</Filter>
+    </ClCompile>
+    <ClCompile Include="textureshaderclass.cpp">
+      <Filter>Rendering\Shader wrappers\General shader wrappers</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexShaderOnly.cpp">
+      <Filter>Rendering\Shader wrappers\General shader wrappers</Filter>
+    </ClCompile>
+    <ClCompile Include="LerpInstance.cpp">
+      <Filter>General Code\Utility\Mathstuff</Filter>
+    </ClCompile>
+    <ClCompile Include="frustumclass.cpp">
+      <Filter>General Code\Utility\Mathstuff</Filter>
+    </ClCompile>
+    <ClCompile Include="DayNightCycle.cpp">
+      <Filter>General Code\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="SentenceManager.cpp">
+      <Filter>General Code\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="World.cpp">
+      <Filter>General Code\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="d3dmanager.cpp">
+      <Filter>Rendering\Managers</Filter>
+    </ClCompile>
+    <ClCompile Include="WeatherSystem.cpp">
+      <Filter>General Code\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cpumeter.h">
@@ -198,17 +202,11 @@
     <ClInclude Include="fpsmeter.h">
       <Filter>General Code\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="frustumclass.h">
-      <Filter>General Code\Utility</Filter>
-    </ClInclude>
     <ClInclude Include="inputclass.h">
       <Filter>General Code\Utility</Filter>
     </ClInclude>
     <ClInclude Include="Engine.h">
       <Filter>General Code</Filter>
-    </ClInclude>
-    <ClInclude Include="fontshaderclass.h">
-      <Filter>Rendering\Shader wrappers</Filter>
     </ClInclude>
     <ClInclude Include="Utility.h">
       <Filter>General Code\Utility</Filter>
@@ -218,21 +216,6 @@
     </ClInclude>
     <ClInclude Include="cameraclass.h">
       <Filter>General Code</Filter>
-    </ClInclude>
-    <ClInclude Include="d3dclass.h">
-      <Filter>General Code</Filter>
-    </ClInclude>
-    <ClInclude Include="DayNightCycle.h">
-      <Filter>General Code</Filter>
-    </ClInclude>
-    <ClInclude Include="SkysphereShader.h">
-      <Filter>Rendering\Shader wrappers</Filter>
-    </ClInclude>
-    <ClInclude Include="VertexShaderOnly.h">
-      <Filter>Rendering\Shader wrappers</Filter>
-    </ClInclude>
-    <ClInclude Include="textureshaderclass.h">
-      <Filter>Rendering\Shader wrappers</Filter>
     </ClInclude>
     <ClInclude Include="texturetriarray.h">
       <Filter>Rendering\Rendering utility</Filter>
@@ -297,9 +280,6 @@
     <ClInclude Include="LemmiEntity.h">
       <Filter>General Code\Data classes</Filter>
     </ClInclude>
-    <ClInclude Include="LerpInstance.h">
-      <Filter>General Code\Utility</Filter>
-    </ClInclude>
     <ClInclude Include="TextureAndMaterialHandler.h">
       <Filter>Rendering\Managers</Filter>
     </ClInclude>
@@ -318,14 +298,8 @@
     <ClInclude Include="modelclass.h">
       <Filter>Rendering\Objects</Filter>
     </ClInclude>
-    <ClInclude Include="SentenceManager.h">
-      <Filter>General Code</Filter>
-    </ClInclude>
     <ClInclude Include="customStructs.h">
       <Filter>Procedural generation\MC</Filter>
-    </ClInclude>
-    <ClInclude Include="World.h">
-      <Filter>General Code</Filter>
     </ClInclude>
     <ClInclude Include="TerrainManager.h">
       <Filter>Procedural generation</Filter>
@@ -363,6 +337,40 @@
     <ClInclude Include="DRWaterClass.h">
       <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClInclude>
+    <ClInclude Include="VertexShaderOnly.h">
+      <Filter>Rendering\Shader wrappers\General shader wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="fontshaderclass.h">
+      <Filter>Rendering\Shader wrappers\General shader wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="SkysphereShader.h">
+      <Filter>Rendering\Shader wrappers\General shader wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="textureshaderclass.h">
+      <Filter>Rendering\Shader wrappers\General shader wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="LerpInstance.h">
+      <Filter>General Code\Utility\Mathstuff</Filter>
+    </ClInclude>
+    <ClInclude Include="frustumclass.h">
+      <Filter>General Code\Utility\Mathstuff</Filter>
+    </ClInclude>
+    <ClInclude Include="DayNightCycle.h">
+      <Filter>General Code\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="SentenceManager.h">
+      <Filter>General Code\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="World.h">
+      <Filter>General Code\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="d3dmanager.h">
+      <Filter>Rendering\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="WeatherSystem.h">
+      <Filter>General Code\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleManager.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shader-error.txt" />
@@ -377,9 +385,6 @@
     </None>
     <None Include="DepthOnlyShader.vsh">
       <Filter>Rendering\Shaders\Shadow shaders</Filter>
-    </None>
-    <None Include="BasicVertexShader.vsh">
-      <Filter>Rendering\Shaders</Filter>
     </None>
     <None Include="DRDirectionalLight.vsh">
       <Filter>Rendering\Shaders\Deferred shaders</Filter>
@@ -398,27 +403,6 @@
     </None>
     <None Include="DRPointLight.vsh">
       <Filter>Rendering\Shaders\Deferred shaders</Filter>
-    </None>
-    <None Include="font.psh">
-      <Filter>Rendering\Shaders</Filter>
-    </None>
-    <None Include="font.vsh">
-      <Filter>Rendering\Shaders</Filter>
-    </None>
-    <None Include="skysphere.psh">
-      <Filter>Rendering\Shaders</Filter>
-    </None>
-    <None Include="skysphere.vsh">
-      <Filter>Rendering\Shaders</Filter>
-    </None>
-    <None Include="standard.vsh">
-      <Filter>Rendering\Shaders</Filter>
-    </None>
-    <None Include="texture.psh">
-      <Filter>Rendering\Shaders</Filter>
-    </None>
-    <None Include="texture.vsh">
-      <Filter>Rendering\Shaders</Filter>
     </None>
     <None Include="gaussianBlurX.psh">
       <Filter>Rendering\Shaders\Post processing</Filter>
@@ -462,6 +446,30 @@
     </None>
     <None Include="WaterShader.psh">
       <Filter>Rendering\Shaders\Deferred shaders</Filter>
+    </None>
+    <None Include="BasicVertexShader.vsh">
+      <Filter>Rendering\Shaders\General shaders</Filter>
+    </None>
+    <None Include="texture.vsh">
+      <Filter>Rendering\Shaders\General shaders</Filter>
+    </None>
+    <None Include="font.psh">
+      <Filter>Rendering\Shaders\General shaders</Filter>
+    </None>
+    <None Include="font.vsh">
+      <Filter>Rendering\Shaders\General shaders</Filter>
+    </None>
+    <None Include="skysphere.psh">
+      <Filter>Rendering\Shaders\General shaders</Filter>
+    </None>
+    <None Include="skysphere.vsh">
+      <Filter>Rendering\Shaders\General shaders</Filter>
+    </None>
+    <None Include="standard.vsh">
+      <Filter>Rendering\Shaders\General shaders</Filter>
+    </None>
+    <None Include="texture.psh">
+      <Filter>Rendering\Shaders\General shaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -527,6 +535,18 @@
     </Filter>
     <Filter Include="Rendering\Shaders\Vegetation">
       <UniqueIdentifier>{80065f5a-aa04-421f-b7a2-375306199981}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shaders\General shaders">
+      <UniqueIdentifier>{928971b3-e5c7-4d2a-ba0f-751b722a5fbe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shader wrappers\General shader wrappers">
+      <UniqueIdentifier>{1c1f1a94-8188-47ac-a178-d6e4fd0a270f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="General Code\Utility\Mathstuff">
+      <UniqueIdentifier>{88b84ffe-a0e6-4f5f-a7aa-1c2677ef42cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="General Code\Systems">
+      <UniqueIdentifier>{1edc4557-0856-49f0-a67a-b73e8296179e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

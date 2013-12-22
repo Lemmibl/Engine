@@ -32,7 +32,7 @@ enum Direction
 };
 
 static const XMFLOAT3 stepSize(2.0f, 2.0f, 2.0f);
-static const XMFLOAT3 stepCount(53.0f, 53.0f, 53.0f);
+static const XMFLOAT3 stepCount(28.0f, 28.0f, 28.0f);
 
 TerrainManager::TerrainManager(ID3D11Device* device, ID3D11DeviceContext* deviceContext, NoiseClass* externalNoise, TextureAndMaterialHandler* texAndMatHandler, HWND hwnd, XMFLOAT3 cameraPosition)
 :	marchingCubes((int)stepCount.x, (int)stepCount.y, (int)stepCount.z)
@@ -48,21 +48,21 @@ TerrainManager::TerrainManager(ID3D11Device* device, ID3D11DeviceContext* device
 	lastMin = make_pair<int, int>(-99, -99);
 	lastMax = make_pair<int, int>(99, 99);
 
-	stepScaling = (stepSize.x*(stepCount.x-3)) / 10000;
+	stepScaling = (stepSize.x*(stepCount.x-3)) / 5000;
 
-	MCTerrainClass::TerrainTypes terrainType = MCTerrainClass::Alien;//(MCTerrainClass::TerrainTypes)(1 + rand()%8); //
+	MCTerrainClass::TerrainTypes terrainType = MCTerrainClass::Plains;//(MCTerrainClass::TerrainTypes)(1 + rand()%8); //
 
 	mcTerrain.Initialize((int)stepCount.x, (int)stepCount.y, (int)stepCount.z, externalNoise, terrainType);
 
 	assert(vegetationManager.Initialize(device, hwnd));
 
-	float randVal = (int)(RandomFloat()*100.0f);
+	float randVal = RoundToNearest(RandomFloat()*100.0f);
 	
-	float noiseTexWidth = 1024.0f;
-	float noiseTexHeight = 1024.0f;
+	float noiseTexWidth = 512.0f;
+	float noiseTexHeight = 512.0f;
 
 	//Create a BIG noise texture for water and wind purposes
-	textureAndMaterialHandler->CreateSeamlessSimplex2DTexture(device, deviceContext, &windTexture.p, randVal, randVal, noiseTexWidth, noiseTexHeight, 0.5f);
+	textureAndMaterialHandler->CreateSeamlessSimplex2DTexture(device, deviceContext, &windTexture.p, randVal, randVal, noiseTexWidth, noiseTexHeight, 0.6f);
 	textureAndMaterialHandler->Create2DNormalMapFromHeightmap(device, deviceContext, &windTextureNormalMap.p, noiseTexWidth, noiseTexHeight);
 
 	//Define starting point for chunk generation
@@ -370,13 +370,12 @@ bool TerrainManager::UpdateAgainstAABB( ID3D11Device* device, ID3D11DeviceContex
 {
 	std::pair<int,int> neighbourKey;
 
-	int startX, startZ, endX, endZ;
+	//The *2 in there is ..... because before, the chunks used to be 100x100 units large... ish. Now they're 50x50 large... ish. Hence I needed a magic number offset. Yay!
+	int startX = RoundToNearest((aabb->MinPoint().x*2*stepScaling))-2;
+	int startZ = RoundToNearest((aabb->MinPoint().y*2*stepScaling))-2;
 
-	startX = RoundToNearest((aabb->MinPoint().x*0.01f) - 0.5f);
-	startZ = RoundToNearest((aabb->MinPoint().y*0.01f) - 0.5f);
-
-	endX = RoundToNearest((aabb->MaxPoint().x*0.01f) + 0.5f);
-	endZ = RoundToNearest((aabb->MaxPoint().y*0.01f) + 0.5f);
+	int endX = RoundToNearest((aabb->MaxPoint().x*2*stepScaling))+2;
+	int endZ = RoundToNearest((aabb->MaxPoint().y*2*stepScaling))+2;
 
 	//Instead of checking against like...... 25-30 grids we instead first check if the min and max points have changed.
 	if(lastMin.first != startX || lastMin.second != startZ || lastMax.first != endX || lastMax.second != endZ)
@@ -388,9 +387,9 @@ bool TerrainManager::UpdateAgainstAABB( ID3D11Device* device, ID3D11DeviceContex
 		activeChunks.clear();
 		activeRenderables.clear();
 	
-		for(int x = startX; x < endX; x++)
+		for(int x = startX; x < endX; ++x)
 		{
-			for(int z = startZ; z < endZ; z++)
+			for(int z = startZ; z < endZ; ++z)
 			{
 				bool result;
 				neighbourKey.first = x;

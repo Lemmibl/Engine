@@ -27,7 +27,7 @@ Renderer::~Renderer()
 }
 
 
-bool Renderer::Initialize(HWND hwnd, shared_ptr<CameraClass> camera, shared_ptr<InputClass> inputManager, shared_ptr<D3DClass> d3D, UINT screenWidth, 
+bool Renderer::Initialize(HWND hwnd, shared_ptr<CameraClass> camera, shared_ptr<InputClass> inputManager, shared_ptr<D3DManager> d3D, UINT screenWidth, 
 	UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear, bool toggleDebug)
 {
 	srand((unsigned int)time(NULL));
@@ -186,8 +186,8 @@ bool Renderer::InitializeLights( HWND hwnd )
 
 		pointLights[i].Color = XMFLOAT3(red, green, blue);
 		pointLights[i].Position = XMFLOAT3(x, y, z);
-		pointLights[i].Radius = 4.0f + (5.0f*utility.RandomFloat()); //Used to both scale the actual point light model and is a factor in the attenuation
-		pointLights[i].Intensity = 1.0f;//3.0f*utility->RandomFloat(); //Is used to control the attenuation
+		pointLights[i].Radius = 4.0f + (2.0f*utility.RandomFloat()); //Used to both scale the actual point light model and is a factor in the attenuation
+		pointLights[i].Intensity = 4.0f;//3.0f*utility->RandomFloat(); //Is used to control the attenuation
 
 		x += 18.0f;
 
@@ -309,7 +309,7 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 	// Create the frustum object.
 	frustum = FrustumClass();
 	//1.77f is 16:9 aspect ratio
-	frustum.SetInternals((float)screenWidth / (float)screenHeight, XM_PIDIV2, nearClip, farClip);
+	frustum.SetInternals((float)(screenWidth) / (float)screenHeight, XM_PIDIV2, nearClip, farClip);
 
 	testBoundingbox = Lemmi2DAABB(XMFLOAT2(0, 0), XMFLOAT2(60, 60));
 
@@ -479,15 +479,15 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 	{
 		fogMinimum -= 0.1f;
 
-		if(fogMinimum < 0.2f)
+		if(fogMinimum < 0.0f)
 		{
-			fogMinimum = 0.2f;
+			fogMinimum = 0.0f;
 		}
 	}
 
 	if(inputManager->WasKeyPressed(DIK_4))
 	{                  
-		fogMinimum *= 1.1f;
+		fogMinimum += 0.1f;
 
 		if(fogMinimum > 1.0f)
 		{
@@ -806,7 +806,7 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 
 	deviceContext->ClearRenderTargetView(gbufferRenderTargets[0], D3DXVECTOR4(0.0f, 0.125f, 0.3f, 1.0f));
 	deviceContext->ClearRenderTargetView(gbufferRenderTargets[1], D3DXVECTOR4(0.5f, 0.5f, 0.5f, 0.5f));
-	deviceContext->ClearRenderTargetView(gbufferRenderTargets[2], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
+	deviceContext->ClearRenderTargetView(gbufferRenderTargets[2], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 1.0f));
 
 	d3D->SetNoCullRasterizer();
 	d3D->TurnZBufferOff();
@@ -827,7 +827,7 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 
 	d3D->TurnZBufferOn();
 
-	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	worldMatrix = XMMatrixIdentity();
 	worldView = XMMatrixTranspose(worldMatrix * (*viewMatrix));

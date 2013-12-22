@@ -15,7 +15,7 @@
     <ClCompile Include="cameraclass.cpp" />
     <ClCompile Include="controllerclass.cpp" />
     <ClCompile Include="cpumeter.cpp" />
-    <ClCompile Include="d3dclass.cpp" />
+    <ClCompile Include="d3dmanager.cpp" />
     <ClCompile Include="DayNightCycle.cpp" />
     <ClCompile Include="debugwindowclass.cpp" />
     <ClCompile Include="DepthOnlyQuadShader.cpp" />
@@ -36,6 +36,7 @@
     <ClCompile Include="LemmiQuadtree.h" />
     <ClCompile Include="LerpInstance.cpp" />
     <ClCompile Include="IndexedMesh.cpp" />
+    <ClCompile Include="ParticleManager.cpp" />
     <ClCompile Include="SentenceManager.cpp" />
     <ClCompile Include="MarchingCubeChunk.cpp" />
     <ClCompile Include="TerrainManager.cpp" />
@@ -67,6 +68,7 @@
     <ClCompile Include="timerclass.cpp" />
     <ClCompile Include="TreeClass.cpp" />
     <ClCompile Include="VertexShaderOnly.cpp" />
+    <ClCompile Include="WeatherSystem.cpp" />
     <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -75,7 +77,7 @@
     <ClInclude Include="controllerclass.h" />
     <ClInclude Include="cpumeter.h" />
     <ClInclude Include="customStructs.h" />
-    <ClInclude Include="d3dclass.h" />
+    <ClInclude Include="d3dmanager.h" />
     <ClInclude Include="DayNightCycle.h" />
     <ClInclude Include="debugwindowclass.h" />
     <ClInclude Include="DepthOnlyQuadShader.h" />
@@ -90,6 +92,7 @@
     <ClInclude Include="DRGBuffer.h" />
     <ClInclude Include="GaussianBlur.h" />
     <ClInclude Include="IndexedInstancedMesh.h" />
+    <ClInclude Include="ParticleManager.h" />
     <ClInclude Include="RenderableInterface.h" />
     <ClInclude Include="GeometryShaderGrass.h" />
     <ClInclude Include="interfacepointers.h" />
@@ -131,6 +134,7 @@
     <ClInclude Include="TreeClass.h" />
     <ClInclude Include="VegetationManager.h" />
     <ClInclude Include="VertexShaderOnly.h" />
+    <ClInclude Include="WeatherSystem.h" />
     <ClInclude Include="World.h" />
   </ItemGroup>
   <ItemGroup>

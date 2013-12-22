@@ -24,19 +24,16 @@ struct PS_INPUT
 	float Opacity : OPACITY;
 };
 
-static const float vegetationScale = 2.5f;
+static const float vegetationScale = 2.2f;
 static const float4 UpNormal = normalize(float4(0.0f, 1.0f, 0.0f, 1.0f));
 
 //TODO: Add all of these to the constant buffer to make them tweakable in normal code 
 //Just a temporary wind direction
-static const float4 WindDirection = normalize(float4(-0.2f, 0.0f, -0.2f, 0.0f));
-static const float vegetationFalloff = 400.0f;
+static const float4 WindDirection = normalize(float4(0.8f, 0.0f, 0.2f, 0.0f));
+static const float vegetationFalloff = 150.0f;
 static const float forceScale = 0.7f;
 static const float waveLength = 0.08f; //0.008f; //
 static const float traversalSpeed = 0.15f; //0.05f; //
-
-//In the future, this ID will be loaded from a lookup table
-static const int textureID = 1;
 
 //http://www.braynzarsoft.net/index.php?p=D3D11BILLBOARDS
 //http://upvoid.com/devblog/2013/02/prototype-grass/
@@ -50,34 +47,42 @@ float LoadWindPowerValue(float2 coords)
 //Function for making grass quads
 void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, inout TriangleStream<PS_INPUT> TriStream)
 { 
-	float viewDepth = v1.YPosDepthAndRand.y;
-	float randSum = v2.YPosDepthAndRand.z + v1.YPosDepthAndRand.z; //LoadWindPowerValue( (v1.Position.xz*waveLength) + (traversalSpeed*DeltaTime) );//
-	
-	//&& randSum <= 0.6f
-	//
+	//Sum up random values to decide if we want to draw grass here.
+	float randSum = v2.YPosDepthAndRand.z + v1.YPosDepthAndRand.z;
 
 	//Skip if distance is too far, or if one of the random values is within a certain range. This was added to make sure that there are some spots that are barren.
-	if(viewDepth < vegetationFalloff && randSum <= 1.55f)
+	if(randSum <= 1.15f)
 	{
 		//Allocate four output values
 		PS_INPUT output[4];
+		float viewDepth = v1.YPosDepthAndRand.y;
+
+		//In the future, this ID will be loaded from a lookup table
+		int textureID = round(v1.YPosDepthAndRand.z * 13);
 
 		//Taking [0, 1] rand values and changing them to a span that can go negative.
-		float rand1 = 2.0f * (v1.YPosDepthAndRand.z - 0.5f);
-		float rand2 = 2.0f * (v2.YPosDepthAndRand.z - 0.5f);
+		float rand1 = (2.0f * (v1.YPosDepthAndRand.z - 0.5f)) * 0.8f;
+		float rand2 = (2.0f * (v2.YPosDepthAndRand.z - 0.5f)) * 0.8f;
 
 		//Randomizing our positions
-		float4 pos1 = v1.Position + float4(-rand1, 0.0f, -rand2, 0.0f);
+		float4 pos1 = v1.Position + float4(rand1, 0.0f, rand2, 0.0f);
 		float4 pos2 = v2.Position + float4(rand2, 0.0f, rand1, 0.0f);
 
 		float opacity = (1.0f - (viewDepth/vegetationFalloff));
 		float height = (vegetationScale * opacity);
 
 		//Add wind direction to our already randomized normal. This value will be 
-		float4 randomizedNormal = float4(rand1*0.8f, height, rand2*0.8f, 0.0f) + (WindDirection * (forceScale * LoadWindPowerValue( (v1.Position.xz*waveLength) + (traversalSpeed*DeltaTime) )));
+		float4 randomizedNormal = float4(rand1*0.2f, height, rand2*0.2f, 0.0f);
 
-		float4 normal1 = v1.Normal; //mul(v1.Normal, World);
-		float4 normal2 = v2.Normal; //mul(v2.Normal, World);
+		//If the grass is close enough to the camera, add wind. Just pointless to add a bunch of wind to grass that is too far away to be seen.
+		if(viewDepth < (vegetationFalloff/3))
+		{
+			randomizedNormal += (WindDirection * (forceScale * LoadWindPowerValue( (v1.Position.xz*waveLength) + (traversalSpeed*DeltaTime) )));
+		}
+
+
+		float4 normal1 = v1.Normal;//mul(, World);
+		float4 normal2 = v2.Normal;//mul(, World);
 
 
 		//Define the four vertices, corners
@@ -117,26 +122,10 @@ void GrassGS(triangle VS_OUTPUT Input[3], inout TriangleStream<PS_INPUT> TriStre
 	float dotResult = dot(Input[1].Normal, UpNormal);
 
 	//if the surface is or is pretty close to being perpendicular to the Up vector, we make grass.
-	if(dotResult > 0.9f && Input[0].YPosDepthAndRand.x > 15.5f)
+	if(dotResult >= 0.9f && Input[0].YPosDepthAndRand.x > 2.5f && Input[0].YPosDepthAndRand.y < vegetationFalloff)
 	{
 		MakeQuad(Input[1], Input[2], TriStream);
 		MakeQuad(Input[2], Input[0], TriStream);
 		MakeQuad(Input[0], Input[1], TriStream); 
 	}
-
-	//dotResult = dot(Input[2].Normal, UpNormal);
-
-	////if the surface is or is pretty close to being perpendicular to the Up vector, we make grass.
-	//if(dotResult > 0.9f)
-	//{
-	//	MakeQuad(Input[2], Input[0], TriStream);
-	//}
-
-	//dotResult = dot(Input[0].Normal, UpNormal);
-
-	////if the surface is or is pretty close to being perpendicular to the Up vector, we make grass.
-	//if(dotResult > 0.9f)
-	//{
-	//	MakeQuad(Input[0], Input[1], TriStream); 
-	//}	
 }

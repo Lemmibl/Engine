@@ -29,13 +29,13 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	{
 		noiseSRV.Release();
 	}
-	CreateSeamlessSimplex2DTexture(device, deviceContext, &noiseSRV.p, 0, 0, 100, 100, 0.5f);
+	//CreateSeamlessSimplex2DTexture(device, deviceContext, &noiseSRV.p, 0, 0, 1024, 100, 0.5f);
 
 	int terrainTextureCount = 6;
 	WCHAR* terrainFilenames[6] = 
 	{
 		L"../Engine/data/dirt.dds",//dirt //0
-		L"../Engine/data/grassTileTest01.dds", //1d
+		L"../Engine/data/grassGreenYellow.dds", //1   grassTileTest01
 		//L"../Engine/data/randomGrass.dds", //1
 		L"../Engine/data/rock4.dds",
 		L"../Engine/data/seafloor.dds", //4
@@ -57,15 +57,36 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 		return false;
 	}
 
-	int vegetationTextureCount = 5;
-	WCHAR* vegetationFilenames[5] = 
+	//int vegetationTextureCount = 5;
+	//WCHAR* vegetationFilenames[5] = 
+	//{
+	//	L"../Engine/data/Vegetation/yellowGrassQuad2.dds",
+	//	L"../Engine/data/Vegetation/greenGrassQuad2.dds",
+	//	L"../Engine/data/Vegetation/leafbranch.dds",
+	//	L"../Engine/data/Vegetation/flower.dds",
+	//	L"../Engine/data/Vegetation/bush3.dds"
+	//};
+
+	int vegetationTextureCount = 13;
+	WCHAR* vegetationFilenames[13] = 
 	{
-		L"../Engine/data/Vegetation/yellowGrassQuad2.dds",
-		L"../Engine/data/Vegetation/greenGrassQuad2.dds",
-		L"../Engine/data/Vegetation/leafbranch.dds",
-		L"../Engine/data/Vegetation/flower.dds",
-		L"../Engine/data/Vegetation/bush3.dds"
+		L"../Engine/data/CGTextures/Vegetation/Plants01.dds",
+		L"../Engine/data/CGTextures/Vegetation/Plants02.dds",
+		L"../Engine/data/CGTextures/Vegetation/Plants03.dds",
+		L"../Engine/data/CGTextures/Vegetation/Plants04.dds",
+		L"../Engine/data/CGTextures/Vegetation/Plants08.dds",
+
+		L"../Engine/data/CGTextures/Vegetation/Plants05.dds",
+		L"../Engine/data/CGTextures/Vegetation/Plants06.dds",
+		L"../Engine/data/CGTextures/Vegetation/Plants07.dds",
+		L"../Engine/data/CGTextures/Vegetation/Plants08.dds",
+		L"../Engine/data/CGTextures/Vegetation/Plants08.dds",
+		
+		L"../Engine/data/CGTextures/Vegetation/Plants08.dds",
+		L"../Engine/data/CGTextures/Vegetation/Plants08.dds",
+		L"../Engine/data/CGTextures/Vegetation/Plants08.dds"
 	};
+
 
 	//If this SRV has been initialized before, release it first.
 	if(vegetationTextureArraySRV != 0)

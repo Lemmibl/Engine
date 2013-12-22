@@ -564,9 +564,9 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 void MCTerrainClass::CreateMCVerts()
 {
 	//  this is case where the resolution is too low anyway
-	(*marchingCubeVertices)[idx].normal.x = abs((*marchingCubeVertices)[idx - 1].density -					(*marchingCubeVertices)[idx+1].density)					* XFactor;
+	(*marchingCubeVertices)[idx].normal.x = ((*marchingCubeVertices)[idx - 1].density -					(*marchingCubeVertices)[idx+1].density)					* XFactor;
 	(*marchingCubeVertices)[idx].normal.y = ((*marchingCubeVertices)[idx - sizeY].density -				(*marchingCubeVertices)[idx + sizeY].density)			* YFactor;
-	(*marchingCubeVertices)[idx].normal.z = abs((*marchingCubeVertices)[idx - (sizeY * sizeZ)].density -	(*marchingCubeVertices)[idx + (sizeY * sizeZ)].density)	* ZFactor;
+	(*marchingCubeVertices)[idx].normal.z = ((*marchingCubeVertices)[idx - (sizeY * sizeZ)].density -	(*marchingCubeVertices)[idx + (sizeY * sizeZ)].density)	* ZFactor;
 
 	//Normalize results.
 	float vectorLength = ((*marchingCubeVertices)[idx].normal.x*(*marchingCubeVertices)[idx].normal.x) + ((*marchingCubeVertices)[idx].normal.y*(*marchingCubeVertices)[idx].normal.y) + ((*marchingCubeVertices)[idx].normal.z*(*marchingCubeVertices)[idx].normal.z);

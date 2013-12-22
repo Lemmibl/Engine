@@ -22,8 +22,9 @@ struct PSInput
 
 //1 - 0.04745
 static const float positionSamplingOffset = 0.2f;
-static const float2 samplingDirection = float2(0.8f, 0.2f);
-static const float heightScaling = 0.45f;
+static const float2 samplingDirection = float2(0.5f, 0.0f);
+static const float heightScaling = 0.35f;
+static const float timeScaling = 0.3f;
 
 //http://msdn.microsoft.com/en-us/library/windows/desktop/bb205122(v=vs.85).aspx
 [maxvertexcount(3)] 
@@ -32,7 +33,7 @@ void WaterShaderGS(triangle VSOutput input[3], inout TriangleStream<PSInput> Tri
 	PSInput output[3];
 
 	float4 UpNormal = normalize(float4(0.0f, 1.0f, 0.0f, 0.0f));
-	float scaledDeltaTime = (0.3f*DeltaTime);
+	float scaledDeltaTime = (DeltaTime * timeScaling);
 
 	output[0].TexCoord.xy = ((input[0].Position.xz*positionSamplingOffset)+(samplingDirection * scaledDeltaTime));
 	output[1].TexCoord.xy = ((input[1].Position.xz*positionSamplingOffset)+(samplingDirection * scaledDeltaTime));

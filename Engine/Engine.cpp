@@ -52,7 +52,7 @@ bool Engine::Initialize()
 		return false;
 	}
 
-	d3D = std::make_shared<D3DClass>(D3DClass());
+	d3D = std::make_shared<D3DManager>(D3DManager());
 	if(!d3D)
 	{
 		return false;

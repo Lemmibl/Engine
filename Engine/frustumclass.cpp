@@ -47,13 +47,13 @@ void FrustumClass::SetInternals( float aspectRatio, float angle, float nearZ, fl
 	}
 
 	// compute width and height of the near and far plane sections
-	float tang = (float)tan(ANG2RAD * angle * 0.5f);
+	float tang = (float)tan((ANG2RAD * angle) * 0.5f); //
 	farHeight = farZ  * tang;
 	farWidth = farHeight * aspectRatio;
 
 	//I want an "Orthogonal" frustum
-	nearHeight = farHeight;//nearZ * tang;
-	nearWidth = farWidth;//nearHeight * aspectRatio;
+	nearHeight = nearZ * tang;
+	nearWidth = nearHeight * aspectRatio;
 }
 
 XMFLOAT3* FrustumClass::GetFarFrustumCorners(XMVECTOR position, XMVECTOR lookAt, XMVECTOR up)
@@ -494,8 +494,8 @@ void FrustumClass::CalculateFrustumExtents( Lemmi2DAABB* outAABB, XMVECTOR posit
 	// the real "up" vector is the cross product of Z and X
 	Y = Z * X;
 
-	// compute the centers of the far plane
-	nearCenter = position + Z * nearZ;
+	// compute the centers of the near plane
+	nearCenter = position + Z * -nearZ;
 
 	// compute the centers of the far plane
 	farCenter = position + Z * farZ;
@@ -503,8 +503,8 @@ void FrustumClass::CalculateFrustumExtents( Lemmi2DAABB* outAABB, XMVECTOR posit
 	// compute the 4 relevant corners of the frustum
 	XMStoreFloat3(&farBottomLeft,	farCenter	- X * farWidth);
 	XMStoreFloat3(&farBottomRight,	farCenter	+ X * farWidth);
-	XMStoreFloat3(&nearBottomLeft,	nearCenter	- X * nearWidth);
-	XMStoreFloat3(&nearBottomRight, nearCenter	+ X * nearWidth);
+	XMStoreFloat3(&nearBottomLeft,	nearCenter	- X * farWidth); //nearWidth
+	XMStoreFloat3(&nearBottomRight, nearCenter	+ X * farWidth); //nearWidth
 
 	float minX, minZ, maxX, maxZ;
 

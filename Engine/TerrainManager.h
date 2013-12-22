@@ -6,7 +6,7 @@
 #include "VegetationManager.h"
 #include <memory> //For shared_ptrs
 #include "marchingCubesClass.h"
-#include "d3dclass.h"
+#include "d3dmanager.h"
 #include <math.h>
 #include "TextureAndMaterialHandler.h"
 

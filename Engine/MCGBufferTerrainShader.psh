@@ -61,6 +61,9 @@ PixelShaderOutput MCGBufferTerrainPixelShader(VertexShaderOutput input)
 	//Create weights for color interpolation based on world-space normal of surface
 	float3 NormalizedWorldNormal = normalize(input.WorldNormal.xyz);
 
+	//... Long story short, it's a fix to counteract bugged normals in marching cubes terrain ...
+	NormalizedWorldNormal.z += 0.01f;
+
 	float3 blend_weights = abs(NormalizedWorldNormal);     
 	blend_weights = (blend_weights - 0.2f)*7.0f;  // Tighten up the blending zone
 	blend_weights = max(blend_weights, 0.0f);
