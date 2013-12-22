@@ -122,7 +122,7 @@ void GrassGS(triangle VS_OUTPUT Input[3], inout TriangleStream<PS_INPUT> TriStre
 	float dotResult = dot(Input[1].Normal, UpNormal);
 
 	//if the surface is or is pretty close to being perpendicular to the Up vector, we make grass.
-	if(dotResult >= 0.9f && Input[0].YPosDepthAndRand.x > 2.5f && Input[0].YPosDepthAndRand.y < vegetationFalloff)
+	if(dotResult >= 0.9f && Input[0].YPosDepthAndRand.x > 4.5f && Input[0].YPosDepthAndRand.y < vegetationFalloff)
 	{
 		MakeQuad(Input[1], Input[2], TriStream);
 		MakeQuad(Input[2], Input[0], TriStream);

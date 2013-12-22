@@ -36,18 +36,20 @@ VS_OUTPUT GrassVS(VertexShaderInput input)
 {
 	VS_OUTPUT output;
 
+	float4 pos = float4(input.Position.xyz, 1.0f);
+
 	//Don't transform. We transform in geometry shader.
-	output.Position	= input.Position;
+	output.Position	= pos;
 	output.Normal = normalize(mul(float4(input.Normal.xyz, 1.0f), World));
 
 	//World Y pos. Will be used for determining texture lookup table index later.
-	output.YPosDepthAndRand.x = mul(input.Position, World).y;
+	output.YPosDepthAndRand.x = mul(pos, World).y;
 
 	//You can only do this if you are using a perspective projection matrix! Beware!
-	output.YPosDepthAndRand.y = mul(input.Position, WorldView).z;
+	output.YPosDepthAndRand.y = mul(pos, WorldView).z;
 
 	//Creates a random value with world positions as seeds. Means it'll never change. TODO: Move to cpu/mesh creation? Probably needed.
-	output.YPosDepthAndRand.z = random(float2(input.Position.z*3.5f, input.Position.x*7.0f));
+	output.YPosDepthAndRand.z = input.Position.w;//random(float2(input.Position.z*3.5f, input.Position.x*7.0f));
 
 	return output;
 }

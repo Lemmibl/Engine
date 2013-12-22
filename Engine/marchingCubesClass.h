@@ -64,6 +64,14 @@ private:
 		return v;
 	}
 
+	inline float RandomFloat()
+	{
+		float scale=RAND_MAX+1.0f;
+		float base=rand()/scale;
+		float fine=rand()/scale;
+		return base+fine/scale;
+	}
+
 private:
 	unsigned int indexX, indexY, indexZ;
 	unsigned int sizeX, sizeY, sizeZ;

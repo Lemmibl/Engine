@@ -50,7 +50,7 @@ TerrainManager::TerrainManager(ID3D11Device* device, ID3D11DeviceContext* device
 
 	stepScaling = (stepSize.x*(stepCount.x-3)) / 5000;
 
-	MCTerrainClass::TerrainTypes terrainType = MCTerrainClass::Plains;//(MCTerrainClass::TerrainTypes)(1 + rand()%8); //
+	MCTerrainClass::TerrainTypes terrainType = MCTerrainClass::Alien;//(MCTerrainClass::TerrainTypes)(1 + rand()%8); //
 
 	mcTerrain.Initialize((int)stepCount.x, (int)stepCount.y, (int)stepCount.z, externalNoise, terrainType);
 

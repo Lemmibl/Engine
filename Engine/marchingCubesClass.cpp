@@ -338,7 +338,7 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 		: sizeX(sizeX), sizeY(sizeY), sizeZ(sizeZ)
 	{									  
 		metaballsIsoValue = 0.2f;
-		waterLevel = 2.0f;
+		waterLevel = 4.0f;
 	}
 
 	void MarchingCubesClass::CalculateMesh(ID3D11Device* device, MarchingCubeChunk* chunk)
@@ -469,28 +469,27 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 			{
 				int tritableLookupValue = triTable[lookupValue][j];
 
-				float yPos = verts[tritableLookupValue].position.y;
-
-
 				//Uncomment this if you want edges of the world back...... you don't.
-				if(indexX > 0 && indexZ > 0 && indexX < sizeX-2 && indexZ < sizeZ-2)
+				if(indexX > 0 && indexZ > 0 && indexX < sizeX-2 && indexZ < sizeZ-2 && indexY >= 1)
 				{
+					float yPos = verts[tritableLookupValue].position.y;
+
 					indices->push_back(vertexCounter);
 
 					MarchingCubeVectors temp;
-					temp.position = verts[tritableLookupValue].position;
+					temp.position = XMFLOAT4(verts[tritableLookupValue].position.x, verts[tritableLookupValue].position.y, verts[tritableLookupValue].position.z, RandomFloat());
 					temp.normal = verts[tritableLookupValue].normal;
 
 					vertices->push_back(temp);
 
 					vertexCounter++;
 					indexCounter++;	
-				}
 
-				if(yPos < waterLevel)	
-				{			
-					//ANY triangle in this mesh is below waterlevel, we want to create water.
-					createWater = true;
+					if(yPos < waterLevel)	
+					{			
+						//ANY triangle in this mesh is below waterlevel, we want to create water.
+						createWater = true;
+					}
 				}
 			}
 		}
@@ -581,9 +580,9 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 					index = x + (z * stepsX);
 
 					//Offset each position with a magic number to make sure there are no seams between the different water meshes.
-					vertices[index].x = (minPos.x + x-(x*0.0905f)); //0.0475f
+					vertices[index].x = (minPos.x + x-(x*0.0908f)); //0.0475f
 					vertices[index].y = waterLevel;
-					vertices[index].z = (minPos.y + z-(z*0.0905f));
+					vertices[index].z = (minPos.y + z-(z*0.0908f));
 				}
 			}
 

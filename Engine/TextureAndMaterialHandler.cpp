@@ -652,7 +652,7 @@ void TextureAndMaterialHandler::CreateMaterialLookupTable( ID3D11Device* device,
 
 	for(size_t i = 0; i < pixelData.size(); i++)
 	{
-		if(i <= 19)
+		if(i <= 5)
 		{
 			//Only dirt
 			texture1 = 0;
@@ -661,7 +661,7 @@ void TextureAndMaterialHandler::CreateMaterialLookupTable( ID3D11Device* device,
 			material1 = 3;
 			material2 = 3;
 		}
-		else if(i <= 20)
+		else if(i <= 6)
 		{
 			//Dirt and grass
 			texture1 = 0;

@@ -23,7 +23,9 @@ VertexShaderOutput MCGBufferTerrainVertexShader(VertexShaderInput input)
 {
 	VertexShaderOutput output;
 
-	output.Position	= mul(input.Position, WorldViewProjection);
+	float4 pos = float4(input.Position.xyz, 1.0f);
+
+	output.Position	= mul(pos, WorldViewProjection);
 	
 	float4 normal = float4(input.Normal, 1.0f);
 
@@ -33,7 +35,7 @@ VertexShaderOutput MCGBufferTerrainVertexShader(VertexShaderInput input)
 	//You can only do this if you are using a perspective projection matrix! Beware!
 	output.ViewDepth = output.Position.w;
 
-	output.WorldPosition	= mul(input.Position, World);
+	output.WorldPosition	= mul(pos, World);
 	output.WorldNormal		= normalize(mul(normal, World));
 
 	return output;

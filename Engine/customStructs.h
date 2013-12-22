@@ -21,7 +21,7 @@ struct Metapoint
 
 struct MarchingCubeVectors
 {
-	XMFLOAT3 position;
+	XMFLOAT4 position;
 	XMFLOAT3 normal;
 };
 
