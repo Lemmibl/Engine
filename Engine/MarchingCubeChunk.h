@@ -31,6 +31,14 @@ public:
 	float GetStartPosY() const { return startPosition.y; }
 	float GetStartPosZ() const { return startPosition.z; }
 
+	float GetCenterPosX() const { return centerPosition.x; }
+	float GetCenterPosY() const { return centerPosition.y; }
+	float GetCenterPosZ() const { return centerPosition.z; }
+
+	float GetExtentsX() const { return extents.x; }
+	float GetExtentsY() const { return extents.y; }
+	float GetExtentsZ() const { return extents.z; }
+
 private:
 	//voxels is sizeX*sizeY*sizeZ big
 	vector<MarchingCubeVoxel> voxels;
@@ -41,7 +49,7 @@ private:
 	IndexedMesh waterMesh;
 
 	//Should be self explanatory. Defines the bounds of this chunk; where it starts and where it ends.
-	XMFLOAT3 startPosition, endPosition;
+	XMFLOAT3 startPosition, centerPosition, extents;
 
 	// How long each step will be between startPosition and endPosition.
 	float stepSizeX;

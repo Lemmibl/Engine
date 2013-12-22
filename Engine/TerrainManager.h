@@ -1,4 +1,5 @@
 #pragma once
+#include "Lemmi2DAABB.h"
 #include "MarchingCubeChunk.h"
 #include <unordered_map> //For unordered_map ......... yeah.
 #include "MCTerrainClass.h"
@@ -33,6 +34,7 @@ public:
 
 	//Returns a bool to indicate if we've actually had to change anything. If true, it has changed and we should fetch the new data.
 	bool Update(ID3D11Device* device, ID3D11DeviceContext* deviceContext, XMFLOAT3 currentCameraPosition);
+	bool UpdateAgainstAABB(ID3D11Device* device, ID3D11DeviceContext* deviceContext, Lemmi2DAABB* aabb);
 
 	void ResetTerrain(int currentPosX, int currrentPosZ);
 	void CreateChunk(ID3D11Device* device, ID3D11DeviceContext* deviceContext, int startPosX, int startPosZ);
@@ -93,6 +95,8 @@ private:
 	vector<RenderableInterface*> activeRenderables; //We add each chunk's mesh to this list and only change it when our activechunks change
 
 	std::pair<int,int> lastUsedKey;
+	std::pair<int,int> lastMin;
+	std::pair<int,int> lastMax;
 
 	//What this class is supposed to do is handle the creation and lifetime of chunks. Potentially save/load them to hdd as well.
 	//Also: Culling, interaction with higher-up-in-hierarchy classes, ...rendering? idk

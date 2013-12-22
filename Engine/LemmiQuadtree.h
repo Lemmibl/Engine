@@ -34,10 +34,10 @@ public:
 
 		*boundingBox = box;
 
-		XMStoreFloat(&size, XMVector2Length(XMLoadFloat2(&box.MaxPoint) - XMLoadFloat2(&box.MinPoint)));
+		XMStoreFloat(&size, XMVector2Length(XMLoadFloat2(&box.MaxPoint()) - XMLoadFloat2(&box.MinPoint())));
 
 		XMStoreFloat2(&centerPosition, 
-			XMLoadFloat2(&box.MinPoint) + (0.5f * size * XMVector2Normalize(XMLoadFloat2(&box.MaxPoint) - XMLoadFloat2(&box.MinPoint))));
+			XMLoadFloat2(&box.MinPoint()) + (0.5f * size * XMVector2Normalize(XMLoadFloat2(&box.MaxPoint()) - XMLoadFloat2(&box.MinPoint()))));
 	}
 
 	QuadTreeNode(QuadTreeNode* parent, XMFLOAT2 center, float size, int depth)

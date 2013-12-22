@@ -26,10 +26,25 @@ FrustumClass::~FrustumClass()
 void FrustumClass::SetInternals( float aspectRatio, float angle, float nearZ, float farZ )
 {
 	// store the information
-	this->aspectRatio = aspectRatio;
-	this->angle = angle;
-	this->nearZ = nearZ;
-	this->farZ = farZ;
+	if(aspectRatio != 0)
+	{
+		this->aspectRatio = aspectRatio;
+	}
+
+	if(angle != 0)
+	{
+		this->angle = angle;
+	}
+	
+	if(nearZ != 0)
+	{
+		this->nearZ = nearZ;
+	}
+
+	if(farZ != 0)
+	{
+		this->farZ = farZ;
+	}
 
 	// compute width and height of the near and far plane sections
 	float tang = (float)tan(ANG2RAD * angle * 0.5f);
@@ -256,57 +271,120 @@ bool FrustumClass::CheckPoint(float x, float y, float z)
 //	return result;
 //}
 
+
+/*
+ Method 5: If you really don’t care whether a box is partially or fully inside
+ All variants of the test before could still distinguish partially inside (intersecting) boxes from ones that are fully inside (this goes for the homogeneous tests as well, 
+ using the analog of Cohen-Sutherland clipping outcodes; Google it if you don’t know the technique). I’m now gonna throw that away in the pursuit of even more speed :). 
+ 
+ The test we’re looking at (per-plane) is:
+
+ return dot3(center, plane) + dot3(extent, absPlane) > -plane.w;
+ 
+ The 2 dot products are somewhat annoying. They’re “almost” with the same value, except for sign.
+  If we could rewrite both as dot products with “plane”, we could use linearity and do one vector add and one dot product. 
+  To do this, we need to get the sign flips into extent – something like:
+
+ return dot3(center + extent * signFlip, plane) > -plane.w;
+ where signFlip = (sgn(plane.x), sgn(plane.y), sgn(plane.z)) using the standard signum function and using componentwise multiply for the product “extent * signFlip”. 
+ 
+ For scalar code, you’re best off using this code and precomputing a “signFlip” vector for each “plane” (it replaces “absPlane”).
+  For SIMD though, we can usually do some amount of integer math on IEEE floating-point values that makes this much easier: 
+  We can extract the signs of “plane” by doing a binary and with the mask 0×80000000 and replace “extent * signFlip” with a XOR:
+
+ vector4 signFlip = componentwise_and(plane, 0x80000000);
+ return dot3(center + xor(extent, signFlip), plane) > -plane.w;
+ Voila, down to 6 dot products, 6 vector adds, 6 xors and 6 compares to test against 6 planes (plus a very small amount of setup). There’s other tricks you can do, 
+ but this particular test is so tight that it’s really hard to get any wins out of common tricks. 
+ 
+ For example, you can exploit that the near and far plane are usually parallel (we implicitly used this for Method 3). 
+ This saves some work with the Method 4-style tests, but it’s a wash for this variant.
+
+ Is it possible to do better? Maybe. I have no idea. I can however say that this is the fastest method I know right now.
+
+
+*/
+
 bool FrustumClass::CheckCube(float xCenter, float yCenter, float zCenter, float radius)
 {
-	int i;
+	//int i;
 
-	// Check if any one point of the cube is in the view frustum.
-	for(i=0; i<6; i++) 
+	//// Check if any one point of the cube is in the view frustum.
+	//for(i=0; i<6; i++) 
+	//{
+	//	if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter - radius), (yCenter - radius), (zCenter - radius))) >= 0.0f)
+	//	{
+	//		continue;
+	//	}
+
+	//	if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter + radius), (yCenter - radius), (zCenter - radius))) >= 0.0f)
+	//	{
+	//		continue;
+	//	}
+
+	//	if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter - radius), (yCenter + radius), (zCenter - radius))) >= 0.0f)
+	//	{
+	//		continue;
+	//	}
+
+	//	if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter + radius), (yCenter + radius), (zCenter - radius))) >= 0.0f)
+	//	{
+	//		continue;
+	//	}
+
+	//	if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter - radius), (yCenter - radius), (zCenter + radius))) >= 0.0f)
+	//	{
+	//		continue;
+	//	}
+
+	//	if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter + radius), (yCenter - radius), (zCenter + radius))) >= 0.0f)
+	//	{
+	//		continue;
+	//	}
+
+	//	if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter - radius), (yCenter + radius), (zCenter + radius))) >= 0.0f)
+	//	{
+	//		continue;
+	//	}
+
+	//	if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter + radius), (yCenter + radius), (zCenter + radius))) >= 0.0f)
+	//	{
+	//		continue;
+	//	}
+
+	//	return false;
+	//}
+
+	//return true;
+
+
+	for(unsigned int iPlane = 0; iPlane < 6; ++iPlane)
 	{
-		if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter - radius), (yCenter - radius), (zCenter - radius))) >= 0.0f)
-		{
-			continue;
-		}
+		const D3DXPLANE* frustumPlane = &planes[iPlane];
 
-		if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter + radius), (yCenter - radius), (zCenter - radius))) >= 0.0f)
-		{
-			continue;
-		}
+		float d =	xCenter * planes->a + 
+					yCenter * planes->b + 
+					zCenter * planes->c;
 
-		if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter - radius), (yCenter + radius), (zCenter - radius))) >= 0.0f)
-		{
-			continue;
-		}
+		float r =	xCenter+radius * fabs(planes->a) + 
+					yCenter+radius * fabs(planes->b) + 
+					zCenter+radius * fabs(planes->c);
 
-		if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter + radius), (yCenter + radius), (zCenter - radius))) >= 0.0f)
+		float d_m_r = d - r;
+		float d_p_r = d + r;
+		 
+		if(d_p_r < -planes->d)
 		{
-			continue;
+			return false; // Outside
+			break;
 		}
-
-		if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter - radius), (yCenter - radius), (zCenter + radius))) >= 0.0f)
+		else if(d_m_r < -planes->d)
 		{
-			continue;
+			return true; // Intersect
 		}
-
-		if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter + radius), (yCenter - radius), (zCenter + radius))) >= 0.0f)
-		{
-			continue;
-		}
-
-		if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter - radius), (yCenter + radius), (zCenter + radius))) >= 0.0f)
-		{
-			continue;
-		}
-
-		if(D3DXPlaneDotCoord(&planes[i], &D3DXVECTOR3((xCenter + radius), (yCenter + radius), (zCenter + radius))) >= 0.0f)
-		{
-			continue;
-		}
-
-		return false;
 	}
 
-	return true;
+	return false;
 }
 
 
@@ -398,6 +476,47 @@ bool FrustumClass::CheckRectangle(float xCenter, float yCenter, float zCenter, f
 	}
 
 	return true;
+}
+
+void FrustumClass::CalculateFrustumExtents( Lemmi2DAABB* outAABB, XMVECTOR position, XMVECTOR lookAt, XMVECTOR up)
+{
+	XMVECTOR farCenter, nearCenter, X, Y, Z;
+
+	// compute the Z axis of camera
+	// this axis points in the opposite direction from
+	// the looking direction (OpenGL)
+	Z = XMVector3Normalize(lookAt);
+
+	// X axis of camera with given "up" vector and Z axis
+	X = up * Z;
+	X = XMVector3Normalize(X);
+
+	// the real "up" vector is the cross product of Z and X
+	Y = Z * X;
+
+	// compute the centers of the far plane
+	nearCenter = position + Z * nearZ;
+
+	// compute the centers of the far plane
+	farCenter = position + Z * farZ;
+
+	// compute the 4 relevant corners of the frustum
+	XMStoreFloat3(&farBottomLeft,	farCenter	- X * farWidth);
+	XMStoreFloat3(&farBottomRight,	farCenter	+ X * farWidth);
+	XMStoreFloat3(&nearBottomLeft,	nearCenter	- X * nearWidth);
+	XMStoreFloat3(&nearBottomRight, nearCenter	+ X * nearWidth);
+
+	float minX, minZ, maxX, maxZ;
+
+	minX = min(min(farBottomLeft.x, farBottomRight.x), min(nearBottomLeft.x, nearBottomRight.x));
+	minZ = min(min(farBottomLeft.z, farBottomRight.z), min(nearBottomLeft.z, nearBottomRight.z));
+
+	maxX = max(max(farBottomLeft.x, farBottomRight.x), max(nearBottomLeft.x, nearBottomRight.x));
+	maxZ = max(max(farBottomLeft.z, farBottomRight.z), max(nearBottomLeft.z, nearBottomRight.z));
+
+
+	//This is what is being returned
+	*outAABB = Lemmi2DAABB(XMFLOAT2(minX, minZ), XMFLOAT2(maxX, maxZ));
 }
 
 /*

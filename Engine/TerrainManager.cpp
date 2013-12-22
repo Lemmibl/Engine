@@ -40,10 +40,14 @@ TerrainManager::TerrainManager(ID3D11Device* device, ID3D11DeviceContext* device
 	map = make_shared<std::unordered_map<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>, int_pair_hash>>();
 
 	noise = externalNoise;
+	noise->ReseedRandom();
 
 	textureAndMaterialHandler = texAndMatHandler;
 
 	lastUsedKey = make_pair<int, int>(99, -99);
+	lastMin = make_pair<int, int>(-99, -99);
+	lastMax = make_pair<int, int>(99, 99);
+
 	stepScaling = (stepSize.x*(stepCount.x-3)) / 10000;
 
 	MCTerrainClass::TerrainTypes terrainType = MCTerrainClass::Alien;//(MCTerrainClass::TerrainTypes)(1 + rand()%8); //
@@ -360,4 +364,68 @@ vector<RenderableInterface*>* TerrainManager::GetTerrainRenderables(int x, int z
 	}
 
 	return &activeRenderables;
+}
+
+bool TerrainManager::UpdateAgainstAABB( ID3D11Device* device, ID3D11DeviceContext* deviceContext, Lemmi2DAABB* aabb )
+{
+	std::pair<int,int> neighbourKey;
+
+	int startX, startZ, endX, endZ;
+
+	startX = RoundToNearest((aabb->MinPoint().x*0.01f) - 0.5f);
+	startZ = RoundToNearest((aabb->MinPoint().y*0.01f) - 0.5f);
+
+	endX = RoundToNearest((aabb->MaxPoint().x*0.01f) + 0.5f);
+	endZ = RoundToNearest((aabb->MaxPoint().y*0.01f) + 0.5f);
+
+	//Instead of checking against like...... 25-30 grids we instead first check if the min and max points have changed.
+	if(lastMin.first != startX || lastMin.second != startZ || lastMax.first != endX || lastMax.second != endZ)
+	{
+		//Temp chunk to hold pointer from each GetChunk call.
+		MarchingCubeChunk* tempChunk;
+
+		//Clear active chunks
+		activeChunks.clear();
+		activeRenderables.clear();
+	
+		for(int x = startX; x < endX; x++)
+		{
+			for(int z = startZ; z < endZ; z++)
+			{
+				bool result;
+				neighbourKey.first = x;
+				neighbourKey.second = z;
+
+				//Fetch chunk from the right grid slot
+				result = GetChunk(neighbourKey.first, neighbourKey.second, &tempChunk);
+
+				//If this chunk is valid
+				if(result == true)
+				{
+					//Add ptr to active chunk vector
+					activeChunks.push_back(tempChunk);
+					activeRenderables.push_back(tempChunk->GetTerrainMesh());
+				}
+				else
+				{
+					//... create chunk
+					CreateChunk(device, deviceContext, neighbourKey.first, neighbourKey.second);
+
+					//Fetch it
+					result = GetChunk(neighbourKey.first, neighbourKey.second, &tempChunk);
+
+					//Add ptr to active chunk vector
+					activeChunks.push_back(tempChunk);
+					activeRenderables.push_back(tempChunk->GetTerrainMesh());
+				}
+			}
+		}
+
+		lastMin = make_pair<int, int>(startX, startZ);
+		lastMax = make_pair<int, int>(endX, endZ);
+
+		return true;
+	}
+
+	return false;
 }

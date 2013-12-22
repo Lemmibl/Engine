@@ -1,6 +1,7 @@
 #include "Renderer.h"
 
 Renderer::Renderer()
+: noise()
 {
 	xPos = yPos = 0.0f;
 	timeOfDay = 0.0f;
@@ -48,8 +49,7 @@ bool Renderer::Initialize(HWND hwnd, shared_ptr<CameraClass> camera, shared_ptr<
 	fogMinimum = 1.0f;
 
 	utility = Utility();
-	noise.ReseedRandom();
-
+	
 	XMStoreFloat4x4(&baseViewMatrix, camera->GetView());
 
 	result = InitializeLights(hwnd);
@@ -308,7 +308,8 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 
 	// Create the frustum object.
 	frustum = FrustumClass();
-	frustum.SetInternals(XM_PIDIV2, 1.0f, nearClip, farClip);
+	//1.77f is 16:9 aspect ratio
+	frustum.SetInternals((float)screenWidth / (float)screenHeight, XM_PIDIV2, nearClip, farClip);
 
 	testBoundingbox = Lemmi2DAABB(XMFLOAT2(0, 0), XMFLOAT2(60, 60));
 
@@ -562,21 +563,29 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 #pragma region Generate new marching cubes world
 	if(inputManager->WasKeyPressed(DIK_N))
 	{
-		
+
 	}
 #pragma endregion
 
-	if(terrainManager->Update(d3D->GetDevice(), d3D->GetDeviceContext(), camera->GetPosition()))
-	{
-		tempChunks.clear();
-		tempChunks = terrainManager->GetActiveChunks();
-	}
+	//if(terrainManager->Update(d3D->GetDevice(), d3D->GetDeviceContext(), camera->GetPosition()))
+	//{
+	//	tempChunks.clear();
+	//	tempChunks = terrainManager->GetActiveChunks();
+	//}
 
 	timeOfDay = dayNightCycle.Update(seconds, &dirLight, &skySphere);
 
 	XMVECTOR lookAt = XMLoadFloat3(&camera->GetPosition());//XMVectorSet(30.0f, 20.0f, 30.0f, 1.0f);//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition())+(camera->ForwardVector()*30.0f);//XMLoadFloat3(&camera->GetPosition());//
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 	XMVECTOR currentLightPos = (XMLoadFloat3(&camera->GetPosition())+XMLoadFloat3(&dirLight.Position));//XMLoadFloat3(&camera->GetPosition())-(camera->ForwardVector()*30.0f);
+
+	frustum.CalculateFrustumExtents(&testBoundingbox, XMLoadFloat3(&camera->GetPosition()), camera->ForwardVector(), camera->UpVector());
+
+	if(terrainManager->UpdateAgainstAABB(d3D->GetDevice(), d3D->GetDeviceContext(), &testBoundingbox))
+	{
+		tempChunks.clear();
+		tempChunks = terrainManager->GetActiveChunks();
+	}
 
 	XMStoreFloat3(&dirLight.Direction, XMVector3Normalize((lookAt - currentLightPos)));//XMLoadFloat3(&dirLight.Position)
 	XMStoreFloat4x4(&dirLight.View, XMMatrixLookAtLH(currentLightPos, lookAt, up)); //Generate light view matrix
@@ -661,7 +670,7 @@ bool Renderer::Render(HWND hwnd)
 	lightProj = XMLoadFloat4x4(&dirLight.Projection);
 
 	// Construct the frustum.
-	//frustum->ConstructFrustum(screenFar, &projectionMatrix, &viewMatrix);
+	frustum.ConstructFrustum(farClip, &projectionMatrix, &viewMatrix);
 
 	XMVECTOR nullVec = XMVectorSplatOne();
 	viewProjection = XMMatrixMultiply(viewMatrix, projectionMatrix);
@@ -793,11 +802,11 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 	d3D->SetDefaultViewport();
 	depthStencil = d3D->GetDepthStencilView();
 	deviceContext->OMSetRenderTargets(3, &gbufferRenderTargets[0].p, depthStencil);
-	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
+	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	deviceContext->ClearRenderTargetView(gbufferRenderTargets[0], D3DXVECTOR4(0.0f, 0.125f, 0.3f, 1.0f));
 	deviceContext->ClearRenderTargetView(gbufferRenderTargets[1], D3DXVECTOR4(0.5f, 0.5f, 0.5f, 0.5f));
-	deviceContext->ClearRenderTargetView(gbufferRenderTargets[2], D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f));
+	deviceContext->ClearRenderTargetView(gbufferRenderTargets[2], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 
 	d3D->SetNoCullRasterizer();
 	d3D->TurnZBufferOff();
@@ -818,12 +827,11 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 
 	d3D->TurnZBufferOn();
 
-	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
+	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	worldMatrix = XMMatrixIdentity();
 	worldView = XMMatrixTranspose(worldMatrix * (*viewMatrix));
 	worldMatrix = XMMatrixTranspose(worldMatrix);
-
 
 	for(unsigned int i = 0; i < tempChunks.size(); i++)
 	{	
@@ -843,8 +851,8 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 		tempChunks[i]->GetWaterMesh()->Render(deviceContext);
 
 		if(!waterShader.Render(d3D->GetDeviceContext(), tempChunks[i]->GetWaterMesh()->GetIndexCount(), &worldMatrix, &worldView, identityWorldViewProj, 
-		textureAndMaterialHandler.GetVegetationTextureArray(), terrainManager->GetWindTexturePP(), terrainManager->GetWindNormalMapTexturePP(), 
-		farClip, backAndForth))
+			textureAndMaterialHandler.GetVegetationTextureArray(), terrainManager->GetWindTexturePP(), terrainManager->GetWindNormalMapTexturePP(), 
+			farClip, backAndForth))
 		{
 			return false;
 		}
@@ -866,6 +874,8 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 	}
 
 	d3D->ResetBlendState();
+	d3D->SetBackFaceCullingRasterizer();
+
 
 	return true;
 }

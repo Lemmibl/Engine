@@ -15,8 +15,8 @@ static const float intensity = 4.0f; //AO intensity. The higher this value is, t
 static const float scale = 0.8f; //Scales distance between occluders and occludee. Still a little unsure as to what values would be good to use.
 static const float bias = 0.2f; //Cutoff value. The higher this value is, the harsher we are with cutting off low AO values. 0.01f to 0.4f values are pretty ok.
 static const float CameraFarClip = 500.0f;
-static const float FogEnd = 250.0f;
-static const float FogStart = 50.0f;
+static const float FogEnd = 480.0f;
+static const float FogStart = 150.0f;
 static const float2 screenSize = float2(1024.0f, 768.0f);
 static const float2 randomSize = float2(64.0f, 64.0f);
 

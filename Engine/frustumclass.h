@@ -52,10 +52,11 @@ public:
 	void ConstructFrustum(float, XMMATRIX* , XMMATRIX* );
 
 	bool CheckPoint(float, float, float);
-	bool CheckCube(float, float, float, float);
+	bool CheckCube(float xCenter, float yCenter, float zCenter, float radius);
 	bool Check2DAABB(Lemmi2DAABB* aabb);
 	bool CheckSphere(float, float, float, float);
 	bool CheckRectangle(float, float, float, float, float, float);
+	void CalculateFrustumExtents(Lemmi2DAABB* outAABB, XMVECTOR position, XMVECTOR lookAt, XMVECTOR up);
 
 private:
 	D3DXPLANE planes[6];

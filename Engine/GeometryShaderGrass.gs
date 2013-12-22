@@ -30,7 +30,7 @@ static const float4 UpNormal = normalize(float4(0.0f, 1.0f, 0.0f, 1.0f));
 //TODO: Add all of these to the constant buffer to make them tweakable in normal code 
 //Just a temporary wind direction
 static const float4 WindDirection = normalize(float4(-0.2f, 0.0f, -0.2f, 0.0f));
-static const float vegetationFalloff = 200.0f;
+static const float vegetationFalloff = 400.0f;
 static const float forceScale = 0.7f;
 static const float waveLength = 0.08f; //0.008f; //
 static const float traversalSpeed = 0.15f; //0.05f; //
@@ -76,8 +76,8 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, inout TriangleStream<PS_INPUT> TriStre
 		//Add wind direction to our already randomized normal. This value will be 
 		float4 randomizedNormal = float4(rand1*0.8f, height, rand2*0.8f, 0.0f) + (WindDirection * (forceScale * LoadWindPowerValue( (v1.Position.xz*waveLength) + (traversalSpeed*DeltaTime) )));
 
-		float4 normal1 = mul(v1.Normal, World);
-		float4 normal2 = mul(v2.Normal, World);
+		float4 normal1 = v1.Normal; //mul(v1.Normal, World);
+		float4 normal2 = v2.Normal; //mul(v2.Normal, World);
 
 
 		//Define the four vertices, corners
@@ -114,17 +114,15 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, inout TriangleStream<PS_INPUT> TriStre
 [maxvertexcount(12)] 
 void GrassGS(triangle VS_OUTPUT Input[3], inout TriangleStream<PS_INPUT> TriStream)
 { 
-	//http://upvoid.com/devblog/2013/02/prototype-grass/
 	float dotResult = dot(Input[1].Normal, UpNormal);
 
 	//if the surface is or is pretty close to being perpendicular to the Up vector, we make grass.
-	if(dotResult > 0.9f && Input[0].YPosDepthAndRand.x > 20.5f)
+	if(dotResult > 0.9f && Input[0].YPosDepthAndRand.x > 15.5f)
 	{
 		MakeQuad(Input[1], Input[2], TriStream);
 		MakeQuad(Input[2], Input[0], TriStream);
 		MakeQuad(Input[0], Input[1], TriStream); 
 	}
-	//}
 
 	//dotResult = dot(Input[2].Normal, UpNormal);
 

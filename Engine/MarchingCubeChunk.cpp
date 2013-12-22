@@ -2,7 +2,6 @@
 
 MarchingCubeChunk::MarchingCubeChunk(XMFLOAT3 startPos, XMFLOAT3 endPos, XMFLOAT3 stepSize, XMFLOAT3 stepCount)
 :	startPosition(startPos),
-	endPosition(endPos),
 	//boundingBox(startPosition, endPosition),
 	stepSizeX(stepSize.x),
 	stepSizeY(stepSize.y),
@@ -15,6 +14,14 @@ MarchingCubeChunk::MarchingCubeChunk(XMFLOAT3 startPos, XMFLOAT3 endPos, XMFLOAT
 {
 	voxels.resize((stepCountX+1) * (stepCountY+1) * (stepCountZ+1));
 	//indices.resize((stepCountX+1) * (stepCountY+1) * (stepCountZ+1));
+
+	extents.x = ((stepCount.x/2) * stepSize.x);
+	extents.y = ((stepCount.y/2) * stepSize.y);
+	extents.z = ((stepCount.z/2) * stepSize.z);
+
+	centerPosition.x = startPosition.x + extents.x;
+	centerPosition.y = startPosition.y + extents.y;
+	centerPosition.z = startPosition.z + extents.z;
 
 	int index = 0;
 

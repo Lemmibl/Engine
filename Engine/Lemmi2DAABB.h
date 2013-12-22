@@ -1,3 +1,4 @@
+#pragma once
 #include <windows.h>
 #include <xnamath.h>
 
@@ -5,28 +6,32 @@
 //http://devmaster.net/forums/topic/7934-aabb-collision/
 struct Lemmi2DAABB
 {
-	float Radius;
+
 	Lemmi2DAABB(){}
 	~Lemmi2DAABB(){}
 
 	Lemmi2DAABB(XMFLOAT2 minPoint, XMFLOAT2 maxPoint)
 	{
-		MinPoint = minPoint;
-		MaxPoint = maxPoint;
-		XMStoreFloat(&(this->Radius), XMVector2Length(XMVectorSet(((MaxPoint.x-MinPoint.x)*0.5f), ((MaxPoint.y-MinPoint.y)*0.5f), 0.0f, 1.0f)));
+		this->minPoint = minPoint;
+		this->maxPoint = maxPoint;
+		XMStoreFloat(&(radius), XMVector2Length(XMVectorSet(((maxPoint.x-minPoint.x)*0.5f), ((maxPoint.y-minPoint.y)*0.5f), 0.0f, 1.0f)));
 
 		xSize = maxPoint.x - minPoint.x;
 		ySize = maxPoint.y - minPoint.y;
 	}
 
+	XMFLOAT2 MinPoint() const { return minPoint; }
+	XMFLOAT2 MaxPoint() const { return maxPoint; }
+
+
 	bool Intersects(const Lemmi2DAABB& otherAABB)
 	{
-		if(otherAABB.MinPoint.x > MaxPoint.x || MinPoint.x > otherAABB.MaxPoint.x)
+		if(otherAABB.MinPoint().x > maxPoint.x || minPoint.x > otherAABB.MaxPoint().x)
 		{
 			return false;
 		}
 
-		if(otherAABB.MinPoint.y > MaxPoint.y || MinPoint.y > otherAABB.MaxPoint.y)
+		if(otherAABB.MinPoint().y > maxPoint.y || minPoint.y > otherAABB.MaxPoint().y)
 		{
 			return false;
 		}
@@ -40,13 +45,13 @@ struct Lemmi2DAABB
 		XMFLOAT2 otherMinPoint, otherMaxPoint;
 
 		//I do this to minimize fetches. 2 vs 4
-		otherMinPoint = otherAABB.MinPoint;
-		otherMaxPoint = otherAABB.MaxPoint;
+		otherMinPoint = otherAABB.MinPoint();
+		otherMaxPoint = otherAABB.MaxPoint();
 
-		if( otherMinPoint.x >= MinPoint.x 
-		&&	otherMinPoint.y >= MinPoint.y 
-		&&	otherMaxPoint.x <= MaxPoint.x 
-		&&	otherMaxPoint.y <= MaxPoint.y)
+		if( otherMinPoint.x >= minPoint.x 
+			&&	otherMinPoint.y >= minPoint.y 
+			&&	otherMaxPoint.x <= maxPoint.x 
+			&&	otherMaxPoint.y <= maxPoint.y)
 		{
 			return true;
 		}
@@ -56,12 +61,12 @@ struct Lemmi2DAABB
 
 	bool Intersects(float x, float y)
 	{
-		if(x > MaxPoint.x || MinPoint.x > x)
+		if(x > maxPoint.x || minPoint.x > x)
 		{
 			return false;
 		}
 
-		if(y > MaxPoint.y || MinPoint.y > y)
+		if(y > maxPoint.y || minPoint.y > y)
 		{
 			return false;
 		}
@@ -72,10 +77,10 @@ struct Lemmi2DAABB
 
 	bool Contains(float x, float y)
 	{
-		if( x >= MinPoint.x && 
-			x <= MaxPoint.x &&
-			y >= MinPoint.y		&& 
-			y <= MaxPoint.y	)
+		if( x >= minPoint.x && 
+			x <= maxPoint.x &&
+			y >= minPoint.y	&& 
+			y <= maxPoint.y	)
 		{
 			return true;
 		}
@@ -85,26 +90,26 @@ struct Lemmi2DAABB
 
 	XMFLOAT2 GetPositiveVertex( const XMFLOAT3 &normal ) const
 	{
-		XMFLOAT2 positiveVertex = MinPoint;
+		XMFLOAT2 positiveVertex = minPoint;
 
-		if( normal.x >= 0.0f ) positiveVertex.x = MaxPoint.x;
-		if( normal.z >= 0.0f ) positiveVertex.y = MaxPoint.y; //YES, it's supposed to be normal.z. I think.
+		if( normal.x >= 0.0f ) positiveVertex.x = maxPoint.x;
+		if( normal.z >= 0.0f ) positiveVertex.y = maxPoint.y; //YES, it's supposed to be normal.z. I think.
 
-		positiveVertex.x += CenterPosition.x;
-		positiveVertex.y += CenterPosition.y;
+		positiveVertex.x += centerPosition.x;
+		positiveVertex.y += centerPosition.y;
 
 		return positiveVertex;
 	}
 
 	XMFLOAT2 GetNegativeVertex( const XMFLOAT3 &normal ) const
 	{
-		XMFLOAT2 negativeVertex = MaxPoint;
+		XMFLOAT2 negativeVertex = maxPoint;
 
-		if( normal.x >= 0.0f ) negativeVertex.x = MinPoint.x;
-		if( normal.z >= 0.0f ) negativeVertex.y = MinPoint.y;
+		if( normal.x >= 0.0f ) negativeVertex.x = minPoint.x;
+		if( normal.z >= 0.0f ) negativeVertex.y = minPoint.y;
 
-		negativeVertex.x += CenterPosition.x;
-		negativeVertex.y += CenterPosition.y;
+		negativeVertex.x += centerPosition.x;
+		negativeVertex.y += centerPosition.y;
 
 		return negativeVertex;
 	}
@@ -112,14 +117,15 @@ struct Lemmi2DAABB
 	//Moves the minPoint and moves the maxPoint to minPoint+size
 	void Move(float x, float y)
 	{
-		MinPoint.x = x;
-		MinPoint.y = y;
-		MaxPoint.x = x+xSize;
-		MaxPoint.y = y+ySize;
+		minPoint.x = x;
+		minPoint.y = y;
+		maxPoint.x = x+xSize;
+		maxPoint.y = y+ySize;
 	}
 
 	private:
-	XMFLOAT2 MinPoint, MaxPoint, CenterPosition;
-	float xSize, ySize;
+	XMFLOAT2 minPoint, maxPoint, centerPosition;
+
+	float xSize, ySize, radius;
 
 };
