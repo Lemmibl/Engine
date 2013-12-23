@@ -68,7 +68,9 @@ public:
 
 	void RebuildTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, TextureID textureID, int width, int height, float startPosX, float startPosY, bool reseedRandomAfterwards);
 
-	HRESULT CreateSeamlessSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv, float startPosX, float startPosY, float stepsX, float stepsY, float noiseScale);
+	HRESULT CreateSeamlessSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv, 
+											float startPosX, float startPosY, float stepsX, float stepsY, float noiseScale);
+
 	HRESULT Create2DNormalMapFromHeightmap(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** destTex, float textureWidth, float textureHeight);
 
 	bool SaveLTreeTextureToFile(ID3D11DeviceContext* deviceContext, D3DX11_IMAGE_FILE_FORMAT format, LPCSTR fileName);
@@ -96,13 +98,11 @@ private:
 	HRESULT Build2DTextureProgrammatically( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
 		const std::vector<PixelData>& pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV );
 
-	HRESULT Build8Bit2DTextureProgrammatically( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
-		const std::vector<UINT8>& pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV );
+	HRESULT Build16Bit2DTextureProgrammatically( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
+		const std::vector<UINT16>& pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV );
 
 	HRESULT Build2DSSAORandomTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
 		const std::vector<UINT16>& pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV );
-
-	//TODO: Build2DTextureArrayFromMemory
 
 	HRESULT Build2DTextureArrayFromFile(ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
 		WCHAR** filenames, int textureCount, ID3D11ShaderResourceView** textureArray, int texWidth, int texHeight);

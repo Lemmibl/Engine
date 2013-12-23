@@ -35,7 +35,7 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	WCHAR* terrainFilenames[6] = 
 	{
 		L"../Engine/data/dirt.dds",//dirt //0
-		L"../Engine/data/grassGreenYellow.dds", //1   grassTileTest01
+		L"../Engine/data/grassTileTest01.dds", //1   grassGreenYellow
 		//L"../Engine/data/randomGrass.dds", //1
 		L"../Engine/data/rock4.dds",
 		L"../Engine/data/seafloor.dds", //4
@@ -1070,7 +1070,7 @@ HRESULT TextureAndMaterialHandler::CreateSeamlessSimplex2DTexture( ID3D11Device*
 
 	float radius = (textureWidth/2)-2.0f;
 
-	vector<UINT8> pixelData;
+	vector<UINT16> pixelData;
 	pixelData.resize(textureWidth*textureHeight);
 
 	for(float x = startPosX; x < startPosX+textureWidth; x++)
@@ -1089,7 +1089,7 @@ HRESULT TextureAndMaterialHandler::CreateSeamlessSimplex2DTexture( ID3D11Device*
 			float nw = radius+cos(yPi);
 
 			//Produce noise, rescale it from [-1, 1] to [0, 1] then multiply to [0, 256] to make full use of the 8bit channels of the texture it'll be stored in.
-			int noiseResult = ((0.5f * noise->SimplexNoise4D(nx*noiseScale, ny*noiseScale, nz*noiseScale, nw*noiseScale) + 0.5f) * 256);
+			int noiseResult = ((0.5f * noise->SimplexNoise4D(nx*noiseScale, ny*noiseScale, nz*noiseScale, nw*noiseScale) + 0.5f) * 65536);
 
 			pixelData[i] = noiseResult;
 
@@ -1098,7 +1098,7 @@ HRESULT TextureAndMaterialHandler::CreateSeamlessSimplex2DTexture( ID3D11Device*
 	}
 
 	//Build texture
-	if(FAILED(Build8Bit2DTextureProgrammatically(device, deviceContext, pixelData, textureWidth, textureHeight, srv)))
+	if(FAILED(Build16Bit2DTextureProgrammatically(device, deviceContext, pixelData, textureWidth, textureHeight, srv)))
 	{
 		MessageBox(GetDesktopWindow(), L"Something went wrong when calling CreateMaterialTexture. Look in TextureAndMaterialHandler::CreateMaterialTexture.", L"Error", MB_OK);
 		return S_FALSE;
@@ -1110,7 +1110,7 @@ HRESULT TextureAndMaterialHandler::CreateSeamlessSimplex2DTexture( ID3D11Device*
 	return S_OK;
 }
 
-HRESULT TextureAndMaterialHandler::Build8Bit2DTextureProgrammatically( ID3D11Device* device, ID3D11DeviceContext* deviceContext, const std::vector<UINT8>& pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV )
+HRESULT TextureAndMaterialHandler::Build16Bit2DTextureProgrammatically( ID3D11Device* device, ID3D11DeviceContext* deviceContext, const std::vector<UINT16>& pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV )
 {
 	HRESULT hResult;
 	D3D11_SUBRESOURCE_DATA texInitializeData;
@@ -1122,7 +1122,7 @@ HRESULT TextureAndMaterialHandler::Build8Bit2DTextureProgrammatically( ID3D11Dev
 	texDesc.Height             = textureHeight;
 	texDesc.MipLevels          = 1;
 	texDesc.ArraySize          = 1;
-	texDesc.Format             = DXGI_FORMAT_R8_UNORM;
+	texDesc.Format             = DXGI_FORMAT_R16_UNORM;
 	texDesc.SampleDesc.Count   = 1;
 	texDesc.SampleDesc.Quality = 0;
 	texDesc.Usage              = D3D11_USAGE_DEFAULT;
@@ -1133,7 +1133,7 @@ HRESULT TextureAndMaterialHandler::Build8Bit2DTextureProgrammatically( ID3D11Dev
 	//Initialize the subresource that will be used to send the pixel data from dataArray to the texture
 	ZeroMemory(&texInitializeData, sizeof(D3D11_SUBRESOURCE_DATA));
 	texInitializeData.pSysMem = pixelData.data();
-	texInitializeData.SysMemPitch = textureWidth*(sizeof(UINT8));
+	texInitializeData.SysMemPitch = textureWidth*(sizeof(UINT16));
 	//texInitializeData.SysMemSlicePitch = textureWidth*textureHeight*(sizeof(float)*4);
 
 	if(windNoiseTexture != 0)
@@ -1149,7 +1149,7 @@ HRESULT TextureAndMaterialHandler::Build8Bit2DTextureProgrammatically( ID3D11Dev
 	}
 
 	//Set up shader resource view description
-	viewDesc.Format = DXGI_FORMAT_R8_UNORM;
+	viewDesc.Format = DXGI_FORMAT_R16_UNORM;
 	viewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	viewDesc.Texture2DArray.MostDetailedMip = 0;
 	viewDesc.Texture2DArray.MipLevels = 1;
@@ -1199,7 +1199,7 @@ HRESULT TextureAndMaterialHandler::Create2DNormalMapFromHeightmap( ID3D11Device*
 		return hResult;
 	}
 	
-	hResult = D3DX11ComputeNormalMap(deviceContext, windNoiseTexture.p, D3DX_NORMALMAP_MIRROR, D3DX_CHANNEL_RED, 25.0f, tempTex.p);
+	hResult = D3DX11ComputeNormalMap(deviceContext, windNoiseTexture.p, NULL, D3DX_CHANNEL_RED, 30.0f, tempTex.p);
 	if(FAILED(hResult))
 	{
 		return hResult;

@@ -122,16 +122,16 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	float3 lightVector = (position-LightPosition);
 
 	float d = length(lightVector);
-	float attenuation = CameraPosition.w - (d / LightColor.w); //((LightColor.w) / (d*d)); //(LightColor.w / (d*d)); //Slight offset to dampen the light
+	float attenuation = CameraPosition.w - ((d*d) / LightColor.w); //((LightColor.w) / (d*d)); //(LightColor.w / (d*d)); //Slight offset to dampen the light
 
 	//Normalize lightVector after we've used it to determine the light attenuation
 	lightVector = normalize(lightVector);
 
-	//calculate NdotL product
-	float NdL = max(abs(dot(normal, -lightVector)), 0.1f);
+	////calculate NdotL product
+	//float NdL = max(abs(dot(normal, -lightVector)), 0.1f);
 
 	//compute diffuse light using NdotL product
-	float3 diffuseLight = (LightColor.rgb*NdL);
+	float3 diffuseLight = LightColor.rgb;//max((LightColor.rgb*NdL), 0.1f);
 
 	////Blinn half angle modification for performance over correctness
 	//float3 h = normalize(normalize(CameraPosition - position) - lightVector);

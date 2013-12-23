@@ -775,16 +775,16 @@ bool D3DManager::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screen
 	//To create an alpha enabled blend state description change BlendEnable to TRUE and DestBlend to D3D11_BLEND_INV_SRC_ALPHA. 
 	//The other settings are set to their default values which can be looked up in the Windows DirectX Graphics Documentation. 
 	// Create an alpha enabled blend state description.
-		for (UINT i = 0; i < 8; ++i)
+	for (UINT i = 0; i < 8; ++i)
 	{
-	blendStateDescription.RenderTarget[i].BlendEnable = TRUE;
-	blendStateDescription.RenderTarget[i].SrcBlend = D3D11_BLEND_ONE;
-	blendStateDescription.RenderTarget[i].DestBlend = D3D11_BLEND_ZERO;
-	blendStateDescription.RenderTarget[i].BlendOp = D3D11_BLEND_OP_ADD;
-	blendStateDescription.RenderTarget[i].SrcBlendAlpha = D3D11_BLEND_ONE;
-	blendStateDescription.RenderTarget[i].DestBlendAlpha = D3D11_BLEND_ZERO;
-	blendStateDescription.RenderTarget[i].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	blendStateDescription.RenderTarget[i].RenderTargetWriteMask = 0x0F;
+		blendStateDescription.RenderTarget[i].BlendEnable = TRUE;
+		blendStateDescription.RenderTarget[i].SrcBlend = D3D11_BLEND_ONE;
+		blendStateDescription.RenderTarget[i].DestBlend = D3D11_BLEND_ZERO;
+		blendStateDescription.RenderTarget[i].BlendOp = D3D11_BLEND_OP_ADD;
+		blendStateDescription.RenderTarget[i].SrcBlendAlpha = D3D11_BLEND_ONE;
+		blendStateDescription.RenderTarget[i].DestBlendAlpha = D3D11_BLEND_ZERO;
+		blendStateDescription.RenderTarget[i].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		blendStateDescription.RenderTarget[i].RenderTargetWriteMask = 0x0F;
 	}
 
 	blendStateDescription.AlphaToCoverageEnable = true;
@@ -806,7 +806,6 @@ bool D3DManager::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screen
 	{
 		return false;
 	}
-
 
 
 	//To create an alpha enabled blend state description change BlendEnable to TRUE and DestBlend to D3D11_BLEND_INV_SRC_ALPHA. 

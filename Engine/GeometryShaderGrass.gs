@@ -30,8 +30,8 @@ static const float4 UpNormal = normalize(float4(0.0f, 1.0f, 0.0f, 1.0f));
 //TODO: Add all of these to the constant buffer to make them tweakable in normal code 
 //Just a temporary wind direction
 static const float4 WindDirection = normalize(float4(0.8f, 0.0f, 0.2f, 0.0f));
-static const float vegetationFalloff = 150.0f;
-static const float forceScale = 0.7f;
+static const float vegetationFalloff = 250.0f;
+static const float forceScale = 0.6f;
 static const float waveLength = 0.08f; //0.008f; //
 static const float traversalSpeed = 0.15f; //0.05f; //
 
@@ -68,7 +68,7 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, inout TriangleStream<PS_INPUT> TriStre
 		float4 pos1 = v1.Position + float4(rand1, 0.0f, rand2, 0.0f);
 		float4 pos2 = v2.Position + float4(rand2, 0.0f, rand1, 0.0f);
 
-		float opacity = (1.0f - (viewDepth/vegetationFalloff));
+		float opacity = (1.0f - (viewDepth / vegetationFalloff));
 		float height = (vegetationScale * opacity);
 
 		//Add wind direction to our already randomized normal. This value will be 
@@ -119,10 +119,12 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, inout TriangleStream<PS_INPUT> TriStre
 [maxvertexcount(12)] 
 void GrassGS(triangle VS_OUTPUT Input[3], inout TriangleStream<PS_INPUT> TriStream)
 { 
-	float dotResult = dot(Input[1].Normal, UpNormal);
+	//So we do a dot between the three normals of the triangle and an Up vector that just points straight up.
+	//Which means that if the surface is angled too far in any direction, we don't create grass there.
+	float dotResult = dot(normalize(Input[0].Normal+Input[1].Normal+Input[2].Normal), UpNormal);
 
-	//if the surface is or is pretty close to being perpendicular to the Up vector, we make grass.
-	if(dotResult >= 0.9f && Input[0].YPosDepthAndRand.x > 4.5f && Input[0].YPosDepthAndRand.y < vegetationFalloff)
+	//So if the dot result is satisfactory, and the world YPos is above water level, and the view space depth value is above vegetation falloff point...... we make quads.
+	if(dotResult >= 0.85f && Input[0].YPosDepthAndRand.x > 4.5f && Input[0].YPosDepthAndRand.y < vegetationFalloff)
 	{
 		MakeQuad(Input[1], Input[2], TriStream);
 		MakeQuad(Input[2], Input[0], TriStream);

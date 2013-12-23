@@ -187,7 +187,7 @@ bool Renderer::InitializeLights( HWND hwnd )
 		pointLights[i].Color = XMFLOAT3(red, green, blue);
 		pointLights[i].Position = XMFLOAT3(x, y, z);
 		pointLights[i].Radius = 4.0f + (2.0f*utility.RandomFloat()); //Used to both scale the actual point light model and is a factor in the attenuation
-		pointLights[i].Intensity = 4.0f;//3.0f*utility->RandomFloat(); //Is used to control the attenuation
+		pointLights[i].Intensity = (10.0f*utility.RandomFloat()); //Is used to control the attenuation
 
 		x += 18.0f;
 

@@ -23,25 +23,24 @@ struct PSInput
 //1 - 0.04745
 static const float positionSamplingOffset = 0.2f;
 static const float2 samplingDirection = float2(0.5f, 0.0f);
-static const float heightScaling = 0.35f;
-static const float timeScaling = 0.3f;
+static const float heightScaling = 0.45f;
+static const float timeScaling = 0.45f;
+static const float4 UpNormal = normalize(float4(0.0f, 1.0f, 0.0f, 0.0f));
 
 //http://msdn.microsoft.com/en-us/library/windows/desktop/bb205122(v=vs.85).aspx
 [maxvertexcount(3)] 
 void WaterShaderGS(triangle VSOutput input[3], inout TriangleStream<PSInput> TriStream)
 { 
 	PSInput output[3];
-
-	float4 UpNormal = normalize(float4(0.0f, 1.0f, 0.0f, 0.0f));
 	float scaledDeltaTime = (DeltaTime * timeScaling);
 
 	output[0].TexCoord.xy = ((input[0].Position.xz*positionSamplingOffset)+(samplingDirection * scaledDeltaTime));
 	output[1].TexCoord.xy = ((input[1].Position.xz*positionSamplingOffset)+(samplingDirection * scaledDeltaTime));
 	output[2].TexCoord.xy = ((input[2].Position.xz*positionSamplingOffset)+(samplingDirection * scaledDeltaTime));
 
-	output[0].TexCoord.z = heightScaling * noiseTexture.SampleLevel(linearSampler, output[0].TexCoord.xy, 0);
-	output[1].TexCoord.z = heightScaling * noiseTexture.SampleLevel(linearSampler, output[1].TexCoord.xy, 0);
-	output[2].TexCoord.z = heightScaling * noiseTexture.SampleLevel(linearSampler, output[2].TexCoord.xy, 0);
+	output[0].TexCoord.z = noiseTexture.SampleLevel(linearSampler, output[0].TexCoord.xy, 0) * heightScaling;
+	output[1].TexCoord.z = noiseTexture.SampleLevel(linearSampler, output[1].TexCoord.xy, 0) * heightScaling;
+	output[2].TexCoord.z = noiseTexture.SampleLevel(linearSampler, output[2].TexCoord.xy, 0) * heightScaling;
 
 	float4 pos1 = (input[0].Position + (UpNormal * output[0].TexCoord.z));
 	float4 pos2 = (input[1].Position + (UpNormal * output[1].TexCoord.z));

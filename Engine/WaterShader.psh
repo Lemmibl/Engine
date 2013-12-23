@@ -34,18 +34,18 @@ float EncodeMaterialID(float id)
 	return (id / 255.0f);
 }
 
+static const float3 UpNormal = normalize(float3(0.0f, 0.1f, 0.0f));
+
 PSOutput WaterShaderPS(PSInput input)
 {
 	PSOutput output;
 
-	float waterColorOffset = 0.5f + (input.TexCoord.z*0.5f);
+	float waterColorOffset = 0.2f + (input.TexCoord.z*0.8f);
 
 	//Depth has been stored in normal .w channel.
 	output.Depth = (input.TexCoord.w / 500.0f);
 
-	float3 UpNormal = normalize(float3(0.0f, 0.3f, 0.0f));
-
-	float4 PreCalcNormal = normalize(float4(UpNormal + normalTexture.Sample(linearSampler, (input.TexCoord.xy)).xyz, 1.0f));
+	float4 PreCalcNormal = normalize(float4(UpNormal + normalTexture.SampleLevel(linearSampler, (input.TexCoord.xy), 0).xyz, 1.0f));
 
 	float3 normal = mul(PreCalcNormal, World).xyz;
 
