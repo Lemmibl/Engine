@@ -43,7 +43,7 @@ PSOutput WaterShaderPS(PSInput input)
 	float waterColorOffset = 0.2f + (input.TexCoord.z*0.8f);
 
 	//Depth has been stored in normal .w channel.
-	output.Depth = (input.TexCoord.w / 500.0f);
+	output.Depth = (input.TexCoord.w / 400.0f);
 
 	float4 PreCalcNormal = normalize(float4(UpNormal + normalTexture.SampleLevel(linearSampler, (input.TexCoord.xy), 0).xyz, 1.0f));
 

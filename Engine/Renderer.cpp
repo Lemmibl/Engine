@@ -309,7 +309,7 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 	// Create the frustum object.
 	frustum = FrustumClass();
 	//1.77f is 16:9 aspect ratio
-	frustum.SetInternals((float)(screenWidth) / (float)screenHeight, XM_PIDIV2, nearClip, farClip);
+	frustum.SetInternals((float)screenWidth / (float)screenHeight, XM_PIDIV2, nearClip, farClip);
 
 	testBoundingbox = Lemmi2DAABB(XMFLOAT2(0, 0), XMFLOAT2(60, 60));
 
@@ -324,6 +324,7 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 
 	backAndForth += seconds;
 
+	//Reset every 100 seconds.
 	if(backAndForth >= 100.0f)
 	{
 		backAndForth = 0.0f;
@@ -845,6 +846,7 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 	}
 
 	d3D->TurnOnTransparencyBlending();
+	d3D->SetDepthBiasRasterizer();
 
 	for(unsigned int i = 0; i < tempChunks.size(); i++)
 	{	

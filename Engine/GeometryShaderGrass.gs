@@ -29,11 +29,10 @@ static const float4 UpNormal = normalize(float4(0.0f, 1.0f, 0.0f, 1.0f));
 
 //TODO: Add all of these to the constant buffer to make them tweakable in normal code 
 //Just a temporary wind direction
-static const float4 WindDirection = normalize(float4(0.8f, 0.0f, 0.2f, 0.0f));
 static const float vegetationFalloff = 250.0f;
-static const float forceScale = 0.6f;
-static const float waveLength = 0.08f; //0.008f; //
-static const float traversalSpeed = 0.15f; //0.05f; //
+static const float forceScale = 0.9f;
+static const float waveLength = 0.04f; //0.008f; //
+static const float traversalSpeed = 0.1f; //0.05f; //
 
 //http://www.braynzarsoft.net/index.php?p=D3D11BILLBOARDS
 //http://upvoid.com/devblog/2013/02/prototype-grass/
@@ -50,7 +49,7 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, inout TriangleStream<PS_INPUT> TriStre
 	//Sum up random values to decide if we want to draw grass here.
 	float randSum = v2.YPosDepthAndRand.z + v1.YPosDepthAndRand.z;
 
-	//Skip if distance is too far, or if one of the random values is within a certain range. This was added to make sure that there are some spots that are barren.
+	//Skip if random sum is too low. It's a crude way to make empty patches appear, as opposed to vegetation EVERYWHERE. TODO: Density maps..?
 	if(randSum <= 1.15f)
 	{
 		//Allocate four output values
@@ -61,48 +60,47 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, inout TriangleStream<PS_INPUT> TriStre
 		int textureID = round(v1.YPosDepthAndRand.z * 13);
 
 		//Taking [0, 1] rand values and changing them to a span that can go negative.
-		float rand1 = (2.0f * (v1.YPosDepthAndRand.z - 0.5f)) * 0.8f;
-		float rand2 = (2.0f * (v2.YPosDepthAndRand.z - 0.5f)) * 0.8f;
+		float2 rand = (2.0f * float2(v1.YPosDepthAndRand.z, v2.YPosDepthAndRand.z) - 0.5f) * 0.8f;
 
-		//Randomizing our positions
-		float4 pos1 = v1.Position + float4(rand1, 0.0f, rand2, 0.0f);
-		float4 pos2 = v2.Position + float4(rand2, 0.0f, rand1, 0.0f);
+		//Randomizing the ground positions
+		float4 pos1 = v1.Position + float4(rand.x, 0.0f, rand.y, 0.0f);
+		float4 pos2 = v2.Position + float4(rand.x, 0.0f, rand.y, 0.0f);
 
 		float opacity = (1.0f - (viewDepth / vegetationFalloff));
 		float height = (vegetationScale * opacity);
 
-		//Add wind direction to our already randomized normal. This value will be 
-		float4 randomizedNormal = float4(rand1*0.2f, height, rand2*0.2f, 0.0f);
+		//This is the normal that we use to offset the upper vertices of the quad, as to angle it slightly. 
+		//Height is of course used to control how high the quad will be.
+		float4 randomizedNormal = float4(rand.x*0.2f, height, rand.y*0.2f, 0.0f);
 
 		//If the grass is close enough to the camera, add wind. Just pointless to add a bunch of wind to grass that is too far away to be seen.
 		if(viewDepth < (vegetationFalloff/3))
 		{
+			//TODO: Replace this with an external windDirection in a constant buffer
+			float4 WindDirection = normalize(float4(0.8f+(rand.x*0.1f), 0.0f, 0.4f+(rand.y*0.1f), 0.0f));
+
+			//Add wind direction to our already randomized normal. This value will be 
 			randomizedNormal += (WindDirection * (forceScale * LoadWindPowerValue( (v1.Position.xz*waveLength) + (traversalSpeed*DeltaTime) )));
 		}
 
-
-		float4 normal1 = v1.Normal;//mul(, World);
-		float4 normal2 = v2.Normal;//mul(, World);
-
-
 		//Define the four vertices, corners
 		output[0].Position = mul(pos1, WorldViewProjection);
-		output[0].Normal = normalize(normal1);
+		output[0].Normal = normalize(v1.Normal);
 		output[0].TexCoord = float4(0.0f, 1.0f, textureID, viewDepth);
 		output[0].Opacity = opacity;
 
 		output[1].Position = mul(pos2, WorldViewProjection);
-		output[1].Normal = normalize(normal2);
+		output[1].Normal = normalize(v2.Normal);
 		output[1].TexCoord = float4(1.0f, 1.0f, textureID, viewDepth);
 		output[1].Opacity = opacity;
 
 		output[2].Position = mul((pos1 + randomizedNormal), WorldViewProjection);
-		output[2].Normal = normalize(normal1+randomizedNormal);
+		output[2].Normal = normalize(v1.Normal+randomizedNormal);
 		output[2].TexCoord = float4(0.0f, 0.0f, textureID, viewDepth);
 		output[2].Opacity = opacity;
 
 		output[3].Position = mul((pos2 + randomizedNormal), WorldViewProjection);
-		output[3].Normal = normalize(normal2 + randomizedNormal);
+		output[3].Normal = normalize(v2.Normal + randomizedNormal);
 		output[3].TexCoord = float4(1.0f, 0.0f, textureID, viewDepth);
 		output[3].Opacity = opacity;
 
@@ -116,7 +114,7 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, inout TriangleStream<PS_INPUT> TriStre
 	}
 };
 
-[maxvertexcount(12)] 
+[maxvertexcount(20)] 
 void GrassGS(triangle VS_OUTPUT Input[3], inout TriangleStream<PS_INPUT> TriStream)
 { 
 	//So we do a dot between the three normals of the triangle and an Up vector that just points straight up.
@@ -126,8 +124,9 @@ void GrassGS(triangle VS_OUTPUT Input[3], inout TriangleStream<PS_INPUT> TriStre
 	//So if the dot result is satisfactory, and the world YPos is above water level, and the view space depth value is above vegetation falloff point...... we make quads.
 	if(dotResult >= 0.85f && Input[0].YPosDepthAndRand.x > 4.5f && Input[0].YPosDepthAndRand.y < vegetationFalloff)
 	{
+		//Make up to three quads.
 		MakeQuad(Input[1], Input[2], TriStream);
 		MakeQuad(Input[2], Input[0], TriStream);
-		MakeQuad(Input[0], Input[1], TriStream); 
+		MakeQuad(Input[0], Input[1], TriStream);
 	}
 }

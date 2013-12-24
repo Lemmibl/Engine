@@ -71,6 +71,7 @@ public:
 	void SetFrontFaceCullingRasterizer();
 	void SetNoCullRasterizer();
 	void SetWireframeRasterizer();
+	void SetDepthBiasRasterizer();
 	void ChangeRasterizerState(ID3D11RasterizerState* rasterizerState);
 	void ResetRasterizerState();
 
@@ -116,6 +117,7 @@ private:
 	CComPtr<ID3D11RasterizerState>		frontfaceCullingCW;
 	CComPtr<ID3D11RasterizerState>		noCullingCW;
 	CComPtr<ID3D11RasterizerState>		wireFrameState;
+	CComPtr<ID3D11RasterizerState>		depthBiasState;
 
 	XMFLOAT4X4 projectionMatrix, worldMatrix, orthoMatrix;
 

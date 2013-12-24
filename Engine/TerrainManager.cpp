@@ -149,7 +149,7 @@ bool TerrainManager::Update(ID3D11Device* device, ID3D11DeviceContext* deviceCon
 
 void TerrainManager::ResetTerrain( int currentPosX, int currrentPosZ )
 {
-	//... Maybe just empty map and create new chunks at position
+	map->clear();
 }
 
 void TerrainManager::CreateChunk(ID3D11Device* device, ID3D11DeviceContext* deviceContext, int startPosX, int startPosZ)
@@ -265,6 +265,7 @@ bool TerrainManager::GetChunk(int x, int z, MarchingCubeChunk** outChunk)
 	return false;
 }
 
+//Still keeping this function around in case we'll be placing trees/bushes in the future
 void TerrainManager::GenerateVegetation( ID3D11Device* device, bool UpdateInstanceBuffer, MarchingCubeChunk* chunk)
 {
 	//VegetationManager::InstanceType temp;
@@ -370,12 +371,14 @@ bool TerrainManager::UpdateAgainstAABB( ID3D11Device* device, ID3D11DeviceContex
 {
 	std::pair<int,int> neighbourKey;
 
+	//Define the boundaries. We'll use the boundaries to loop through each relevant grid slot.
+	// I calculate the start and ending indices by dividing the positions by a large amount and casting them to int. 
+	// The amount I divide with is calculated through step size and step scaling.
 	//The *2 in there is ..... because before, the chunks used to be 100x100 units large... ish. Now they're 50x50 large... ish. Hence I needed a magic number offset. Yay!
-	int startX = RoundToNearest((aabb->MinPoint().x*2*stepScaling))-2;
-	int startZ = RoundToNearest((aabb->MinPoint().y*2*stepScaling))-2;
-
-	int endX = RoundToNearest((aabb->MaxPoint().x*2*stepScaling))+2;
-	int endZ = RoundToNearest((aabb->MaxPoint().y*2*stepScaling))+2;
+	int startX =	RoundToNearest(aabb->MinPoint().x*(2*stepScaling))-2;
+	int startZ =	RoundToNearest(aabb->MinPoint().y*(2*stepScaling))-2;
+	int endX =		RoundToNearest(aabb->MaxPoint().x*(2*stepScaling))+2;
+	int endZ =		RoundToNearest(aabb->MaxPoint().y*(2*stepScaling))+2;
 
 	//Instead of checking against like...... 25-30 grids we instead first check if the min and max points have changed.
 	if(lastMin.first != startX || lastMin.second != startZ || lastMax.first != endX || lastMax.second != endZ)
@@ -386,7 +389,38 @@ bool TerrainManager::UpdateAgainstAABB( ID3D11Device* device, ID3D11DeviceContex
 		//Clear active chunks
 		activeChunks.clear();
 		activeRenderables.clear();
-	
+
+		/*	So in order to visualize what's actually going on in this function, this is what I do: 
+		 *
+		 *		 									endX,endZ
+		 *		   ____________________________________*
+		 *		   |X4	  |X4    |etc 	|etc   |X4	  |
+		 *		   |Z0	  |Z1    |	 	| 	   |Z4	  |
+		 *		   |______|______|______|______|______|
+		 *		   |X3	  |X3	 |etc	|etc   |etc   |
+		 *		   |Z0	  |Z1	 |	 	| 	   |	  |
+		 *		   |______|______|______|______|______|
+		 *		   |X2	  |X2    |etc   |etc   |etc   |
+		 *		   |Z0	  |Z1    |	    | 	   |	  |
+		 *		   |______|______|______|______|______|
+		 *		   |X1	  |X1    |etc   |etc   |etc   |
+		 *		   |Z0	  |Z1    |	    | 	   |	  |
+		 *		   |______|______|______|______|______|
+		 *		   |X0	  |X0    |etc 	|etc   |X0	  |
+		 *		   |Z0	  |Z1    |	 	| 	   |Z4	  |
+		 *		   |______|______|______|______|______|
+		 *		  *									
+		 *	startX,startZ								
+		 *	
+		 * Step through each grid by index, and then for each grid do the following:
+		 * 1) Check in the hash map if this grid already has a chunk assigned to it, in that case fetch it and put it in the active chunks vector
+		 * 2) If there isn't a chunk, create one and insert it into the hash map. Then insert it into the active chunks vector.
+		 * 
+		 * 
+		 * Yes. I did spend about 30 minutes making that little ascii... chart... box.
+		 */
+
+		//Loop through box. Start at startpositions and end at endX.
 		for(int x = startX; x < endX; ++x)
 		{
 			for(int z = startZ; z < endZ; ++z)
@@ -420,6 +454,7 @@ bool TerrainManager::UpdateAgainstAABB( ID3D11Device* device, ID3D11DeviceContex
 			}
 		}
 
+		//After we've looped through the entire area, we save the keys that were used. This means that 
 		lastMin = make_pair<int, int>(startX, startZ);
 		lastMax = make_pair<int, int>(endX, endZ);
 

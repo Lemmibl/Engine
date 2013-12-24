@@ -3,21 +3,18 @@
 /*						TODO AND THINGS OF THAT SORT							*/
 /********************************************************************************/
 
-* Make geometry shader grass more fancy.
-	-Should pretty much be finished now, just need to do the lookup-based-on-height thing.
-	- ... Find some more good grass/vegetation textures?
-
+* RTW shadowmapping
+* Bullet collision detection. Start with marching cubes meshes. Should be easy enough.  
+	- http://bulletphysics.org/mediawiki-1.5.8/index.php/Hello_World + http://bulletphysics.org/mediawiki-1.5.8/index.php/Code_Snippets
 * Clean up Renderer code. Start moving things to World.
 
+* Make geometry shader grass more fancy.
+	-Should pretty much be finished now, just need to do the lookup-based-on-height thing.
+
 * Water normal texture sliding thing that they do in arma2
-
-* RTW shadowmapping
-
 * Skysphere texture mapping!!! Clouds? Stars?
 * Shadow&Light manager...?
 * Some sort of XML loader/reader for configs / keybindings / texture&material IDs
-
-
 
 
 ======== Idea regarding multithreading the terrain generation =============

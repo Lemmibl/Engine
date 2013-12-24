@@ -50,7 +50,7 @@ PixelShaderOutput GrassPS(PixelShaderInput input)
 	//}
 	
 	//Viewspace depth is saved in the .w channel. Divide it by screen's farClip.
-	float depth = (input.TexCoord.w / 500.0f);
+	float depth = (input.TexCoord.w / 400.0f);
 
 	PixelShaderOutput output;
 	output.Color = shaderTexture.Sample(linearSampler, input.TexCoord.xyz);// * input.Opacity;

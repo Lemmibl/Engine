@@ -34,9 +34,9 @@ void WaterShaderGS(triangle VSOutput input[3], inout TriangleStream<PSInput> Tri
 	PSInput output[3];
 	float scaledDeltaTime = (DeltaTime * timeScaling);
 
-	output[0].TexCoord.xy = ((input[0].Position.xz*positionSamplingOffset)+(samplingDirection * scaledDeltaTime));
-	output[1].TexCoord.xy = ((input[1].Position.xz*positionSamplingOffset)+(samplingDirection * scaledDeltaTime));
-	output[2].TexCoord.xy = ((input[2].Position.xz*positionSamplingOffset)+(samplingDirection * scaledDeltaTime));
+	output[0].TexCoord.xy = fmod((input[0].Position.xz*positionSamplingOffset)+(samplingDirection * scaledDeltaTime), 1024.0f);
+	output[1].TexCoord.xy = fmod((input[1].Position.xz*positionSamplingOffset)+(samplingDirection * scaledDeltaTime), 1024.0f);
+	output[2].TexCoord.xy = fmod((input[2].Position.xz*positionSamplingOffset)+(samplingDirection * scaledDeltaTime), 1024.0f);
 
 	output[0].TexCoord.z = noiseTexture.SampleLevel(linearSampler, output[0].TexCoord.xy, 0) * heightScaling;
 	output[1].TexCoord.z = noiseTexture.SampleLevel(linearSampler, output[1].TexCoord.xy, 0) * heightScaling;
@@ -45,6 +45,10 @@ void WaterShaderGS(triangle VSOutput input[3], inout TriangleStream<PSInput> Tri
 	float4 pos1 = (input[0].Position + (UpNormal * output[0].TexCoord.z));
 	float4 pos2 = (input[1].Position + (UpNormal * output[1].TexCoord.z));
 	float4 pos3 = (input[2].Position + (UpNormal * output[2].TexCoord.z));
+
+	pos1.w = 1.0f;
+	pos2.w = 1.0f;
+	pos3.w = 1.0f;
 
 	output[0].Position = mul(pos1, WorldViewProjection);
 	output[1].Position = mul(pos2, WorldViewProjection);

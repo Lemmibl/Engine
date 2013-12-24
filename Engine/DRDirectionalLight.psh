@@ -22,7 +22,7 @@ cbuffer LightBuffer
 	float4 AmbientColor;
 };
 
-static const float CameraFarClip = 500.0f;
+static const float CameraFarClip = 400.0f;
 
 SamplerState linearSampler : register(s0);
 SamplerState anisotropicSampler : register(s1);

@@ -23,5 +23,5 @@ float2 ComputeMoments(float depth)
 
 float2 DepthOnlyPixelShader(VertexShaderOutput input) : SV_Target0
 {
-	return ComputeMoments(input.ViewPositionDepth/500.0f);
+	return ComputeMoments(input.ViewPositionDepth/400.0f);
 };
