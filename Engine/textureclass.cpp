@@ -5,12 +5,11 @@
 
 ID3D11ShaderResourceView* TextureClass::GetTexture()
 {
-	return texture;
+	return texture.p;
 }
 
 TextureClass::TextureClass()
 {
-	texture = 0;
 }
 
 
@@ -28,7 +27,7 @@ bool TextureClass::Initialize(ID3D11Device* device, WCHAR* filename)
 	HRESULT result;
 
 	// Load the texture in.
-	result = D3DX11CreateShaderResourceViewFromFile(device, filename, NULL, NULL, &texture, NULL);
+	result = D3DX11CreateShaderResourceViewFromFile(device, filename, NULL, NULL, &texture.p, NULL);
 	if(FAILED(result))
 	{
 		return false;
@@ -39,12 +38,12 @@ bool TextureClass::Initialize(ID3D11Device* device, WCHAR* filename)
 
 void TextureClass::Shutdown()
 {
-	// Release the texture resource.
-	if(texture)
-	{
-		texture->Release();
-		texture = 0;
-	}
+	//// Release the texture resource.
+	//if(texture)
+	//{
+	//	texture->Release();
+	//	texture = 0;
+	//}
 
 	return;
 }

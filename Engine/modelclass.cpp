@@ -240,7 +240,7 @@ bool ModelClass::LoadTexture(ID3D11Device* device, WCHAR* filename)
 	bool result;
 
 	//Shared ptr with custom deleter.
-	texture = std::shared_ptr<TextureClass>(new TextureClass(), [](TextureClass* ptr){ptr->Shutdown(); } );
+	texture = std::shared_ptr<TextureClass>(new TextureClass());
 	if(!texture)
 	{
 		return false;
@@ -273,7 +273,7 @@ bool ModelClass::LoadTextures(ID3D11Device* device, WCHAR* texture, WCHAR* norma
 	bool result;
 
 	//Shared ptr with custom deleter.
-	textureArray = shared_ptr<TextureArray>(new TextureArray, [](TextureArray* ptr){ptr->Shutdown(); } );
+	textureArray = shared_ptr<TextureArray>(new TextureArray());
 	if(!textureArray)
 	{
 		return false;

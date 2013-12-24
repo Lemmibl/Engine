@@ -26,6 +26,8 @@ const float SCREEN_NEAR = 0.1f;
 #include <xnamath.h>
 #include <memory>
 
+#include <vld.h>
+
 ///////////////////////
 // MY CLASS INCLUDES //
 ///////////////////////

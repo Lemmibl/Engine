@@ -9,6 +9,7 @@
 //////////////
 #include <d3d11.h>
 #include <d3dx11tex.h>
+#include <atlcomcli.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: TextureClass
@@ -26,7 +27,7 @@ public:
 	ID3D11ShaderResourceView* GetTexture();
 
 private:
-	ID3D11ShaderResourceView* texture;
+	CComPtr<ID3D11ShaderResourceView> texture;
 };
 
 #endif
