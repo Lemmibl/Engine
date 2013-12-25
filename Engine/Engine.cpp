@@ -125,14 +125,14 @@ void Engine::Run()
 	MSG msg;
 	bool done, result;
 
-	// Initialize the message structure.
+	//Initialize the message structure.
 	ZeroMemory(&msg, sizeof(MSG));
 
-	// Loop until there is a quit message from the window or the user.
+	//Loop until there is a quit message from the window or the user.
 	done = false;
 	while(!done)
 	{
-		// Handle the windows messages.
+		//Handle the windows messages.
 		if(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&msg);
@@ -146,7 +146,7 @@ void Engine::Run()
 		}
 		else
 		{
-			// Otherwise do the frame processing.  If frame processing fails then exit.
+			//Otherwise do the frame processing. If frame processing fails then exit.
 			result = Update();
 			if(!result)
 			{

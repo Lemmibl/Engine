@@ -26,7 +26,8 @@ const float SCREEN_NEAR = 0.1f;
 #include <xnamath.h>
 #include <memory>
 
-#include <vld.h>
+//Enable if you want to check for memory leaks.
+//#include <vld.h>
 
 ///////////////////////
 // MY CLASS INCLUDES //

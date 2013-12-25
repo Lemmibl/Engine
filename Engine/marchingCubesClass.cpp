@@ -338,7 +338,7 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 		: sizeX(sizeX), sizeY(sizeY), sizeZ(sizeZ)
 	{									  
 		metaballsIsoValue = 0.2f;
-		waterLevel = 4.0f;
+		waterLevel = 5.0f;
 	}
 
 	void MarchingCubesClass::CalculateMesh(ID3D11Device* device, MarchingCubeChunk* chunk)

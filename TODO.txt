@@ -8,6 +8,28 @@
 	- http://bulletphysics.org/mediawiki-1.5.8/index.php/Hello_World + http://bulletphysics.org/mediawiki-1.5.8/index.php/Code_Snippets
 * Clean up Renderer code. Start moving things to World.
 
+* Data oriented container.	-> http://molecularmusings.wordpress.com/2013/07/24/adventures-in-data-oriented-design-part-3c-external-references/
+							-> http://bitsquid.blogspot.se/2011/09/managing-decoupling-part-4-id-lookup.html
+
+"The sparse (outer) array stores indices into the dense (inner) array, and a generation for each item. 
+This generation is our monotonically increasing integer that was introduced last time. 
+The dense array stores the items contiguously in memory, just like a regular array."
+
+Which means that we have:
+struct Handle
+{
+	int16 ID, //used to index into the index array
+	int16 generation //must match with the index generation so that we know we aren't accessing stale data
+}
+
+struct Index
+{
+	int16 generation, //must match with the handle generation so that we know we aren't accessing stale data
+	int16 index, //real index into the real dense array inside that actually contains objects
+	//Here possibly a ... ptr? to the next relevant index.. but that's silly, just use a min/maxheap ?
+}
+
+
 * Make geometry shader grass more fancy.
 	-Should pretty much be finished now, just need to do the lookup-based-on-height thing.
 

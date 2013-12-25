@@ -182,7 +182,7 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 							density = 2;
 						}
 
-						if(y <= 1)
+						if(y == 1)
 						{
 							density += 1000000.0f;
 						}
@@ -238,7 +238,7 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 							density = 2;
 						}
 
-						if(y <= 1)
+						if(y == 1)
 						{
 							density += 1000000.0f;
 						}
@@ -295,7 +295,7 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 							density = 2;
 						}
 
-						if(y <= 1)
+						if(y == 1)
 						{
 							density += 1000000.0f;
 						}
@@ -363,7 +363,7 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 							density = 2;
 						}
 
-						if(y <= 1)
+						if(y == 1)
 						{
 							density += 1000000.0f;
 						}
@@ -401,7 +401,7 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 							density = 2;
 						}
 
-						if(y <= 1)
+						if(y == 1)
 						{
 							density += 1000000.0f;
 						}
@@ -439,7 +439,7 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 							density = 2;
 						}
 
-						if(y <= 1)
+						if(y == 1)
 						{
 							density += 1000000.0f;
 						}
@@ -476,7 +476,7 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 	//}
 	//
 	//	////**Hardfloor**//
-	//if(y <= 1)
+	//if(y == 1)
 	//{
 	//	density += 1000000.0f;
 	//}

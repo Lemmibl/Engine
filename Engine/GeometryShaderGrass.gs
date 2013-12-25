@@ -44,7 +44,7 @@ float LoadWindPowerValue(float2 coords)
 }
 
 //Function for making grass quads
-void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, inout TriangleStream<PS_INPUT> TriStream)
+void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, VS_OUTPUT v3, inout TriangleStream<PS_INPUT> TriStream)
 { 
 	//Sum up random values to decide if we want to draw grass here.
 	float randSum = v2.YPosDepthAndRand.z + v1.YPosDepthAndRand.z;
@@ -59,12 +59,12 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, inout TriangleStream<PS_INPUT> TriStre
 		//In the future, this ID will be loaded from a lookup table
 		int textureID = round(v1.YPosDepthAndRand.z * 13);
 
-		//Taking [0, 1] rand values and changing them to a span that can go negative.
-		float2 rand = (2.0f * float2(v1.YPosDepthAndRand.z, v2.YPosDepthAndRand.z) - 0.5f) * 0.8f;
+		//Taking [0, 1] rand values and changing them to a span that can go negative ([-1, 1]).
+		float2 rand = (2.0f * float2(v1.YPosDepthAndRand.z, v2.YPosDepthAndRand.z) - 0.5f);
 
 		//Randomizing the ground positions
-		float4 pos1 = v1.Position + float4(rand.x, 0.0f, rand.y, 0.0f);
-		float4 pos2 = v2.Position + float4(rand.x, 0.0f, rand.y, 0.0f);
+		float4 pos1 = v2.Position;													// + float4(rand.x, 0.0f, rand.y, 0.0f);
+		float4 pos2 = v1.Position + ((v2.YPosDepthAndRand.z * 2.0f) * (normalize(v3.Position - v2.Position)));	//+ float4(rand.x, 0.0f, rand.y, 0.0f);
 
 		float opacity = (1.0f - (viewDepth / vegetationFalloff));
 		float height = (vegetationScale * opacity);
@@ -73,11 +73,11 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, inout TriangleStream<PS_INPUT> TriStre
 		//Height is of course used to control how high the quad will be.
 		float4 randomizedNormal = float4(rand.x*0.2f, height, rand.y*0.2f, 0.0f);
 
-		//If the grass is close enough to the camera, add wind. Just pointless to add a bunch of wind to grass that is too far away to be seen.
+		//If the grass is close enough to the camera, add wind. Just pointless to add a bunch of wind to grass that is too far away to be seen properly.
 		if(viewDepth < (vegetationFalloff/3))
 		{
 			//TODO: Replace this with an external windDirection in a constant buffer
-			float4 WindDirection = normalize(float4(0.8f+(rand.x*0.1f), 0.0f, 0.4f+(rand.y*0.1f), 0.0f));
+			float4 WindDirection = normalize(float4( -0.7f+(rand.x*0.3f), 0.0f, -0.4f+(rand.y*0.3f), 0.0f));
 
 			//Add wind direction to our already randomized normal. This value will be 
 			randomizedNormal += (WindDirection * (forceScale * LoadWindPowerValue( (v1.Position.xz*waveLength) + (traversalSpeed*DeltaTime) )));
@@ -122,11 +122,11 @@ void GrassGS(triangle VS_OUTPUT Input[3], inout TriangleStream<PS_INPUT> TriStre
 	float dotResult = dot(normalize(Input[0].Normal+Input[1].Normal+Input[2].Normal), UpNormal);
 
 	//So if the dot result is satisfactory, and the world YPos is above water level, and the view space depth value is above vegetation falloff point...... we make quads.
-	if(dotResult >= 0.85f && Input[0].YPosDepthAndRand.x > 4.5f && Input[0].YPosDepthAndRand.y < vegetationFalloff)
+	if(dotResult >= 0.92f && Input[0].YPosDepthAndRand.x > 5.5f && Input[0].YPosDepthAndRand.y < vegetationFalloff)
 	{
 		//Make up to three quads.
-		MakeQuad(Input[1], Input[2], TriStream);
-		MakeQuad(Input[2], Input[0], TriStream);
-		MakeQuad(Input[0], Input[1], TriStream);
+		MakeQuad(Input[1], Input[2], Input[0], TriStream);
+		MakeQuad(Input[2], Input[0], Input[1], TriStream);
+		MakeQuad(Input[0], Input[1], Input[2], TriStream);
 	}
 }
