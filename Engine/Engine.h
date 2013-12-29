@@ -38,6 +38,7 @@ const float SCREEN_NEAR = 0.1f;
 #include "cpumeter.h"
 #include "timerclass.h"
 #include "controllerclass.h"
+#include "World.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: Engine
@@ -69,6 +70,8 @@ private:
 	shared_ptr<InputClass> input;
 	shared_ptr<ControllerClass> cameraController;
 	shared_ptr<CameraClass> camera;
+
+	World world;
 	Renderer renderer;
 	FpsMeter fpsMeter;
 	CpuMeter cpuMeter;

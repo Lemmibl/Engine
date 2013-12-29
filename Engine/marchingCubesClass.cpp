@@ -560,8 +560,8 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 			waterMesh->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 			//Okay, so. I have already decided that the spacing will be 1.0f between each vertex.
-			unsigned int stepsX = ((chunk->GetStepCountX())*chunk->GetStepSizeX());
-			unsigned int stepsZ = ((chunk->GetStepCountZ())*chunk->GetStepSizeZ());
+			unsigned int stepsX = (unsigned int)((chunk->GetStepCountX())*chunk->GetStepSizeX());
+			unsigned int stepsZ = (unsigned int)((chunk->GetStepCountZ())*chunk->GetStepSizeZ());
 
 			vector<XMFLOAT3> vertices;
 			vector<unsigned int> indices;
@@ -577,7 +577,7 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 			{
 				for(float x = 0; x < stepsX; x++)
 				{
-					index = x + (z * stepsX);
+					index = (int)(x + (z * stepsX));
 
 					//Offset each position with a magic number to make sure there are no seams between the different water meshes.
 					vertices[index].x = (minPos.x + x-(x*0.0908f)); //0.0475f
@@ -591,9 +591,9 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 			int indexOffset = 0;
 			indices.resize(((stepsX * 2) + 2) * (stepsZ - 1));
 
-			for( int z = 0; z < stepsZ-1; z++ )
+			for(unsigned int z = 0; z < stepsZ-1; z++ )
 			{
-				for( int x = 0; x < stepsX; x++ )
+				for(unsigned int x = 0; x < stepsX; x++ )
 				{
 					index = x + ( z * stepsX );
 					indices[indexOffset] = index;

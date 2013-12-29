@@ -1,11 +1,9 @@
 #include "SentenceManager.h"
 
 
-SentenceManager::SentenceManager(ID3D11Device* device, unsigned int maxSentences, int width, int height)
+SentenceManager::SentenceManager(ID3D11Device* device, int width, int height)
 : screenWidth(width), screenHeight(height), font()
 {
-	this->maxSentences = maxSentences;
-
 	// Initialize the font object. 
 	font.Initialize(device, "../Engine/data/fontdata.txt", L"../Engine/data/font.dds");
 
@@ -19,39 +17,55 @@ SentenceManager::~SentenceManager()
 
 void SentenceManager::Reset()
 {
-	//Reset sentences
-	sentences.clear();
-	sentences.resize(maxSentences);
-
 	//Reset prioQueue
-	prioQueue = std::priority_queue<int>();
+	prioQueue = std::priority_queue<unsigned short, vector<unsigned short>, std::greater<unsigned short>>();
 
-	for(unsigned int i = 0; i < maxSentences; i++)
+	activeSentenceCount = 0;
+
+	for(unsigned int i = 0; i < MaxSentences; i++)
 	{
 		prioQueue.push(i);
-		sentences[i].isActive = false;
+		indices[i].index = i;
+		indices[i].generation = 0;
 	}
 }
 
-int SentenceManager::CreateSentence(ID3D11Device* device, ID3D11DeviceContext* deviceContext, int maxLength, std::string textString, int positionX, int positionY, XMFLOAT3 rgbColor)
+SentenceManager::Handle SentenceManager::CreateSentence(ID3D11Device* device, ID3D11DeviceContext* deviceContext, int maxLength, std::string textString, int positionX, int positionY, XMFLOAT3 rgbColor)
 {
+	Handle tempHandle;
+
+	tempHandle.id = MaxSentences+1;
+	tempHandle.generation = 0;
+
+	//Bounds check
+	if(activeSentenceCount > MaxSentences)
+	{
+		return tempHandle;
+	}
+
 	std::vector<VertexType> vertices;
-	std::vector<unsigned long> indices;
+	std::vector<unsigned long> meshIndices;
 	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA vertexData, indexData;
 	HRESULT result;
 	int i;
 
-	int vectorSlot = GetNextSentenceSlot();
+	//We get the next open index slot to write to
+	Index& newIndex = indices[GetNextSentenceSlot()];
 
-	//Important to set this to true.
-	sentences[vectorSlot].isActive = true;
+	//Assign the index to the next free sentence slot.
+	newIndex.index = activeSentenceCount++;
+	newIndex.generation++;
+
+	const unsigned short vectorSlot = newIndex.index;
+
+	sentences[vectorSlot].id = newIndex.index;
 
 	// Set the maximum length of the sentence.
 	sentences[vectorSlot].maxLength = maxLength;
 
 	// Set the number of vertices in the vertex array.
-	sentences[vectorSlot].vertexCount = 6 * maxLength; //NO! 4! BAD!
+	sentences[vectorSlot].vertexCount = 6 * maxLength;
 
 	// Set the number of indexes in the index array.
 	sentences[vectorSlot].indexCount = sentences[vectorSlot].vertexCount;
@@ -60,12 +74,12 @@ int SentenceManager::CreateSentence(ID3D11Device* device, ID3D11DeviceContext* d
 	vertices.resize(sentences[vectorSlot].vertexCount);
 
 	// Create the index array.
-	indices.resize(sentences[vectorSlot].indexCount);
+	meshIndices.resize(sentences[vectorSlot].indexCount);
 
 	// Initialize the index array.
 	for(i=0; i< sentences[vectorSlot].indexCount; i++)
 	{
-		indices[i] = i;
+		meshIndices[i] = i;
 	}
 
 	// Set up the description of the dynamic vertex buffer.
@@ -85,7 +99,7 @@ int SentenceManager::CreateSentence(ID3D11Device* device, ID3D11DeviceContext* d
 	result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &sentences[vectorSlot].vertexBuffer.p);
 	if(FAILED(result))
 	{
-		return false;
+		MessageBox(GetDesktopWindow(), L"Something went wrong when creating sentence vertex buffer. Look in sentenceManager.", L"Error", MB_OK);
 	}
 
 	// Set up the description of the static index buffer.
@@ -97,7 +111,7 @@ int SentenceManager::CreateSentence(ID3D11Device* device, ID3D11DeviceContext* d
 	indexBufferDesc.StructureByteStride = 0;
 
 	// Give the subresource structure a pointer to the index data.
-	indexData.pSysMem = indices.data();
+	indexData.pSysMem = meshIndices.data();
 	indexData.SysMemPitch = 0;
 	indexData.SysMemSlicePitch = 0;
 
@@ -105,24 +119,31 @@ int SentenceManager::CreateSentence(ID3D11Device* device, ID3D11DeviceContext* d
 	result = device->CreateBuffer(&indexBufferDesc, &indexData, &sentences[vectorSlot].indexBuffer.p);
 	if(FAILED(result))
 	{
-		MessageBox(GetDesktopWindow(), L"Something went wrong when creating sentence buffer. Look in sentenceManager.", L"Error", MB_OK);
+		MessageBox(GetDesktopWindow(), L"Something went wrong when creating sentence index buffer. Look in sentenceManager.", L"Error", MB_OK);
 	}
 
-	if(!UpdateSentence(deviceContext, vectorSlot, textString, positionX, positionY, rgbColor))
+	//Because for some design reason I don't remember (I was drunk), all my external functions recieve a Handle instead of an Index
+	tempHandle.id = newIndex.index;
+	tempHandle.generation = newIndex.generation;
+	
+	if(!UpdateSentence(deviceContext, tempHandle, textString, positionX, positionY, rgbColor))
 	{
 		MessageBox(GetDesktopWindow(), L"Something went updating a sentence. Look in sentenceManager.", L"Error", MB_OK);
 	}
 
-	return vectorSlot;
+	return tempHandle;
 }
 
-bool SentenceManager::UpdateSentence(ID3D11DeviceContext* deviceContext, int id, std::string textString, int positionX, int positionY, XMFLOAT3 rgbColor)
+bool SentenceManager::UpdateSentence(ID3D11DeviceContext* deviceContext, Handle handle, std::string textString, int positionX, int positionY, XMFLOAT3 rgbColor)
 {
-	//Break early if sentence isn't active
-	if(!sentences[id].isActive)
+	Index& idx = indices[handle.id];
+
+	if(idx.generation != handle.generation)
 	{
 		return false;
 	}
+
+	unsigned int id = idx.index;
 
 	int numLetters;
 	VertexType* vertices;
@@ -184,4 +205,41 @@ bool SentenceManager::UpdateSentence(ID3D11DeviceContext* deviceContext, int id,
 	vertices = 0;
 
 	return true;
+}
+
+void SentenceManager::ReleaseSentence( int id )
+{
+	//We remove a sentence. This is how we do that:
+	// 1) Swap furthest out sentence with the one we should delete. 
+	// 2) Update indices to reflect this.
+	// 3) Reduce activeSentences by one. 
+	// 4) Re-add the ID to the prio queue so that it can be reused.
+
+	Index idx = indices[id];
+
+	//Get reference to the sentence we're going to remove.
+	SentenceType& sentence = sentences[idx.index];
+	sentence.id = MaxSentences+1;
+
+	//Swap sentence with furthest out active sentence.
+	swap(sentence, sentences[activeSentenceCount-1]);
+
+	//Swap indices.
+	indices[activeSentenceCount-1].index = idx.index;
+
+	//Decrement active sentences, essentially invalidating the swapped sentence. It's still technically there, just that we're not going to read or access it.
+	activeSentenceCount--;
+
+	//Set index to a value that is per design "unreachable" to signify that it's empty.
+	idx.index = MaxSentences+1;
+
+	//Add the ID back to the priority queue to let the allocator know that this ID slot is available.
+	prioQueue.push(id);
+}
+
+bool SentenceManager::IsSentenceValid(Handle handle)
+{
+	Index& idx = indices[handle.id];
+
+	return (idx.generation == handle.generation && idx.index <= MaxSentences);
 }

@@ -3,32 +3,16 @@
 /*						TODO AND THINGS OF THAT SORT							*/
 /********************************************************************************/
 
-* RTW shadowmapping
+* Data oriented containers for rendering related things. Should only contain like... arrays of IndexedMeshes and other things.
+
 * Bullet collision detection. Start with marching cubes meshes. Should be easy enough.  
 	- http://bulletphysics.org/mediawiki-1.5.8/index.php/Hello_World + http://bulletphysics.org/mediawiki-1.5.8/index.php/Code_Snippets
+
+* RTW shadowmapping < Cuz it's fuckin' awesome.
+
+* Decide upon a GUI library and implement it
+
 * Clean up Renderer code. Start moving things to World.
-
-* Data oriented container.	-> http://molecularmusings.wordpress.com/2013/07/24/adventures-in-data-oriented-design-part-3c-external-references/
-							-> http://bitsquid.blogspot.se/2011/09/managing-decoupling-part-4-id-lookup.html
-
-"The sparse (outer) array stores indices into the dense (inner) array, and a generation for each item. 
-This generation is our monotonically increasing integer that was introduced last time. 
-The dense array stores the items contiguously in memory, just like a regular array."
-
-Which means that we have:
-struct Handle
-{
-	int16 ID, //used to index into the index array
-	int16 generation //must match with the index generation so that we know we aren't accessing stale data
-}
-
-struct Index
-{
-	int16 generation, //must match with the handle generation so that we know we aren't accessing stale data
-	int16 index, //real index into the real dense array inside that actually contains objects
-	//Here possibly a ... ptr? to the next relevant index.. but that's silly, just use a min/maxheap ?
-}
-
 
 * Make geometry shader grass more fancy.
 	-Should pretty much be finished now, just need to do the lookup-based-on-height thing.
@@ -49,19 +33,34 @@ Can I call the same function with several threads? Or just use one separate thre
 
 ============================================================================
 
-
 ########## Idea regarding vegetation lookup table ##################
 
 First you have a lookup texture, a 1DTextureArray that has the same amount of textures as you have height in the world. You index into this texture array with the grassquad's worldPos.Y
 Each texture has the first pixel allocated to the amount of textures there are. So you read the first pixel value to know how many textures there are in this texture.
-Then, when you know how many textures there are, you randomly select which texture you want to use. And then Load(1+RandomVal). 1+ because you don't want to use the first pixel in the texture.
+Then, when you know how many textures there are, you randomly select which texture you want to use. And then Load(1+(RandomVal*AmountOfTextures)). 
+1+ because you don't want to use the first pixel in the texture.
 
 Then you use the loaded texture ID to sample from your texture2DArray
 
 ###################################################################
 
+¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤ How to identify separate islands and other parts to make separate meshes out of them ¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+	
+Simply walk through the entire voxel field, if something is inside==true, we create a vector to contain all of those vertices in a separate vector. 
+Whenever we reach a vertice that isn't inside, it's clear that we have reached the end... 
+
+Alternative would simply be to keep the voxel field after we've created the entire mesh. Every time a collision happens we re-create the mesh.
+
+¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+
 /*
 *******THE LINK DUNGEON*******
+
+XNAMATH to bullet transforms:
+http://www.gamedev.net/topic/635056-rigidbody-rotation/
+
+http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=7764
+
 
 Rendering and general layout of rendering system:
 http://gamedev.stackexchange.com/questions/22080/which-of-these-directx11-calls-actually-sends-data-to-the-gpu
@@ -82,3 +81,42 @@ http://www.gamasutra.com/view/feature/1830/multithreaded_game_engine_.php
 http://www.gamasutra.com/view/feature/2463/threading_3d_game_engine_basics.php
 http://bitsquid.blogspot.se/2010/03/task-management-practical-example.html
 */
+
+/*
+http://stackoverflow.com/questions/86582/singleton-how-should-it-be-used
+http://stackoverflow.com/questions/10892167/proper-implementation-of-global-configuration
+
+ * C++ Singleton
+ * Limitation: Single Threaded Design
+ * See: http://www.aristeia.com/Papers/DDJ_Jul_Aug_2004_revised.pdf
+ *      For problems associated with locking in multi threaded applications
+ *
+ * Limitation:
+ * If you use this Singleton (A) within a destructor of another Singleton (B)
+ * This Singleton (A) must be fully constructed before the constructor of (B)
+ * is called.
+ */
+class MySingleton
+{
+	private:
+		// Private Constructor
+		MySingleton();
+		// Stop the compiler generating methods of copy the object
+		MySingleton(MySingleton const& copy);            // Not Implemented
+		MySingleton& operator=(MySingleton const& copy); // Not Implemented
+
+	public:
+		static MySingleton& getInstance()
+		{
+			// The only instance
+			// Guaranteed to be lazy initialized
+			// Guaranteed that it will be destroyed correctly
+			static MySingleton instance;
+			return instance;
+		}
+};
+
+
+
+OTHER POSSIBLE IDEA: Just using namespaces? Kind of divide them into relevant batches like... Water settings, Grass settings, Render settings, TerrainGeneration settings etc... 
+then coupling all of the different variables to some sort of GUI

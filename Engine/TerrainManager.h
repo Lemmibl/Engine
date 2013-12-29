@@ -1,14 +1,17 @@
 #pragma once
+
+#define BT_NO_SIMD_OPERATOR_OVERLOADS //Needed to fix clash between bullet libraries and xnamath. https://code.google.com/p/bullet/issues/detail?id=710
+
+#include <btBulletDynamicsCommon.h>
 #include "Lemmi2DAABB.h"
 #include "MarchingCubeChunk.h"
-#include <unordered_map> //For unordered_map ......... yeah.
+#include <unordered_map>
 #include "MCTerrainClass.h"
 #include "VegetationManager.h"
 #include <memory> //For shared_ptrs
 #include "marchingCubesClass.h"
 #include "d3dmanager.h"
 #include <math.h>
-#include "TextureAndMaterialHandler.h"
 
 class TerrainManager
 {
@@ -29,7 +32,7 @@ private:
 	};
 
 public:
-	TerrainManager(ID3D11Device* device, ID3D11DeviceContext* deviceContext, NoiseClass* noise, TextureAndMaterialHandler* texAndMatHandler, HWND hwnd,  XMFLOAT3 cameraPosition);
+	TerrainManager(ID3D11Device* device, ID3D11DeviceContext* deviceContext, std::shared_ptr<btDiscreteDynamicsWorld> collisionWorld, HWND hwnd,  XMFLOAT3 cameraPosition);
 	~TerrainManager();
 
 	//Returns a bool to indicate if we've actually had to change anything. If true, it has changed and we should fetch the new data.
@@ -46,11 +49,6 @@ public:
 
 	vector<MarchingCubeChunk*>& GetActiveChunks() { return activeChunks; }
 	vector<RenderableInterface*>& GetActiveRenderables(){ return activeRenderables; }
-	ID3D11ShaderResourceView* GetWindTexture() { return windTexture.p; }
-	ID3D11ShaderResourceView** GetWindTexturePP() { return &windTexture.p; }
-
-	ID3D11ShaderResourceView* GetWindNormalMapTexture() { return windTextureNormalMap.p; }
-	ID3D11ShaderResourceView** GetWindNormalMapTexturePP() { return &windTextureNormalMap.p; }
 
 	void GenerateVegetation(ID3D11Device* device, bool UpdateInstanceBuffer, MarchingCubeChunk* chunk);
 	void RenderVegetation();
@@ -78,14 +76,12 @@ private:
 
 
 private:
-	CComPtr<ID3D11ShaderResourceView> windTexture;
-	CComPtr<ID3D11ShaderResourceView> windTextureNormalMap;
+	std::shared_ptr<btDiscreteDynamicsWorld> collisionHandler;
 
 	MarchingCubesClass marchingCubes;
 	MCTerrainClass mcTerrain;
 	VegetationManager vegetationManager;
-	TextureAndMaterialHandler* textureAndMaterialHandler;
-	NoiseClass* noise;
+	NoiseClass noise;
 	unsigned int vegetationCount;
 	float stepScaling;
 

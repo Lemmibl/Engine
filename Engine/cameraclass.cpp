@@ -181,6 +181,10 @@ CameraClass::~CameraClass()
 
 void CameraClass::SetPerspectiveProjection(int screenWidth, int screenHeight, float FOVinDegrees, float zNear, float zFar)
 {
+	this->screenWidth = screenWidth;
+	this->screenHeight = screenHeight;
+	this->nearClip = zNear;
+	this->farClip = zFar;
 
 	// Setup the projection matrix.
 	float FOV = FOVinDegrees;// * (float)DEG_TO_RAD;

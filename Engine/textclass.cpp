@@ -5,7 +5,7 @@
 
 TextClass::TextClass(ID3D11Device* device, ID3D11DeviceContext* deviceContext, HWND hwnd, int screenWidth, int screenHeight)
 : fontShader(),
-sentenceManager(device, 100, screenWidth, screenHeight)
+sentenceManager(device, screenWidth, screenHeight)
 {
 	// Store the screen width and height.
 	this->screenWidth = screenWidth;
@@ -36,8 +36,8 @@ sentenceManager(device, 100, screenWidth, screenHeight)
 
 	numberOfTrianglesRenderedTextID = sentenceManager.CreateSentence(device, deviceContext, 32, "", 0, 0, nullVec);
 
-	white = XMFLOAT3(1.0f, 1.0f, 1.0f);
 	black = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	white = XMFLOAT3(1.0f, 1.0f, 1.0f);
 
 	red = XMFLOAT3(1.0f, 0.0f, 0.0f);
 	green = XMFLOAT3(0.0f, 1.0f, 0.0f);
@@ -60,16 +60,15 @@ void TextClass::Shutdown()
 
 bool TextClass::Render(ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection)
 {
+	//auto because I'm lazy scum
 	auto tempVec = sentenceManager.GetAllSentences();
+	auto fontClass = sentenceManager.GetFont();
 
-	for(unsigned int i = 0; i < tempVec->size(); i++) 
+	for(unsigned int i = 0; i < sentenceManager.GetActiveSentenceCount(); i++) 
 	{
-		if(tempVec->at(i).isActive)
+		if(!RenderSentence(&tempVec[i], fontClass, deviceContext, worldViewProjection))
 		{
-			if(!RenderSentence(&(tempVec->at(i)), sentenceManager.GetFont(), deviceContext, worldViewProjection))
-			{
-				return false;
-			}
+			return false;
 		}
 	}
 

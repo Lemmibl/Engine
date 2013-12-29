@@ -37,21 +37,21 @@ private:
 	//TODO CHANGE ALL OF THE BELOW TO IDS
 	//THEN MOVE ALL SENTENCE MANAGING TO SENTENCEMANAGER
 
-	int fpsCountTextID;
-	int cpuLoadTextID;
-	int mousePosXTextID;
-	int mousePosYTextID;
+	SentenceManager::Handle fpsCountTextID;
+	SentenceManager::Handle cpuLoadTextID;
+	SentenceManager::Handle mousePosXTextID;
+	SentenceManager::Handle mousePosYTextID;
+	
+	SentenceManager::Handle cameraPosXTextID;
+	SentenceManager::Handle cameraPosYTextID;
+	SentenceManager::Handle cameraPosZTextID;
+	SentenceManager::Handle cameraRotXTextID;
+	SentenceManager::Handle cameraRotYTextID;
+	SentenceManager::Handle cameraRotZTextID;
 
-	int cameraPosXTextID;
-	int cameraPosYTextID;
-	int cameraPosZTextID;
-	int cameraRotXTextID;
-	int cameraRotYTextID;
-	int cameraRotZTextID;
-
-	int numberOfModelsDrawnTextID;
-	int numberOfTrianglesRenderedTextID; //For the terrain/quadtree
-	int lastCharPressedTextID;
+	SentenceManager::Handle numberOfModelsDrawnTextID;
+	SentenceManager::Handle numberOfTrianglesRenderedTextID; //For the terrain/quadtree
+	SentenceManager::Handle lastCharPressedTextID;
 
 	XMFLOAT3 white, black, red, green, blue, yellow, cyan, magenta;
 };

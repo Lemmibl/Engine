@@ -4,12 +4,11 @@
 
 //Ultra simple AABB
 //http://devmaster.net/forums/topic/7934-aabb-collision/
-struct Lemmi2DAABB
+class Lemmi2DAABB
 {
+	public:
 
 	Lemmi2DAABB(){}
-	~Lemmi2DAABB(){}
-
 	Lemmi2DAABB(XMFLOAT2 minPoint, XMFLOAT2 maxPoint)
 	{
 		this->minPoint = minPoint;
@@ -19,6 +18,8 @@ struct Lemmi2DAABB
 		xSize = maxPoint.x - minPoint.x;
 		ySize = maxPoint.y - minPoint.y;
 	}
+
+	~Lemmi2DAABB(){}
 
 	XMFLOAT2 MinPoint() const { return minPoint; }
 	XMFLOAT2 MaxPoint() const { return maxPoint; }

@@ -48,7 +48,7 @@ void WaterShaderGS(triangle VSOutput input[3], inout TriangleStream<PSInput> Tri
 	float4 pos2 = (input[1].Position);
 	float4 pos3 = (input[2].Position);
 
-	if(viewDepth >= 0.3f)
+	if(viewDepth >= 0.5f)
 	{
 		pos1 += (UpNormal * output[0].TexCoord.z);
 		pos2 += (UpNormal * output[1].TexCoord.z);

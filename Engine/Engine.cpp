@@ -4,11 +4,7 @@
 #include "Engine.h"
 
 Engine::Engine()
-:
-	renderer(),
-	timer(),
-	fpsMeter(),
-	cpuMeter()
+: renderer(), timer(), fpsMeter(), cpuMeter()
 {
 	cameraController = 0;
 	camera = 0;
@@ -38,7 +34,7 @@ bool Engine::Initialize()
 	InitializeWindows(screenWidth, screenHeight);
 
 	// Create the input object.  This object will be used to handle reading the keyboard input from the user.
-	input = std::make_shared<InputClass>(InputClass());
+	input = std::make_shared<InputClass>();
 	if(!input)
 	{
 		return false;
@@ -52,7 +48,7 @@ bool Engine::Initialize()
 		return false;
 	}
 
-	d3D = std::make_shared<D3DManager>(D3DManager());
+	d3D = std::make_shared<D3DManager>();
 	if(!d3D)
 	{
 		return false;
@@ -67,14 +63,14 @@ bool Engine::Initialize()
 		return false;
 	}
 
-	cameraController = std::make_shared<ControllerClass>(ControllerClass(input, 0.05f, 0.05f));
+	cameraController = std::make_shared<ControllerClass>(input, 0.05f, 0.05f);
 	if(!cameraController)
 	{
 		return false;
 	}
 
 	// Create the camera object.
-	camera = std::make_shared<CameraClass>(CameraClass(cameraController));
+	camera = std::make_shared<CameraClass>(cameraController);
 	if(!camera)
 	{
 		MessageBox(hwnd, L"Could not create the camera object. Look in engine.", L"Error", MB_OK);
@@ -83,11 +79,14 @@ bool Engine::Initialize()
 
 	// Initialize a base view matrix with the camera for 2D UI rendering.
 	camera->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
-	camera->Update();
+	camera->Update(); //Call update once at default position to set up matrices properly
 
 	camera->SetPosition(XMFLOAT3(50.0f, 50.0f, 50.0f));
 	camera->SetRotation(XMFLOAT3(0.0f, 0.0f, 0.0f));
 	camera->SetPerspectiveProjection(screenWidth, screenHeight, XM_PIDIV4, SCREEN_NEAR, SCREEN_FAR); 
+
+	//Initialize world
+	world.Initialize(d3D, camera);
 
 
 	// Initialize the renderer.
@@ -181,7 +180,10 @@ bool Engine::Update()
 
 	cameraController->Update(timer.GetFrameTimeMilliseconds(), camera->GetWorldMatrix()); //Processes all of the movement for this controller.
 	camera->Update();
-	
+
+	//Here. Do world update stuff here.
+	world.Update();
+
 	// Do update renderer.
 	result = renderer.Update(hwnd, fpsMeter.GetFps(), cpuMeter.GetCpuPercentage(), timer.GetFrameTimeMilliseconds(), timer.GetFrameTimeSeconds());
 	if(!result)
@@ -190,7 +192,7 @@ bool Engine::Update()
 	}
 
 	// Finally render the graphics to the screen.
-	result = renderer.Render(hwnd);
+	result = renderer.Render(hwnd, world.GetRenderableBundle());
 	if(!result)
 	{
 		return false;
@@ -270,18 +272,18 @@ void Engine::InitializeWindows(int& screenWidth, int& screenHeight)
 
 	// Create the window with the screen settings and get the handle to it.
 	hwnd = CreateWindowEx(
-	WS_EX_APPWINDOW, 
-	applicationName, 
-	applicationName, 
-	WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_POPUP, // to remove window borders, change to this: WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP
-	posX, 
-	posY, 
-	screenWidth, 
-	screenHeight, 
-	NULL, 
-	NULL, 
-	hinstance, 
-	NULL);
+		WS_EX_APPWINDOW, 
+		applicationName, 
+		applicationName, 
+		WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_POPUP, // to remove window borders, change to this: WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP
+		posX, 
+		posY, 
+		screenWidth, 
+		screenHeight, 
+		NULL, 
+		NULL, 
+		hinstance, 
+		NULL);
 
 	// Bring the window up on the screen and set it as main focus.
 	ShowWindow(hwnd, SW_SHOW);

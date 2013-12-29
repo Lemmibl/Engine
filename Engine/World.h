@@ -1,9 +1,32 @@
 #pragma once
+
+#define BT_NO_SIMD_OPERATOR_OVERLOADS //Needed to fix clash between bullet libraries and xnamath. https://code.google.com/p/bullet/issues/detail?id=710
+
+#include <memory>
+#include <btBulletDynamicsCommon.h>
+#include "MCTerrainClass.h"
+#include "TerrainManager.h"
+#include "d3dmanager.h"
+#include "cameraclass.h"
+#include "frustumclass.h"
+#include "Renderer.h"
+#include "Lemmi2DAABB.h"
+
+using namespace std;
+
 class World
 {
 public:
-	World(void);
-	~World(void);
+	World();
+	~World();
+
+	void Initialize(shared_ptr<D3DManager> extD3DManager, shared_ptr<CameraClass> extCamera);
+	void InitializeCollisionStuff();
+	void InitializeTerrain();
+
+	void Update();
+
+	Renderer::RenderableBundle* GetRenderableBundle() {  return &renderableBundle; };
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -15,7 +38,7 @@ public:
 //			*	EntityManager will contain all of the entities, obviously. Handle logic like spawning/death, culling before rendering and that stuff. Or maybe world will do the culling?
 //			
 //		CollisionManager
-//			*	Obvious what it will manage. You send in entities from entitymanager and you send in terrain from terrainmanager, and you check collisions and return results.	
+//			*	http://bulletphysics.org/mediawiki-1.5.8/index.php/Hello_World
 //		
 //		PhysicsManager
 //			*	Might not even have a physics manager. Could also be responsible for movement and the likes, I guess? Windgeneration maybe?
@@ -40,5 +63,24 @@ public:
 // 
 //////////////////////////////////////////////////////////////////////////
 
+private:
+	//Collision classes
+	shared_ptr<btBroadphaseInterface> broadphase;
+	shared_ptr<btDefaultCollisionConfiguration> collisionConfiguration;
+	shared_ptr<btCollisionDispatcher> dispatcher;
+	shared_ptr<btSequentialImpulseConstraintSolver> solver;
+	shared_ptr<btDiscreteDynamicsWorld> dynamicsWorld;
+
+	//Terrain related objects
+	shared_ptr<TerrainManager>  terrainManager;
+
+	//Rendering
+	Renderer::RenderableBundle renderableBundle;
+
+	//Misc.
+	FrustumClass frustum;
+	Lemmi2DAABB frustumAABB;
+	shared_ptr<CameraClass> camera;
+	shared_ptr<D3DManager> d3D;
 };
 

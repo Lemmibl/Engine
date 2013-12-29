@@ -82,12 +82,6 @@
     <ClCompile Include="StructsAndEnums.cpp">
       <Filter>General Code</Filter>
     </ClCompile>
-    <ClCompile Include="LemmiQuadtree.h">
-      <Filter>General Code\Data classes</Filter>
-    </ClCompile>
-    <ClCompile Include="Lemmi3DAABB.h">
-      <Filter>General Code\Data classes</Filter>
-    </ClCompile>
     <ClCompile Include="LemmiGridTable.cpp">
       <Filter>General Code\Data classes</Filter>
     </ClCompile>
@@ -178,7 +172,15 @@
     <ClCompile Include="WeatherSystem.cpp">
       <Filter>General Code\Systems</Filter>
     </ClCompile>
-    <ClCompile Include="ParticleManager.cpp" />
+    <ClCompile Include="LemmiQuadtree.h">
+      <Filter>Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="Lemmi3DAABB.h">
+      <Filter>Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleManager.cpp">
+      <Filter>Rendering\Managers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cpumeter.h">
@@ -266,9 +268,6 @@
       <Filter>General Code</Filter>
     </ClInclude>
     <ClInclude Include="LemmiLinkedList.h">
-      <Filter>General Code\Data classes</Filter>
-    </ClInclude>
-    <ClInclude Include="Lemmi2DAABB.h">
       <Filter>General Code\Data classes</Filter>
     </ClInclude>
     <ClInclude Include="interfacepointers.h">
@@ -370,7 +369,12 @@
     <ClInclude Include="WeatherSystem.h">
       <Filter>General Code\Systems</Filter>
     </ClInclude>
-    <ClInclude Include="ParticleManager.h" />
+    <ClInclude Include="Lemmi2DAABB.h">
+      <Filter>Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleManager.h">
+      <Filter>Rendering\Managers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader-error.txt" />
@@ -485,15 +489,6 @@
     <Filter Include="Rendering\Shaders\Shadow shaders">
       <UniqueIdentifier>{f3909b06-c348-46c2-8a2b-0dbe726ecaa4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Rendering\Shader wrappers">
-      <UniqueIdentifier>{0a8f4398-cd82-4870-8e40-771be4f98bda}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Rendering\Shader wrappers\Deferred rendering wrappers">
-      <UniqueIdentifier>{6073386f-052b-4234-a49f-55f3fb1520e5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Rendering\Shader wrappers\Shadow shader wrappers">
-      <UniqueIdentifier>{5fd6b732-1941-43e2-9d4c-1be78126a2d6}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Procedural generation">
       <UniqueIdentifier>{6176e1c8-062b-4bea-bebc-18cdf3238207}</UniqueIdentifier>
     </Filter>
@@ -527,20 +522,11 @@
     <Filter Include="Rendering\Objects">
       <UniqueIdentifier>{965eb527-364b-4c1c-9609-492d29014ef3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Rendering\Shader wrappers\Vegetation shader wrappers">
-      <UniqueIdentifier>{772f7d36-6add-4357-9074-bba23b6d478d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Rendering\Shader wrappers\Post processing wrappers">
-      <UniqueIdentifier>{ea2d2fbd-617c-455c-a898-27414fc8c13a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Rendering\Shaders\Vegetation">
       <UniqueIdentifier>{80065f5a-aa04-421f-b7a2-375306199981}</UniqueIdentifier>
     </Filter>
     <Filter Include="Rendering\Shaders\General shaders">
       <UniqueIdentifier>{928971b3-e5c7-4d2a-ba0f-751b722a5fbe}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Rendering\Shader wrappers\General shader wrappers">
-      <UniqueIdentifier>{1c1f1a94-8188-47ac-a178-d6e4fd0a270f}</UniqueIdentifier>
     </Filter>
     <Filter Include="General Code\Utility\Mathstuff">
       <UniqueIdentifier>{88b84ffe-a0e6-4f5f-a7aa-1c2677ef42cd}</UniqueIdentifier>
@@ -548,5 +534,31 @@
     <Filter Include="General Code\Systems">
       <UniqueIdentifier>{1edc4557-0856-49f0-a67a-b73e8296179e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Collision">
+      <UniqueIdentifier>{993b7344-c805-49d5-8782-654f6cdc2ca0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shader wrappers">
+      <UniqueIdentifier>{0a8f4398-cd82-4870-8e40-771be4f98bda}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shader wrappers\Deferred rendering wrappers">
+      <UniqueIdentifier>{6073386f-052b-4234-a49f-55f3fb1520e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shader wrappers\Shadow shader wrappers">
+      <UniqueIdentifier>{5fd6b732-1941-43e2-9d4c-1be78126a2d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shader wrappers\Vegetation shader wrappers">
+      <UniqueIdentifier>{772f7d36-6add-4357-9074-bba23b6d478d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shader wrappers\Post processing wrappers">
+      <UniqueIdentifier>{ea2d2fbd-617c-455c-a898-27414fc8c13a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shader wrappers\General shader wrappers">
+      <UniqueIdentifier>{1c1f1a94-8188-47ac-a178-d6e4fd0a270f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="..\BulletBuild\lib\Debug\BulletCollision_Debug.lib" />
+    <Library Include="..\BulletBuild\lib\Debug\BulletDynamics_Debug.lib" />
+    <Library Include="..\BulletBuild\lib\Debug\LinearMath_Debug.lib" />
   </ItemGroup>
 </Project>

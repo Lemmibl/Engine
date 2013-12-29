@@ -34,15 +34,13 @@ enum Direction
 static const XMFLOAT3 stepSize(2.0f, 2.0f, 2.0f);
 static const XMFLOAT3 stepCount(28.0f, 28.0f, 28.0f);
 
-TerrainManager::TerrainManager(ID3D11Device* device, ID3D11DeviceContext* deviceContext, NoiseClass* externalNoise, TextureAndMaterialHandler* texAndMatHandler, HWND hwnd, XMFLOAT3 cameraPosition)
+TerrainManager::TerrainManager(ID3D11Device* device, ID3D11DeviceContext* deviceContext, std::shared_ptr<btDiscreteDynamicsWorld> collisionWorld, HWND hwnd, XMFLOAT3 cameraPosition)
 :	marchingCubes((int)stepCount.x, (int)stepCount.y, (int)stepCount.z)
 {
 	map = make_shared<std::unordered_map<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>, int_pair_hash>>();
+	collisionHandler = collisionWorld;
 
-	noise = externalNoise;
-	noise->ReseedRandom();
-
-	textureAndMaterialHandler = texAndMatHandler;
+	noise.ReseedRandom();
 
 	lastUsedKey = make_pair<int, int>(99, -99);
 	lastMin = make_pair<int, int>(-99, -99);
@@ -52,18 +50,11 @@ TerrainManager::TerrainManager(ID3D11Device* device, ID3D11DeviceContext* device
 
 	MCTerrainClass::TerrainTypes terrainType = MCTerrainClass::Alien;//(MCTerrainClass::TerrainTypes)(1 + rand()%8); //
 
-	mcTerrain.Initialize((int)stepCount.x, (int)stepCount.y, (int)stepCount.z, externalNoise, terrainType);
+	mcTerrain.Initialize((int)stepCount.x, (int)stepCount.y, (int)stepCount.z, &noise, terrainType);
 
 	assert(vegetationManager.Initialize(device, hwnd));
 
-	float randVal = RoundToNearest(RandomFloat()*100.0f);
-	
-	float noiseTexWidth = 512.0f;
-	float noiseTexHeight = 512.0f;
-
-	//Create a BIG noise texture for water and wind purposes
-	textureAndMaterialHandler->CreateSeamlessSimplex2DTexture(device, deviceContext, &windTexture.p, randVal, randVal, noiseTexWidth, noiseTexHeight, 0.6f);
-	textureAndMaterialHandler->Create2DNormalMapFromHeightmap(device, deviceContext, &windTextureNormalMap.p, noiseTexWidth, noiseTexHeight);
+	float randVal = (float)RoundToNearest(RandomFloat()*100.0f);
 
 	//Define starting point for chunk generation
 	int startGridX, startGridZ;

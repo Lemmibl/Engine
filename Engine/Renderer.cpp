@@ -48,8 +48,6 @@ bool Renderer::Initialize(HWND hwnd, shared_ptr<CameraClass> camera, shared_ptr<
 	toggleColorMode = 1;
 	fogMinimum = 1.0f;
 
-	utility = Utility();
-	
 	XMStoreFloat4x4(&baseViewMatrix, camera->GetView());
 
 	result = InitializeLights(hwnd);
@@ -233,7 +231,7 @@ bool Renderer::InitializeLights( HWND hwnd )
 	dirLight.Intensity = 1.5f;
 	dirLight.Position = XMFLOAT3(150.0f, 0.0f, 0.0f);
 
-	XMVECTOR direction = XMVector3Normalize(lookAt - XMLoadFloat3(&dirLight.Position));
+	XMVECTOR direction = XMVector3Normalize(XMVectorSubtract(lookAt, XMLoadFloat3(&dirLight.Position)));
 	XMStoreFloat3(&dirLight.Direction, direction);
 
 	//XMStoreFloat4x4(&dirLight.Projection, XMMatrixPerspectiveFovLH(XM_PIDIV4, 1.0f, 5.0f, 500.0f));	//Generate PERSPECTIVE light projection matrix and store it as float4x4
@@ -247,12 +245,6 @@ bool Renderer::InitializeLights( HWND hwnd )
 bool Renderer::InitializeModels( HWND hwnd )
 {
 	bool result;
-
-	//Initialize terrain manager
-	terrainManager = make_shared<TerrainManager>(d3D->GetDevice(), d3D->GetDeviceContext(), &noise, &textureAndMaterialHandler, hwnd, camera->GetPosition());
-
-	//Get the meshes from current terrain
-	tempChunks = terrainManager->GetActiveChunks();
 
 	// Initialize the model object. It really doesn't matter what textures it has because it's only used for point light volume culling.
 	result = sphereModel.Initialize(d3D->GetDevice(), "../Engine/data/skydome.txt", L"../Engine/data/grass.dds", L"../Engine/data/dirt.dds", L"../Engine/data/rock.dds");
@@ -276,6 +268,8 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 	{
 		return false;
 	}
+
+	textureAndMaterialHandler.SetupWindtextures(d3D->GetDevice(), d3D->GetDeviceContext(), 0, 0, 1024, 1024, 0.6f);
 
 	result = dayNightCycle.Initialize(500.0f, DAY); //86400.0f/6 <-- This is realistic day/night cycle. 86400 seconds in a day.
 	if(!result)
@@ -305,13 +299,6 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 	lightRT.Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
 	shadowRT.Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R32G32_FLOAT);
 	gaussianBlurPingPongRT.Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R32G32_FLOAT); //Needs to be identical to shadowRT
-
-	// Create the frustum object.
-	frustum = FrustumClass();
-	//1.77f is 16:9 aspect ratio
-	frustum.SetInternals((float)screenWidth / (float)screenHeight, XM_PIDIV2, nearClip, farClip);
-
-	testBoundingbox = Lemmi2DAABB(XMFLOAT2(0, 0), XMFLOAT2(60, 60));
 
 	return true;
 }
@@ -511,56 +498,6 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 		}
 	}
 
-	//if(inputManager->WasKeyPressed(DIK_NUMPAD0) || inputManager->WasKeyPressed(DIK_0))
-	//{
-	//	marchingCubes->GetTerrain()->PulverizeWorldToggle();
-	//}
-
-	if(inputManager->WasKeyPressed(DIK_NUMPAD1) || inputManager->WasKeyPressed(DIK_F1))
-	{
-		terrainManager->SetTerrainType(MCTerrainClass::SeaBottom);
-	}
-
-	if(inputManager->WasKeyPressed(DIK_NUMPAD2) || inputManager->WasKeyPressed(DIK_F2))
-	{
-		terrainManager->SetTerrainType(MCTerrainClass::Plains);
-	}
-
-	if(inputManager->WasKeyPressed(DIK_NUMPAD3) || inputManager->WasKeyPressed(DIK_F3))
-	{
-		terrainManager->SetTerrainType(MCTerrainClass::Hills);
-	}
-
-	if(inputManager->WasKeyPressed(DIK_NUMPAD4) || inputManager->WasKeyPressed(DIK_F4))
-	{
-		terrainManager->SetTerrainType(MCTerrainClass::Terraces);
-	}
-
-	if(inputManager->WasKeyPressed(DIK_NUMPAD5) || inputManager->WasKeyPressed(DIK_F5))
-	{
-		terrainManager->SetTerrainType(MCTerrainClass::DramaticHills);
-	}
-
-	if(inputManager->WasKeyPressed(DIK_NUMPAD6) || inputManager->WasKeyPressed(DIK_F6))
-	{
-		terrainManager->SetTerrainType(MCTerrainClass::FlyingIslands);
-	}
-
-	if(inputManager->WasKeyPressed(DIK_NUMPAD7) || inputManager->WasKeyPressed(DIK_F7))
-	{
-		terrainManager->SetTerrainType(MCTerrainClass::Alien);
-	}
-
-	if(inputManager->WasKeyPressed(DIK_NUMPAD8) || inputManager->WasKeyPressed(DIK_F8))
-	{
-		terrainManager->SetTerrainType(MCTerrainClass::Fancy);
-	}
-
-	if(inputManager->WasKeyPressed(DIK_NUMPAD9) || inputManager->WasKeyPressed(DIK_F9))
-	{
-		terrainManager->SetTerrainType(MCTerrainClass::Cave);
-	}
-
 #pragma region Generate new marching cubes world
 	if(inputManager->WasKeyPressed(DIK_N))
 	{
@@ -568,27 +505,14 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 	}
 #pragma endregion
 
-	//if(terrainManager->Update(d3D->GetDevice(), d3D->GetDeviceContext(), camera->GetPosition()))
-	//{
-	//	tempChunks.clear();
-	//	tempChunks = terrainManager->GetActiveChunks();
-	//}
 
 	timeOfDay = dayNightCycle.Update(seconds, &dirLight, &skySphere);
 
 	XMVECTOR lookAt = XMLoadFloat3(&camera->GetPosition());//XMVectorSet(30.0f, 20.0f, 30.0f, 1.0f);//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition())+(camera->ForwardVector()*30.0f);//XMLoadFloat3(&camera->GetPosition());//
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
-	XMVECTOR currentLightPos = (XMLoadFloat3(&camera->GetPosition())+XMLoadFloat3(&dirLight.Position));//XMLoadFloat3(&camera->GetPosition())-(camera->ForwardVector()*30.0f);
+	XMVECTOR currentLightPos = XMVectorAdd(XMLoadFloat3(&camera->GetPosition()), XMLoadFloat3(&dirLight.Position));//XMLoadFloat3(&camera->GetPosition())-(camera->ForwardVector()*30.0f);
 
-	frustum.CalculateFrustumExtents(&testBoundingbox, XMLoadFloat3(&camera->GetPosition()), camera->ForwardVector(), camera->UpVector());
-
-	if(terrainManager->UpdateAgainstAABB(d3D->GetDevice(), d3D->GetDeviceContext(), &testBoundingbox))
-	{
-		tempChunks.clear();
-		tempChunks = terrainManager->GetActiveChunks();
-	}
-
-	XMStoreFloat3(&dirLight.Direction, XMVector3Normalize((lookAt - currentLightPos)));//XMLoadFloat3(&dirLight.Position)
+	XMStoreFloat3(&dirLight.Direction, XMVector3Normalize(XMVectorSubtract(lookAt, currentLightPos)));//XMLoadFloat3(&dirLight.Position)
 	XMStoreFloat4x4(&dirLight.View, XMMatrixLookAtLH(currentLightPos, lookAt, up)); //Generate light view matrix
 
 	return true;
@@ -632,7 +556,7 @@ void Renderer::SetupRTsAndStuff()
 	gaussianBlurTexture[0] = gaussianBlurPingPongRT.SRView;
 }
 
-bool Renderer::Render(HWND hwnd)
+bool Renderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 {
 	// Clear the scene.
 	d3D->BeginScene(0.1f, 0.1f, 0.45f, 0.0f);
@@ -641,8 +565,6 @@ bool Renderer::Render(HWND hwnd)
 	ID3D11Device* device = d3D->GetDevice();
 
 #pragma region Preparation
-
-
 	// Generate the view matrix based on the camera's position.
 	camPos = camera->GetPosition();
 	XMStoreFloat3(&camDir, XMVector3Normalize(camera->ForwardVector()));
@@ -662,16 +584,12 @@ bool Renderer::Render(HWND hwnd)
 	//	0.0f, 0.0f, 0.0f, 1.0f
 	//	);
 
-	// Get the world, view, projection, and ortho matrices from the camera and Direct3D objects.
 	d3D->GetWorldMatrix(worldMatrix);
 	d3D->GetOrthoMatrix(orthoMatrix);
 	camera->GetViewMatrix(viewMatrix);
 	camera->GetProjectionMatrix(projectionMatrix);
 	lightView = XMLoadFloat4x4(&dirLight.View);
 	lightProj = XMLoadFloat4x4(&dirLight.Projection);
-
-	// Construct the frustum.
-	frustum.ConstructFrustum(farClip, &projectionMatrix, &viewMatrix);
 
 	XMVECTOR nullVec = XMVectorSplatOne();
 	viewProjection = XMMatrixMultiply(viewMatrix, projectionMatrix);
@@ -682,7 +600,7 @@ bool Renderer::Render(HWND hwnd)
 	invertedWorldView = XMMatrixInverse(&nullVec, worldMatrix*viewMatrix);
 
 
-	lightViewProj =	XMMatrixMultiply(lightView, lightProj);
+	lightViewProj =	lightView * lightProj;
 	lightWorldView = worldMatrix * lightView;
 	lightWorldViewProj = worldMatrix * lightView * lightProj;
 
@@ -718,9 +636,9 @@ bool Renderer::Render(HWND hwnd)
 	baseView = XMMatrixTranspose(baseView);
 #pragma endregion
 
-	assert(RenderShadowmap(deviceContext, &lightWorldViewProj, &lightWorldView));
+	assert(RenderShadowmap(deviceContext, &lightWorldViewProj, &lightWorldView, renderableBundle));
 	assert(RenderTwoPassGaussianBlur(deviceContext, &worldBaseViewOrthoProj));
-	assert(RenderGBuffer(deviceContext, &viewMatrix, &projectionMatrix, &identityWorldViewProj));
+	assert(RenderGBuffer(deviceContext, &viewMatrix, &projectionMatrix, &identityWorldViewProj, renderableBundle));
 
 	assert(RenderPointLight(deviceContext, &viewMatrix, &invertedView, &viewProjection));
 	assert(RenderDirectionalLight(deviceContext, &viewMatrix, &worldBaseViewOrthoProj, &lightView, &lightProj, &invertedProjection));
@@ -734,7 +652,7 @@ bool Renderer::Render(HWND hwnd)
 	return true;
 }
 
-bool Renderer::RenderShadowmap( ID3D11DeviceContext* deviceContext, XMMATRIX* lightWorldViewProj, XMMATRIX* lightWorldView)
+bool Renderer::RenderShadowmap( ID3D11DeviceContext* deviceContext, XMMATRIX* lightWorldViewProj, XMMATRIX* lightWorldView, RenderableBundle* renderableBundle)
 {
 	//Early depth pass for shadowmap
 	deviceContext->OMSetRenderTargets(1, &shadowTarget[0].p, shadowDepthStencil);
@@ -744,11 +662,11 @@ bool Renderer::RenderShadowmap( ID3D11DeviceContext* deviceContext, XMMATRIX* li
 
 	d3D->SetNoCullRasterizer();
 
-	for(unsigned int i = 0; i < tempChunks.size(); i++)
+	for(unsigned int i = 0; i < renderableBundle->terrainChunks.size(); i++)
 	{	
-		tempChunks[i]->GetTerrainMesh()->Render(deviceContext);
+		renderableBundle->terrainChunks[i]->GetTerrainMesh()->Render(deviceContext);
 
-		if(!depthOnlyShader.Render(deviceContext, tempChunks[i]->GetTerrainMesh()->GetIndexCount(), lightWorldViewProj, lightWorldView))
+		if(!depthOnlyShader.Render(deviceContext, renderableBundle->terrainChunks[i]->GetTerrainMesh()->GetIndexCount(), lightWorldViewProj, lightWorldView))
 		{
 			return false;
 		}
@@ -795,7 +713,7 @@ bool Renderer::RenderTwoPassGaussianBlur(ID3D11DeviceContext* deviceContext, XMM
 	return true;
 }
 
-bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, XMMATRIX* identityWorldViewProj )
+bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, XMMATRIX* identityWorldViewProj, RenderableBundle* renderableBundle)
 {
 	XMMATRIX worldViewProjMatrix, worldMatrix, worldView;
 
@@ -834,11 +752,11 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 	worldView = XMMatrixTranspose(worldMatrix * (*viewMatrix));
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
-	for(unsigned int i = 0; i < tempChunks.size(); i++)
+	for(unsigned int i = 0; i < renderableBundle->terrainChunks.size(); i++)
 	{	
-		tempChunks[i]->GetTerrainMesh()->Render(deviceContext);
+		 renderableBundle->terrainChunks[i]->GetTerrainMesh()->Render(deviceContext);
 
-		if(!mcubeShader.Render(d3D->GetDeviceContext(), tempChunks[i]->GetTerrainMesh()->GetIndexCount(), &worldMatrix, &worldView, 
+		if(!mcubeShader.Render(d3D->GetDeviceContext(),  renderableBundle->terrainChunks[i]->GetTerrainMesh()->GetIndexCount(), &worldMatrix, &worldView, 
 			identityWorldViewProj, textureAndMaterialHandler.GetTerrainTextureArray(), textureAndMaterialHandler.GetMaterialLookupTexture(), toggleColorMode, farClip))
 		{
 			return false;
@@ -848,12 +766,12 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 	d3D->TurnOnTransparencyBlending();
 	d3D->SetDepthBiasRasterizer();
 
-	for(unsigned int i = 0; i < tempChunks.size(); i++)
+	for(unsigned int i = 0; i <  renderableBundle->terrainChunks.size(); i++)
 	{	
-		tempChunks[i]->GetWaterMesh()->Render(deviceContext);
+		 renderableBundle->terrainChunks[i]->GetWaterMesh()->Render(deviceContext);
 
-		if(!waterShader.Render(d3D->GetDeviceContext(), tempChunks[i]->GetWaterMesh()->GetIndexCount(), &worldMatrix, &worldView, identityWorldViewProj, 
-			textureAndMaterialHandler.GetVegetationTextureArray(), terrainManager->GetWindTexturePP(), terrainManager->GetWindNormalMapTexturePP(), 
+		if(!waterShader.Render(d3D->GetDeviceContext(),  renderableBundle->terrainChunks[i]->GetWaterMesh()->GetIndexCount(), &worldMatrix, &worldView, identityWorldViewProj, 
+			textureAndMaterialHandler.GetVegetationTextureArray(), textureAndMaterialHandler.GetWindTexture(), textureAndMaterialHandler.GetWindNormalMap(), 
 			farClip, backAndForth))
 		{
 			return false;
@@ -863,13 +781,13 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 	d3D->TurnOnAlphaBlending();
 	d3D->SetNoCullRasterizer();
 
-	for(unsigned int i = 0; i < tempChunks.size(); i++)
+	for(unsigned int i = 0; i <  renderableBundle->terrainChunks.size(); i++)
 	{	
-		tempChunks[i]->GetTerrainMesh()->Render(deviceContext);
+		 renderableBundle->terrainChunks[i]->GetTerrainMesh()->Render(deviceContext);
 
-		if(!geometryShaderGrass.Render(d3D->GetDeviceContext(), tempChunks[i]->GetTerrainMesh()->GetIndexCount(), &worldMatrix, &worldView, 
+		if(!geometryShaderGrass.Render(d3D->GetDeviceContext(),  renderableBundle->terrainChunks[i]->GetTerrainMesh()->GetIndexCount(), &worldMatrix, &worldView, 
 			identityWorldViewProj, textureAndMaterialHandler.GetVegetationTextureArray(), textureAndMaterialHandler.GetMaterialLookupTexture(), 
-			terrainManager->GetWindTexturePP(), toggleColorMode, farClip, backAndForth))
+			textureAndMaterialHandler.GetWindTexture(), toggleColorMode, farClip, backAndForth))
 		{
 			return false;
 		}
@@ -1051,7 +969,7 @@ bool Renderer::RenderDebugInfoAndText(ID3D11DeviceContext* deviceContext, XMMATR
 
 		//*textureAndMaterialHandler.GetNoiseTexture()
 		if(!textureShader.Render(d3D->GetDeviceContext(), debugWindows[5].GetIndexCount(), 
-			worldBaseViewOrthoProj, terrainManager->GetWindNormalMapTexture()))
+			worldBaseViewOrthoProj, *textureAndMaterialHandler.GetWindNormalMap()))
 		{
 			return false;
 		}
@@ -1062,7 +980,7 @@ bool Renderer::RenderDebugInfoAndText(ID3D11DeviceContext* deviceContext, XMMATR
 		}
 
 		if(!textureShader.Render(d3D->GetDeviceContext(), debugWindows[6].GetIndexCount(), 
-			worldBaseViewOrthoProj, terrainManager->GetWindTexture()))
+			worldBaseViewOrthoProj, *textureAndMaterialHandler.GetWindTexture()))
 		{
 			return false;
 		}

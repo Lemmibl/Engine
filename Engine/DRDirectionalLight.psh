@@ -116,7 +116,7 @@ float3 DepthToPosition(float depth, float4 ScreenPosition)
 //Calculate shadow contribution using chevyshev's inequality.
 float ChebyshevUpperBound(float2 moments, float t)  
 {
-	float minVariance = 0.002f; //Scaling value.
+	float minVariance = 0.000002f; //Scaling value.
 
 	// Compute variance.  
 	float variance = moments.y - (moments.x*moments.x);
@@ -126,7 +126,7 @@ float ChebyshevUpperBound(float2 moments, float t)
 	float d = (t - moments.x);
 	float p_max = (variance / (variance + d*d));
 
-	return pow(p_max, 24);
+	return p_max;
 }
 
 
@@ -136,7 +136,7 @@ float ShadowContribution(float2 lightTexCoord, float distanceToLight)
 	float2 moments = shaderTextures[2].Sample(anisotropicSampler, lightTexCoord).rg;
 
 	//If surface is fully lit, break early.
-	if(distanceToLight < moments.x)
+	if(distanceToLight <= moments.x)
 	{
 		return 1.0f;
 	}
@@ -205,7 +205,6 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	float4 position = mul(float4(DepthToPosition(depth, input.ScreenPosition), 1.0f), InvertedView);
 	position /= position.w;
 
-	
 	//Extract pixel position as seen from light POV for shadow map extraction.
 	float4 lightScreenPos = mul(position,  mul(LightView, LightProjection));
 
@@ -230,7 +229,7 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//Calculate diffuse light
 	finalDiffuseProduct += diffuseCoefficient * (NdL * DiffuseColor.rgb);
 
-	if(NdL > -0.1f)
+	if(NdL > 0.0f)
 	{
 		//Reflection vector
 		float3 reflectionVector = normalize(reflect(lightVector, normal));

@@ -9,7 +9,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pScmdline,
 	Engine* System;
 	bool result;
 
-
 	// Create the system object.
 	System = new Engine;
 	if(!System)

@@ -928,8 +928,7 @@ void TextureAndMaterialHandler::RebuildSimplex2DTexture( ID3D11Device* device, I
 	CreateSimplex2DTexture(device, deviceContext, &noiseSRV.p);
 }
 
-void TextureAndMaterialHandler::RebuildSeamlessSimplex2DTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
-	float startPosX, float startPosY, float stepsX, float stepsY )
+void TextureAndMaterialHandler::RebuildSeamlessSimplex2DTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, float startPosX, float startPosY, unsigned int stepsX, unsigned int stepsY )
 {
 	//If this SRV has been initialized before, release it first.
 	if(noiseSRV)
@@ -1061,11 +1060,9 @@ void TextureAndMaterialHandler::RebuildTexture( ID3D11Device* device, ID3D11Devi
 
 //Credits: http://www.sjeiti.com/creating-tileable-noise-maps/
 HRESULT TextureAndMaterialHandler::CreateSeamlessSimplex2DTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv, 
-	float startPosX, float startPosY, float stepsX, float stepsY, float noiseScale )
+	float startPosX, float startPosY, unsigned int textureWidth, unsigned int textureHeight, float noiseScale )
 {
-	int textureWidth, textureHeight,i;
-	textureWidth = (int)stepsX;
-	textureHeight = (int)stepsY;
+	int i;
 	i = 0;
 
 	float radius = (textureWidth/2)-2.0f;
@@ -1089,7 +1086,7 @@ HRESULT TextureAndMaterialHandler::CreateSeamlessSimplex2DTexture( ID3D11Device*
 			float nw = radius+cos(yPi);
 
 			//Produce noise, rescale it from [-1, 1] to [0, 1] then multiply to [0, 256] to make full use of the 8bit channels of the texture it'll be stored in.
-			int noiseResult = ((0.5f * noise->SimplexNoise4D(nx*noiseScale, ny*noiseScale, nz*noiseScale, nw*noiseScale) + 0.5f) * 256);
+			int noiseResult = (int)((0.5f * noise->SimplexNoise4D(nx*noiseScale, ny*noiseScale, nz*noiseScale, nw*noiseScale) + 0.5f) * 256);
 
 			pixelData[i] = noiseResult;
 
@@ -1167,16 +1164,15 @@ HRESULT TextureAndMaterialHandler::Build8Bit2DTextureProgrammatically( ID3D11Dev
 }
 
 
-HRESULT TextureAndMaterialHandler::Create2DNormalMapFromHeightmap( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
-		ID3D11ShaderResourceView** destTex, float textureWidth, float textureHeight )
+HRESULT TextureAndMaterialHandler::Create2DNormalMapFromHeightmap( ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** destTex, unsigned int textureWidth, unsigned int textureHeight )
 {
 	HRESULT hResult;
 	CComPtr<ID3D11Texture2D> tempTex;
 	D3D11_TEXTURE2D_DESC texDesc;
 
 	//Set up texture description
-	texDesc.Width              = (unsigned int)textureWidth;
-	texDesc.Height             = (unsigned int)textureHeight;
+	texDesc.Width              = textureWidth;
+	texDesc.Height             = textureHeight;
 	texDesc.MipLevels          = 1;
 	texDesc.ArraySize          = 1;
 	texDesc.Format             = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -1188,7 +1184,7 @@ HRESULT TextureAndMaterialHandler::Create2DNormalMapFromHeightmap( ID3D11Device*
 	texDesc.MiscFlags          = 0;
 
 	if(placeHolderTexture != 0)
-	{
+	{ 
 		placeHolderTexture.Release();
 	}
 
@@ -1223,4 +1219,11 @@ HRESULT TextureAndMaterialHandler::Create2DNormalMapFromHeightmap( ID3D11Device*
 	}
 
 	return S_OK;
+}
+
+void TextureAndMaterialHandler::SetupWindtextures(ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
+	float startPosX, float startPosY, unsigned int textureWidth, unsigned int textureHeight, float noiseScale)
+{
+	CreateSeamlessSimplex2DTexture(device, deviceContext, &windTextureSRV.p, startPosX, startPosY, textureWidth, textureHeight, noiseScale);
+	Create2DNormalMapFromHeightmap(device, deviceContext, &windNormalMapSRV.p, textureWidth, textureHeight);
 }

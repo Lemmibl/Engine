@@ -49,6 +49,12 @@ public:
 	XMVECTOR RightVector();
 	XMVECTOR UpVector();
 	XMVECTOR DownVector();
+
+	unsigned int GetScreenWidth() { return screenWidth; };
+	unsigned int GetScreenHeight() { return screenHeight; };
+
+	float GetNearClip() { return nearClip; };
+	float GetFarClip() { return farClip; };
 	#pragma endregion
 
 	void Update();
@@ -66,6 +72,8 @@ private:
 	XMFLOAT3 position, rotation;
 	XMFLOAT4X4 world, view, projection;
 	float yaw, pitch, roll;
+	unsigned int screenWidth, screenHeight;
+	float nearClip, farClip;
 
 	const float PITCHROOF, PITCHFLOOR;
 };

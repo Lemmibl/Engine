@@ -30,9 +30,9 @@ static const float4 UpNormal = normalize(float4(0.0f, 1.0f, 0.0f, 1.0f));
 //TODO: Add all of these to the constant buffer to make them tweakable in normal code 
 //Just a temporary wind direction
 static const float vegetationFalloff = 250.0f;
-static const float forceScale = 0.9f;
-static const float waveLength = 0.04f; //0.008f; //
-static const float traversalSpeed = 0.1f; //0.05f; //
+static const float forceScale = 0.75f;
+static const float waveLength = 0.05f; //0.008f; //
+static const float traversalSpeed = 0.09f; //0.05f; //
 
 //http://www.braynzarsoft.net/index.php?p=D3D11BILLBOARDS
 //http://upvoid.com/devblog/2013/02/prototype-grass/
@@ -63,7 +63,7 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, VS_OUTPUT v3, inout TriangleStream<PS_
 		float2 rand = (2.0f * float2(v1.YPosDepthAndRand.z, v2.YPosDepthAndRand.z) - 0.5f);
 
 		//Randomizing the ground positions
-		float4 pos1 = v2.Position;													// + float4(rand.x, 0.0f, rand.y, 0.0f);
+		float4 pos1 = v2.Position + float4(rand.x*0.5f, 0.0f, rand.y*0.5f, 0.0f); //Add a tiny offset to make placement of grass seem more random.
 		float4 pos2 = v1.Position + ((v2.YPosDepthAndRand.z * 2.0f) * (normalize(v3.Position - v2.Position)));	//+ float4(rand.x, 0.0f, rand.y, 0.0f);
 
 		float opacity = (1.0f - (viewDepth / vegetationFalloff));
@@ -80,7 +80,7 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, VS_OUTPUT v3, inout TriangleStream<PS_
 			float4 WindDirection = normalize(float4( -0.7f+(rand.x*0.3f), 0.0f, -0.4f+(rand.y*0.3f), 0.0f));
 
 			//Add wind direction to our already randomized normal. This value will be 
-			randomizedNormal += (WindDirection * (forceScale * LoadWindPowerValue( (v1.Position.xz*waveLength) + (traversalSpeed*DeltaTime) )));
+			randomizedNormal += (WindDirection * (forceScale * LoadWindPowerValue((v1.Position.xz*waveLength) + (traversalSpeed*DeltaTime))));
 		}
 
 		//Define the four vertices, corners

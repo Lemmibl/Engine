@@ -1,4 +1,4 @@
-#pragma once;
+#pragma once
 
 //System includes
 #include <stdlib.h>
@@ -58,6 +58,15 @@
 class Renderer
 {
 public:
+	struct RenderableBundle
+	{
+		vector<IndexedMesh> indexedMeshes;
+		vector<IndexedInstancedMesh> indexedInstancedMeshes;
+		vector<MarchingCubeChunk*> terrainChunks;
+
+	};
+
+public:
 	Renderer();
 	Renderer(const Renderer&);
 	~Renderer();
@@ -75,11 +84,11 @@ public:
 
 	void SetupRTsAndStuff();
 
-	bool Render(HWND hwnd);
+	bool Render(HWND hwnd, RenderableBundle* renderableBundle);
 
-	bool RenderShadowmap(ID3D11DeviceContext* deviceContext, XMMATRIX* lightWorldViewProj, XMMATRIX* lightWorldView);
+	bool RenderShadowmap(ID3D11DeviceContext* deviceContext, XMMATRIX* lightWorldViewProj, XMMATRIX* lightWorldView, RenderableBundle* renderableBundle);
 	bool RenderTwoPassGaussianBlur(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj);
-	bool RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, XMMATRIX* identityWorldViewProj);
+	bool RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, XMMATRIX* identityWorldViewProj, RenderableBundle* renderableBundle);
 	bool RenderDirectionalLight(ID3D11DeviceContext* deviceContext, XMMATRIX* viewMatrix, XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* lightView, XMMATRIX* lightProj, XMMATRIX* invertedProjection);
 	bool RenderPointLight(ID3D11DeviceContext* deviceContext, XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* viewProjection);
 	bool RenderComposedScene(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* worldView, XMMATRIX* view, XMMATRIX* invertedProjection, XMMATRIX* invertedViewProjection);
@@ -90,11 +99,6 @@ private:
 	shared_ptr<CameraClass> camera;
 	shared_ptr<InputClass> inputManager;
 	shared_ptr<TextClass> text;
-
-	//Temp! Will be in World later.
-	shared_ptr<TerrainManager>  terrainManager;
-
-	FrustumClass frustum;
 
 	DRPointLight pointLightShader;
 	vector<PointLight> pointLights;
@@ -140,10 +144,6 @@ private:
 	int toggleSSAO, toggleColorMode;
 
 	float xPos, yPos, backAndForth;
-
-	Lemmi2DAABB testBoundingbox;
-
-	vector<MarchingCubeChunk*> tempChunks;
 
 	XMFLOAT3 camPos, camDir;
 

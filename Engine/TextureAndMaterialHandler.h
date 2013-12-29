@@ -50,6 +50,9 @@ public:
 	ID3D11ShaderResourceView** GetSSAORandomTexture()		{ return &ssaoRandomTextureSRV.p;		};
 	ID3D11ShaderResourceView** GetNoiseTexture()			{ return &noiseSRV.p;					};
 
+	ID3D11ShaderResourceView** GetWindTexture()				{ return &windTextureSRV.p;				};
+	ID3D11ShaderResourceView** GetWindNormalMap()			{ return &windNormalMapSRV.p;			};
+
 	bool Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, NoiseClass* noise, Utility* utility);
 
 	//To access the texture, call GetSSAORandomTexture()
@@ -58,7 +61,7 @@ public:
 	//To access the texture, call GetNoiseTexture()
 	void RebuildSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
 
-	void RebuildSeamlessSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, float startPosX, float startPosY, float stepsX, float stepsY);
+	void RebuildSeamlessSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, float startPosX, float startPosY, unsigned int stepsX, unsigned int stepsY);
 
 	//To access the texture, call GetNoiseTexture()
 	void RebuildRandom2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
@@ -69,9 +72,12 @@ public:
 	void RebuildTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, TextureID textureID, int width, int height, float startPosX, float startPosY, bool reseedRandomAfterwards);
 
 	HRESULT CreateSeamlessSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv, 
-											float startPosX, float startPosY, float stepsX, float stepsY, float noiseScale);
+		float startPosX, float startPosY, unsigned int textureWidth, unsigned int textureHeight, float noiseScale);
 
-	HRESULT Create2DNormalMapFromHeightmap(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** destTex, float textureWidth, float textureHeight);
+	HRESULT Create2DNormalMapFromHeightmap(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** destTex, unsigned int textureWidth, unsigned int textureHeight);
+
+	void SetupWindtextures(ID3D11Device* device, ID3D11DeviceContext* deviceContext, float startPosX, float startPosY, 
+		unsigned int textureWidth, unsigned int textureHeight, float noiseScale);
 
 	bool SaveLTreeTextureToFile(ID3D11DeviceContext* deviceContext, D3DX11_IMAGE_FILE_FORMAT format, LPCSTR fileName);
 	void SaveTextureToFile(ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView* texture, D3DX11_IMAGE_FILE_FORMAT format, LPCSTR fileName);
@@ -134,6 +140,10 @@ private:
 	CComPtr<ID3D11ShaderResourceView> terrainTextureSRV;
 	CComPtr<ID3D11ShaderResourceView> noiseSRV;
 	CComPtr<ID3D11ShaderResourceView> ssaoRandomTextureSRV;
+
+
+	CComPtr<ID3D11ShaderResourceView> windTextureSRV;
+	CComPtr<ID3D11ShaderResourceView> windNormalMapSRV;
 
 	CComPtr<ID3D11Texture2D> placeHolderTexture;
 	CComPtr<ID3D11Texture2D> windNoiseTexture;
