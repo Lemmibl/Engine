@@ -636,15 +636,15 @@ bool Renderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 	baseView = XMMatrixTranspose(baseView);
 #pragma endregion
 
-	assert(RenderShadowmap(deviceContext, &lightWorldViewProj, &lightWorldView, renderableBundle));
-	assert(RenderTwoPassGaussianBlur(deviceContext, &worldBaseViewOrthoProj));
-	assert(RenderGBuffer(deviceContext, &viewMatrix, &projectionMatrix, &identityWorldViewProj, renderableBundle));
+	RenderShadowmap(deviceContext, &lightWorldViewProj, &lightWorldView, renderableBundle);
+	RenderTwoPassGaussianBlur(deviceContext, &worldBaseViewOrthoProj);
+	RenderGBuffer(deviceContext, &viewMatrix, &projectionMatrix, &identityWorldViewProj, renderableBundle);
 
-	assert(RenderPointLight(deviceContext, &viewMatrix, &invertedView, &viewProjection));
-	assert(RenderDirectionalLight(deviceContext, &viewMatrix, &worldBaseViewOrthoProj, &lightView, &lightProj, &invertedProjection));
+	RenderPointLight(deviceContext, &viewMatrix, &invertedView, &viewProjection);
+	RenderDirectionalLight(deviceContext, &viewMatrix, &worldBaseViewOrthoProj, &lightView, &lightProj, &invertedProjection);
 
-	assert(RenderComposedScene(deviceContext, &worldBaseViewOrthoProj, &worldBaseView, &baseView, &invertedProjection, &invertedViewProjection));
-	assert(RenderDebugInfoAndText(deviceContext, &worldBaseViewOrthoProj));
+	RenderComposedScene(deviceContext, &worldBaseViewOrthoProj, &worldBaseView, &baseView, &invertedProjection, &invertedViewProjection);
+	RenderDebugInfoAndText(deviceContext, &worldBaseViewOrthoProj);
 
 	// Present the rendered scene to the screen.
 	d3D->EndScene();

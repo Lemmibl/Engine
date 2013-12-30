@@ -33,6 +33,8 @@ void World::InitializeCollisionStuff()
 	
 	//http://en.wikipedia.org/wiki/Gravity_of_Earth
 	dynamicsWorld->setGravity(btVector3(0.0f, -9.78f, 0.0f));
+
+	dynamicsWorld->stepSimulation(1.0f/60.0f, 10);
 }
 
 void World::InitializeTerrain()

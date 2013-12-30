@@ -52,7 +52,7 @@ TerrainManager::TerrainManager(ID3D11Device* device, ID3D11DeviceContext* device
 
 	mcTerrain.Initialize((int)stepCount.x, (int)stepCount.y, (int)stepCount.z, &noise, terrainType);
 
-	assert(vegetationManager.Initialize(device, hwnd));
+	vegetationManager.Initialize(device, hwnd);
 
 	float randVal = (float)RoundToNearest(RandomFloat()*100.0f);
 
