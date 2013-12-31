@@ -475,6 +475,7 @@
     <None Include="texture.psh">
       <Filter>Rendering\Shaders\General shaders</Filter>
     </None>
+    <None Include="bugtracker.txt" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Rendering">

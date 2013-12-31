@@ -379,72 +379,72 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 		}
 	}
 
-	if(inputManager->WasKeyPressed(DIK_U))
-	{
-		textureAndMaterialHandler.RebuildRandom2DTexture(d3D->GetDevice(), d3D->GetDeviceContext());
-	}
-
-	if(inputManager->WasKeyPressed(DIK_I))
-	{
-		textureAndMaterialHandler.RebuildMirroredSimplex2DTexture(d3D->GetDevice(), d3D->GetDeviceContext());
-	}
-
-	if(inputManager->WasKeyPressed(DIK_O))
-	{
-		textureAndMaterialHandler.RebuildSeamlessSimplex2DTexture(d3D->GetDevice(), d3D->GetDeviceContext(), 0, 0, 100, 100);
-	}
-
-	if(inputManager->WasKeyPressed(DIK_J))
-	{
-		xPos += 30.0f;
-
-		textureAndMaterialHandler.RebuildTexture(d3D->GetDevice(), d3D->GetDeviceContext(), TEXTURE_GRASS, 1024, 1024, xPos, yPos, true);
-	}
-
-	if(inputManager->WasKeyPressed(DIK_K))
-	{
-		yPos += 30.0f;
-
-		textureAndMaterialHandler.RebuildTexture(d3D->GetDevice(), d3D->GetDeviceContext(), TEXTURE_DIRT, 1024, 1024, xPos, yPos, true);
-	}
-
-	if(inputManager->WasKeyPressed(DIK_P))
-	{
-		//Create and initialize our time... things.
-		const time_t timeObject = time(NULL);
-		struct tm parts;
-		localtime_s(&parts, &timeObject );
-
-		std::ostringstream stringStream;
-
-		//Create the string that will hold the screenshot's name when it gets pooped out into the directory
-		stringStream << "SavedTexture_" << (1+parts.tm_mon) << "-" << parts.tm_mday <<  "-" << parts.tm_min << "-" << parts.tm_sec << ".bmp";
-
-		LPCSTR fileName;
-		string temp = stringStream.str();
-		fileName = (temp).c_str();
-
-		textureAndMaterialHandler.SaveTextureToFile(d3D->GetDeviceContext(), *textureAndMaterialHandler.GetNoiseTexture(), D3DX11_IFF_BMP, fileName);
-	}
-
-	if(inputManager->WasKeyPressed(DIK_L))
-	{
-		//Create and initialize our time... things.
-		const time_t timeObject = time(NULL);
-		struct tm parts;
-		localtime_s(&parts, &timeObject );
-
-		std::ostringstream stringStream;
-
-		//Create the string that will hold the screenshot's name when it gets pooped out into the directory
-		stringStream << "SavedTexture_" << (1+parts.tm_mon) << "-" << parts.tm_mday <<  "-" << parts.tm_min << "-" << parts.tm_sec << ".bmp";
-
-		LPCSTR fileName;
-		string temp = stringStream.str();
-		fileName = (temp).c_str();
-
-		textureAndMaterialHandler.SaveTextureToFile(d3D->GetDeviceContext(), *textureAndMaterialHandler.GetTerrainTexture(), D3DX11_IFF_BMP, fileName);
-	}
+	//if(inputManager->WasKeyPressed(DIK_U))
+	//{
+	//	textureAndMaterialHandler.RebuildRandom2DTexture(d3D->GetDevice(), d3D->GetDeviceContext());
+	//}
+	//
+	//if(inputManager->WasKeyPressed(DIK_I))
+	//{
+	//	textureAndMaterialHandler.RebuildMirroredSimplex2DTexture(d3D->GetDevice(), d3D->GetDeviceContext());
+	//}
+	//
+	//if(inputManager->WasKeyPressed(DIK_O))
+	//{
+	//	textureAndMaterialHandler.RebuildSeamlessSimplex2DTexture(d3D->GetDevice(), d3D->GetDeviceContext(), 0, 0, 100, 100);
+	//}
+	//
+	//if(inputManager->WasKeyPressed(DIK_J))
+	//{
+	//	xPos += 30.0f;
+	//
+	//	textureAndMaterialHandler.RebuildTexture(d3D->GetDevice(), d3D->GetDeviceContext(), TEXTURE_GRASS, 1024, 1024, xPos, yPos, true);
+	//}
+	//
+	//if(inputManager->WasKeyPressed(DIK_K))
+	//{
+	//	yPos += 30.0f;
+	//
+	//	textureAndMaterialHandler.RebuildTexture(d3D->GetDevice(), d3D->GetDeviceContext(), TEXTURE_DIRT, 1024, 1024, xPos, yPos, true);
+	//}
+	//
+	//if(inputManager->WasKeyPressed(DIK_P))
+	//{
+	//	//Create and initialize our time... things.
+	//	const time_t timeObject = time(NULL);
+	//	struct tm parts;
+	//	localtime_s(&parts, &timeObject );
+	//
+	//	std::ostringstream stringStream;
+	//
+	//	//Create the string that will hold the screenshot's name when it gets pooped out into the directory
+	//	stringStream << "SavedTexture_" << (1+parts.tm_mon) << "-" << parts.tm_mday <<  "-" << parts.tm_min << "-" << parts.tm_sec << ".bmp";
+	//
+	//	LPCSTR fileName;
+	//	string temp = stringStream.str();
+	//	fileName = (temp).c_str();
+	//
+	//	textureAndMaterialHandler.SaveTextureToFile(d3D->GetDeviceContext(), *textureAndMaterialHandler.GetNoiseTexture(), D3DX11_IFF_BMP, fileName);
+	//}
+	//
+	//if(inputManager->WasKeyPressed(DIK_L))
+	//{
+	//	//Create and initialize our time... things.
+	//	const time_t timeObject = time(NULL);
+	//	struct tm parts;
+	//	localtime_s(&parts, &timeObject );
+	//
+	//	std::ostringstream stringStream;
+	//
+	//	//Create the string that will hold the screenshot's name when it gets pooped out into the directory
+	//	stringStream << "SavedTexture_" << (1+parts.tm_mon) << "-" << parts.tm_mday <<  "-" << parts.tm_min << "-" << parts.tm_sec << ".bmp";
+	//
+	//	LPCSTR fileName;
+	//	string temp = stringStream.str();
+	//	fileName = (temp).c_str();
+	//
+	//	textureAndMaterialHandler.SaveTextureToFile(d3D->GetDeviceContext(), *textureAndMaterialHandler.GetTerrainTexture(), D3DX11_IFF_BMP, fileName);
+	//}
 
 	//Speed up the change of day
 	if(inputManager->IsKeyPressed(DIK_1))

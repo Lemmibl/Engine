@@ -1,0 +1,6 @@
+To be fixed:
+- Water goes crazy when you move far away from origin. Possibly caused by high position values? Look over algorithm for sampling noise map.
+
+Solved:
+- Terrain generates the same every time. 
+	# Changing seed to be based on time fixed it. I really thought rand() did that per default, as it does in C#.

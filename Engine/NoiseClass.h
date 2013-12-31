@@ -3,6 +3,7 @@
 #include "StructsAndEnums.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 
 class NoiseClass
 {

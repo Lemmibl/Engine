@@ -78,6 +78,9 @@ NoiseClass::NoiseClass()
 
 void NoiseClass::ReseedRandom()
 {
+	//Reseed based on time. Pretty much guaranteed to be a fresh seed.
+	srand(time(NULL));
+
 	//260 instead of 256 to avoid out of bounds errors that appear.
 	for(int i=0; i<260; i++)
 	{
