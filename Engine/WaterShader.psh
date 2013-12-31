@@ -34,27 +34,28 @@ float EncodeMaterialID(float id)
 	return (id / 255.0f);
 }
 
-static const float3 UpNormal = normalize(float3(0.0f, 0.2f, 0.0f));
+static const float3 UpNormal = float3(0.0f, 1.0f, 0.0f);
 
 PSOutput WaterShaderPS(PSInput input)
 {
 	PSOutput output;
 
-	float waterColorOffset = saturate(0.2f + (input.TexCoord.z*0.8f));
+	//Offset by 0.2f and scale the rest by 0.8f to make the avg. color brighter while maintaining the same max value.
+	float waterColorOffset = 0.2f + (input.TexCoord.z*0.8f);
 
 	//Depth has been stored in normal .w channel.
 	output.Depth = (input.TexCoord.w / 400.0f);
 
-	float4 PreCalcNormal = normalize(float4(UpNormal + normalTexture.SampleLevel(linearSampler, (input.TexCoord.xy), 0).xyz, 1.0f));
+	float4 PreCalcNormal = normalize(float4(UpNormal + normalTexture.SampleLevel(linearSampler, input.TexCoord.xy, 0).xyz, 1.0f));
 
-	float3 normal = mul(PreCalcNormal, World).xyz;
+	float3 normal =  mul(PreCalcNormal, World).xyz;
 
 	output.Normal.xy = Encode(normal);
 	output.Normal.zw = EncodeMaterialID(6.0f); //Both channels are reserved for material ID. Assign the water material.
 
 	//So my mode of thinking here is that the higher the water is, the brighter the colors I want. 
 	//I feel this reflects reality because more light escapes the thinner the water is, if you know what I mean.
-	output.Color = float4(0.05f, 0.35f, 0.5f, 0.85f) * float4(waterColorOffset, waterColorOffset, waterColorOffset, 1.0f);
+	output.Color = saturate(float4(0.0f, 0.35f, 0.5f, 0.85f) * float4(waterColorOffset, waterColorOffset, waterColorOffset, 1.0f));
 
 	return output;
 }

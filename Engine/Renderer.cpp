@@ -730,7 +730,7 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 	d3D->SetNoCullRasterizer();
 	d3D->TurnZBufferOff();
 
-	worldViewProjMatrix = XMMatrixTranslation(camPos.x, camPos.y, camPos.z) * ((*viewMatrix) * (*projectionMatrix));
+	worldViewProjMatrix = (XMMatrixScaling(3.0f, 3.0f, 3.0f) * XMMatrixTranslation(camPos.x, camPos.y, camPos.z)) * ((*viewMatrix) * (*projectionMatrix));
 	worldViewProjMatrix = XMMatrixTranspose(worldViewProjMatrix);
 
 	skySphere.Render(deviceContext, &worldViewProjMatrix, &dayNightCycle.GetAmbientLightColor(), timeOfDay);
@@ -749,7 +749,7 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	worldMatrix = XMMatrixIdentity();
-	worldView = XMMatrixTranspose(worldMatrix * (*viewMatrix));
+	worldView = XMMatrixTranspose(XMMatrixMultiply(worldMatrix, (*viewMatrix)));
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
 	for(unsigned int i = 0; i < renderableBundle->terrainChunks.size(); i++)
@@ -764,7 +764,9 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 	}
 
 	d3D->TurnOnTransparencyBlending();
-	d3D->SetDepthBiasRasterizer();
+	//d3D->SetDepthBiasRasterizer();
+	d3D->SetNoCullRasterizer();
+
 
 	for(unsigned int i = 0; i <  renderableBundle->terrainChunks.size(); i++)
 	{	

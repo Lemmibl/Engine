@@ -1,7 +1,7 @@
 Texture2D noiseTexture;
 SamplerState linearSampler;
 
-//TODO: Recieve world matrix for normals.
+//TODO: PACKING
 cbuffer TimeBuffer
 {
 	float4x4 WorldViewProjection;
@@ -27,11 +27,11 @@ static const float timeScaling = 0.2f;
 static const float4 UpNormal = normalize(float4(0.0f, 1.0f, 0.0f, 0.0f));
 
 //http://msdn.microsoft.com/en-us/library/windows/desktop/bb205122(v=vs.85).aspx
-[maxvertexcount(3)] 
+[maxvertexcount(4)] 
 void WaterShaderGS(triangle VSOutput input[3], inout TriangleStream<PSInput> TriStream)
 { 
 	PSInput output[3];
-	float scaledDeltaTime = (DeltaTime * timeScaling);
+	float scaledDeltaTime = (DeltaTime.x * timeScaling);
 
 	output[0].TexCoord.xy = ((input[0].Position.xz*positionSamplingOffset)+(samplingDirection * scaledDeltaTime));
 	output[1].TexCoord.xy = ((input[1].Position.xz*positionSamplingOffset)+(samplingDirection * scaledDeltaTime));
@@ -49,6 +49,10 @@ void WaterShaderGS(triangle VSOutput input[3], inout TriangleStream<PSInput> Tri
 	output[1].Position = mul(pos2, WorldViewProjection);
 	output[2].Position = mul(pos3, WorldViewProjection);
 
+	//output[0].Position = mul(input[0].Position, WorldViewProjection);
+	//output[1].Position = mul(input[1].Position, WorldViewProjection);
+	//output[2].Position = mul(input[2].Position, WorldViewProjection);
+
 	output[0].TexCoord.w = input[0].Depth; // We store depth in .w channel.
 	output[1].TexCoord.w = input[1].Depth; // We store depth in .w channel.
 	output[2].TexCoord.w = input[2].Depth; // We store depth in .w channel.
@@ -59,5 +63,5 @@ void WaterShaderGS(triangle VSOutput input[3], inout TriangleStream<PSInput> Tri
 	TriStream.Append(output[2]);
 
 	//Restart triangle strip for next run
-	//TriStream.RestartStrip();
+	TriStream.RestartStrip();
 }
