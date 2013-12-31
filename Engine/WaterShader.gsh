@@ -20,7 +20,6 @@ struct PSInput
 	float4 TexCoord	: TEXCOORD0;
 };
 
-//1 - 0.04745
 static const float positionSamplingOffset = 0.2f;
 static const float2 samplingDirection = float2(0.8f, 0.2f);
 static const float heightScaling = 0.3f;
@@ -38,24 +37,17 @@ void WaterShaderGS(triangle VSOutput input[3], inout TriangleStream<PSInput> Tri
 	output[1].TexCoord.xy = ((input[1].Position.xz*positionSamplingOffset)+(samplingDirection * scaledDeltaTime));
 	output[2].TexCoord.xy = ((input[2].Position.xz*positionSamplingOffset)+(samplingDirection * scaledDeltaTime));
 
-	output[0].TexCoord.z = 0.5f; //heightScaling * noiseTexture.SampleLevel(linearSampler, output[0].TexCoord.xy, 0);
-	output[1].TexCoord.z = 0.5f; //heightScaling * noiseTexture.SampleLevel(linearSampler, output[1].TexCoord.xy, 0);
-	output[2].TexCoord.z = 0.5f; //heightScaling * noiseTexture.SampleLevel(linearSampler, output[2].TexCoord.xy, 0);
+	output[0].TexCoord.z = heightScaling * noiseTexture.SampleLevel(linearSampler, output[0].TexCoord.xy, 0);
+	output[1].TexCoord.z = heightScaling * noiseTexture.SampleLevel(linearSampler, output[1].TexCoord.xy, 0);
+	output[2].TexCoord.z = heightScaling * noiseTexture.SampleLevel(linearSampler, output[2].TexCoord.xy, 0);
 
-	//float4 pos1 = input[0].Position;
-	//float4 pos2 = input[1].Position;
-	//float4 pos3 = input[2].Position;
+	float4 pos1 = input[0].Position + (UpNormal * output[0].TexCoord.z);
+	float4 pos2 = input[1].Position + (UpNormal * output[1].TexCoord.z);
+	float4 pos3 = input[2].Position + (UpNormal * output[2].TexCoord.z);
 
-	//if(input[0].Depth < 100.0f)
-	//{
-	//	pos1 += (UpNormal * output[0].TexCoord.z);
-	//	pos2 += (UpNormal * output[1].TexCoord.z);
-	//	pos3 += (UpNormal * output[2].TexCoord.z);
-	//}
-
-	output[0].Position = mul(input[0].Position, WorldViewProjection);
-	output[1].Position = mul(input[1].Position, WorldViewProjection);
-	output[2].Position = mul(input[2].Position, WorldViewProjection);
+	output[0].Position = mul(pos1, WorldViewProjection);
+	output[1].Position = mul(pos2, WorldViewProjection);
+	output[2].Position = mul(pos3, WorldViewProjection);
 
 	output[0].TexCoord.w = input[0].Depth; // We store depth in .w channel.
 	output[1].TexCoord.w = input[1].Depth; // We store depth in .w channel.
