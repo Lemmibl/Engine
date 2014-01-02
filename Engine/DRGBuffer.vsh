@@ -7,42 +7,35 @@ cbuffer MatrixBuffer
 
 struct VertexShaderInput
 {
-	float4 Position : POSITION;
+	float3 Position : POSITION;
 	float2 TexCoord : TEXCOORD0;
 	float3 Normal : NORMAL;
-	float3 Tangent : TANGENT;
-	float3 Binormal : BINORMAL;
 };
 
 struct VertexShaderOutput
 {
 	float4 Position : SV_POSITION;
-	float3 Normal : NORMAL;
+	float3 WorldNormal : NORMAL;
 	float2 TexCoord : TEXCOORD0;
 	float4 WorldPosition : TEXCOORD1;
-	float2 Depth : TEXCOORD2;
-	float4 ViewPosition : TEXCOORD3;
-	float3x3 TangentToWorld : TEXCOORD4;
+	float ViewDepth : TEXCOORD2;
 };
 
 VertexShaderOutput GBufferVertexShader(VertexShaderInput input)
 {
 	VertexShaderOutput output;
 
-	output.WorldPosition = mul(input.Position, World);
+	float4 pos = float4(input.Position, 1.0f);
+
+	output.WorldPosition = mul(pos, World);
+
 	float4 viewPosition = mul(output.WorldPosition, View);
+
 	output.Position = mul(viewPosition, Projection);
-	output.ViewPosition = viewPosition;
 
 	output.TexCoord = input.TexCoord;
-	output.Normal = input.Normal;
-	output.Depth = output.Position.zw;
-
-	// calculate tangent space to world space matrix using the world space tangent,
-	// binormal, and normal as basis vectors
-	output.TangentToWorld[0] = mul(input.Tangent, World);
-	output.TangentToWorld[1] = mul(input.Binormal, World);
-	output.TangentToWorld[2] = mul(input.Normal, World);
+	output.WorldNormal = mul(float4(input.Normal, 1.0f), World);
+	output.ViewDepth = viewPosition.z;
 
 	return output;
 }

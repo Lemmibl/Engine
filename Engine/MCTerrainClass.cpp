@@ -108,10 +108,12 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 					{
 						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
 
+						XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
+
 						density = 1 + sizeY * 0.1f - y;
-						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/220,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/220) *2.0f;
-						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/120,(*marchingCubeVertices)[idx].position.y/220,(*marchingCubeVertices)[idx].position.z/40) *2.0f;
-						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/20,(*marchingCubeVertices)[idx].position.y/420,(*marchingCubeVertices)[idx].position.z/20) *2.0f;
+						density += noise->SimplexNoise3D(position.x/220, position.y/20, position.z/220) * 2.0f;
+						density += noise->SimplexNoise3D(position.x/120, position.y/220, position.z/40) * 2.0f;
+						density += noise->SimplexNoise3D(position.x/20, position.y/420, position.z/20) * 2.0f;
 
 						if(density < -2)
 						{
@@ -139,8 +141,10 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 					{
 						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
 
+						XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
+
 						density = 1 + sizeY * 0.2f - y;
-						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/220,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/220) *10.0f;
+						density += noise->SimplexNoise3D(position.x/220, position.y/20, position.z/220) * 10.0f;
 
 						if(density < -2)
 						{
@@ -168,10 +172,12 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 					{
 						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
 
+						XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
+
 						density = 1 + sizeY * 0.2f - y;
-						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/220,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/220) *2.0f;
-						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/80,(*marchingCubeVertices)[idx].position.y/220,(*marchingCubeVertices)[idx].position.z/40) *20.0f;
-						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/20,(*marchingCubeVertices)[idx].position.y/420,(*marchingCubeVertices)[idx].position.z/20) *10.0f;
+						density += noise->SimplexNoise3D(position.x/220, position.y/20,	 position.z/220) *2.0f;
+						density += noise->SimplexNoise3D(position.x/80,	 position.y/220, position.z/40) *20.0f;
+						density += noise->SimplexNoise3D(position.x/20,	 position.y/420, position.z/20) *10.0f;
 
 						if(density < -2)
 						{
@@ -204,12 +210,13 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 					{
 						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
 
-						density = 1 + sizeY * 0.4f - y;
-						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/220,(*marchingCubeVertices)[idx].position.y/220,(*marchingCubeVertices)[idx].position.z/420) *20.0f;
-						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/120,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/20) *20.0f;
-						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/20,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/120) *20.0f;
-						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/120,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/120) *5.0f;
+						XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
 
+						density = 1 + sizeY * 0.4f - y;
+						density += noise->SimplexNoise3D( position.x/220,	position.y/220,	position.z/420) *20.0f;
+						density += noise->SimplexNoise3D( position.x/120,	position.y/20,	position.z/20) *20.0f;
+						density += noise->SimplexNoise3D( position.x/20,	position.y/20,	position.z/120) *20.0f;
+						density += noise->SimplexNoise3D( position.x/120,	position.y/20,	position.z/120) *5.0f;
 
 						//**Toplvl**//
 						if(y > 20)
@@ -261,12 +268,15 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 					{
 						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
 
+						XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
+
 						density = 1 + sizeY * 0.6f - y;
-						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/80,(*marchingCubeVertices)[idx].position.y/80,(*marchingCubeVertices)[idx].position.z/520) *30.0f;
-						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/40,(*marchingCubeVertices)[idx].position.y/30,(*marchingCubeVertices)[idx].position.z/500) *30.0f;
-						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/180,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/50) *20.0f;
-						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/120,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/120) *5.0f;
-						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/80,(*marchingCubeVertices)[idx].position.y/420,(*marchingCubeVertices)[idx].position.z/80) *30.0f;
+
+						density += noise->SimplexNoise3D(position.x/80,	 position.y/80,	 position.z/520) *30.0f;
+						density += noise->SimplexNoise3D(position.x/40,	 position.y/30,	 position.z/500) *30.0f;
+						density += noise->SimplexNoise3D(position.x/180, position.y/20,	 position.z/50) *20.0f;
+						density += noise->SimplexNoise3D(position.x/120, position.y/20,	 position.z/120) *5.0f;
+						density += noise->SimplexNoise3D(position.x/80,	 position.y/420, position.z/80) *30.0f;
 
 						//**Toplvl**//
 						if(y > 20)
@@ -318,10 +328,12 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 					{
 						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
 
+						XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
+
 						density = 0 + sizeY * 0.001f - y*0.1f;
-						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/40,(*marchingCubeVertices)[idx].position.y/10,(*marchingCubeVertices)[idx].position.z/25) *10.0f;
-						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/60,(*marchingCubeVertices)[idx].position.y/5,(*marchingCubeVertices)[idx].position.z/35) *10.0f;
-						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/21,(*marchingCubeVertices)[idx].position.y/10,(*marchingCubeVertices)[idx].position.z/43) *10.0f;
+						density += noise->SimplexNoise3D(position.x/40, position.y/10,	position.z/25) *10.0f;
+						density += noise->SimplexNoise3D(position.x/60, position.y/5,	position.z/35) *10.0f;
+						density += noise->SimplexNoise3D(position.x/21, position.y/10,	position.z/43) *10.0f;
 
 						if(density < -2)
 						{
@@ -349,10 +361,12 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 					{
 						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
 
+						XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
+
 						density = 1 + sizeY * 0.1f - y;
-						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/220,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/220) *20.0f;
-						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/120,(*marchingCubeVertices)[idx].position.y/220,(*marchingCubeVertices)[idx].position.z/40) *20.0f;
-						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/20,(*marchingCubeVertices)[idx].position.y/420,(*marchingCubeVertices)[idx].position.z/20) *10.0f;
+						density += noise->SimplexNoise3D(position.x/220, position.y/20,	 position.z/220) *20.0f;
+						density += noise->SimplexNoise3D(position.x/120, position.y/220, position.z/40) *20.0f;
+						density += noise->SimplexNoise3D(position.x/20,	 position.y/420, position.z/20) *10.0f;
 
 						if(density < -2)
 						{
@@ -386,11 +400,13 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 					{
 						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
 
+						XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
+
 						density = 1 + sizeY * 0.1f - y;
-						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/220,(*marchingCubeVertices)[idx].position.y/220,(*marchingCubeVertices)[idx].position.z/420) *2.0f;
-						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/120,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/20) *20.0f;
-						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/20,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/120) *20.0f;
-						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/120,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/120) *2.0f;
+						density += noise->SimplexNoise3D(position.x/220,	position.y/220,	position.z/420) *2.0f;
+						density += noise->SimplexNoise3D(position.x/120,	position.y/20,	position.z/20) *20.0f;
+						density += noise->SimplexNoise3D(position.x/20,		position.y/20,	position.z/120) *20.0f;
+						density += noise->SimplexNoise3D(position.x/120,	position.y/20,	position.z/120) *2.0f;
 
 						if(density < -2)
 						{
@@ -424,11 +440,13 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 					{
 						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
 
+						XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
+
 						density = 7;
-						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/60,(*marchingCubeVertices)[idx].position.y/60,(*marchingCubeVertices)[idx].position.z/60) *20.0f;
-						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/20,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/120) *10.0f;
-						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/20,(*marchingCubeVertices)[idx].position.y/120,(*marchingCubeVertices)[idx].position.z/20) *10.0f;
-						density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x/120,(*marchingCubeVertices)[idx].position.y/20,(*marchingCubeVertices)[idx].position.z/20) *10.0f;
+						density += noise->SimplexNoise3D(position.x/60,	 position.y/60,	 position.z/60) *20.0f;
+						density += noise->SimplexNoise3D(position.x/20,	 position.y/20,	 position.z/120) *10.0f;
+						density += noise->SimplexNoise3D(position.x/20,	 position.y/120, position.z/20) *10.0f;
+						density += noise->SimplexNoise3D(position.x/120, position.y/20,	 position.z/20) *10.0f;
 
 						if(density < -2)
 						{

@@ -11,6 +11,7 @@
 #include "frustumclass.h"
 #include "Renderer.h"
 #include "Lemmi2DAABB.h"
+#include "MeshHandler.h"
 
 using namespace std;
 
@@ -20,13 +21,20 @@ public:
 	World();
 	~World();
 
-	void Initialize(shared_ptr<D3DManager> extD3DManager, shared_ptr<CameraClass> extCamera);
-	void InitializeCollisionStuff();
-	void InitializeTerrain();
+	void Initialize(shared_ptr<D3DManager> extD3DManager, shared_ptr<CameraClass> extCamera, shared_ptr<InputClass> extInput);
 
-	void Update();
+	void Update(float deltaTime);
 
 	Renderer::RenderableBundle* GetRenderableBundle() {  return &renderableBundle; };
+
+
+private:
+	void InitializeCollisionStuff();
+	void InitializeTerrain();
+	void HandleInput();
+
+	//Do frustum culling and that sort of stuff
+	void UpdateVisibility();
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -71,15 +79,28 @@ private:
 	shared_ptr<btSequentialImpulseConstraintSolver> solver;
 	shared_ptr<btDiscreteDynamicsWorld> dynamicsWorld;
 
+	//Collision objects
+	shared_ptr<btCollisionShape> groundShape;
+	shared_ptr<btCollisionShape> fallShape;
+
+	shared_ptr<btDefaultMotionState> groundMotionState;
+	shared_ptr<btDefaultMotionState> fallMotionState;
+
+	shared_ptr<btRigidBody> groundRigidBody;
+	shared_ptr<btRigidBody> fallRigidBody;
+
 	//Terrain related objects
-	shared_ptr<TerrainManager>  terrainManager;
+	shared_ptr<TerrainManager> terrainManager;
 
 	//Rendering
+	MeshHandler meshHandler;
 	Renderer::RenderableBundle renderableBundle;
 
 	//Misc.
 	FrustumClass frustum;
 	Lemmi2DAABB frustumAABB;
+
+	shared_ptr<InputClass> inputManager;
 	shared_ptr<CameraClass> camera;
 	shared_ptr<D3DManager> d3D;
 };

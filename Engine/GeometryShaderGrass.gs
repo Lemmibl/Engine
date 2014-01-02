@@ -31,8 +31,10 @@ static const float4 UpNormal = normalize(float4(0.0f, 1.0f, 0.0f, 1.0f));
 //Just a temporary wind direction
 static const float vegetationFalloff = 250.0f;
 static const float forceScale = 0.75f;
-static const float waveLength = 0.05f; //0.008f; //
-static const float traversalSpeed = 0.09f; //0.05f; //
+static const float waveLength = 0.05f;
+static const float traversalSpeed = 0.1f;
+
+//TODO: waveLength = forceScale / traversalSpeed ? Other way around? forceScale * traversalSpeed?
 
 //http://www.braynzarsoft.net/index.php?p=D3D11BILLBOARDS
 //http://upvoid.com/devblog/2013/02/prototype-grass/
@@ -48,7 +50,7 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, VS_OUTPUT v3, inout TriangleStream<PS_
 { 
 	//Sum up random values to decide if we want to draw grass here.
 	float randSum = v2.YPosDepthAndRand.z + v1.YPosDepthAndRand.z;
-
+	
 	//Skip if random sum is too low. It's a crude way to make empty patches appear, as opposed to vegetation EVERYWHERE. TODO: Density maps..?
 	if(randSum <= 1.15f)
 	{

@@ -23,7 +23,7 @@ FrustumClass::~FrustumClass()
 {
 }
 
-void FrustumClass::SetInternals( float aspectRatio, float angle, float nearZ, float farZ )
+void FrustumClass::SetInternals( float aspectRatio, float FOV, float nearZ, float farZ )
 {
 	// store the information
 	if(aspectRatio != 0)
@@ -31,9 +31,9 @@ void FrustumClass::SetInternals( float aspectRatio, float angle, float nearZ, fl
 		this->aspectRatio = aspectRatio;
 	}
 
-	if(angle != 0)
+	if(FOV != 0)
 	{
-		this->angle = angle;
+		this->angle = FOV;
 	}
 	
 	if(nearZ != 0)
@@ -46,13 +46,26 @@ void FrustumClass::SetInternals( float aspectRatio, float angle, float nearZ, fl
 		this->farZ = farZ;
 	}
 
+	/*
+	The height and width of the rectangular boundary on the near plane are defined as follows:
+
+	Hnear = 2 * tan(fov / 2) * nearDist
+	Wnear = Hnear * ratio
+
+	The same reasoning can be applied to the far plane:
+
+	Hfar = 2 * tan(fov / 2) * farDist
+	Wfar = Hfar * ratio 
+	*/
+
+	float tanVal = 2.0f * tan((ANG2RAD * FOV) / 2);
+
 	// compute width and height of the near and far plane sections
-	float tang = (float)tan((ANG2RAD * angle) * 0.5f); //
-	farHeight = farZ  * tang;
+	farHeight = tanVal * farZ;
 	farWidth = farHeight * aspectRatio;
 
 	//I want an "Orthogonal" frustum
-	nearHeight = nearZ * tang;
+	nearHeight = tanVal * nearZ;
 	nearWidth = nearHeight * aspectRatio;
 }
 

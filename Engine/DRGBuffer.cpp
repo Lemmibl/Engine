@@ -28,7 +28,6 @@ bool DRGBuffer::Initialize(ID3D11Device* device, HWND hwnd)
 {
 	bool result;
 
-
 	// Initialize the vertex and pixel shaders.
 	result = InitializeShader(device, hwnd, L"../Engine/DRGbuffer.vsh", L"../Engine/DRGbuffer.psh");
 	if(!result)
@@ -48,13 +47,13 @@ void DRGBuffer::Shutdown()
 }
 
 bool DRGBuffer::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, XMMATRIX* viewMatrix, 
-	XMMATRIX* projectionMatrix, ID3D11ShaderResourceView** textureArray, float farZ)
+	XMMATRIX* projectionMatrix, ID3D11ShaderResourceView* texture, float farZ)
 {
 	bool result;
 
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, textureArray, farZ);
+	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture, farZ);
 	if(!result)
 	{
 		return false;
@@ -73,17 +72,11 @@ bool DRGBuffer::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 	CComPtr<ID3D10Blob> vertexShaderBuffer;
 	CComPtr<ID3D10Blob> pixelShaderBuffer;
 
-	D3D11_INPUT_ELEMENT_DESC polygonLayout[5];
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
 	unsigned int numElements;
 	D3D11_BUFFER_DESC matrixBufferDesc;
 	D3D11_BUFFER_DESC pixelShaderBufferDesc;
-
 	D3D11_SAMPLER_DESC samplerDesc;
-
-	// Initialize the pointers this function will use to null.
-	errorMessage = 0;
-	vertexShaderBuffer = 0;
-	pixelShaderBuffer = 0;
 
 	// Compile the vertex shader code.
 	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "GBufferVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 
@@ -165,21 +158,21 @@ bool DRGBuffer::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 	polygonLayout[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[2].InstanceDataStepRate = 0;
 
-	polygonLayout[3].SemanticName = "TANGENT";
-	polygonLayout[3].SemanticIndex = 0;
-	polygonLayout[3].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-	polygonLayout[3].InputSlot = 0;
-	polygonLayout[3].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
-	polygonLayout[3].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-	polygonLayout[3].InstanceDataStepRate = 0;
+	//polygonLayout[3].SemanticName = "TANGENT";
+	//polygonLayout[3].SemanticIndex = 0;
+	//polygonLayout[3].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	//polygonLayout[3].InputSlot = 0;
+	//polygonLayout[3].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	//polygonLayout[3].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	//polygonLayout[3].InstanceDataStepRate = 0;
 
-	polygonLayout[4].SemanticName = "BINORMAL";
-	polygonLayout[4].SemanticIndex = 0;
-	polygonLayout[4].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-	polygonLayout[4].InputSlot = 0;
-	polygonLayout[4].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
-	polygonLayout[4].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-	polygonLayout[4].InstanceDataStepRate = 0;
+	//polygonLayout[4].SemanticName = "BINORMAL";
+	//polygonLayout[4].SemanticIndex = 0;
+	//polygonLayout[4].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	//polygonLayout[4].InputSlot = 0;
+	//polygonLayout[4].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	//polygonLayout[4].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	//polygonLayout[4].InstanceDataStepRate = 0;
 
 	// Get a count of the elements in the layout.
 	numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
@@ -245,33 +238,33 @@ bool DRGBuffer::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
 	// Create the texture sampler state.
-	result = device->CreateSamplerState(&samplerDesc, &samplers[0].p);
+	result = device->CreateSamplerState(&samplerDesc, &sampler.p);
 	if(FAILED(result))
 	{
 		return false;
 	}
 
-	// Create a texture sampler state description.
-	samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.MipLODBias = 0.0f;
-	samplerDesc.MaxAnisotropy = 1;
-	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	samplerDesc.BorderColor[0] = 0;
-	samplerDesc.BorderColor[1] = 0;
-	samplerDesc.BorderColor[2] = 0;
-	samplerDesc.BorderColor[3] = 0;
-	samplerDesc.MinLOD = 1;
-	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	//// Create a texture sampler state description.
+	//samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	//samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	//samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	//samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	//samplerDesc.MipLODBias = 0.0f;
+	//samplerDesc.MaxAnisotropy = 1;
+	//samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	//samplerDesc.BorderColor[0] = 0;
+	//samplerDesc.BorderColor[1] = 0;
+	//samplerDesc.BorderColor[2] = 0;
+	//samplerDesc.BorderColor[3] = 0;
+	//samplerDesc.MinLOD = 1;
+	//samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-	// Create the texture sampler state.
-	result = device->CreateSamplerState(&samplerDesc, &samplers[1].p);
-	if(FAILED(result))
-	{
-		return false;
-	}
+	//// Create the texture sampler state.
+	//result = device->CreateSamplerState(&samplerDesc, &samplers[1].p);
+	//if(FAILED(result))
+	//{
+	//	return false;
+	//}
 
 	return true;
 }
@@ -363,7 +356,7 @@ void DRGBuffer::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WC
 }
 
 bool DRGBuffer::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, 
-	XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, ID3D11ShaderResourceView** textureArray, float farZ)
+	XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, ID3D11ShaderResourceView* texture, float farZ)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -417,7 +410,7 @@ bool DRGBuffer::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX
 	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &pixelFarZBuffer.p);
 
 	// Set shader texture array resource in the pixel shader.
-	deviceContext->PSSetShaderResources(0, 3, textureArray);
+	deviceContext->PSSetShaderResources(0, 1, &texture);
 
 	return true;
 }
@@ -432,8 +425,7 @@ void DRGBuffer::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
 	deviceContext->PSSetShader(pixelShader, NULL, 0);
 
 	// Set the sampler state in the pixel shader.
-	deviceContext->PSSetSamplers(0, 1, &samplers[0].p);
-	deviceContext->PSSetSamplers(1, 1, &samplers[1].p);
+	deviceContext->PSSetSamplers(0, 1, &sampler.p);
 
 	// Render the triangles.
 	deviceContext->DrawIndexed(indexCount, 0, 0);

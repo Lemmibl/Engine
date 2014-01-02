@@ -22,15 +22,12 @@ Renderer::Renderer(const Renderer& other)
 
 Renderer::~Renderer()
 {
-	//delete noise;
-	//noise = 0;
 }
 
 
 bool Renderer::Initialize(HWND hwnd, shared_ptr<CameraClass> camera, shared_ptr<InputClass> inputManager, shared_ptr<D3DManager> d3D, UINT screenWidth, 
 	UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear, bool toggleDebug)
 {
-	srand((unsigned int)time(NULL));
 	bool result;
 
 	this->toggleDebugInfo = toggleDebug;
@@ -47,6 +44,9 @@ bool Renderer::Initialize(HWND hwnd, shared_ptr<CameraClass> camera, shared_ptr<
 	toggleSSAO = 0;
 	toggleColorMode = 1;
 	fogMinimum = 1.0f;
+	
+	srand((unsigned int)time(NULL));
+
 
 	XMStoreFloat4x4(&baseViewMatrix, camera->GetView());
 
@@ -79,6 +79,7 @@ bool Renderer::Initialize(HWND hwnd, shared_ptr<CameraClass> camera, shared_ptr<
 	return true;
 }
 
+
 bool Renderer::InitializeShaders( HWND hwnd )
 {
 	bool result;
@@ -110,10 +111,10 @@ bool Renderer::InitializeShaders( HWND hwnd )
 		return false;
 	}
 
-	result = depthOnlyQuadShader.Initialize(d3D->GetDevice(), hwnd);
+	result = gbufferShader.Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
-		MessageBox(hwnd, L"Depth only quad shader couldn't be initialized.", L"Error", MB_OK);
+		MessageBox(hwnd, L"GBuffer shader couldn't be initialized.", L"Error", MB_OK);
 		return false;
 	}
 
@@ -161,6 +162,7 @@ bool Renderer::InitializeShaders( HWND hwnd )
 
 	return true;
 }
+
 
 bool Renderer::InitializeLights( HWND hwnd )
 {
@@ -242,6 +244,7 @@ bool Renderer::InitializeLights( HWND hwnd )
 	return true;
 }
 
+
 bool Renderer::InitializeModels( HWND hwnd )
 {
 	bool result;
@@ -256,6 +259,7 @@ bool Renderer::InitializeModels( HWND hwnd )
 
 	return true;
 }
+
 
 bool Renderer::InitializeEverythingElse( HWND hwnd )
 {
@@ -302,6 +306,7 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 
 	return true;
 }
+
 
 bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float seconds)
 {
@@ -518,6 +523,7 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 	return true;
 }
 
+
 void Renderer::SetupRTsAndStuff()
 {
 	shadowDepthStencil = d3D->GetShadowmapDSV();
@@ -555,6 +561,7 @@ void Renderer::SetupRTsAndStuff()
 
 	gaussianBlurTexture[0] = gaussianBlurPingPongRT.SRView;
 }
+
 
 bool Renderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 {
@@ -652,6 +659,7 @@ bool Renderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 	return true;
 }
 
+
 bool Renderer::RenderShadowmap( ID3D11DeviceContext* deviceContext, XMMATRIX* lightWorldViewProj, XMMATRIX* lightWorldView, RenderableBundle* renderableBundle)
 {
 	//Early depth pass for shadowmap
@@ -674,6 +682,7 @@ bool Renderer::RenderShadowmap( ID3D11DeviceContext* deviceContext, XMMATRIX* li
 
 	return true;
 }
+
 
 //TODO: change this function to just take two generic render targets and a depth stencil, as to make it possible to blur anything
 bool Renderer::RenderTwoPassGaussianBlur(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj )
@@ -713,9 +722,10 @@ bool Renderer::RenderTwoPassGaussianBlur(ID3D11DeviceContext* deviceContext, XMM
 	return true;
 }
 
+
 bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, XMMATRIX* identityWorldViewProj, RenderableBundle* renderableBundle)
 {
-	XMMATRIX worldViewProjMatrix, worldMatrix, worldView;
+	XMMATRIX worldViewProjMatrix, worldMatrix, worldView, view, proj;
 
 	//GBuffer building stage
 	d3D->SetDefaultViewport();
@@ -730,29 +740,39 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 	d3D->SetNoCullRasterizer();
 	d3D->TurnZBufferOff();
 
+	//Scale skysphere by 3.0f because camera nearClip is 2.0f. Nearclip is 2.0f because else I get precision issues when rendering water.
 	worldViewProjMatrix = (XMMatrixScaling(3.0f, 3.0f, 3.0f) * XMMatrixTranslation(camPos.x, camPos.y, camPos.z)) * ((*viewMatrix) * (*projectionMatrix));
 	worldViewProjMatrix = XMMatrixTranspose(worldViewProjMatrix);
 
 	skySphere.Render(deviceContext, &worldViewProjMatrix, &dayNightCycle.GetAmbientLightColor(), timeOfDay);
 
-	if(drawWireFrame)
-	{	
-		d3D->SetWireframeRasterizer();
-	}
-	else
-	{
-		d3D->SetBackFaceCullingRasterizer();
-	}
-
 	d3D->TurnZBufferOn();
+	d3D->SetBackFaceCullingRasterizer();
+	d3D->ResetBlendState();
 
 	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+	
+ 	worldMatrix = (XMMatrixScaling(2.0f, 2.0f, 2.0f) * XMLoadFloat4x4((&renderableBundle->testSphere.world)));
+	worldMatrix = XMMatrixTranspose(worldMatrix);
+	view = XMMatrixTranspose(*viewMatrix);
+	proj = XMMatrixTranspose(*projectionMatrix);
+
+	renderableBundle->testSphere.mesh.Render(deviceContext);
+
+	gbufferShader.Render(deviceContext, renderableBundle->testSphere.mesh.GetIndexCount(), &worldMatrix, &view, &proj, sphereModel.GetTexture(), farClip);
 
 	worldMatrix = XMMatrixIdentity();
 	worldView = XMMatrixTranspose(XMMatrixMultiply(worldMatrix, (*viewMatrix)));
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
-	for(unsigned int i = 0; i < renderableBundle->terrainChunks.size(); i++)
+	if(drawWireFrame)
+	{	
+		d3D->SetWireframeRasterizer();
+	}
+
+	unsigned int vecSize = renderableBundle->terrainChunks.size();
+
+	for(unsigned int i = 0; i < vecSize; i++)
 	{	
 		 renderableBundle->terrainChunks[i]->GetTerrainMesh()->Render(deviceContext);
 
@@ -764,11 +784,10 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 	}
 
 	d3D->TurnOnTransparencyBlending();
-	//d3D->SetDepthBiasRasterizer();
 	d3D->SetNoCullRasterizer();
 
 
-	for(unsigned int i = 0; i <  renderableBundle->terrainChunks.size(); i++)
+	for(unsigned int i = 0; i < vecSize; i++)
 	{	
 		 renderableBundle->terrainChunks[i]->GetWaterMesh()->Render(deviceContext);
 
@@ -781,9 +800,9 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 	}
 
 	d3D->TurnOnAlphaBlending();
-	d3D->SetNoCullRasterizer();
+	//d3D->SetNoCullRasterizer();
 
-	for(unsigned int i = 0; i <  renderableBundle->terrainChunks.size(); i++)
+	for(unsigned int i = 0; i < vecSize; i++)
 	{	
 		 renderableBundle->terrainChunks[i]->GetTerrainMesh()->Render(deviceContext);
 
@@ -798,9 +817,9 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 	d3D->ResetBlendState();
 	d3D->SetBackFaceCullingRasterizer();
 
-
 	return true;
 }
+
 
 bool Renderer::RenderPointLight( ID3D11DeviceContext* deviceContext, XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* viewProjection )
 {
@@ -897,6 +916,7 @@ bool Renderer::RenderDirectionalLight( ID3D11DeviceContext* deviceContext, XMMAT
 	return true;
 }
 
+
 /* worldView or worldBASEView ??? TODO! */
 
 bool Renderer::RenderComposedScene(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* worldView, XMMATRIX* view, XMMATRIX* invertedProjection, XMMATRIX* invertedViewProjection )
@@ -913,6 +933,7 @@ bool Renderer::RenderComposedScene(ID3D11DeviceContext* deviceContext, XMMATRIX*
 
 	return true;
 }
+
 
 bool Renderer::RenderDebugInfoAndText(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj )
 {
@@ -1006,6 +1027,7 @@ bool Renderer::RenderDebugInfoAndText(ID3D11DeviceContext* deviceContext, XMMATR
 
 	return true;
 }
+
 
 void Renderer::Shutdown()
 {

@@ -36,6 +36,7 @@
     <ClCompile Include="LemmiQuadtree.h" />
     <ClCompile Include="LerpInstance.cpp" />
     <ClCompile Include="IndexedMesh.cpp" />
+    <ClCompile Include="MeshHandler.cpp" />
     <ClCompile Include="ParticleManager.cpp" />
     <ClCompile Include="SentenceManager.cpp" />
     <ClCompile Include="MarchingCubeChunk.cpp" />
@@ -92,6 +93,7 @@
     <ClInclude Include="DRGBuffer.h" />
     <ClInclude Include="GaussianBlur.h" />
     <ClInclude Include="IndexedInstancedMesh.h" />
+    <ClInclude Include="MeshHandler.h" />
     <ClInclude Include="ParticleManager.h" />
     <ClInclude Include="RenderableInterface.h" />
     <ClInclude Include="GeometryShaderGrass.h" />
@@ -187,10 +189,8 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
-    <CLRSupport>false</CLRSupport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>

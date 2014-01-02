@@ -81,13 +81,12 @@ bool Engine::Initialize()
 	camera->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
 	camera->Update(); //Call update once at default position to set up matrices properly
 
-	camera->SetPosition(XMFLOAT3(50.0f, 50.0f, 50.0f));
+	camera->SetPosition(XMFLOAT3(0.0f, 25.0f, -100.0f));
 	camera->SetRotation(XMFLOAT3(0.0f, 0.0f, 0.0f));
 	camera->SetPerspectiveProjection(screenWidth, screenHeight, XM_PIDIV4, SCREEN_NEAR, SCREEN_FAR); 
 
 	//Initialize world
-	world.Initialize(d3D, camera);
-
+	world.Initialize(d3D, camera, input);
 
 	// Initialize the renderer.
 	result = renderer.Initialize(hwnd, camera, input, d3D, screenWidth, screenHeight, 
@@ -149,7 +148,7 @@ void Engine::Run()
 			result = Update();
 			if(!result)
 			{
-				MessageBox(hwnd, L"Frame Processing Failed", L"Error", MB_OK);
+				MessageBox(hwnd, L"Main update loop failed.", L"Error", MB_OK);
 				done = true;
 			}
 		}
@@ -182,7 +181,7 @@ bool Engine::Update()
 	camera->Update();
 
 	//Here. Do world update stuff here.
-	world.Update();
+	world.Update(timer.GetFrameTimeSeconds());
 
 	// Do update renderer.
 	result = renderer.Update(hwnd, fpsMeter.GetFps(), cpuMeter.GetCpuPercentage(), timer.GetFrameTimeMilliseconds(), timer.GetFrameTimeSeconds());

@@ -3,7 +3,8 @@
 /*						TODO AND THINGS OF THAT SORT							*/
 /********************************************************************************/
 
-* Data oriented containers for rendering related things. Should only contain like... arrays of IndexedMeshes and other things.
+* Look into changing marching cube voxel vectors into arrays, because I actually DO know the exact size of it. Should speed up iterating through etc...
+	-> Actually, maybe not... http://stackoverflow.com/questions/381621/using-arrays-or-stdvectors-in-c-whats-the-performance-gap
 
 * Bullet collision detection. Start with marching cubes meshes. Should be easy enough.  
 	- http://bulletphysics.org/mediawiki-1.5.8/index.php/Hello_World + http://bulletphysics.org/mediawiki-1.5.8/index.php/Code_Snippets
@@ -11,8 +12,6 @@
 * RTW shadowmapping < Cuz it's fuckin' awesome.
 
 * Decide upon a GUI library and implement it
-
-* Clean up Renderer code. Start moving things to World.
 
 * Make geometry shader grass more fancy.
 	-Should pretty much be finished now, just need to do the lookup-based-on-height thing.

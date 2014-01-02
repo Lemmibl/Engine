@@ -154,9 +154,6 @@
     <ClCompile Include="LerpInstance.cpp">
       <Filter>General Code\Utility\Mathstuff</Filter>
     </ClCompile>
-    <ClCompile Include="frustumclass.cpp">
-      <Filter>General Code\Utility\Mathstuff</Filter>
-    </ClCompile>
     <ClCompile Include="DayNightCycle.cpp">
       <Filter>General Code\Systems</Filter>
     </ClCompile>
@@ -179,6 +176,12 @@
       <Filter>Collision</Filter>
     </ClCompile>
     <ClCompile Include="ParticleManager.cpp">
+      <Filter>Rendering\Managers</Filter>
+    </ClCompile>
+    <ClCompile Include="frustumclass.cpp">
+      <Filter>Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshHandler.cpp">
       <Filter>Rendering\Managers</Filter>
     </ClCompile>
   </ItemGroup>
@@ -351,9 +354,6 @@
     <ClInclude Include="LerpInstance.h">
       <Filter>General Code\Utility\Mathstuff</Filter>
     </ClInclude>
-    <ClInclude Include="frustumclass.h">
-      <Filter>General Code\Utility\Mathstuff</Filter>
-    </ClInclude>
     <ClInclude Include="DayNightCycle.h">
       <Filter>General Code\Systems</Filter>
     </ClInclude>
@@ -373,6 +373,12 @@
       <Filter>Collision</Filter>
     </ClInclude>
     <ClInclude Include="ParticleManager.h">
+      <Filter>Rendering\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="frustumclass.h">
+      <Filter>Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshHandler.h">
       <Filter>Rendering\Managers</Filter>
     </ClInclude>
   </ItemGroup>

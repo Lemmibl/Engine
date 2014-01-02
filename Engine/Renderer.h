@@ -11,8 +11,6 @@
 #include <string>
 #include <cassert>
 
-#include "VegetationManager.h"
-
 //Utility
 #include "Utility.h"
 #include "StructsAndEnums.h"
@@ -28,6 +26,7 @@
 #include "d3dmanager.h"
 #include "TerrainManager.h"
 #include "TextureAndMaterialHandler.h"
+#include "VegetationManager.h"
 
 //Objects
 #include "modelclass.h"
@@ -54,16 +53,25 @@
 #include "GaussianBlur.h"
 #include "GeometryShaderGrass.h"
 #include "DRWaterClass.h"
+#include "DRGBuffer.h"
+
 
 class Renderer
 {
 public:
+
+	struct TestSphere
+	{
+		IndexedMesh mesh;
+		XMFLOAT4X4 world;
+	};
+
 	struct RenderableBundle
 	{
 		vector<IndexedMesh> indexedMeshes;
 		vector<IndexedInstancedMesh> indexedInstancedMeshes;
 		vector<MarchingCubeChunk*> terrainChunks;
-
+		TestSphere testSphere; //temp.
 	};
 
 public:
@@ -105,11 +113,12 @@ private:
 
 	VertexShaderOnly vertexOnlyShader;
 	DepthOnlyShader depthOnlyShader;
-	DepthOnlyQuadShader depthOnlyQuadShader;
+	DRGBuffer gbufferShader;
 	DRCompose composeShader;
 	GaussianBlur gaussianBlurShader;
 	GeometryShaderGrass geometryShaderGrass;
 	DRWaterClass waterShader;
+	MCGBufferTerrainShader mcubeShader;
 
 	DRDirLight dirLightShader;
 	DirLight dirLight;
@@ -129,7 +138,6 @@ private:
 	bool returning, toggleDebugInfo, toggleTextureShader, toggleOtherPointLights, drawWireFrame;
 	float fogMinimum;
 
-	MCGBufferTerrainShader mcubeShader;
 	DayNightCycle dayNightCycle;
 	NoiseClass noise;
 

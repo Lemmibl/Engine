@@ -54,7 +54,7 @@ float3 CalculateBlendWeights(float3 NormalizedWorldNormal)
 {
 	float3 blend_weights = abs(NormalizedWorldNormal);     
 	blend_weights = (blend_weights - 0.2f)*7.0f;  // Tighten up the blending zone
-	blend_weights = max(blend_weights, 0.0f);
+	blend_weights = max(blend_weights, 0.0001f);
 	blend_weights /= (blend_weights.x + blend_weights.y + blend_weights.z).xxx; // Force weights to sum to 1.0 (very important!)
 
 	return blend_weights;

@@ -45,7 +45,7 @@ public:
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
-	bool Render(ID3D11DeviceContext*, int, XMMATRIX*, XMMATRIX*, XMMATRIX*, ID3D11ShaderResourceView**, float FarZ);
+	bool Render(ID3D11DeviceContext*, int, XMMATRIX*, XMMATRIX*, XMMATRIX*, ID3D11ShaderResourceView* texture, float FarZ);
 
 private:
 	bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
@@ -53,7 +53,7 @@ private:
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
 
 	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, 
-		XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, ID3D11ShaderResourceView** textureArray, float FarZ);
+		XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, ID3D11ShaderResourceView* texture, float FarZ);
 
 	void RenderShader(ID3D11DeviceContext*, int);
 
@@ -65,7 +65,7 @@ private:
 	CComPtr<ID3D11Buffer> matrixBuffer;
 	CComPtr<ID3D11Buffer> pixelFarZBuffer;
 
-	CComPtr<ID3D11SamplerState> samplers[2];
+	CComPtr<ID3D11SamplerState> sampler;
 };
 
 #endif
