@@ -6,9 +6,20 @@ DirectX11 / C++ videogame "Engine" made by me, Carl "Lemmi" Engström. Originall
 ***********************************
 IMPORTANT:
 
-If you want to download the project as a zip and start it, you need to open it through the Engine.vcxproj inside the code folder!
+For a real installer to the project, here's a pretty new one:
+ftp://lemminas.dlinkddns.com/Public/LemmiInstaller.msi
+
+It should work fine, as long as your x86 vc++ 2010 redists: (http://www.microsoft.com/en-us/download/details.aspx?id=5555)
+
+and your directx redists:
+http://www.microsoft.com/en-us/download/details.aspx?id=8109
+
+are all up to date.
+
+If you want to download the project as a zip and compile it, you need to open it through the Engine.vcxproj inside the code folder!
 I don't really know why but it seems like git breaks the .sln files somehow.
 ***********************************
+
 
 Here are the controls for this project. They are probably prone to change and I probably won't update this readme every time, but here goes:
 
