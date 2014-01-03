@@ -50,7 +50,8 @@ Here are the controls for this project. They are probably prone to change and I 
 * F8: TypeFancy.
 * F9: TypeCave.
 ***********************************
-  
+
+* G to bounce the... ball around.
 * N to generate a new world.
 * R and F to move point lights up and down.
 
