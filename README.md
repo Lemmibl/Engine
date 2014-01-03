@@ -6,15 +6,15 @@ DirectX11 / C++ videogame "Engine" made by me, Carl "Lemmi" Engström. Originall
 ***********************************
 IMPORTANT:
 
+This project has really only been tested on Windows 7 64-bit with an nvidia card. I know for a fact that it's shittier on my laptop with an ATI 5650; for some reason there's loads of z-fighting and texture filtering is all fucked.
+
 For a real installer to the project, here's a pretty new one:
 ftp://lemminas.dlinkddns.com/Public/LemmiInstaller.msi
 
-It should work fine, as long as your x86 vc++ 2010 redists: (http://www.microsoft.com/en-us/download/details.aspx?id=5555)
+It should work fine, as long as your x86 vc++ 2010 redist is up to date: (http://www.microsoft.com/en-us/download/details.aspx?id=5555)
 
-and your directx redists:
+and your directx redist is up to date:
 http://www.microsoft.com/en-us/download/details.aspx?id=8109
-
-are all up to date.
 
 If you want to download the project as a zip and compile it, you need to open it through the Engine.vcxproj inside the code folder!
 I don't really know why but it seems like git breaks the .sln files somehow.
@@ -53,6 +53,11 @@ Here are the controls for this project. They are probably prone to change and I 
   
 * N to generate a new world.
 * R and F to move point lights up and down.
+
+That should be all of the keybindings for the moment. :)
+
+
+//These are currently turned off while I fix crashes when other people try to save screenshots
 * U to generate random R8G8B8A8 noise to a debug texture.
 * I to generate random simplex noise to a debug texture.
 * O to generate mirrored random simplex noise to a debug texture.
@@ -60,6 +65,4 @@ Here are the controls for this project. They are probably prone to change and I 
 * J to generate a random "grass" texture.
 * K to generate a random "dirt" texture.
 * L to save the grass or dirt texture to harddrive (gets saved where the code files are located).
-
-That should be all of the keybindings for the moment. :)
 
