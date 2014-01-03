@@ -24,7 +24,7 @@ MarchingCubeChunk::MarchingCubeChunk(XMFLOAT3 startPos, XMFLOAT3 endPos, XMFLOAT
 	centerPosition.y = startPosition.y + extents.y;
 	centerPosition.z = startPosition.z + extents.z;
 
-	int index = 0;
+	unsigned int index = 0;
 
 	// Set default values for each voxel in the field
 	for(unsigned int z = 0; z <= stepCountZ; ++z)
