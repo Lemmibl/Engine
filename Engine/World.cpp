@@ -53,18 +53,18 @@ void World::InitializeCollisionStuff()
 	//Setup ground plane
 	//////////////////////////////////////////////////////////////////////////
 
-	groundShape = make_shared<btStaticPlaneShape>(btVector3(0,1,0), 1.0f);
-	groundMotionState = make_shared<btDefaultMotionState>(btTransform(btQuaternion(0,0,0,1), btVector3(0, 1, 0)));
-	
-	btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState.get(), groundShape.get(), btVector3(0,0,0));
-	groundRigidBody = make_shared<btRigidBody>(groundRigidBodyCI);
+	//groundShape = make_shared<btStaticPlaneShape>(btVector3(0,1,0), 1.0f);
+	//groundMotionState = make_shared<btDefaultMotionState>(btTransform(btQuaternion(0,0,0,1), btVector3(0, 1, 0)));
+	//
+	//btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState.get(), groundShape.get(), btVector3(0,0,0));
+	//groundRigidBody = make_shared<btRigidBody>(groundRigidBodyCI);
 
-	groundRigidBody->setFriction(1);
-	groundRigidBody->setRollingFriction(1);
-	groundRigidBody->setRestitution(0.5f);
+	//groundRigidBody->setFriction(1);
+	//groundRigidBody->setRollingFriction(1);
+	//groundRigidBody->setRestitution(0.5f);
 
-	//Add it to the world
-	dynamicsWorld->addRigidBody(groundRigidBody.get());
+	////Add it to the world
+	//dynamicsWorld->addRigidBody(groundRigidBody.get());
 
 	//////////////////////////////////////////////////////////////////////////
 	//Setup bounding sphere that we'll test against ground plane

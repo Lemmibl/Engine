@@ -341,7 +341,7 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 		waterLevel = 5.0f;
 	}
 
-	void MarchingCubesClass::CalculateMesh(ID3D11Device* device, MarchingCubeChunk* chunk)
+	void MarchingCubesClass::CalculateMesh(ID3D11Device* device, MarchingCubeChunk* chunk, btTriangleMesh* triMesh)
 	{
 		// Stores the points from a simple cube 
 		MarchingCubeVoxel verts[12];
@@ -374,7 +374,7 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 					CalculateLookupValue(&lookup, index, cube);
 
 					//Core of the algorithm. Takes the calculated lookup value and applies the specific case from the lookup table to the cube we've extracted from the voxel field.
-					ProcessCube(lookup, verts, cube, chunk->GetIndices(), &vertices, indexCounter, vertexCounter, sizeX, sizeY, sizeZ);
+					ProcessCube(triMesh, lookup, verts, cube, chunk->GetIndices(), &vertices, indexCounter, vertexCounter, sizeX, sizeY, sizeZ);
 				}
 			}
 		}
@@ -444,7 +444,7 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 		}
 	}
 
-	void MarchingCubesClass::ProcessCube( unsigned int lookupValue, MarchingCubeVoxel* verts, MarchingCubeVoxel** cube, vector<unsigned int>* indices, 
+	void MarchingCubesClass::ProcessCube(btTriangleMesh* triMesh, unsigned int lookupValue, MarchingCubeVoxel* verts, MarchingCubeVoxel** cube, vector<unsigned int>* indices, 
 		vector<MarchingCubeVectors>* vertices, unsigned int& indexCounter, unsigned int& vertexCounter, unsigned int sizeX, unsigned int sizeY, unsigned int sizeZ )
 	{
 		if(lookupValue == 0)
@@ -461,36 +461,50 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 			}
 		}
 
-		int i, j;
+		int i, j, triIndex;
 
 		for (i = 0; this->triTable[lookupValue][i] != -1; i += 3)
 		{
+			triIndex = 0;
+
+			//Triangle for collision mesh
+			Triangle newTriangle;
+
 			for (j = i; j < (i+3); j++)
 			{
 				int tritableLookupValue = triTable[lookupValue][j];
 
-				//Uncomment this if you want edges of the world back...... you don't.
+				//Some if checks to cut away the extreme edges on the bottom and sides to remove LOTS of unnecessary triangles
 				if(indexX > 0 && indexZ > 0 && indexX < sizeX-2 && indexZ < sizeZ-2 && indexY >= 1)
-				{
-					float yPos = verts[tritableLookupValue].position.y;
+				{	
+					newTriangle.points[triIndex] = btVector3(verts[tritableLookupValue].position.x, verts[tritableLookupValue].position.y, verts[tritableLookupValue].position.z);
+					triIndex++;
 
-					indices->push_back(vertexCounter);
 
 					MarchingCubeVectors temp;
 					temp.position = XMFLOAT4(verts[tritableLookupValue].position.x, verts[tritableLookupValue].position.y, verts[tritableLookupValue].position.z, RandomFloat());
 					temp.normal = verts[tritableLookupValue].normal;
 
 					vertices->push_back(temp);
+					indices->push_back(vertexCounter);
 
 					vertexCounter++;
 					indexCounter++;	
 
+					//ANY triangle in this mesh is below waterlevel, we want to create water.
+					float yPos = verts[tritableLookupValue].position.y;
+
 					if(yPos < waterLevel)	
 					{			
-						//ANY triangle in this mesh is below waterlevel, we want to create water.
 						createWater = true;
 					}
 				}
+			}
+
+			//If larger or equal to 2, it means we have a full triangle.
+			if(triIndex >= 2)
+			{
+				triMesh->addTriangle(newTriangle.points[0], newTriangle.points[1], newTriangle.points[2]);
 			}
 		}
 	}

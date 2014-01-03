@@ -1,4 +1,6 @@
-#pragma once;
+#pragma once
+#define BT_NO_SIMD_OPERATOR_OVERLOADS //Needed to fix clash between bullet libraries and xnamath. https://code.google.com/p/bullet/issues/detail?id=710
+
 #include "metaballsClass.h"
 #include "TreeClass.h"
 #include "MCTerrainClass.h"
@@ -6,15 +8,22 @@
 #include <windows.h>
 #include "Utility.h"
 #include "MarchingCubeChunk.h"
+#include "BulletCollision\CollisionShapes\btTriangleMesh.h"
 
 class MarchingCubesClass
 {
+private:
+	struct Triangle
+	{
+		 btVector3 points[3];
+	};
+
 public:
 	MarchingCubesClass(unsigned int sizeX,  unsigned int sizeY, unsigned int sizeZ);
 	~MarchingCubesClass();
 
 	//Converts a voxel field to a mesh
-	void CalculateMesh(ID3D11Device* device, MarchingCubeChunk* chunk);
+	void CalculateMesh(ID3D11Device* device, MarchingCubeChunk* chunk, btTriangleMesh* triMesh);
 
 private:
 	//Extract a cube from the .. voxel field...
@@ -24,7 +33,8 @@ private:
 	void CalculateLookupValue(unsigned int* lookup, unsigned int index, MarchingCubeVoxel** cube);
 
 	//Triangulate the cube that was extracted before, with the help of our lookup value
-	void ProcessCube(unsigned int lookupValue, MarchingCubeVoxel* verts, MarchingCubeVoxel** cube, vector<unsigned int>* indices, vector<MarchingCubeVectors>* vertices, unsigned int& indexCounter, unsigned int& vertexCounter, unsigned int sizeX,  unsigned int sizeY, unsigned int sizeZ);
+	void ProcessCube(btTriangleMesh* triMesh, unsigned int lookupValue, MarchingCubeVoxel* verts, MarchingCubeVoxel** cube, vector<unsigned int>* indices, vector<MarchingCubeVectors>* vertices, 
+		unsigned int& indexCounter, unsigned int& vertexCounter, unsigned int sizeX,  unsigned int sizeY, unsigned int sizeZ);
 
 	//Create vertex and index buffers from the data that we've created
 	void CreateMesh(ID3D11Device* device, IndexedMesh* mesh, vector<unsigned int>* indices, vector<MarchingCubeVectors>* vertices, unsigned int indexCount, unsigned int vertexCount);

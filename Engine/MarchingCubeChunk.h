@@ -1,4 +1,6 @@
 #pragma once
+#define BT_NO_SIMD_OPERATOR_OVERLOADS //Needed to fix clash between bullet libraries and xnamath. https://code.google.com/p/bullet/issues/detail?id=710
+
 #include "types.h"
 #include "Utility.h"
 #include <windows.h>
@@ -6,6 +8,8 @@
 #include "IndexedMesh.h"
 #include "Lemmi3DAABB.h"
 #include "VegetationManager.h"
+#include "BulletDynamics\Dynamics\btRigidBody.h"
+#include "BulletCollision\CollisionShapes\btTriangleMesh.h"
 
 class MarchingCubeChunk
 {
@@ -39,6 +43,13 @@ public:
 	float GetExtentsY() const { return extents.y; }
 	float GetExtentsZ() const { return extents.z; }
 
+	btRigidBody* GetRigidBody() const { return rigidBody.get(); }
+	btCollisionShape* GetCollisionShape() const { return collisionShape.get(); }
+	btTriangleMesh* GetTriMesh() { return triMesh.get(); }
+
+	void SetRigidBody(shared_ptr<btRigidBody> body) { rigidBody = body; }
+	void SetCollisionShape(shared_ptr<btCollisionShape> shape) { collisionShape = shape; }
+
 private:
 	//voxels is sizeX*sizeY*sizeZ big
 	vector<MarchingCubeVoxel> voxels;
@@ -61,13 +72,8 @@ private:
 	unsigned int stepCountY;
 	unsigned int stepCountZ;
 
-	//Lemmi3DAABB boundingBox;
-
-//Potential thing we might add to these chunks in the future:
-	//Vector of vegetation quads
-	//Bounding box
-	//Some sort of bucket for containing everything that is currently inside this chunk. In a sense this means that the chunk would act as a leaf node in some sort of spatial tree/grid.
-	//bool wireframe
-	// https://code.google.com/p/dx11engine/source/browse/main/trunk/Engine/BoundingBox.h?r=12
+	shared_ptr<btTriangleMesh> triMesh;
+	shared_ptr<btCollisionShape> collisionShape; //triMesh
+	shared_ptr<btRigidBody> rigidBody;
 };
 

@@ -80,13 +80,13 @@ private:
 	shared_ptr<btDiscreteDynamicsWorld> dynamicsWorld;
 
 	//Collision objects
-	shared_ptr<btCollisionShape> groundShape;
+	//shared_ptr<btCollisionShape> groundShape;
 	shared_ptr<btCollisionShape> fallShape;
 
-	shared_ptr<btDefaultMotionState> groundMotionState;
+	//shared_ptr<btDefaultMotionState> groundMotionState;
 	shared_ptr<btDefaultMotionState> fallMotionState;
 
-	shared_ptr<btRigidBody> groundRigidBody;
+	//shared_ptr<btRigidBody> groundRigidBody;
 	shared_ptr<btRigidBody> fallRigidBody;
 
 	//Terrain related objects

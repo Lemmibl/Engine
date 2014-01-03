@@ -172,7 +172,26 @@ void TerrainManager::CreateChunk(ID3D11Device* device, ID3D11DeviceContext* devi
 		mcTerrain.Noise3D(1, 1, 1, (int)stepCount.x, (int)stepCount.y, (int)stepCount.z);
 
 		//Create the mesh for the chunk with marching cubes algorithm
-		marchingCubes.CalculateMesh(device, newChunk.get());
+		marchingCubes.CalculateMesh(device, newChunk.get(), newChunk->GetTriMesh());
+
+		//Setup collision shape with the triMesh that was created inside marching cubes class
+		shared_ptr<btBvhTriangleMeshShape> triMeshShape = make_shared<btBvhTriangleMeshShape>(newChunk->GetTriMesh(), true);
+
+		//Assign it to this chunk
+		newChunk->SetCollisionShape(triMeshShape);
+
+		//Set up some rigid body stuff
+		btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, NULL, newChunk->GetCollisionShape(), btVector3(0,0,0));
+		shared_ptr<btRigidBody> rigidBody = make_shared<btRigidBody>(groundRigidBodyCI);
+		rigidBody->setFriction(1);
+		rigidBody->setRollingFriction(1);
+		rigidBody->setRestitution(0.5f);
+
+		//Assign it to this chunk
+		newChunk->SetRigidBody(rigidBody);
+
+		//Add it to the world
+		collisionHandler->addRigidBody(newChunk->GetRigidBody());
 
 		//...Generate and place vegetation based on data from the chunk.
 		//GenerateVegetation(device, false, newChunk.get());

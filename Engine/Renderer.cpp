@@ -752,7 +752,7 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 
 	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	
- 	worldMatrix = (XMMatrixScaling(2.0f, 2.0f, 2.0f) * XMLoadFloat4x4((&renderableBundle->testSphere.world)));
+	worldMatrix = (XMMatrixScaling(2.0f, 2.0f, 2.0f) * XMLoadFloat4x4((&renderableBundle->testSphere.world)));
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 	view = XMMatrixTranspose(*viewMatrix);
 	proj = XMMatrixTranspose(*projectionMatrix);
