@@ -90,6 +90,7 @@ void World::Update( float deltaTime)
 	btTransform trans;
 	fallRigidBody->getMotionState()->getWorldTransform(trans);
 
+	//Store sphere's position after it's been adjusted by bullet.
 	XMStoreFloat4x4(&renderableBundle.testSphere.world, XMMatrixTranslation(trans.getOrigin().getX(), trans.getOrigin().getY(), trans.getOrigin().getZ()));
 
 	HandleInput();
