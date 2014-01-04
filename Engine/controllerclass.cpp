@@ -67,12 +67,14 @@ ControllerClass::ControllerClass(std::shared_ptr<btDynamicsWorld> world, std::sh
 {
 	SetCursorPos(0, 0);
 
+	float collisionRadius = 2.5f;
+
 	dynamicsWorld = world;
 
 	//Set up all collision related objects
-	collisionShape = std::make_shared<btSphereShape>(2.5f);
+	collisionShape = std::make_shared<btSphereShape>(collisionRadius);
 
-	forceScale = 50.0f;
+	forceScale = movespeed;
 	btScalar mass = 1.0f;
 	btVector3 fallInertia(0, 0, 0);
 	collisionShape->calculateLocalInertia(mass,fallInertia);
@@ -87,10 +89,21 @@ ControllerClass::ControllerClass(std::shared_ptr<btDynamicsWorld> world, std::sh
 	dynamicsWorld->addRigidBody(rigidBody.get());
 
 	//http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?f=9&t=8900&view=next
+	//This is a flying controller, it shouldn't be affected by gravity
 	rigidBody->setGravity(btVector3(0.0f, 0.0f, 0.0f));
-	rigidBody->setFriction(0.5f);
-	rigidBody->setDamping(0.5f, 0.5f);
-	rigidBody->setRestitution(0.2f);
+
+	//Self explanatory.
+	rigidBody->setFriction(10.0f);
+	rigidBody->setAnisotropicFriction(btVector3(2.0f, 2.0f, 2.0f));
+
+	//Linear damping is ... air friction, ish. Angular friction is how 
+	rigidBody->setDamping(0.85f, 5.0f);
+
+	//Bounciness.
+	rigidBody->setRestitution(0.0f);
+
+	//rigidBody->setLinearVelocity(btVector3(1.0f, 1.0f, 1.0f));
+	//rigidBody->setCcdSweptSphereRadius(collisionRadius * 0.9f);
 }
 
 ControllerClass::~ControllerClass()
@@ -99,78 +112,88 @@ ControllerClass::~ControllerClass()
 
 void ControllerClass::Update(float frameTime, XMFLOAT4X4* cameraMatrix)
 {
+	//scalar for things like sprint/crouch
 	float movementValue;
 
+	//Activate rigid body in case it's been deactivated for some reason
 	rigidBody->activate(true);
 
+	//Extract rigid body position
 	btTransform trans;
-	rigidBody->getMotionState()->getWorldTransform(trans);
+	position = btVector3_to_XMFLOAT3(rigidBody->getCenterOfMassPosition());
 
-	position = btVector3_to_XMFLOAT3(trans.getOrigin());
+	//Scale rotational force
+	float rotationalForceScale = rotationSpeed * frameTime;
 
-	movementValue = moveSpeed * frameTime;
-
-	if(inputManager->IsKeyPressed(Keybinds::SPRINT))
-	{
-		movementValue = (moveSpeed*5.0f) * frameTime;
-	}
-	else if(inputManager->IsKeyPressed(Keybinds::CROUCH))
-	{
-		movementValue = (moveSpeed*0.3f) * frameTime;
-	}
-
-	float rotationValue = rotationSpeed * frameTime;
-	XMVECTOR rotationThisUpdate, movementThisUpdate, tempPos, tempRot;
+	XMVECTOR rotationThisUpdate, movementThisUpdate, tempRot;
 	XMFLOAT2 mousePos;
 	XMFLOAT4 rotationalForce;
+
+	//Null all the values
 	rotationThisUpdate = movementThisUpdate = XMVectorZero();
 	rotationalForce = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
 
 	mousePos = inputManager->GetMousePos();
-	//SetCursorPos(0, 0);
 
+	//Rotate the controller based on mouse cursor movement
 	rotationalForce.y -= (prevMousePos.x - mousePos.x)*0.06f;
 	rotationalForce.x -= (prevMousePos.y - mousePos.y)*0.06f;
 
 	//Rotate the controller with the arrow keys
 	if(inputManager->IsKeyPressed(Keybinds::DOWNKEY))
-		rotationalForce.x += rotationValue;
+		rotationalForce.x += rotationalForceScale;
 	if(inputManager->IsKeyPressed(Keybinds::UPKEY))
-		rotationalForce.x -= rotationValue;
+		rotationalForce.x -= rotationalForceScale;
 	if(inputManager->IsKeyPressed(Keybinds::RIGHTKEY))
-		rotationalForce.y += rotationValue;
+		rotationalForce.y += rotationalForceScale;
 	if(inputManager->IsKeyPressed(Keybinds::LEFTKEY))
-		rotationalForce.y -= rotationValue;
+		rotationalForce.y -= rotationalForceScale;
 
 	//Rotate with mouse
 	rotationThisUpdate = XMLoadFloat4(&rotationalForce);
 
-	//Move the controller with WASD, C and Space.
+	//Calculate direction of the controller based on keyboard input
 	if(inputManager->IsKeyPressed(Keybinds::FORWARD))
-		movementThisUpdate += movementValue*MatrixForwardVector(cameraMatrix);
+		movementThisUpdate += MatrixForwardVector(cameraMatrix);
 	if(inputManager->IsKeyPressed(Keybinds::BACKWARDS))
-		movementThisUpdate += movementValue*MatrixBackwardVector(cameraMatrix);
+		movementThisUpdate += MatrixBackwardVector(cameraMatrix);
 
 	if(inputManager->IsKeyPressed(Keybinds::LEFT))
-		movementThisUpdate += movementValue*MatrixLeftVector(cameraMatrix);
+		movementThisUpdate += MatrixLeftVector(cameraMatrix);
 	if(inputManager->IsKeyPressed(Keybinds::RIGHT))
-		movementThisUpdate += movementValue*MatrixRightVector(cameraMatrix);
+		movementThisUpdate += MatrixRightVector(cameraMatrix);
 
 	if(inputManager->IsKeyPressed(Keybinds::UPWARDS))
-		movementThisUpdate += movementValue*MatrixUpVector(cameraMatrix);
+		movementThisUpdate += MatrixUpVector(cameraMatrix);
 	if(inputManager->IsKeyPressed(Keybinds::DOWNWARDS))
-		movementThisUpdate += movementValue*MatrixDownVector(cameraMatrix);
+		movementThisUpdate += MatrixDownVector(cameraMatrix);
 
-	tempPos = XMLoadFloat3(&position);
+	if(inputManager->IsKeyPressed(Keybinds::SPRINT))
+	{
+		movementValue = (forceScale*3.0f);// * frameTime;
+	}
+	else if(inputManager->IsKeyPressed(Keybinds::CROUCH))
+	{
+		movementValue = (forceScale*0.3f);// * frameTime;
+	}
+	else
+	{
+		//Else we move as usual.
+		movementValue = forceScale;
+	}
+
+
+	//Normalize direction vector. Apply a little scaling variable to account for sprinting or "sneaking" and other things. Possibly implement into force scale?
+	movementThisUpdate = XMVector3Normalize(movementThisUpdate);
+
 	tempRot = XMLoadFloat3(&rotation);
-
-	tempPos += movementThisUpdate;
 	tempRot += rotationThisUpdate;
 
 	float X = XMVectorGetX(tempRot);
 	float Y = XMVectorGetY(tempRot);
 
-	if(X >= 89.0f) //We make sure the X rotation doesn't stray off the good path, lest it give in to temptation and sin.
+	//We make sure the X rotation doesn't stray off the good path, lest it give in to temptation and sin.
+	if(X >= 89.0f)
 	{
 		tempRot = XMVectorSetX(tempRot, 89.0f);
 	}
@@ -179,21 +202,25 @@ void ControllerClass::Update(float frameTime, XMFLOAT4X4* cameraMatrix)
 		tempRot = XMVectorSetX(tempRot, -89.0f);
 	}
 
-	if(Y >= 360.0f || Y <= -360.0f) //We clamp Y rotation to a decent, goodhearted value that heeds the word of our lord savior.
+	//We clamp Y rotation to a decent, goodhearted value that heeds the word of our lord savior.
+	if(Y >= 360.0f || Y <= -360.0f)
 	{
 		tempRot = XMVectorSetY(tempRot, 0.0f);
 	}
 
-	//apply force before updating position
-	//rigidBody->translate(XMVECTOR_to_btVector3(movementThisUpdate)); //getMotionState()->setWorldTransform(btTransform(btQuaternion(0, 0, 0, 1), XMVECTOR_to_btVector3(movementThisUpdate))); //
-
+	//Move our rigid body with forces
 	XMFLOAT3 movement;
 	XMStoreFloat3(&movement, movementThisUpdate);
-	rigidBody->setLinearVelocity(btVector3(movement.x*forceScale, movement.y*forceScale, movement.z*forceScale)); //, btVector3(position.x, position.y, position.z)
+	rigidBody->applyForce(btVector3(movement.x*movementValue, movement.y*movementValue, movement.z*movementValue), rigidBody->getCenterOfMassPosition()); //, btVector3(position.x, position.y, position.z)
 
-	XMStoreFloat3(&position, tempPos);
+	//Copy our rigid body position to our XMFLOAT3 position that is used in rendering
+	rigidBody->getMotionState()->getWorldTransform(trans);
+	position = btVector3_to_XMFLOAT3(trans.getOrigin());
+
+	//Store new rotation
 	XMStoreFloat3(&rotation, tempRot);
 
+	//Save current mouse position for next update
 	prevMousePos = inputManager->GetMousePos(); //Add this at the end of the update so that it's kept one step behind the fresh update.
 
 	return;

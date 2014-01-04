@@ -84,7 +84,7 @@ bool Engine::Initialize()
 		return false;
 	}
 
-	cameraController = std::make_shared<ControllerClass>(dynamicsWorld, input, 0.05f, 0.05f);
+	cameraController = std::make_shared<ControllerClass>(dynamicsWorld, input, 50.0f, 0.05f); //0.03f
 	if(!cameraController)
 	{
 		return false;

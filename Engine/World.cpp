@@ -84,7 +84,7 @@ void World::InitializeTerrain()
 void World::Update( float deltaTime)
 {
 	//Advance bullet world simulation stepping
-	dynamicsWorld->stepSimulation(deltaTime, 2);
+	dynamicsWorld->stepSimulation(deltaTime, 15);
 
 	//Get a transform for the updated dynamic object
 	btTransform trans;
