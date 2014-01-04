@@ -1,26 +1,17 @@
-////////////////////////////////////////////////////////////////////////////////
-// Filename: controllerclass.h
-////////////////////////////////////////////////////////////////////////////////
-#ifndef _CONTROLLERCLASS_H_
-#define _CONTROLLERCLASS_H_
+#pragma once
+#define BT_NO_SIMD_OPERATOR_OVERLOADS //Needed to fix clash between bullet libraries and xnamath. https://code.google.com/p/bullet/issues/detail?id=710
 
-
-//////////////
-// INCLUDES //
-//////////////
 #include "inputclass.h"
 #include <windows.h>
 #include <xnamath.h>
 #include <memory>
 
+#include <btBulletDynamicsCommon.h>
 
-////////////////////////////////////////////////////////////////////////////////
-// Class name: ControllerClass
-////////////////////////////////////////////////////////////////////////////////
 class ControllerClass
 {
 public:
-	ControllerClass(std::shared_ptr<InputClass> extInput, float movespeed, float turnspeed);
+	ControllerClass(std::shared_ptr<btDynamicsWorld> dynamicsWorld, std::shared_ptr<InputClass> extInput, float movespeed, float turnspeed);
 	~ControllerClass();
 
 	void Update(float frameTime, XMFLOAT4X4* cameraMatrix);
@@ -38,12 +29,21 @@ private:
 	XMVECTOR MatrixUpVector(const XMFLOAT4X4* matrix);
 	XMVECTOR MatrixDownVector(const XMFLOAT4X4* matrix);
 
+	inline XMFLOAT3 btVector3_to_XMFLOAT3(const btVector3& vec) { return XMFLOAT3(vec.getX(), vec.getY(), vec.getZ()); }
+	inline XMFLOAT3 btQuaternion_to_XMFLOAT3(const btQuaternion& quat) { return XMFLOAT3(quat.getX(), quat.getY(), quat.getZ()); }
+
+	inline btVector3 XMVECTOR_to_btVector3(const XMVECTOR& vec) { XMFLOAT3 temp; XMStoreFloat3(&temp, vec); return btVector3(temp.x, temp.y, temp.z); }
+
 private:
 	float frameTime;
 	XMFLOAT2 prevMousePos;
 	XMFLOAT3 rotation, position;
-	float moveSpeed, rotationSpeed;
+	float moveSpeed, rotationSpeed, forceScale;
 	std::shared_ptr<InputClass> inputManager;
-};
+	std::shared_ptr<btDynamicsWorld> dynamicsWorld;
 
-#endif
+	std::shared_ptr<btRigidBody> rigidBody;
+	std::shared_ptr<btMotionState> motionState;
+	std::shared_ptr<btCollisionShape> collisionShape;
+	/*btActionInterface*/
+};

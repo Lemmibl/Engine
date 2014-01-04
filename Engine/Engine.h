@@ -8,6 +8,7 @@
 // PRE-PROCESSING DIRECTIVES //
 ///////////////////////////////
 #define WIN32_LEAN_AND_MEAN
+#define BT_NO_SIMD_OPERATOR_OVERLOADS //Needed to fix clash between bullet libraries and xnamath. https://code.google.com/p/bullet/issues/detail?id=710
 
 /////////////
 // GLOBALS //
@@ -32,6 +33,7 @@ const float SCREEN_NEAR = 2.0f;
 ///////////////////////
 // MY CLASS INCLUDES //
 ///////////////////////
+#include <btBulletDynamicsCommon.h>
 #include "inputclass.h"
 #include "Renderer.h"
 #include "fpsmeter.h"
@@ -77,6 +79,12 @@ private:
 	CpuMeter cpuMeter;
 	TimerClass timer;
 
+	//Collision classes
+	shared_ptr<btBroadphaseInterface> broadphase;
+	shared_ptr<btDefaultCollisionConfiguration> collisionConfiguration;
+	shared_ptr<btCollisionDispatcher> dispatcher;
+	shared_ptr<btSequentialImpulseConstraintSolver> solver;
+	shared_ptr<btDiscreteDynamicsWorld> dynamicsWorld;
 
 	float rotationalValue;
 	int screenWidth, screenHeight;

@@ -1,14 +1,11 @@
-////////////////////////////////////////////////////////////////////////////////
-// Filename: ControllerClass.cpp
-////////////////////////////////////////////////////////////////////////////////
 #include "controllerclass.h"
-
 
 #pragma region Properties
 XMFLOAT3 ControllerClass::GetPosition() 
 { 
 	return position;
 }
+
 XMFLOAT3 ControllerClass::GetRotation() 
 { 
 	return rotation;
@@ -16,7 +13,7 @@ XMFLOAT3 ControllerClass::GetRotation()
 
 void ControllerClass::SetPosition(const XMFLOAT3 pos)
 {
-	position = pos;
+	return; //position = pos;
 }
 
 void ControllerClass::SetRotation(const XMFLOAT3 rot)
@@ -57,7 +54,9 @@ XMVECTOR ControllerClass::MatrixDownVector(const XMFLOAT4X4* matrix)
 }
 #pragma endregion
 
-ControllerClass::ControllerClass(std::shared_ptr<InputClass> input, float movespeed, float turnspeed)
+//http://gamedev.stackexchange.com/questions/53723/first-person-camera-with-bullet-physics
+
+ControllerClass::ControllerClass(std::shared_ptr<btDynamicsWorld> world, std::shared_ptr<InputClass> input, float movespeed, float turnspeed)
 :	inputManager(input),
 	moveSpeed(movespeed),
 	rotationSpeed(turnspeed),
@@ -67,6 +66,31 @@ ControllerClass::ControllerClass(std::shared_ptr<InputClass> input, float movesp
 	position(XMFLOAT3(0.0f, 0.0f, 0.0f))
 {
 	SetCursorPos(0, 0);
+
+	dynamicsWorld = world;
+
+	//Set up all collision related objects
+	collisionShape = std::make_shared<btSphereShape>(2.5f);
+
+	forceScale = 50.0f;
+	btScalar mass = 1.0f;
+	btVector3 fallInertia(0, 0, 0);
+	collisionShape->calculateLocalInertia(mass,fallInertia);
+
+	motionState = std::make_shared<btDefaultMotionState>(btTransform(btQuaternion(0,0,0,1), btVector3(0, 50, 0)));
+
+	btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(mass, motionState.get(), collisionShape.get(), fallInertia);
+
+	rigidBody = std::make_shared<btRigidBody>(rigidBodyCI);
+
+	//Add it to the world
+	dynamicsWorld->addRigidBody(rigidBody.get());
+
+	//http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?f=9&t=8900&view=next
+	rigidBody->setGravity(btVector3(0.0f, 0.0f, 0.0f));
+	rigidBody->setFriction(0.5f);
+	rigidBody->setDamping(0.5f, 0.5f);
+	rigidBody->setRestitution(0.2f);
 }
 
 ControllerClass::~ControllerClass()
@@ -77,11 +101,18 @@ void ControllerClass::Update(float frameTime, XMFLOAT4X4* cameraMatrix)
 {
 	float movementValue;
 
+	rigidBody->activate(true);
+
+	btTransform trans;
+	rigidBody->getMotionState()->getWorldTransform(trans);
+
+	position = btVector3_to_XMFLOAT3(trans.getOrigin());
+
 	movementValue = moveSpeed * frameTime;
 
 	if(inputManager->IsKeyPressed(Keybinds::SPRINT))
 	{
-		movementValue = (moveSpeed*3.0f) * frameTime;
+		movementValue = (moveSpeed*5.0f) * frameTime;
 	}
 	else if(inputManager->IsKeyPressed(Keybinds::CROUCH))
 	{
@@ -152,6 +183,13 @@ void ControllerClass::Update(float frameTime, XMFLOAT4X4* cameraMatrix)
 	{
 		tempRot = XMVectorSetY(tempRot, 0.0f);
 	}
+
+	//apply force before updating position
+	//rigidBody->translate(XMVECTOR_to_btVector3(movementThisUpdate)); //getMotionState()->setWorldTransform(btTransform(btQuaternion(0, 0, 0, 1), XMVECTOR_to_btVector3(movementThisUpdate))); //
+
+	XMFLOAT3 movement;
+	XMStoreFloat3(&movement, movementThisUpdate);
+	rigidBody->setLinearVelocity(btVector3(movement.x*forceScale, movement.y*forceScale, movement.z*forceScale)); //, btVector3(position.x, position.y, position.z)
 
 	XMStoreFloat3(&position, tempPos);
 	XMStoreFloat3(&rotation, tempRot);

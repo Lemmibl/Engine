@@ -9,21 +9,14 @@ World::World()
 
 World::~World()
 {
-	//remove the rigidbodies from the dynamics world and delete them
-	for (int i = dynamicsWorld->getNumCollisionObjects()-1; i >= 0; i--)
-	{
-		btCollisionObject* obj = dynamicsWorld->getCollisionObjectArray()[i];
-		dynamicsWorld->removeCollisionObject( obj );
-
-		//delete obj;
-	}
 }
 
-void World::Initialize( shared_ptr<D3DManager> extD3DManager, shared_ptr<CameraClass> extCamera, shared_ptr<InputClass> extInput)
+void World::Initialize( shared_ptr<D3DManager> extD3DManager, shared_ptr<CameraClass> extCamera, shared_ptr<InputClass> extInput, shared_ptr<btDiscreteDynamicsWorld> collisionWorld)
 {
 	inputManager = extInput;
 	camera = extCamera;
 	d3D = extD3DManager;
+	dynamicsWorld = collisionWorld;
 
 	//1.77f is 16:9 aspect ratio
 	frustum.SetInternals((float)camera->GetScreenWidth() / (float)camera->GetScreenHeight(), XM_PIDIV2, camera->GetNearClip(), camera->GetFarClip());
@@ -37,18 +30,6 @@ void World::Initialize( shared_ptr<D3DManager> extD3DManager, shared_ptr<CameraC
 
 void World::InitializeCollisionStuff()
 {
-	broadphase				=	make_shared<btDbvtBroadphase>();
-	collisionConfiguration	=	make_shared<btDefaultCollisionConfiguration>();
-	dispatcher				=	make_shared<btCollisionDispatcher>(collisionConfiguration.get());
-	solver					=	make_shared<btSequentialImpulseConstraintSolver>();
-	dynamicsWorld			=	make_shared<btDiscreteDynamicsWorld>(dispatcher.get(), broadphase.get(), solver.get(), collisionConfiguration.get());
-	
-	//http://en.wikipedia.org/wiki/Gravity_of_Earth
-	dynamicsWorld->setGravity(btVector3(0.0f, -9.78f, 0.0f));
-
-	dynamicsWorld->stepSimulation(bulletTimeStepScale, 10);
-
-
 	//////////////////////////////////////////////////////////////////////////
 	//Setup ground plane
 	//////////////////////////////////////////////////////////////////////////
@@ -100,10 +81,10 @@ void World::InitializeTerrain()
 	renderableBundle.terrainChunks = terrainManager->GetActiveChunks();
 }
 
-void World::Update( float deltaTime )
+void World::Update( float deltaTime)
 {
 	//Advance bullet world simulation stepping
-	dynamicsWorld->stepSimulation(deltaTime*10.0f, 10);
+	dynamicsWorld->stepSimulation(deltaTime, 2);
 
 	//Get a transform for the updated dynamic object
 	btTransform trans;
@@ -117,10 +98,10 @@ void World::Update( float deltaTime )
 
 void World::HandleInput()
 {
-	if(inputManager->WasKeyPressed(DIK_G))
+	if(inputManager->IsKeyPressed(DIK_G))
 	{
 		fallRigidBody->activate(true);
-		fallRigidBody->setLinearVelocity(btVector3(0, 30, 0));
+		fallRigidBody->setLinearVelocity(btVector3(0, 5, 0));
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD1) || inputManager->WasKeyPressed(DIK_F1))

@@ -2,8 +2,8 @@
 
 #define BT_NO_SIMD_OPERATOR_OVERLOADS //Needed to fix clash between bullet libraries and xnamath. https://code.google.com/p/bullet/issues/detail?id=710
 
-#include <memory>
 #include <btBulletDynamicsCommon.h>
+#include <memory>
 #include "MCTerrainClass.h"
 #include "TerrainManager.h"
 #include "d3dmanager.h"
@@ -21,7 +21,7 @@ public:
 	World();
 	~World();
 
-	void Initialize(shared_ptr<D3DManager> extD3DManager, shared_ptr<CameraClass> extCamera, shared_ptr<InputClass> extInput);
+	void Initialize(shared_ptr<D3DManager> extD3DManager, shared_ptr<CameraClass> extCamera, shared_ptr<InputClass> extInput, shared_ptr<btDiscreteDynamicsWorld> collisionWorld);
 
 	void Update(float deltaTime);
 
@@ -73,10 +73,6 @@ private:
 
 private:
 	//Collision classes
-	shared_ptr<btBroadphaseInterface> broadphase;
-	shared_ptr<btDefaultCollisionConfiguration> collisionConfiguration;
-	shared_ptr<btCollisionDispatcher> dispatcher;
-	shared_ptr<btSequentialImpulseConstraintSolver> solver;
 	shared_ptr<btDiscreteDynamicsWorld> dynamicsWorld;
 
 	//Collision objects

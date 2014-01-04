@@ -474,13 +474,12 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 			{
 				int tritableLookupValue = triTable[lookupValue][j];
 
+				newTriangle.points[triIndex] = btVector3(verts[tritableLookupValue].position.x, verts[tritableLookupValue].position.y, verts[tritableLookupValue].position.z);
+				triIndex++;
+
 				//Some if checks to cut away the extreme edges on the bottom and sides to remove LOTS of unnecessary triangles
 				if(indexX > 0 && indexZ > 0 && indexX < sizeX-2 && indexZ < sizeZ-2 && indexY >= 1)
 				{	
-					newTriangle.points[triIndex] = btVector3(verts[tritableLookupValue].position.x, verts[tritableLookupValue].position.y, verts[tritableLookupValue].position.z);
-					triIndex++;
-
-
 					MarchingCubeVectors temp;
 					temp.position = XMFLOAT4(verts[tritableLookupValue].position.x, verts[tritableLookupValue].position.y, verts[tritableLookupValue].position.z, RandomFloat());
 					temp.normal = verts[tritableLookupValue].normal;
@@ -501,11 +500,11 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 				}
 			}
 
-			//If larger or equal to 2, it means we have a full triangle.
-			if(triIndex >= 2)
-			{
+			////If larger or equal to 2, it means we have a full triangle.
+			//if(triIndex >= 2)
+			//{
 				triMesh->addTriangle(newTriangle.points[0], newTriangle.points[1], newTriangle.points[2]);
-			}
+			//}
 		}
 	}
 

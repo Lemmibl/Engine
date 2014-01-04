@@ -17,6 +17,14 @@ Engine::Engine(const Engine& other)
 
 Engine::~Engine()
 {
+	//remove the rigidbodies from the dynamics world and delete them
+	for (int i = dynamicsWorld->getNumCollisionObjects()-1; i >= 0; i--)
+	{
+		btCollisionObject* obj = dynamicsWorld->getCollisionObjectArray()[i];
+		dynamicsWorld->removeCollisionObject( obj );
+
+		//delete obj;
+	}
 }
 
 bool Engine::Initialize()
@@ -32,6 +40,19 @@ bool Engine::Initialize()
 
 	// Initialize the windows api.
 	InitializeWindows(screenWidth, screenHeight);
+
+	broadphase				=	make_shared<btDbvtBroadphase>();
+	collisionConfiguration	=	make_shared<btDefaultCollisionConfiguration>();
+
+	dispatcher				=	make_shared<btCollisionDispatcher>(collisionConfiguration.get());
+	solver					=	make_shared<btSequentialImpulseConstraintSolver>();
+
+	dynamicsWorld			=	make_shared<btDiscreteDynamicsWorld>(dispatcher.get(), broadphase.get(), solver.get(), collisionConfiguration.get());
+
+	//http://en.wikipedia.org/wiki/Gravity_of_Earth
+	dynamicsWorld->setGravity(btVector3(0.0f, -9.78f, 0.0f));
+
+	dynamicsWorld->stepSimulation(1.0f/180.0f, 60);
 
 	// Create the input object.  This object will be used to handle reading the keyboard input from the user.
 	input = std::make_shared<InputClass>();
@@ -63,7 +84,7 @@ bool Engine::Initialize()
 		return false;
 	}
 
-	cameraController = std::make_shared<ControllerClass>(input, 0.05f, 0.05f);
+	cameraController = std::make_shared<ControllerClass>(dynamicsWorld, input, 0.05f, 0.05f);
 	if(!cameraController)
 	{
 		return false;
@@ -86,7 +107,7 @@ bool Engine::Initialize()
 	camera->SetPerspectiveProjection(screenWidth, screenHeight, XM_PIDIV4, SCREEN_NEAR, SCREEN_FAR); 
 
 	//Initialize world
-	world.Initialize(d3D, camera, input);
+	world.Initialize(d3D, camera, input, dynamicsWorld);
 
 	// Initialize the renderer.
 	result = renderer.Initialize(hwnd, camera, input, d3D, screenWidth, screenHeight, 
@@ -177,11 +198,11 @@ bool Engine::Update()
 		return false;
 	}
 
-	cameraController->Update(timer.GetFrameTimeMilliseconds(), camera->GetWorldMatrix()); //Processes all of the movement for this controller.
-	camera->Update();
-
 	//Here. Do world update stuff here.
 	world.Update(timer.GetFrameTimeSeconds());
+
+	cameraController->Update(timer.GetFrameTimeMilliseconds(), camera->GetWorldMatrix()); //Processes all of the movement for this controller.
+	camera->Update();
 
 	// Do update renderer.
 	result = renderer.Update(hwnd, fpsMeter.GetFps(), cpuMeter.GetCpuPercentage(), timer.GetFrameTimeMilliseconds(), timer.GetFrameTimeSeconds());
