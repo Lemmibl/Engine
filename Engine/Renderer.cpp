@@ -752,14 +752,14 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 
 	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	
-	worldMatrix = (XMMatrixScaling(2.0f, 2.0f, 2.0f) * XMLoadFloat4x4((&renderableBundle->testSphere.world)));
-	worldMatrix = XMMatrixTranspose(worldMatrix);
-	view = XMMatrixTranspose(*viewMatrix);
-	proj = XMMatrixTranspose(*projectionMatrix);
+	//worldMatrix = (XMMatrixScaling(2.0f, 2.0f, 2.0f) * XMLoadFloat4x4((&renderableBundle->testSphere.world)));
+	//worldMatrix = XMMatrixTranspose(worldMatrix);
+	//view = XMMatrixTranspose(*viewMatrix);
+	//proj = XMMatrixTranspose(*projectionMatrix);
 
-	renderableBundle->testSphere.mesh.Render(deviceContext);
+	//renderableBundle->testSphere.mesh.Render(deviceContext);
 
-	gbufferShader.Render(deviceContext, renderableBundle->testSphere.mesh.GetIndexCount(), &worldMatrix, &view, &proj, sphereModel.GetTexture(), farClip);
+	//gbufferShader.Render(deviceContext, renderableBundle->testSphere.mesh.GetIndexCount(), &worldMatrix, &view, &proj, sphereModel.GetTexture(), farClip);
 
 	worldMatrix = XMMatrixIdentity();
 	worldView = XMMatrixTranspose(XMMatrixMultiply(worldMatrix, (*viewMatrix)));
@@ -915,9 +915,6 @@ bool Renderer::RenderDirectionalLight( ID3D11DeviceContext* deviceContext, XMMAT
 
 	return true;
 }
-
-
-/* worldView or worldBASEView ??? TODO! */
 
 bool Renderer::RenderComposedScene(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* worldView, XMMATRIX* view, XMMATRIX* invertedProjection, XMMATRIX* invertedViewProjection )
 {

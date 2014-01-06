@@ -16,7 +16,9 @@
 #include <fstream>
 #include "StructsAndEnums.h"
 #include <atlcomcli.h>
+#include <libconfig.h++>
 
+using namespace libconfig;
 using namespace std;
 
 
@@ -37,11 +39,14 @@ private:
 	struct VertexMatrixBuffer
 	{
 		XMMATRIX WorldViewProjection;
-		XMMATRIX WorldView;
-		XMMATRIX World;
-		XMMATRIX InvertedViewProjection;
-		XMFLOAT4 CameraPosition;
 	};
+
+	/*
+	XMMATRIX WorldView;
+	XMMATRIX World;
+	XMMATRIX InvertedViewProjection;
+	XMFLOAT4 CameraPosition;
+	 */
 
 	struct PositionalBuffer
 	{
@@ -66,6 +71,8 @@ public:
 		XMMATRIX* invertedView, XMMATRIX* invertedProjection, XMMATRIX* lightView, XMMATRIX* lightProj, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** materialTextureArray, 
 		XMFLOAT3 cameraPosition, DirLight* dirLight, XMFLOAT4 ambienceColor);
 
+	void OnSettingsReload(Config* cfg);
+
 private:
 	bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
 	void ShutdownShader();
@@ -86,6 +93,7 @@ private:
 	CComPtr<ID3D11Buffer> vertexMatrixBuffer;
 	CComPtr<ID3D11Buffer> pixelMatrixBuffer;
 	CComPtr<ID3D11Buffer> positionalBuffer;
+	float cameraFarClip;
 };
 
 #endif

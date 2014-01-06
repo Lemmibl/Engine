@@ -26,7 +26,7 @@ bool MCGBufferTerrainShader::Initialize(ID3D11Device* device, HWND hwnd)
 
 
 	// Initialize the vertex and pixel shaders.
-	result = InitializeShader(device, hwnd, L"../Engine/MCGBufferTerrainShader.vsh", L"../Engine/MCGBufferTerrainShader.psh");
+	result = InitializeShader(device, hwnd, L"../Engine/Shaders/MCGBufferTerrainShader.vsh", L"../Engine/Shaders/MCGBufferTerrainShader.psh");
 	if(!result)
 	{
 		return false;

@@ -20,7 +20,7 @@ bool DRWaterClass::Initialize(ID3D11Device* device, HWND hwnd)
 
 
 	// Initialize the vertex and pixel shaders.
-	result = InitializeShader(device, hwnd, L"../Engine/WaterShader.vsh", L"../Engine/WaterShader.gsh", L"../Engine/WaterShader.psh");
+	result = InitializeShader(device, hwnd, L"../Engine/Shaders/WaterShader.vsh", L"../Engine/Shaders/WaterShader.gsh", L"../Engine/Shaders/WaterShader.psh");
 	if(!result)
 	{
 		return false;

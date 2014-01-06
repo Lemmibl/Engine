@@ -2,6 +2,7 @@
 // Filename: lightshaderclass.cpp
 ////////////////////////////////////////////////////////////////////////////////
 #include "DRDirectionalLight.h"
+#include "SettingsManager.h"
 
 DRDirLight::DRDirLight()
 {
@@ -33,8 +34,14 @@ bool DRDirLight::Initialize(ID3D11Device* device, HWND hwnd)
 {
 	bool result;
 
+	//Attach load function to the event that might happen
+	SettingsManager& settings = SettingsManager::GetInstance();
+	settings.GetEvent()->Add(*this, &DRDirLight::OnSettingsReload);
+
+	cameraFarClip = 400.0f;
+
 	// Initialize the vertex and pixel shaders.
-	result = InitializeShader(device, hwnd, L"../Engine/DRDirectionalLight.vsh", L"../Engine/DRDirectionalLight.psh");
+	result = InitializeShader(device, hwnd, L"../Engine/Shaders/DRDirectionalLight.vsh", L"../Engine/Shaders/DRDirectionalLight.psh");
 	if(!result)
 	{
 		return false;
@@ -438,10 +445,10 @@ XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* invertedProjection, XMMATRIX* 
 	dataPtr1 = (VertexMatrixBuffer*)mappedResource.pData;
 
 	dataPtr1->WorldViewProjection = *worldViewProjection;
-	dataPtr1->WorldView = *worldView;
-	dataPtr1->World = *world;
-	dataPtr1->InvertedViewProjection = XMMatrixMultiplyTranspose(*invertedView, *invertedProjection);
-	dataPtr1->CameraPosition = XMFLOAT4(cameraPosition.x, cameraPosition.y, cameraPosition.z, 1.0f);
+	//dataPtr1->WorldView = *worldView;
+	//dataPtr1->World = *world;
+	//dataPtr1->InvertedViewProjection = XMMatrixMultiplyTranspose(*invertedView, *invertedProjection);
+	//dataPtr1->CameraPosition = XMFLOAT4(cameraPosition.x, cameraPosition.y, cameraPosition.z, 1.0f);
 
 	deviceContext->Unmap(vertexMatrixBuffer, 0);
 
@@ -463,8 +470,7 @@ XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* invertedProjection, XMMATRIX* 
 	dataPtr2 = (PositionalBuffer*)mappedResource.pData;
 
 	dataPtr2->LightDirection = XMFLOAT4(dirLight->Direction.x, dirLight->Direction.y, dirLight->Direction.z, dirLight->Intensity);
-	dataPtr2->CameraPosition = XMFLOAT4(cameraPosition.x, cameraPosition.y, cameraPosition.z, 1.0f);
-	//dataPtr2->ViewDirection = XMFLOAT4(cameraViewDir.x, cameraViewDir.y, cameraViewDir.z, 1.0f);
+	dataPtr2->CameraPosition = XMFLOAT4(cameraPosition.x, cameraPosition.y, cameraPosition.z, cameraFarClip);
 
 	deviceContext->Unmap(positionalBuffer, 0);
 
@@ -545,4 +551,11 @@ void DRDirLight::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount
 	deviceContext->DrawIndexed(indexCount, 0, 0);
 
 	return;
+}
+
+void DRDirLight::OnSettingsReload(Config* cfg)
+{
+	const Setting& settings = cfg->getRoot()["application"]["rendering"];
+
+	settings.lookupValue("farClip", cameraFarClip);
 }

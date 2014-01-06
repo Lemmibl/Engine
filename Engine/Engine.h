@@ -41,6 +41,7 @@ const float SCREEN_NEAR = 2.0f;
 #include "timerclass.h"
 #include "controllerclass.h"
 #include "World.h"
+#include "SettingsManager.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: Engine

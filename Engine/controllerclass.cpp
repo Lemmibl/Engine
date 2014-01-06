@@ -58,7 +58,6 @@ XMVECTOR ControllerClass::MatrixDownVector(const XMFLOAT4X4* matrix)
 
 ControllerClass::ControllerClass(std::shared_ptr<btDynamicsWorld> world, std::shared_ptr<InputClass> input, float movespeed, float turnspeed)
 :	inputManager(input),
-	moveSpeed(movespeed),
 	rotationSpeed(turnspeed),
 	prevMousePos(input->GetMousePos()),
 	frameTime(0.0f),
@@ -67,7 +66,13 @@ ControllerClass::ControllerClass(std::shared_ptr<btDynamicsWorld> world, std::sh
 {
 	SetCursorPos(0, 0);
 
+	//Attach load function to the event that might happen
+	SettingsManager& settings = SettingsManager::GetInstance();
+	settings.GetEvent()->Add(*this, &ControllerClass::OnSettingsReload);
+
 	float collisionRadius = 2.5f;
+	sprintModifier = 10.0f;
+	crouchModifier = 0.3f;
 
 	dynamicsWorld = world;
 
@@ -136,8 +141,8 @@ void ControllerClass::Update(float frameTime, XMFLOAT4X4* cameraMatrix)
 	mousePos = inputManager->GetMousePos();
 
 	//Rotate the controller based on mouse cursor movement
-	rotationalForce.y -= (prevMousePos.x - mousePos.x)*0.06f;
-	rotationalForce.x -= (prevMousePos.y - mousePos.y)*0.06f;
+	rotationalForce.y -= (prevMousePos.x - mousePos.x)*rotationSpeed;
+	rotationalForce.x -= (prevMousePos.y - mousePos.y)*rotationSpeed;
 
 	//Rotate the controller with the arrow keys
 	if(inputManager->IsKeyPressed(Keybinds::DOWNKEY))
@@ -170,11 +175,11 @@ void ControllerClass::Update(float frameTime, XMFLOAT4X4* cameraMatrix)
 
 	if(inputManager->IsKeyPressed(Keybinds::SPRINT))
 	{
-		movementValue = (forceScale*3.0f);// * frameTime;
+		movementValue = (forceScale*sprintModifier);// * frameTime;
 	}
 	else if(inputManager->IsKeyPressed(Keybinds::CROUCH))
 	{
-		movementValue = (forceScale*0.3f);// * frameTime;
+		movementValue = (forceScale*crouchModifier);// * frameTime;
 	}
 	else
 	{
@@ -224,4 +229,78 @@ void ControllerClass::Update(float frameTime, XMFLOAT4X4* cameraMatrix)
 	prevMousePos = inputManager->GetMousePos(); //Add this at the end of the update so that it's kept one step behind the fresh update.
 
 	return;
+}
+
+void ControllerClass::OnSettingsReload(Config* cfg)
+{
+	const Setting& settings = cfg->getRoot()["camera"];
+
+	float positionX = 0.0; 
+	float positionY = 50.0;
+	float positionZ = 0.0;
+
+	float collisionRadius = 2.5;
+	float mass = 1.0;
+
+	float forceScale = 4.0;
+	float restitution = 0.0;
+	float friction = 10.0;
+	float anisotropicFriction = 2.0;
+
+	float linearDamping = 0.8; 
+	float angularDamping = 5.0;
+
+	settings.lookupValue("positionX", positionX);
+	settings.lookupValue("positionY", positionY);
+	settings.lookupValue("positionZ", positionZ);
+
+	settings.lookupValue("turnSpeed", rotationSpeed);
+	settings.lookupValue("sprintModifier", sprintModifier);
+	settings.lookupValue("sneakModifier", crouchModifier);
+
+	settings.lookupValue("collisionRadius", collisionRadius);
+	settings.lookupValue("mass", mass);
+
+	settings.lookupValue("forceScale", forceScale);
+	settings.lookupValue("restitution", restitution);
+	settings.lookupValue("friction", friction);
+	settings.lookupValue("anisotropicFriction", anisotropicFriction);
+
+	settings.lookupValue("lineardamping", linearDamping);
+	settings.lookupValue("angulardamping", angularDamping);
+
+
+	dynamicsWorld->removeRigidBody(rigidBody.get());
+
+	//Set up all collision related objects
+	collisionShape = std::make_shared<btSphereShape>(collisionRadius);
+
+	btVector3 fallInertia(0, 0, 0);
+	collisionShape->calculateLocalInertia(mass,fallInertia);
+
+	motionState = std::make_shared<btDefaultMotionState>(btTransform(btQuaternion(0,0,0,1), btVector3(positionX, positionY, positionZ)));
+
+	btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(mass, motionState.get(), collisionShape.get(), fallInertia);
+
+	rigidBody = std::make_shared<btRigidBody>(rigidBodyCI);
+
+	//Add it to the world
+	dynamicsWorld->addRigidBody(rigidBody.get());
+
+	//http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?f=9&t=8900&view=next
+	//This is a flying controller, it shouldn't be affected by gravity
+	rigidBody->setGravity(btVector3(0.0f, 0.0f, 0.0f));
+
+	//Self explanatory.
+	rigidBody->setFriction(friction);
+	rigidBody->setAnisotropicFriction(btVector3(anisotropicFriction, anisotropicFriction, anisotropicFriction));
+
+	//Linear damping is ... air friction, ish. Angular friction is how 
+	rigidBody->setDamping(linearDamping, angularDamping);
+
+	//Bounciness.
+	rigidBody->setRestitution(restitution);
+
+	//rigidBody->setLinearVelocity(btVector3(1.0f, 1.0f, 1.0f));
+	//rigidBody->setCcdSweptSphereRadius(collisionRadius * 0.9f);
 }

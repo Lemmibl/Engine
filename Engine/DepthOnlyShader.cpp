@@ -28,7 +28,7 @@ bool DepthOnlyShader::Initialize(ID3D11Device* device, HWND hwnd)
 
 
 	// Initialize the vertex and pixel shaders.
-	result = InitializeShader(device, hwnd, L"../Engine/DepthOnlyShader.vsh", L"../Engine/DepthOnlyShader.psh");
+	result = InitializeShader(device, hwnd, L"../Engine/Shaders/DepthOnlyShader.vsh", L"../Engine/Shaders/DepthOnlyShader.psh");
 	if(!result)
 	{
 		return false;

@@ -30,46 +30,6 @@ void World::Initialize( shared_ptr<D3DManager> extD3DManager, shared_ptr<CameraC
 
 void World::InitializeCollisionStuff()
 {
-	//////////////////////////////////////////////////////////////////////////
-	//Setup ground plane
-	//////////////////////////////////////////////////////////////////////////
-
-	//groundShape = make_shared<btStaticPlaneShape>(btVector3(0,1,0), 1.0f);
-	//groundMotionState = make_shared<btDefaultMotionState>(btTransform(btQuaternion(0,0,0,1), btVector3(0, 1, 0)));
-	//
-	//btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState.get(), groundShape.get(), btVector3(0,0,0));
-	//groundRigidBody = make_shared<btRigidBody>(groundRigidBodyCI);
-
-	//groundRigidBody->setFriction(1);
-	//groundRigidBody->setRollingFriction(1);
-	//groundRigidBody->setRestitution(0.5f);
-
-	////Add it to the world
-	//dynamicsWorld->addRigidBody(groundRigidBody.get());
-
-	//////////////////////////////////////////////////////////////////////////
-	//Setup bounding sphere that we'll test against ground plane
-	//////////////////////////////////////////////////////////////////////////
-	
-	fallShape = make_shared<btSphereShape>(2.0f);
-
-	btScalar mass = 10.0f;
-	btVector3 fallInertia(0, 0, 0);
-	fallShape->calculateLocalInertia(mass,fallInertia);
-
-	fallMotionState = make_shared<btDefaultMotionState>(btTransform(btQuaternion(0,0,0,1), btVector3(0,50,0)));
-
-	btRigidBody::btRigidBodyConstructionInfo fallRigidBodyCI(mass, fallMotionState.get(), fallShape.get(), fallInertia);
-	fallRigidBodyCI.m_restitution = 1.3f;
-	fallRigidBodyCI.m_friction = 1.5f;
-
-	fallRigidBody = make_shared<btRigidBody>(fallRigidBodyCI);
-
-	fallRigidBody->setFriction(1);
-	fallRigidBody->setRollingFriction(1);
-
-	//Add it to the world
-	dynamicsWorld->addRigidBody(fallRigidBody.get());
 }
 
 void World::InitializeTerrain()
@@ -86,13 +46,6 @@ void World::Update( float deltaTime)
 	//Advance bullet world simulation stepping
 	dynamicsWorld->stepSimulation(deltaTime, 15);
 
-	//Get a transform for the updated dynamic object
-	btTransform trans;
-	fallRigidBody->getMotionState()->getWorldTransform(trans);
-
-	//Store sphere's position after it's been adjusted by Bullet.
-	XMStoreFloat4x4(&renderableBundle.testSphere.world, XMMatrixTranslation(trans.getOrigin().getX(), trans.getOrigin().getY(), trans.getOrigin().getZ()));
-
 	HandleInput();
 	UpdateVisibility();
 }
@@ -101,8 +54,7 @@ void World::HandleInput()
 {
 	if(inputManager->IsKeyPressed(DIK_G))
 	{
-		fallRigidBody->activate(true);
-		fallRigidBody->setLinearVelocity(btVector3(0, 5, 0));
+		SettingsManager::GetInstance().ReloadSettings();
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD1) || inputManager->WasKeyPressed(DIK_F1))

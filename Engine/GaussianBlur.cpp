@@ -26,7 +26,7 @@ bool GaussianBlur::Initialize(ID3D11Device* device, HWND hwnd)
 	bool result;
 
 	// Initialize the vertex and pixel shaders.
-	result = InitializeShader(device, hwnd, L"../Engine/standard.vsh", L"../Engine/GaussianBlurX.psh", L"../Engine/GaussianBlurY.psh");
+	result = InitializeShader(device, hwnd, L"../Engine/Shaders/standard.vsh", L"../Engine/Shaders/GaussianBlurX.psh", L"../Engine/Shaders/GaussianBlurY.psh");
 	if(!result)
 	{
 		return false;

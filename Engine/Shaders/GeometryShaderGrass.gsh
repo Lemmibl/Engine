@@ -29,7 +29,7 @@ static const float4 UpNormal = normalize(float4(0.0f, 1.0f, 0.0f, 1.0f));
 
 //TODO: Add all of these to the constant buffer to make them tweakable in normal code 
 //Just a temporary wind direction
-static const float vegetationFalloff = 250.0f;
+static const float vegetationFalloff = 200.0f;
 static const float forceScale = 0.75f;
 static const float waveLength = 0.05f;
 static const float traversalSpeed = 0.1f;

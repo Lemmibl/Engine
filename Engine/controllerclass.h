@@ -5,8 +5,11 @@
 #include <windows.h>
 #include <xnamath.h>
 #include <memory>
-
 #include <btBulletDynamicsCommon.h>
+#include  "SettingsManager.h"
+#include <libconfig.h++>
+
+using namespace libconfig;
 
 class ControllerClass
 {
@@ -20,6 +23,8 @@ public:
 	void SetRotation(const XMFLOAT3);
 	XMFLOAT3 GetPosition();
 	XMFLOAT3 GetRotation();
+
+	void OnSettingsReload(Config* cfg);
 
 private:
 	XMVECTOR MatrixForwardVector(const XMFLOAT4X4* matrix);
@@ -38,7 +43,7 @@ private:
 	float frameTime;
 	XMFLOAT2 prevMousePos;
 	XMFLOAT3 rotation, position;
-	float moveSpeed, rotationSpeed, forceScale;
+	float rotationSpeed, forceScale, sprintModifier, crouchModifier;
 	std::shared_ptr<InputClass> inputManager;
 	std::shared_ptr<btDynamicsWorld> dynamicsWorld;
 

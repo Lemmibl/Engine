@@ -22,7 +22,7 @@ cbuffer LightBuffer
 	float4 AmbientColor;
 };
 
-static const float CameraFarClip = 400.0f;
+//static const float CameraFarClip = 400.0f;
 
 SamplerState linearSampler : register(s0);
 SamplerState anisotropicSampler : register(s1);
@@ -96,16 +96,16 @@ float3 DecodeNormal(float2 enc)
 //	return CameraPosition.xyz * viewRay+(CameraFarClip*depth);
 //}
 
-float3 DepthToPosition2(float iDepth, float3 vPos)
+float3 DepthToPosition2(float iDepth, float farClip, float3 vPos)
 {
-	float3 vViewRay = float3(vPos.xy * (CameraFarClip / vPos.z), CameraFarClip);
+	float3 vViewRay = float3(vPos.xy * (farClip / vPos.z), farClip);
 	return vViewRay * iDepth;
 }
 
-float3 DepthToPosition(float depth, float4 ScreenPosition)
+float3 DepthToPosition(float depth, float farClip, float4 ScreenPosition)
 {
 	float3 viewPosition = mul(ScreenPosition, InvertedProjection).xyz;
-	float3 viewRay = float3(viewPosition.xy * (CameraFarClip / viewPosition.z), CameraFarClip);
+	float3 viewRay = float3(viewPosition.xy * (farClip / viewPosition.z), farClip);
 	return viewRay * depth;
 }
 
@@ -202,13 +202,13 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	float NdL = dot(lightVector, normal);
 
 	//Reconstructing world position
-	float4 position = mul(float4(DepthToPosition(depth, input.ScreenPosition), 1.0f), InvertedView);
+	float4 position = mul(float4(DepthToPosition(depth, CameraPosition.w, input.ScreenPosition), 1.0f), InvertedView);
 	position /= position.w;
 
 	//Extract pixel position as seen from light POV for shadow map extraction.
 	float4 lightScreenPos = mul(position,  mul(LightView, LightProjection));
 
-	float realDistanceToLight = mul(position, LightView).z/CameraFarClip;
+	float realDistanceToLight = mul(position, LightView).z/CameraPosition.w;
 
 	lightScreenPos.xy = 0.5 * lightScreenPos.xy / lightScreenPos.w + float2(0.5f, 0.5f);
 	lightScreenPos.y = 1.0f - lightScreenPos.y;
@@ -235,7 +235,7 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		float3 reflectionVector = normalize(reflect(lightVector, normal));
 
 		//surface-to-camera vector
-		float3 directionToCamera = normalize(position - CameraPosition);
+		float3 directionToCamera = normalize(position.xyz - CameraPosition.xyz);
 
 		//Calculate specular light 
 		finalSpecularProduct += specularCoefficient * pow( saturate( dot(reflectionVector, directionToCamera)), surfaceSmoothness);

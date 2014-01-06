@@ -26,7 +26,7 @@ bool GeometryShaderGrass::Initialize(ID3D11Device* device, HWND hwnd)
 
 
 	// Initialize the vertex and pixel shaders.
-	result = InitializeShader(device, hwnd, L"../Engine/GeometryShaderGrass.vsh", L"../Engine/GeometryShaderGrass.gs", L"../Engine/GeometryShaderGrass.psh");
+	result = InitializeShader(device, hwnd, L"../Engine/Shaders/GeometryShaderGrass.vsh", L"../Engine/Shaders/GeometryShaderGrass.gsh", L"../Engine/Shaders/GeometryShaderGrass.psh");
 	if(!result)
 	{
 		return false;

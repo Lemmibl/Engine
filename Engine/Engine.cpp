@@ -23,7 +23,7 @@ Engine::~Engine()
 		btCollisionObject* obj = dynamicsWorld->getCollisionObjectArray()[i];
 		dynamicsWorld->removeCollisionObject( obj );
 
-		//delete obj;
+		//delete obj; //I use smart ptrs for everything, so this should be unnecessary
 	}
 }
 
@@ -40,6 +40,8 @@ bool Engine::Initialize()
 
 	// Initialize the windows api.
 	InitializeWindows(screenWidth, screenHeight);
+
+	SettingsManager& settings = SettingsManager::GetInstance();
 
 	broadphase				=	make_shared<btDbvtBroadphase>();
 	collisionConfiguration	=	make_shared<btDefaultCollisionConfiguration>();

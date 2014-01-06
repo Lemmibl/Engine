@@ -1,5 +1,4 @@
 #pragma once
-
 #define BT_NO_SIMD_OPERATOR_OVERLOADS //Needed to fix clash between bullet libraries and xnamath. https://code.google.com/p/bullet/issues/detail?id=710
 
 #include <btBulletDynamicsCommon.h>
@@ -12,6 +11,7 @@
 #include "Renderer.h"
 #include "Lemmi2DAABB.h"
 #include "MeshHandler.h"
+#include "SettingsManager.h"
 
 using namespace std;
 
@@ -74,16 +74,6 @@ private:
 private:
 	//Collision classes
 	shared_ptr<btDiscreteDynamicsWorld> dynamicsWorld;
-
-	//Collision objects
-	//shared_ptr<btCollisionShape> groundShape;
-	shared_ptr<btCollisionShape> fallShape;
-
-	//shared_ptr<btDefaultMotionState> groundMotionState;
-	shared_ptr<btDefaultMotionState> fallMotionState;
-
-	//shared_ptr<btRigidBody> groundRigidBody;
-	shared_ptr<btRigidBody> fallRigidBody;
 
 	//Terrain related objects
 	shared_ptr<TerrainManager> terrainManager;

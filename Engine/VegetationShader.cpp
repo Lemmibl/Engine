@@ -29,7 +29,7 @@ bool VegetationShader::Initialize(ID3D11Device* device, HWND hwnd)
 
 
 	// Initialize the vertex and pixel shaders.
-	result = InitializeShader(device, hwnd, L"../Engine/VegetationQuad.vsh", L"../Engine/VegetationQuad.psh");
+	result = InitializeShader(device, hwnd, L"../Engine/Shaders/VegetationQuad.vsh", L"../Engine/Shaders/VegetationQuad.psh");
 	if(!result)
 	{
 		return false;

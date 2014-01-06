@@ -27,7 +27,7 @@ bool VertexShaderOnly::Initialize(ID3D11Device* device, HWND hwnd)
 
 
 	// Initialize the vertex and pixel shaders.
-	result = InitializeShader(device, hwnd, L"../Engine/BasicVertexShader.vsh");
+	result = InitializeShader(device, hwnd, L"../Engine/Shaders/BasicVertexShader.vsh");
 	if(!result)
 	{
 		return false;

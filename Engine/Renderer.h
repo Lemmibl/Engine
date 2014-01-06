@@ -55,7 +55,6 @@
 #include "DRWaterClass.h"
 #include "DRGBuffer.h"
 
-
 class Renderer
 {
 public:

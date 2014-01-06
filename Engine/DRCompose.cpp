@@ -34,7 +34,7 @@ bool DRCompose::Initialize(ID3D11Device* device, HWND hwnd)
 	bool result;
 
 	// Initialize the vertex and pixel shaders.
-	result = InitializeShader(device, hwnd, L"../Engine/DRCompose.vsh", L"../Engine/DRCompose.hlsl");
+	result = InitializeShader(device, hwnd, L"../Engine/Shaders/DRCompose.vsh", L"../Engine/Shaders/DRCompose.hlsl");
 	if(!result)
 	{
 		return false;

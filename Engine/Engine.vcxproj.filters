@@ -184,6 +184,9 @@
     <ClCompile Include="MeshHandler.cpp">
       <Filter>Rendering\Managers</Filter>
     </ClCompile>
+    <ClCompile Include="SettingsManager.cpp">
+      <Filter>General Code</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cpumeter.h">
@@ -381,107 +384,123 @@
     <ClInclude Include="MeshHandler.h">
       <Filter>Rendering\Managers</Filter>
     </ClInclude>
+    <ClInclude Include="SettingsManager.h">
+      <Filter>General Code</Filter>
+    </ClInclude>
+    <ClInclude Include="SchladetschEvents.h">
+      <Filter>General Code\Utility\Events</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader-error.txt" />
-    <None Include="DepthOnlyQuadShader.vsh">
-      <Filter>Rendering\Shaders\Shadow shaders</Filter>
-    </None>
-    <None Include="DepthOnlyQuadShader.psh">
-      <Filter>Rendering\Shaders\Shadow shaders</Filter>
-    </None>
-    <None Include="DepthOnlyShader.psh">
-      <Filter>Rendering\Shaders\Shadow shaders</Filter>
-    </None>
-    <None Include="DepthOnlyShader.vsh">
-      <Filter>Rendering\Shaders\Shadow shaders</Filter>
-    </None>
-    <None Include="DRDirectionalLight.vsh">
-      <Filter>Rendering\Shaders\Deferred shaders</Filter>
-    </None>
-    <None Include="DRDirectionalLight.psh">
-      <Filter>Rendering\Shaders\Deferred shaders</Filter>
-    </None>
-    <None Include="DRGBuffer.vsh">
-      <Filter>Rendering\Shaders\Deferred shaders</Filter>
-    </None>
-    <None Include="DRGBuffer.psh">
-      <Filter>Rendering\Shaders\Deferred shaders</Filter>
-    </None>
-    <None Include="DRPointLight.psh">
-      <Filter>Rendering\Shaders\Deferred shaders</Filter>
-    </None>
-    <None Include="DRPointLight.vsh">
-      <Filter>Rendering\Shaders\Deferred shaders</Filter>
-    </None>
-    <None Include="gaussianBlurX.psh">
-      <Filter>Rendering\Shaders\Post processing</Filter>
-    </None>
-    <None Include="gaussianBlurY.psh">
-      <Filter>Rendering\Shaders\Post processing</Filter>
-    </None>
-    <None Include="DRCompose.vsh">
-      <Filter>Rendering\Shaders\Post processing</Filter>
-    </None>
-    <None Include="DRCompose.hlsl">
-      <Filter>Rendering\Shaders\Post processing</Filter>
-    </None>
     <None Include="..\TODO.txt" />
-    <None Include="MCGBufferTerrainShader.psh">
-      <Filter>Rendering\Shaders\Deferred shaders</Filter>
-    </None>
-    <None Include="MCGBufferTerrainShader.vsh">
-      <Filter>Rendering\Shaders\Deferred shaders</Filter>
-    </None>
-    <None Include="VegetationQuad.psh">
+    <None Include="credits.txt" />
+    <None Include="settings.cfg" />
+    <None Include="Shaders\GeometryShaderGrass.gsh">
       <Filter>Rendering\Shaders\Vegetation</Filter>
     </None>
-    <None Include="VegetationQuad.vsh">
+    <None Include="Shaders\GeometryShaderGrass.psh">
       <Filter>Rendering\Shaders\Vegetation</Filter>
     </None>
-    <None Include="GeometryShaderGrass.vsh">
+    <None Include="Shaders\GeometryShaderGrass.vsh">
       <Filter>Rendering\Shaders\Vegetation</Filter>
     </None>
-    <None Include="GeometryShaderGrass.psh">
+    <None Include="Shaders\VegetationQuad.psh">
       <Filter>Rendering\Shaders\Vegetation</Filter>
     </None>
-    <None Include="GeometryShaderGrass.gs">
+    <None Include="Shaders\VegetationQuad.vsh">
       <Filter>Rendering\Shaders\Vegetation</Filter>
     </None>
-    <None Include="WaterShader.vsh">
+    <None Include="Shaders\DepthOnlyShader.vsh">
+      <Filter>Rendering\Shaders\Shadow shaders</Filter>
+    </None>
+    <None Include="Shaders\DepthOnlyShader.psh">
+      <Filter>Rendering\Shaders\Shadow shaders</Filter>
+    </None>
+    <None Include="Shaders\DepthOnlyQuadShader.vsh">
+      <Filter>Rendering\Shaders\Shadow shaders</Filter>
+    </None>
+    <None Include="Shaders\DepthOnlyQuadShader.psh">
+      <Filter>Rendering\Shaders\Shadow shaders</Filter>
+    </None>
+    <None Include="Shaders\gaussianBlurY.psh">
+      <Filter>Rendering\Shaders\Post processing</Filter>
+    </None>
+    <None Include="Shaders\gaussianBlurX.psh">
+      <Filter>Rendering\Shaders\Post processing</Filter>
+    </None>
+    <None Include="Shaders\DRCompose.vsh">
+      <Filter>Rendering\Shaders\Post processing</Filter>
+    </None>
+    <None Include="Shaders\DRCompose.hlsl">
+      <Filter>Rendering\Shaders\Post processing</Filter>
+    </None>
+    <None Include="Shaders\texture.vsh">
+      <Filter>Rendering\Shaders\General shaders</Filter>
+    </None>
+    <None Include="Shaders\texture.psh">
+      <Filter>Rendering\Shaders\General shaders</Filter>
+    </None>
+    <None Include="Shaders\standard.vsh">
+      <Filter>Rendering\Shaders\General shaders</Filter>
+    </None>
+    <None Include="Shaders\skysphere.vsh">
+      <Filter>Rendering\Shaders\General shaders</Filter>
+    </None>
+    <None Include="Shaders\skysphere.psh">
+      <Filter>Rendering\Shaders\General shaders</Filter>
+    </None>
+    <None Include="Shaders\font.vsh">
+      <Filter>Rendering\Shaders\General shaders</Filter>
+    </None>
+    <None Include="Shaders\font.psh">
+      <Filter>Rendering\Shaders\General shaders</Filter>
+    </None>
+    <None Include="Shaders\BasicVertexShader.vsh">
+      <Filter>Rendering\Shaders\General shaders</Filter>
+    </None>
+    <None Include="Shaders\WaterShader.vsh">
       <Filter>Rendering\Shaders\Deferred shaders</Filter>
     </None>
-    <None Include="WaterShader.gsh">
+    <None Include="Shaders\WaterShader.psh">
       <Filter>Rendering\Shaders\Deferred shaders</Filter>
     </None>
-    <None Include="WaterShader.psh">
+    <None Include="Shaders\WaterShader.gsh">
       <Filter>Rendering\Shaders\Deferred shaders</Filter>
     </None>
-    <None Include="BasicVertexShader.vsh">
-      <Filter>Rendering\Shaders\General shaders</Filter>
+    <None Include="Shaders\MCGBufferTerrainShader.vsh">
+      <Filter>Rendering\Shaders\Deferred shaders</Filter>
     </None>
-    <None Include="texture.vsh">
-      <Filter>Rendering\Shaders\General shaders</Filter>
+    <None Include="Shaders\MCGBufferTerrainShader.psh">
+      <Filter>Rendering\Shaders\Deferred shaders</Filter>
     </None>
-    <None Include="font.psh">
-      <Filter>Rendering\Shaders\General shaders</Filter>
+    <None Include="Shaders\DRPointLight.vsh">
+      <Filter>Rendering\Shaders\Deferred shaders</Filter>
     </None>
-    <None Include="font.vsh">
-      <Filter>Rendering\Shaders\General shaders</Filter>
+    <None Include="Shaders\DRPointLight.psh">
+      <Filter>Rendering\Shaders\Deferred shaders</Filter>
     </None>
-    <None Include="skysphere.psh">
-      <Filter>Rendering\Shaders\General shaders</Filter>
+    <None Include="Shaders\DRGBuffer.vsh">
+      <Filter>Rendering\Shaders\Deferred shaders</Filter>
     </None>
-    <None Include="skysphere.vsh">
-      <Filter>Rendering\Shaders\General shaders</Filter>
+    <None Include="Shaders\DRGBuffer.psh">
+      <Filter>Rendering\Shaders\Deferred shaders</Filter>
     </None>
-    <None Include="standard.vsh">
-      <Filter>Rendering\Shaders\General shaders</Filter>
+    <None Include="Shaders\DRDirectionalLight.vsh">
+      <Filter>Rendering\Shaders\Deferred shaders</Filter>
     </None>
-    <None Include="texture.psh">
-      <Filter>Rendering\Shaders\General shaders</Filter>
+    <None Include="Shaders\DRDirectionalLight.psh">
+      <Filter>Rendering\Shaders\Deferred shaders</Filter>
     </None>
-    <None Include="bugtracker.txt" />
+    <None Include="..\libconfig\libconfig.h++">
+      <Filter>General Code\Utility\libconfig</Filter>
+    </None>
+    <None Include="libconfig\libconfig_d.dll">
+      <Filter>Libraries</Filter>
+    </None>
+    <None Include="libconfig\libconfig++_d.dll">
+      <Filter>Libraries</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Rendering">
@@ -562,10 +581,31 @@
     <Filter Include="Rendering\Shader wrappers\General shader wrappers">
       <UniqueIdentifier>{1c1f1a94-8188-47ac-a178-d6e4fd0a270f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="General Code\Utility\Events">
+      <UniqueIdentifier>{7f372fb0-8c39-4825-a979-b8a7dd3e2d25}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libraries">
+      <UniqueIdentifier>{b2691cb4-19c7-47c9-ba2b-269b5a01461a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="General Code\Utility\libconfig">
+      <UniqueIdentifier>{c9a232eb-e4b6-4ed7-bb9f-f6d607a11baf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="..\BulletBuild\lib\Debug\BulletCollision_Debug.lib" />
-    <Library Include="..\BulletBuild\lib\Debug\BulletDynamics_Debug.lib" />
-    <Library Include="..\BulletBuild\lib\Debug\LinearMath_Debug.lib" />
+    <Library Include="..\BulletBuild\lib\Debug\BulletCollision_Debug.lib">
+      <Filter>Libraries</Filter>
+    </Library>
+    <Library Include="..\BulletBuild\lib\Debug\BulletDynamics_Debug.lib">
+      <Filter>Libraries</Filter>
+    </Library>
+    <Library Include="..\BulletBuild\lib\Debug\LinearMath_Debug.lib">
+      <Filter>Libraries</Filter>
+    </Library>
+    <Library Include="libconfig\libconfig.lib">
+      <Filter>Libraries</Filter>
+    </Library>
+    <Library Include="libconfig\libconfig++.lib">
+      <Filter>Libraries</Filter>
+    </Library>
   </ItemGroup>
 </Project>

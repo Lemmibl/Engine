@@ -40,6 +40,7 @@
     <ClCompile Include="ParticleManager.cpp" />
     <ClCompile Include="SentenceManager.cpp" />
     <ClCompile Include="MarchingCubeChunk.cpp" />
+    <ClCompile Include="SettingsManager.cpp" />
     <ClCompile Include="TerrainManager.cpp" />
     <ClCompile Include="TextureAndMaterialHandler.cpp" />
     <ClCompile Include="LSystemBranch.cpp" />
@@ -104,8 +105,10 @@
     <ClInclude Include="LemmiLinkedList.h" />
     <ClInclude Include="LerpInstance.h" />
     <ClInclude Include="IndexedMesh.h" />
+    <ClInclude Include="SchladetschEvents.h" />
     <ClInclude Include="SentenceManager.h" />
     <ClInclude Include="MarchingCubeChunk.h" />
+    <ClInclude Include="SettingsManager.h" />
     <ClInclude Include="TerrainManager.h" />
     <ClInclude Include="TextureAndMaterialHandler.h" />
     <ClInclude Include="LSystemBranch.h" />
@@ -140,47 +143,53 @@
     <ClInclude Include="World.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\libconfig\libconfig.h++" />
     <None Include="..\TODO.txt" />
-    <None Include="bugtracker.txt" />
-    <None Include="DRCompose.hlsl" />
-    <None Include="DepthOnlyQuadShader.psh" />
-    <None Include="DepthOnlyQuadShader.vsh" />
-    <None Include="DepthOnlyShader.psh" />
-    <None Include="BasicVertexShader.vsh" />
-    <None Include="DRCompose.vsh" />
-    <None Include="DepthOnlyShader.vsh" />
+    <None Include="credits.txt" />
+    <None Include="libconfig\libconfig++_d.dll" />
+    <None Include="libconfig\libconfig_d.dll" />
+    <None Include="Shaders\DRCompose.hlsl" />
+    <None Include="Shaders\DepthOnlyQuadShader.psh" />
+    <None Include="Shaders\DepthOnlyQuadShader.vsh" />
+    <None Include="Shaders\DepthOnlyShader.psh" />
+    <None Include="Shaders\BasicVertexShader.vsh" />
+    <None Include="Shaders\DRCompose.vsh" />
+    <None Include="Shaders\DepthOnlyShader.vsh" />
     <ClCompile Include="fontclass.cpp" />
-    <None Include="DRDirectionalLight.psh" />
-    <None Include="DRDirectionalLight.vsh" />
-    <None Include="font.psh" />
-    <None Include="font.vsh" />
-    <None Include="DRGBuffer.psh" />
-    <None Include="DRGBuffer.vsh" />
-    <None Include="DRPointLight.psh" />
-    <None Include="DRPointLight.vsh" />
-    <None Include="gaussianBlurX.psh" />
-    <None Include="gaussianBlurY.psh" />
-    <None Include="GeometryShaderGrass.gs" />
-    <None Include="GeometryShaderGrass.psh" />
-    <None Include="GeometryShaderGrass.vsh" />
-    <None Include="MCGBufferTerrainShader.psh" />
-    <None Include="MCGBufferTerrainShader.vsh" />
+    <None Include="Shaders\DRDirectionalLight.psh" />
+    <None Include="Shaders\DRDirectionalLight.vsh" />
+    <None Include="Shaders\font.psh" />
+    <None Include="Shaders\font.vsh" />
+    <None Include="Shaders\DRGBuffer.psh" />
+    <None Include="Shaders\DRGBuffer.vsh" />
+    <None Include="Shaders\DRPointLight.psh" />
+    <None Include="Shaders\DRPointLight.vsh" />
+    <None Include="Shaders\gaussianBlurX.psh" />
+    <None Include="Shaders\gaussianBlurY.psh" />
+    <None Include="Shaders\GeometryShaderGrass.gsh" />
+    <None Include="Shaders\GeometryShaderGrass.psh" />
+    <None Include="Shaders\GeometryShaderGrass.vsh" />
+    <None Include="Shaders\MCGBufferTerrainShader.psh" />
+    <None Include="Shaders\MCGBufferTerrainShader.vsh" />
+    <None Include="settings.cfg" />
     <None Include="shader-error.txt" />
-    <None Include="skysphere.psh" />
-    <None Include="skysphere.vsh" />
-    <None Include="standard.vsh" />
-    <None Include="texture.psh" />
-    <None Include="texture.vsh" />
-    <None Include="VegetationQuad.psh" />
-    <None Include="VegetationQuad.vsh" />
-    <None Include="WaterShader.gsh" />
-    <None Include="WaterShader.psh" />
-    <None Include="WaterShader.vsh" />
+    <None Include="Shaders\skysphere.psh" />
+    <None Include="Shaders\skysphere.vsh" />
+    <None Include="Shaders\standard.vsh" />
+    <None Include="Shaders\texture.psh" />
+    <None Include="Shaders\texture.vsh" />
+    <None Include="Shaders\VegetationQuad.psh" />
+    <None Include="Shaders\VegetationQuad.vsh" />
+    <None Include="Shaders\WaterShader.gsh" />
+    <None Include="Shaders\WaterShader.psh" />
+    <None Include="Shaders\WaterShader.vsh" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\BulletBuild\lib\Debug\BulletCollision_Debug.lib" />
     <Library Include="..\BulletBuild\lib\Debug\BulletDynamics_Debug.lib" />
     <Library Include="..\BulletBuild\lib\Debug\LinearMath_Debug.lib" />
+    <Library Include="libconfig\libconfig++.lib" />
+    <Library Include="libconfig\libconfig.lib" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{06865CFB-43FF-4F0C-B8D0-4D834721545B}</ProjectGuid>
@@ -210,8 +219,10 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Program Files %28x86%29\Visual Leak Detector\include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include;C:\Program Files\Microsoft DirectX SDK %28June 2010%29\Include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files %28x86%29\Visual Leak Detector\lib\Win32;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Lib\x86;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Engine\libconfig;C:\Program Files %28x86%29\Visual Leak Detector\include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include;C:\Program Files\Microsoft DirectX SDK %28June 2010%29\Include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Engine\libconfig;C:\Program Files %28x86%29\Visual Leak Detector\lib\Win32;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Lib\x86;$(LibraryPath)</LibraryPath>
+    <SourcePath>C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Engine\libconfig;$(SourcePath)</SourcePath>
+    <ReferencePath>C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Engine\libconfig;$(ReferencePath)</ReferencePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -227,8 +238,10 @@
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <AdditionalIncludeDirectories>C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\bullet-2.82-r2704\bullet-2.82-r2704\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Engine\libconfig;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Debug;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\bullet-2.82-r2704\bullet-2.82-r2704\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalUsingDirectories>
+      </AdditionalUsingDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -239,10 +252,12 @@
       <StackReserveSize>
       </StackReserveSize>
       <LargeAddressAware>true</LargeAddressAware>
-      <AdditionalLibraryDirectories>C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\BulletBuild\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\libconfig;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\BulletBuild\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>LinearMath_Debug.lib;BulletDynamics_Debug.lib;BulletCollision_Debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
+      <AdditionalManifestDependencies>
+      </AdditionalManifestDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

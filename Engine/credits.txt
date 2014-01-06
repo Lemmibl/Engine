@@ -1,0 +1,22 @@
+
+
+
+******************************************************************************
+This is where I list credits for everyone who has written code that I use.
+******************************************************************************
+
+This program uses Bullet. (c) <link to webpage>
+
+This program uses the Event class by Schladetsch. <webpage>
+
+Marching cubes tables by that guy
+
+Using some textures from CGTextures
+
+Simplex noise
+
+That random function in vertex shader
+
+That normal encoding function in pixel shader
+
+Using libconfig

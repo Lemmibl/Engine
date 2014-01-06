@@ -28,7 +28,7 @@ bool SkysphereShader::Initialize(ID3D11Device* device, HWND hwnd)
 	bool result;
 
 	// Initialize the vertex and pixel shaders.
-	result = InitializeShader(device, hwnd, L"../Engine/skysphere.vsh", L"../Engine/skysphere.psh");
+	result = InitializeShader(device, hwnd, L"../Engine/Shaders/skysphere.vsh", L"../Engine/Shaders/skysphere.psh");
 	if(!result)
 	{
 		return false;
