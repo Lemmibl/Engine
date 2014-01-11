@@ -49,6 +49,8 @@ public:
 	const SentenceType* GetAllSentences() const { return sentences; };
 	unsigned short GetActiveSentenceCount() { return activeSentenceCount; };
 
+	void SetScreenWidth(int width) { screenWidth = width; }
+	void SetScreenHeight(int height) { screenHeight = height; }
 	FontClass* GetFont() { return &font; };
 
 private:
@@ -67,7 +69,7 @@ private:
 	SentenceType sentences[MaxSentences];
 	Index indices[MaxSentences];
 
-	const int screenWidth, screenHeight;
+	int screenWidth, screenHeight;
 	unsigned short activeSentenceCount;
 	FontClass font;
 };

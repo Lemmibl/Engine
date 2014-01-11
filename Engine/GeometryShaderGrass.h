@@ -1,14 +1,14 @@
-//////////////
-// INCLUDES //
-//////////////
+#pragma once
 #include <d3d11.h>
 #include <windows.h>
 #include <xnamath.h> 
 #include <d3dx11async.h>
 #include <fstream>
 #include <atlcomcli.h>
-using namespace std;
+#include "SettingsManager.h"
+#include <libconfig.h++>
 
+using namespace std;
 
 class GeometryShaderGrass
 {
@@ -28,9 +28,15 @@ private:
 		float DeltaTime;
 	};
 
-	struct ColorTypeBuffer
+	struct VariableBuffer
 	{
-		XMFLOAT4 colorModeInX_FarClipInY_ZWUnused;
+		float vegetationScale;
+		float vegetationFalloff;
+		float forceScale;
+		float waveLength;
+		float traversalSpeed;
+		float farClip;
+		XMFLOAT2 padding;
 	};
 
 public:
@@ -40,6 +46,7 @@ public:
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
+	void OnSettingsReload(Config* cfg);
 	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, XMMATRIX* worldViewMatrix, 
 		XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** texIDLookupTexture, 
 		ID3D11ShaderResourceView** windForceTexture, int toggleColor, float cameraFarclip, 	float deltaTime);
@@ -62,7 +69,17 @@ private:
 	CComPtr<ID3D11InputLayout> layout;
 
 	CComPtr<ID3D11Buffer> matrixBuffer;
+	CComPtr<ID3D11Buffer> variableBuffer;
 	CComPtr<ID3D11Buffer> geometryShaderMatrixBuffer;
-	CComPtr<ID3D11Buffer> colorTypeBuffer;
 	CComPtr<ID3D11SamplerState> sampler;
+
+
+	VariableBuffer values;
+	bool bufferNeedsUpdate;
+	//float vegetationScale;
+	//float vegetationFalloff;
+	//float forceScale;
+	//float waveLength;
+	//float traversalSpeed;
+	//float farClip;
 };

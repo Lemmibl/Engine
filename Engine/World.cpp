@@ -1,7 +1,5 @@
 #include "World.h"
 
-static const btScalar bulletTimeStepScale = 1.0f / 60.0f;
-
 World::World()
 :	frustum(), renderableBundle(), frustumAABB(XMFLOAT2(-1, -1), XMFLOAT2(1, 1))
 {
@@ -18,11 +16,26 @@ void World::Initialize( shared_ptr<D3DManager> extD3DManager, shared_ptr<CameraC
 	d3D = extD3DManager;
 	dynamicsWorld = collisionWorld;
 
+	//Attach load function to the event that might happen
+	SettingsManager& settingsManager = SettingsManager::GetInstance();
+	settingsManager.GetEvent()->Add(*this, &World::OnSettingsReload);
+
+	const Setting& settings = settingsManager.GetConfig().getRoot()["physics"];
+
+	settings.lookupValue("timeStep", bulletTimestepScale);
+	settings.lookupValue("maxSubsteps", maxSubSteps);
+
+	settings.lookupValue("gravityX", gravity.x);
+	settings.lookupValue("gravityY", gravity.y);
+	settings.lookupValue("gravityZ", gravity.z);
+
+	dynamicsWorld->setGravity(btVector3(gravity.x, gravity.y,  gravity.z));
+
 	//1.77f is 16:9 aspect ratio
 	frustum.SetInternals((float)camera->GetScreenWidth() / (float)camera->GetScreenHeight(), XM_PIDIV2, camera->GetNearClip(), camera->GetFarClip());
 
 	//Load mesh from hdd
-	meshHandler.LoadIndexedMeshFromFile(d3D->GetDevice(), "../Engine/data/sphere.txt", (&renderableBundle.testSphere.mesh));
+	//meshHandler.LoadIndexedMeshFromFile(d3D->GetDevice(), "../Engine/data/sphere.txt", (&renderableBundle.testSphere.mesh));
 
 	InitializeCollisionStuff();
 	InitializeTerrain();
@@ -44,7 +57,7 @@ void World::InitializeTerrain()
 void World::Update( float deltaTime)
 {
 	//Advance bullet world simulation stepping
-	dynamicsWorld->stepSimulation(deltaTime, 15);
+	dynamicsWorld->stepSimulation(bulletTimestepScale, maxSubSteps);
 
 	HandleInput();
 	UpdateVisibility();
@@ -59,47 +72,47 @@ void World::HandleInput()
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD1) || inputManager->WasKeyPressed(DIK_F1))
 	{
-		terrainManager->SetTerrainType(MCTerrainClass::SeaBottom);
+		terrainManager->SetTerrainType(TerrainNoiseSeeder::SeaBottom);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD2) || inputManager->WasKeyPressed(DIK_F2))
 	{
-		terrainManager->SetTerrainType(MCTerrainClass::Plains);
+		terrainManager->SetTerrainType(TerrainNoiseSeeder::Plains);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD3) || inputManager->WasKeyPressed(DIK_F3))
 	{
-		terrainManager->SetTerrainType(MCTerrainClass::Hills);
+		terrainManager->SetTerrainType(TerrainNoiseSeeder::Hills);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD4) || inputManager->WasKeyPressed(DIK_F4))
 	{
-		terrainManager->SetTerrainType(MCTerrainClass::Terraces);
+		terrainManager->SetTerrainType(TerrainNoiseSeeder::Terraces);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD5) || inputManager->WasKeyPressed(DIK_F5))
 	{
-		terrainManager->SetTerrainType(MCTerrainClass::DramaticHills);
+		terrainManager->SetTerrainType(TerrainNoiseSeeder::DramaticHills);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD6) || inputManager->WasKeyPressed(DIK_F6))
 	{
-		terrainManager->SetTerrainType(MCTerrainClass::FlyingIslands);
+		terrainManager->SetTerrainType(TerrainNoiseSeeder::FlyingIslands);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD7) || inputManager->WasKeyPressed(DIK_F7))
 	{
-		terrainManager->SetTerrainType(MCTerrainClass::Alien);
+		terrainManager->SetTerrainType(TerrainNoiseSeeder::Alien);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD8) || inputManager->WasKeyPressed(DIK_F8))
 	{
-		terrainManager->SetTerrainType(MCTerrainClass::Fancy);
+		terrainManager->SetTerrainType(TerrainNoiseSeeder::Fancy);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD9) || inputManager->WasKeyPressed(DIK_F9))
 	{
-		terrainManager->SetTerrainType(MCTerrainClass::Cave);
+		terrainManager->SetTerrainType(TerrainNoiseSeeder::Cave);
 	}
 }
 
@@ -113,6 +126,20 @@ void World::UpdateVisibility()
 		renderableBundle.terrainChunks.clear();
 		renderableBundle.terrainChunks = terrainManager->GetActiveChunks();
 	}
+}
+
+void World::OnSettingsReload( Config* cfg )
+{
+	const Setting& settings = cfg->getRoot()["physics"];
+
+	settings.lookupValue("timeStep", bulletTimestepScale);
+	settings.lookupValue("maxSubsteps", maxSubSteps);
+
+	settings.lookupValue("gravityX", gravity.x);
+	settings.lookupValue("gravityY", gravity.y);
+	settings.lookupValue("gravityZ", gravity.z);
+
+	dynamicsWorld->setGravity(btVector3(gravity.x, gravity.y,  gravity.z));
 }
 
 //TODO: camera body that collides with meshes

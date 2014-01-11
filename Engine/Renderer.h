@@ -24,6 +24,7 @@
 
 //Managers
 #include "d3dmanager.h"
+#include "SettingsManager.h"
 #include "TerrainManager.h"
 #include "TextureAndMaterialHandler.h"
 #include "VegetationManager.h"
@@ -35,7 +36,7 @@
 #include "debugwindowclass.h"
 #include "SkySphere.h"
 #include "marchingCubesClass.h"
-#include "MCTerrainClass.h"
+#include "TerrainNoiseSeeder.h"
 #include "LSystemClass.h"
 #include "NoiseClass.h"
 #include "IndexedMesh.h"
@@ -85,12 +86,12 @@ public:
 	bool InitializeLights(HWND hwnd);
 	bool InitializeEverythingElse(HWND hwnd);
 	bool InitializeModels(HWND hwnd);
+	void InitializeRenderTargets();
+
+	void OnSettingsReload(Config* cfg);
 	void Shutdown();
 
 	bool Update(HWND hwnd, int, int, float, float seconds);
-
-	void SetupRTsAndStuff();
-
 	bool Render(HWND hwnd, RenderableBundle* renderableBundle);
 
 	bool RenderShadowmap(ID3D11DeviceContext* deviceContext, XMMATRIX* lightWorldViewProj, XMMATRIX* lightWorldView, RenderableBundle* renderableBundle);
@@ -99,7 +100,7 @@ public:
 	bool RenderDirectionalLight(ID3D11DeviceContext* deviceContext, XMMATRIX* viewMatrix, XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* lightView, XMMATRIX* lightProj, XMMATRIX* invertedProjection);
 	bool RenderPointLight(ID3D11DeviceContext* deviceContext, XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* viewProjection);
 	bool RenderComposedScene(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* worldView, XMMATRIX* view, XMMATRIX* invertedProjection, XMMATRIX* invertedViewProjection);
-	bool RenderDebugInfoAndText(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj);
+	bool RenderGUI(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj);
 
 private:
 	shared_ptr<D3DManager> d3D;
@@ -133,6 +134,7 @@ private:
 
 	UINT shadowMapWidth, shadowMapHeight, screenWidth, screenHeight;
 	float farClip, nearClip, timer, timeOfDay;
+	int width, height;
 
 	bool returning, toggleDebugInfo, toggleTextureShader, toggleOtherPointLights, drawWireFrame;
 	float fogMinimum;

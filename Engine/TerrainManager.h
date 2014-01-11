@@ -6,7 +6,7 @@
 #include "Lemmi2DAABB.h"
 #include "MarchingCubeChunk.h"
 #include <unordered_map>
-#include "MCTerrainClass.h"
+#include "TerrainNoiseSeeder.h"
 #include "VegetationManager.h"
 #include <memory> //For shared_ptrs
 #include "marchingCubesClass.h"
@@ -53,7 +53,7 @@ public:
 	void GenerateVegetation(ID3D11Device* device, bool UpdateInstanceBuffer, MarchingCubeChunk* chunk);
 	void RenderVegetation();
 
-	void SetTerrainType(MCTerrainClass::TerrainTypes val) { mcTerrain.SetTerrainType(val); }
+	void SetTerrainType(TerrainNoiseSeeder::TerrainTypes val) { mcTerrain.SetTerrainType(val); }
 
 private:
 	inline std::pair<int,int> AddPairs(std::pair<int,int> pairOne, std::pair<int,int> pairTwo)
@@ -79,7 +79,7 @@ private:
 	std::shared_ptr<btDiscreteDynamicsWorld> collisionHandler;
 
 	MarchingCubesClass marchingCubes;
-	MCTerrainClass mcTerrain;
+	TerrainNoiseSeeder mcTerrain;
 	VegetationManager vegetationManager;
 	NoiseClass noise;
 	unsigned int vegetationCount;

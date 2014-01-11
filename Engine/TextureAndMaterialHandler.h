@@ -5,7 +5,7 @@
 #include <string>
 #include <d3dx11tex.h>
 #include <vector>
-#include "MCTerrainClass.h"
+#include "TerrainNoiseSeeder.h"
 #include "Utility.h"
 #include "StructsAndEnums.h"
 #include <random>

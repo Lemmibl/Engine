@@ -42,6 +42,7 @@ const float SCREEN_NEAR = 2.0f;
 #include "controllerclass.h"
 #include "World.h"
 #include "SettingsManager.h"
+#include <libconfig.h++>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: Engine
@@ -56,6 +57,7 @@ public:
 	bool Initialize();
 	void Shutdown();
 	void Run();
+	void OnSettingsReload(Config* cfg);
 
 	LRESULT CALLBACK MessageHandler(HWND, UINT, WPARAM, LPARAM);
 

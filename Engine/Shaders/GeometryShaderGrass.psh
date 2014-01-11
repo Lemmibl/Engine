@@ -44,8 +44,8 @@ float2 Encode(float3 n)
 ////////////////////////////////////////////////////////////////////////////////
 PixelShaderOutput GrassPS(PixelShaderInput input)
 {
-	//Viewspace depth is saved in the .w channel. Divide it by screen's farClip.
-	float depth = (input.TexCoord.w / 400.0f);
+	//Viewspace depth is saved in the .w channel.
+	float depth = input.TexCoord.w;
 
 	PixelShaderOutput output;
 	output.Color = shaderTexture.Sample(linearSampler, input.TexCoord.xyz);// * input.Opacity;

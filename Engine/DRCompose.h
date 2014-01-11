@@ -1,14 +1,3 @@
-////////////////////////////////////////////////////////////////////////////////
-// Filename: DRFinalComposition.h
-////////////////////////////////////////////////////////////////////////////////
-#ifndef _DRFINALCOMPOSITION_H_
-#define _DRFINALCOMPOSITION_H_
-
-
-//////////////
-// INCLUDES //
-//////////////
-////////////// 
 #pragma once
 
 #include <d3d11.h>
@@ -17,6 +6,8 @@
 #include <d3dx11async.h>
 #include <fstream>
 #include <atlcomcli.h>
+#include "SettingsManager.h"
+#include <libconfig.h++>
 
 using namespace std;
 
@@ -38,7 +29,20 @@ private:
 		XMMATRIX View;
 		XMMATRIX InvertedProjection;
 		XMFLOAT4 FogColor;
+	};
+
+	struct VariableBuffer
+	{
 		int toggleSSAO;
+		float sampleRadius;	//Controls sampling radius. 0.1f to 1.0f are pretty ok values.
+		float intensity; 	//AO intensity. The higher this value is, the darker the occluded parts will be. 1.0f to 10.0f values is pretty ok values.
+		float scale;		//Scales distance between occluders and occludee. Still a little unsure as to what values would be good to use.
+		float bias;			//Cutoff value. The higher this value is, the harsher we are with cutting off low AO values. 0.01f to 0.4f values are pretty ok.
+		float fogStart;
+		float fogEnd;
+		float farClip;
+		XMFLOAT2 randomSize;
+		XMFLOAT2 screenSize;
 	};
 
 
@@ -49,6 +53,7 @@ public:
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
+	void OnSettingsReload(Config* cfg);
 	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldViewProjection, XMMATRIX* worldView, XMMATRIX* view, XMMATRIX* invertedProjection, XMMATRIX* invViewProjection,
 		XMFLOAT4* fogColor, float fogMinimum, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView* randomTexture, int toggle);
 
@@ -69,6 +74,8 @@ private:
 
 	CComPtr<ID3D11Buffer> vertexMatrixBuffer;
 	CComPtr<ID3D11Buffer> pixelMatrixBuffer;
-};
+	CComPtr<ID3D11Buffer> variableBuffer;
 
-#endif
+	bool bufferNeedsUpdate;
+	VariableBuffer variables;
+};

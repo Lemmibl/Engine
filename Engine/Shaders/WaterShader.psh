@@ -4,7 +4,9 @@ SamplerState linearSampler;
 
 cbuffer PixelMatrixBuffer
 {
-	float4x4 World;
+	float4x4 World : packoffset(c0.x);
+	float waterColorStartOffset : packoffset(c4.x);
+	float waterColorMultiplier	: packoffset(c4.y);
 };
 
 struct PSInput
@@ -41,10 +43,10 @@ PSOutput WaterShaderPS(PSInput input)
 	PSOutput output;
 
 	//Offset by 0.2f and scale the rest by 0.8f to make the avg. color brighter while maintaining the same max value.
-	float waterColorOffset = 0.2f + (input.TexCoord.z*0.8f);
+	float waterColorOffset = waterColorStartOffset + (input.TexCoord.z * waterColorMultiplier);
 
 	//Depth has been stored in normal .w channel.
-	output.Depth = (input.TexCoord.w / 400.0f);
+	output.Depth = input.TexCoord.w;
 
 	float4 PreCalcNormal = normalize(float4(UpNormal + normalTexture.SampleLevel(linearSampler, input.TexCoord.xy, 0).xyz, 1.0f));
 

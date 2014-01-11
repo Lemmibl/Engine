@@ -12,6 +12,7 @@ Renderer::Renderer()
 	returning = false;
 	toggleOtherPointLights = false;
 	drawWireFrame = false;
+	width = height = 0;
 }
 
 
@@ -47,6 +48,13 @@ bool Renderer::Initialize(HWND hwnd, shared_ptr<CameraClass> camera, shared_ptr<
 	
 	srand((unsigned int)time(NULL));
 
+	//Get settings manager instance and add our function to reload event
+	SettingsManager& settings = SettingsManager::GetInstance();
+	settings.GetEvent()->Add(*this, (&Renderer::OnSettingsReload));
+
+	//Perhaps slightly hacky, but it saves on rewriting code.
+	OnSettingsReload(&settings.GetConfig());
+
 
 	XMStoreFloat4x4(&baseViewMatrix, camera->GetView());
 
@@ -74,7 +82,7 @@ bool Renderer::Initialize(HWND hwnd, shared_ptr<CameraClass> camera, shared_ptr<
 		return false;
 	}
 
-	SetupRTsAndStuff();
+	InitializeRenderTargets();
 
 	return true;
 }
@@ -265,7 +273,7 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 {
 	bool result;
 
-	text = make_shared<TextClass>(d3D->GetDevice(), d3D->GetDeviceContext(), hwnd, screenWidth, screenHeight);
+	text = make_shared<TextClass>(d3D->GetDevice(), d3D->GetDeviceContext(), hwnd, width, height);
 
 	result = textureAndMaterialHandler.Initialize(d3D->GetDevice(), d3D->GetDeviceContext(), &noise, &utility);
 	if(!result)
@@ -275,7 +283,7 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 
 	textureAndMaterialHandler.SetupWindtextures(d3D->GetDevice(), d3D->GetDeviceContext(), 0, 0, 1024, 1024, 0.6f);
 
-	result = dayNightCycle.Initialize(500.0f, DAY); //86400.0f/6 <-- This is realistic day/night cycle. 86400 seconds in a day.
+	result = dayNightCycle.Initialize(DAY); //86400.0f/6 <-- This is realistic day/night cycle. 86400 seconds in a day.
 	if(!result)
 	{
 		return false;
@@ -289,13 +297,6 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 	}
 
 	fullScreenQuad.Initialize(d3D->GetDevice(), screenWidth, screenHeight, screenWidth, screenHeight);
-
-	colorRT					= RenderTarget2D();
-	normalRT				= RenderTarget2D();
-	depthRT					= RenderTarget2D();
-	shadowRT				= RenderTarget2D();
-	lightRT					= RenderTarget2D();
-	gaussianBlurPingPongRT	= RenderTarget2D();
 
 	colorRT.Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
 	normalRT.Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
@@ -524,7 +525,7 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 }
 
 
-void Renderer::SetupRTsAndStuff()
+void Renderer::InitializeRenderTargets()
 {
 	shadowDepthStencil = d3D->GetShadowmapDSV();
 
@@ -651,7 +652,7 @@ bool Renderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 	RenderDirectionalLight(deviceContext, &viewMatrix, &worldBaseViewOrthoProj, &lightView, &lightProj, &invertedProjection);
 
 	RenderComposedScene(deviceContext, &worldBaseViewOrthoProj, &worldBaseView, &baseView, &invertedProjection, &invertedViewProjection);
-	RenderDebugInfoAndText(deviceContext, &worldBaseViewOrthoProj);
+	RenderGUI(deviceContext, &worldBaseViewOrthoProj);
 
 	// Present the rendered scene to the screen.
 	d3D->EndScene();
@@ -932,7 +933,7 @@ bool Renderer::RenderComposedScene(ID3D11DeviceContext* deviceContext, XMMATRIX*
 }
 
 
-bool Renderer::RenderDebugInfoAndText(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj )
+bool Renderer::RenderGUI(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj )
 {
 	XMMATRIX worldMatrix;
 
@@ -1029,4 +1030,34 @@ bool Renderer::RenderDebugInfoAndText(ID3D11DeviceContext* deviceContext, XMMATR
 void Renderer::Shutdown()
 {
 	return;
+}
+
+void Renderer::OnSettingsReload(Config* cfg)
+{
+	const Setting& settings = cfg->getRoot()["rendering"];
+
+	settings.lookupValue("windowWidth", width);
+	settings.lookupValue("windowHeight", height);
+
+	//result = dayNightCycle.Initialize(500.0f, DAY); //86400.0f/6 <-- This is realistic day/night cycle. 86400 seconds in a day.
+	//if(!result)
+	//{
+	//	return false;
+	//}
+
+	////dayNightCycle->Update(50.0f, dirLight, skySphere);
+
+	//for(int i = 0; i < 7; i++)
+	//{
+	//	debugWindows[i].Initialize(d3D->GetDevice(), screenWidth, screenHeight, 200, 200);
+	//}
+
+	//fullScreenQuad.Initialize(d3D->GetDevice(), screenWidth, screenHeight, screenWidth, screenHeight);
+
+	//colorRT.Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
+	//normalRT.Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
+	//depthRT.Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
+	//lightRT.Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
+	//shadowRT.Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R32G32_FLOAT);
+	//gaussianBlurPingPongRT.Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R32G32_FLOAT); //Needs to be identical to shadowRT
 }

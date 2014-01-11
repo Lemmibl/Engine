@@ -14,6 +14,9 @@
 #include <d3dx11async.h>
 #include <fstream>
 #include <atlcomcli.h>
+#include "SettingsManager.h"
+#include <libconfig.h++>
+
 using namespace std;
 
 
@@ -32,10 +35,12 @@ private:
 		XMMATRIX Projection;
 	};
 
-	struct PixelShaderBufferType
+	struct VariableBuffer
 	{
-		float FarZ;
-		XMFLOAT3 Padding;
+		float farClip;
+		float textureScale;
+		float tighten;
+		float padding;
 	};
 
 public:
@@ -45,6 +50,7 @@ public:
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
+	void OnSettingsReload(Config* cfg);
 	bool Render(ID3D11DeviceContext*, int, XMMATRIX*, XMMATRIX*, XMMATRIX*, ID3D11ShaderResourceView* texture, float FarZ);
 
 private:
@@ -63,9 +69,12 @@ private:
 	CComPtr<ID3D11InputLayout> layout;
 
 	CComPtr<ID3D11Buffer> matrixBuffer;
-	CComPtr<ID3D11Buffer> pixelFarZBuffer;
+	CComPtr<ID3D11Buffer> variableBuffer;
 
 	CComPtr<ID3D11SamplerState> sampler;
+
+	bool bufferNeedsUpdate;
+	VariableBuffer variables;
 };
 
 #endif

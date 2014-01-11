@@ -7,6 +7,8 @@
 #include <d3dx11async.h>
 #include <fstream>
 #include <atlcomcli.h>
+#include "SettingsManager.h"
+#include <libconfig.h++>
 
 class DRWaterClass
 {
@@ -19,15 +21,24 @@ private:
 		XMMATRIX WorldViewProjection;
 	};
 
-	struct GeometryTimeBuffer
+	struct GeometryVariableBuffer
 	{
 		XMMATRIX WorldViewProjection;
 		float DeltaTime;
+		float positionSamplingOffset;
+		float heightScaling;
+		float timeScaling;
+		float farClip;
+		XMFLOAT2 samplingDirection;
+		float padding;
 	};
 
 	struct PixelMatrixBuffer
 	{
 		XMMATRIX World;
+		float waterColorStartOffset;
+		float waterColorMultiplier;
+		XMFLOAT2 padding;
 	};
 
 public:
@@ -37,6 +48,7 @@ public:
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
+	void OnSettingsReload(Config* cfg);
 	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, XMMATRIX* worldViewMatrix, XMMATRIX* worldViewProjection, 
 	ID3D11ShaderResourceView** waterTexture, ID3D11ShaderResourceView** offsetNoiseTexture, ID3D11ShaderResourceView** offsetNoiseNormalTexture, 
 	float cameraFarclip, float deltaTime);
@@ -62,4 +74,10 @@ private:
 	CComPtr<ID3D11Buffer> pixelMatrixBuffer;
 	CComPtr<ID3D11SamplerState> sampler;
 	CComPtr<ID3D11SamplerState> comparisonSampler;
+
+	bool bufferNeedsUpdating;
+
+	GeometryVariableBuffer variables;
+	float waterColorStartOffset;
+	float waterColorMultiplier;
 };

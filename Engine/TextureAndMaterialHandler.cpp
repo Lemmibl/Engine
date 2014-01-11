@@ -106,37 +106,37 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	//The lower the smoothness the wider/more spread out the specular is.
 	//Meaning the higher the smoothness is the more focused and intense the specular is.
 	MaterialStruct grass;
-	grass.Kambience = 1.2f;
+	grass.Kambience = 0.2f;
 	grass.Kdiffuse = 1.0f;
 	grass.Kspecular = 0.01f;
 	grass.smoothness = 1.0f;
 	grass.shouldBeShadowed = 10.0f;
 
 	MaterialStruct rock;
-	rock.Kambience = 1.2f;
+	rock.Kambience = 0.2f;
 	rock.Kdiffuse = 0.8f;
 	rock.Kspecular = 0.6f;
 	rock.smoothness = 1.0f;
 	rock.shouldBeShadowed = 10.0f;
 
 	MaterialStruct snow;
-	snow.Kambience = 1.2f;
+	snow.Kambience = 1.0f;
 	snow.Kdiffuse = 1.0f;
 	snow.Kspecular = 1.0f;
 	snow.smoothness = 1.0f;
 	snow.shouldBeShadowed = 10.0f;
 
 	MaterialStruct dirt;
-	dirt.Kambience = 1.2f;
+	dirt.Kambience = 0.2f;
 	dirt.Kdiffuse = 0.9f;
 	dirt.Kspecular = 0.1f;
 	dirt.smoothness = 2.0f;
 	dirt.shouldBeShadowed = 10.0f;
 
 	MaterialStruct grassQuads;
-	grassQuads.Kambience = 2.0f;
-	grassQuads.Kdiffuse = 0.8f;
-	grassQuads.Kspecular = 0.1f;
+	grassQuads.Kambience = 0.2f;
+	grassQuads.Kdiffuse = 1.4f;
+	grassQuads.Kspecular = 0.5f;
 	grassQuads.smoothness = 1.0f;
 	grassQuads.shouldBeShadowed = 10.0f;
 
@@ -148,7 +148,7 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	underGround.shouldBeShadowed = 10.0f;
 
 	MaterialStruct water;
-	water.Kambience = 0.8f;
+	water.Kambience = 0.2f;
 	water.Kdiffuse = 1.0f;
 	water.Kspecular = 2.0f;
 	water.smoothness = 256.0f;

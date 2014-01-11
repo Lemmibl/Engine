@@ -555,7 +555,7 @@ void DRDirLight::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount
 
 void DRDirLight::OnSettingsReload(Config* cfg)
 {
-	const Setting& settings = cfg->getRoot()["application"]["rendering"];
+	const Setting& settings = cfg->getRoot()["rendering"];
 
 	settings.lookupValue("farClip", cameraFarClip);
 }

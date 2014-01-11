@@ -61,9 +61,6 @@
     <ClCompile Include="marchingCubesClass.cpp">
       <Filter>Procedural generation\MC</Filter>
     </ClCompile>
-    <ClCompile Include="MCTerrainClass.cpp">
-      <Filter>Procedural generation\MC</Filter>
-    </ClCompile>
     <ClCompile Include="TreeClass.cpp">
       <Filter>Procedural generation\MC</Filter>
     </ClCompile>
@@ -157,9 +154,6 @@
     <ClCompile Include="DayNightCycle.cpp">
       <Filter>General Code\Systems</Filter>
     </ClCompile>
-    <ClCompile Include="SentenceManager.cpp">
-      <Filter>General Code\Systems</Filter>
-    </ClCompile>
     <ClCompile Include="World.cpp">
       <Filter>General Code\Systems</Filter>
     </ClCompile>
@@ -186,6 +180,12 @@
     </ClCompile>
     <ClCompile Include="SettingsManager.cpp">
       <Filter>General Code</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainNoiseSeeder.cpp">
+      <Filter>Procedural generation\MC</Filter>
+    </ClCompile>
+    <ClCompile Include="SentenceManager.cpp">
+      <Filter>Rendering\Managers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -250,9 +250,6 @@
       <Filter>Procedural generation\MC</Filter>
     </ClInclude>
     <ClInclude Include="marchingCubesClass.h">
-      <Filter>Procedural generation\MC</Filter>
-    </ClInclude>
-    <ClInclude Include="MCTerrainClass.h">
       <Filter>Procedural generation\MC</Filter>
     </ClInclude>
     <ClInclude Include="TreeClass.h">
@@ -360,9 +357,6 @@
     <ClInclude Include="DayNightCycle.h">
       <Filter>General Code\Systems</Filter>
     </ClInclude>
-    <ClInclude Include="SentenceManager.h">
-      <Filter>General Code\Systems</Filter>
-    </ClInclude>
     <ClInclude Include="World.h">
       <Filter>General Code\Systems</Filter>
     </ClInclude>
@@ -389,6 +383,12 @@
     </ClInclude>
     <ClInclude Include="SchladetschEvents.h">
       <Filter>General Code\Utility\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainNoiseSeeder.h">
+      <Filter>Procedural generation\MC</Filter>
+    </ClInclude>
+    <ClInclude Include="SentenceManager.h">
+      <Filter>Rendering\Managers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -492,13 +492,13 @@
     <None Include="Shaders\DRDirectionalLight.psh">
       <Filter>Rendering\Shaders\Deferred shaders</Filter>
     </None>
-    <None Include="..\libconfig\libconfig.h++">
-      <Filter>General Code\Utility\libconfig</Filter>
-    </None>
     <None Include="libconfig\libconfig_d.dll">
       <Filter>Libraries</Filter>
     </None>
     <None Include="libconfig\libconfig++_d.dll">
+      <Filter>Libraries</Filter>
+    </None>
+    <None Include="libconfig\libconfig.h++">
       <Filter>Libraries</Filter>
     </None>
   </ItemGroup>
@@ -586,9 +586,6 @@
     </Filter>
     <Filter Include="Libraries">
       <UniqueIdentifier>{b2691cb4-19c7-47c9-ba2b-269b5a01461a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="General Code\Utility\libconfig">
-      <UniqueIdentifier>{c9a232eb-e4b6-4ed7-bb9f-f6d607a11baf}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

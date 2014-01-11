@@ -19,11 +19,8 @@ DayNightCycle::~DayNightCycle()
 {
 }
 
-bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
+bool DayNightCycle::Initialize(StageOfDay startStage )
 {
-	//Sanity checks
-	this->timePerStage = max(1.0f, timePerStage);
-
 	//Other sanity checks
 	if( (int)startStage >= DAWN && (int)startStage <= NIGHT)
 	{
@@ -44,123 +41,12 @@ bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
 		previousFrameStageOfDay = NIGHT; //Because if start stage is dawn (stage 0), previous stage was night
 	}
 
-	//http://www.foszor.com/blog/xna-color-chart/
+	//Get settings manager instance and add our function to reload event
+	SettingsManager& settings = SettingsManager::GetInstance();
+	settings.GetEvent()->Add(*this, &DayNightCycle::OnSettingsReload);
 
-	//LightSalmon = {R:255 G:160 B:122 A:255}
-	//Cornflower Blue = {R:100 G:149 B:237 A:255}
-	//Deep Sky Blue = {R:0 G:191 B:255 A:255}
-	//Dark Turquoise = {R:0 G:206 B:209 A:255}
-
-	////Initialize colors for the different stages of the day.
-	//directionalLightDayColor = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
-	//directionalLightNightColor = XMFLOAT4(0.15f, 0.15f, 0.25f, 1.0f);
-
-	//skysphereDawnColor =	XMFLOAT4(1.0f,										ConvertColorValueTo_0_1_Range(160.0f),	ConvertColorValueTo_0_1_Range(122.0f),	1.0f);
-	//						
-	//skysphereDayColor =		XMFLOAT4(ConvertColorValueTo_0_1_Range(100.0f),		ConvertColorValueTo_0_1_Range(149.0f),	ConvertColorValueTo_0_1_Range(237.0f),	1.0f);
-	//skysphereDuskColor =	XMFLOAT4(0.1f,										ConvertColorValueTo_0_1_Range(206.0f),	ConvertColorValueTo_0_1_Range(209.0f),	1.0f);
-	//skysphereNightColor =	XMFLOAT4(0.15f,										0.15f,									0.25f,									1.0f);
-
-	/*
-	Day cycle goes in this order:
-
-	DAWN
-	MORNING
-	DAY
-	DUSK
-	EVENING
-	NIGHT
-
-	then repeats
-	*/
-
-	/************************************************************************/
-	//Moonshine: 217 206 190
-	//Yellow sunshine: 231 187 65                                                            
-	/************************************************************************/
-
-	StageOfDayStruct dawn;
-	dawn.AmbientColor =		XMFLOAT4(0.3f,	0.3f,	0.3f,	1.0f);
-	dawn.DirectionalLightColor = dawn.AmbientColor;
-	dawn.SkysphereColor = XMFLOAT4(1.0f,	ConvertColorValueTo_0_1_Range(160.0f),	ConvertColorValueTo_0_1_Range(122.0f),	1.0f);
-	
-	dawn.StartPosition =	XMFLOAT3(150.0f, 45.0f, 30.0f);
-	dawn.EndPosition =		XMFLOAT3(75.0f, 65.0f, 50.0f);
-	dawn.DurationOfStage = timePerStage;
-	dawn.LightIntensity = 0.7f;
-	
-	stagesOfDay.push_back(dawn);
-
-
-
-	StageOfDayStruct morning;
-	morning.AmbientColor =	XMFLOAT4(0.5f,	0.5f,	0.5f,	1.0f);
-	morning.DirectionalLightColor = morning.AmbientColor;
-	morning.SkysphereColor = XMFLOAT4(ConvertColorValueTo_0_1_Range(180.0f),	ConvertColorValueTo_0_1_Range(150.0f), ConvertColorValueTo_0_1_Range(180.0f), 1.0f);
-	
-	morning.StartPosition = dawn.EndPosition;
-	morning.EndPosition =	XMFLOAT3(35.0f, 90.0f, 70.0f);
-	morning.DurationOfStage = timePerStage;
-	morning.LightIntensity = 0.85f;
-
-	stagesOfDay.push_back(morning);
-
-
-	StageOfDayStruct day;
-	day.AmbientColor =		XMFLOAT4(0.7f,	0.7f,	0.7f,	1.0f);
-	day.DirectionalLightColor = day.AmbientColor;
-	day.SkysphereColor = XMFLOAT4(ConvertColorValueTo_0_1_Range(100.0f),	ConvertColorValueTo_0_1_Range(149.0f),	ConvertColorValueTo_0_1_Range(237.0f),	1.0f);
-	
-	day.StartPosition = morning.EndPosition;
-	day.EndPosition =	XMFLOAT3(-35.0f, 90.0f, 50.0f);
-	day.DurationOfStage = timePerStage*3.0f; //Make day three times as long as the other stages
-	day.LightIntensity = 1.0f;
-
-	stagesOfDay.push_back(day);
-
-
-
-	StageOfDayStruct dusk;
-	dusk.AmbientColor =		XMFLOAT4(0.5f,	0.5f,	0.5f,	1.0f);
-	dusk.DirectionalLightColor = dusk.AmbientColor;
-	dusk.SkysphereColor = morning.SkysphereColor;//XMFLOAT4(0.2f,	ConvertColorValueTo_0_1_Range(180.0f),	ConvertColorValueTo_0_1_Range(170.0f),	1.0f);
-	
-	dusk.StartPosition = day.EndPosition;
-	dusk.EndPosition =	XMFLOAT3(-75.0f, 65.0f, 30.0f);
-	dusk.DurationOfStage = timePerStage;
-	dusk.LightIntensity = 0.85f;
-
-	stagesOfDay.push_back(dusk);
-
-
-
-	StageOfDayStruct evening;
-	evening.AmbientColor =	XMFLOAT4(0.3f,	0.3f,	0.3f,	1.0f);
-	evening.DirectionalLightColor = evening.AmbientColor;
-	evening.SkysphereColor = dawn.SkysphereColor;//XMFLOAT4(0.15f,	0.23f,	0.25f,	1.0f);
-	
-	evening.StartPosition = dusk.EndPosition;
-	evening.EndPosition =	XMFLOAT3(-150.0f, 45.0f, 30.0f);
-	evening.DurationOfStage = timePerStage;
-	evening.LightIntensity = 0.7f;
-
-	stagesOfDay.push_back(evening);
-
-
-
-	StageOfDayStruct night;
-	night.AmbientColor =	XMFLOAT4(0.05f,	0.05f,	0.1f,	0.5f);
-	night.DirectionalLightColor = night.AmbientColor;
-	night.SkysphereColor = night.AmbientColor;
-	
-	night.StartPosition =	evening.EndPosition;
-	night.EndPosition =		dawn.StartPosition;
-	night.DurationOfStage = timePerStage*3.0f; //Make night five times as long as the other stages
-	night.LightIntensity = 0.5f;
-
-	stagesOfDay.push_back(night);
-
-
+	//Perhaps slightly hacky, but it saves on rewriting code.
+	OnSettingsReload(&settings.GetConfig());
 
 	previousStageStruct = stagesOfDay[previousFrameStageOfDay];
 	elapsedTime = 0.0f;
@@ -237,200 +123,160 @@ float DayNightCycle::Update( float deltaTime, DirLight* directionalLight, Skysph
 	return lerpAmountThisStage;
 }
 
-
-/************************************************************************/
-/*					      BACKUP / OLD VERSION                          */
-/************************************************************************/
-
-/*
-#include "DayNightCycle.h"
-
-DayNightCycle::DayNightCycle()
+void DayNightCycle::OnSettingsReload(Config* cfg )
 {
+	//Set time per stage
+	cfg->getRoot()["daycycle"].lookupValue("timePerStage", timePerStage);
 
-}
+	//Load in array with stage-of-day structs
+	const Setting &dayStages = cfg->getRoot()["daycycle"]["stagesOfDay"];
+	int count = dayStages.getLength();
 
-DayNightCycle::DayNightCycle( const DayNightCycle& )
-{
+	 /*
+	Day cycle goes in this order:
 
-}
+	DAWN
+	MORNING
+	DAY
+	DUSK
+	EVENING
+	NIGHT
 
-DayNightCycle::~DayNightCycle()
-{
-}
+	then repeats
+	*/
 
-bool DayNightCycle::Initialize( float timePerStage, StageOfDay startStage )
-{
-	this->timePerStage = timePerStage;
-	this->currentStageOfDay = startStage;
-	previousFrameStageOfDay = (StageOfDay)(currentStageOfDay-1);
-
-	//http://www.picturetopeople.org/color_converter.html
-	//Or you could just use the normal [0,255] number and divide it by 255 to get the [0,1] counterpart.
-
-	//http://www.foszor.com/blog/xna-color-chart/
-
-	//LightSalmon = {R:255 G:160 B:122 A:255}
-	//Cornflower Blue = {R:100 G:149 B:237 A:255}
-	//Deep Sky Blue = {R:0 G:191 B:255 A:255}
-	//Dark Turquoise = {R:0 G:206 B:209 A:255}
-
-	//Initialize colors for the different stages of the day.
-	directionalLightDayColor = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
-	directionalLightNightColor = XMFLOAT4(0.15f, 0.15f, 0.25f, 1.0f);
-
-	skysphereDawnColor = XMFLOAT4(1.0f, ConvertColorValueTo_0_1_Range(160.0f), ConvertColorValueTo_0_1_Range(122.0f), 1.0f);
-	skysphereDayColor = XMFLOAT4(ConvertColorValueTo_0_1_Range(100.0f), ConvertColorValueTo_0_1_Range(149.0f), ConvertColorValueTo_0_1_Range(237.0f), 1.0f);
-	skysphereDuskColor = XMFLOAT4(0.0f, ConvertColorValueTo_0_1_Range(206.0f), ConvertColorValueTo_0_1_Range(209.0f), 1.0f);
-	skysphereNightColor = XMFLOAT4(0.15f, 0.15f, 0.25f, 1.0f);
-
-
-	stagesOfDay.reserve(8);
-
-	StageOfDayStruct dawn;
-	dawn.AmbientColor = skysphereDawnColor;
-	dawn.DirectionalLightColor = skysphereDawnColor;
-	dawn.SkysphereColor = skysphereDawnColor;
-	//dawn.StartPosition;
-	//dawn.EndPosition;
-	//dawn.DurationOfStage;
-	//dawn.LightIntensity;
-
-	//Tiny optimization so that we won't have to resize vector every time we add a new variable
-	startAndEndPositions.reserve(12); 
-
-	//2 positions for the 6 different stages of the day. We store them as such: 0-5 previous positions, 6-11 future positions
-	startAndEndPositions.push_back(XMFLOAT3(150.0f, 45.0f, 30.0f)); //start pos for dawn
-	startAndEndPositions.push_back(XMFLOAT3(75.0f, 65.0f, 50.0f)); //end pos for dawn
-
-	//which leads into...
-
-	startAndEndPositions.push_back(XMFLOAT3(75.0f, 65.0f, 70.0f)); //start pos for morning
-	startAndEndPositions.push_back(XMFLOAT3(35.0f, 80.0f, 90.0f)); //end pos for morning
-
-	//which leads into...
-
-	startAndEndPositions.push_back(XMFLOAT3(35.0f, 90.0f, 90.0f)); //start pos for day
-	startAndEndPositions.push_back(XMFLOAT3(-35.0f, 90.0f, 90.0f)); //end pos for day
-
-	//which leads into...
-
-	startAndEndPositions.push_back(XMFLOAT3(-35.0f, 80.0f, 90.0f)); //start pos for dusk
-	startAndEndPositions.push_back(XMFLOAT3(-75.0f, 65.0f, 70.0f)); //end pos for dusk
-
-	//which leads into...
-
-	startAndEndPositions.push_back(XMFLOAT3(-75.0f, 65.0f, 50.0f)); //start pos for evening
-	startAndEndPositions.push_back(XMFLOAT3(-150.0f, 45.0f, 30.0f)); //end pos for evening
-
-	//which leads into...
-
-	startAndEndPositions.push_back(XMFLOAT3(-150.0f, 120.0f, 0.0f)); //start pos for night
-	startAndEndPositions.push_back(XMFLOAT3(150.0f, 120.0f, 0.0f)); //end pos for night
-
-	//which ends and repeats; goto start pos for dawn. 
-
-	elapsedTime = 0.0f;
-	timeOfDay = 0.0f;
-
-
-	return true;
-}
-
-float DayNightCycle::Update( float elapsedTime, DirLight* directionalLight, Skysphere* skysphere )
-{
-	XMVECTOR startPosition, endPosition, currentPosition;
-
-	currentPosition =  XMLoadFloat3(&directionalLight->Position); //Save current position in XMVECTOR format, needed when calculating sum of each frame's lerping
-
-	this->elapsedTime += elapsedTime;
-	float lerpAmountThisFrame = (elapsedTime / timePerStage);//clamp( , 0.0f, 1.0f) //Calculate amount we'll be moving by this frame
-
-	timeOfDay += lerpAmountThisFrame; //This is for controlling the skysphere lerping.
-
-	//See if we should change stage of day
-	if(this->elapsedTime > timePerStage)
+	for(int i = 0; i < count; ++i)
 	{
-		//If this has happened, then we switch to next stage of day, because the time has passed
-		if(currentStageOfDay == NIGHT) //If it was night, we've reached the end of the enum list, hence...
-		{
-			currentStageOfDay = DAWN; //We reset
-		}
-		else
-		{
-			currentStageOfDay = (StageOfDay)(currentStageOfDay+1);
-		}
-		
-		this->elapsedTime = 0.0f; //Reset elapsed time as well
-		timeOfDay =  0.0f;
+		const Setting &stage = dayStages[i];
+
+		//Set up temporary variables
+		XMFLOAT4 lightColor;
+		XMFLOAT3 skysphereColor;
+		XMFLOAT3 startPosition;
+		XMFLOAT3 endPosition;
+
+		float durationMultiplier;
+		float lightIntensity;
+
+		//Read in variables from settings file
+		stage.lookupValue("startPosX", startPosition.x);
+		stage.lookupValue("startPosY", startPosition.y);
+		stage.lookupValue("startPosZ", startPosition.z);
+
+		stage.lookupValue("endPosX", endPosition.x);
+		stage.lookupValue("endPosY", endPosition.y);
+		stage.lookupValue("endPosZ", endPosition.z);
+
+		stage.lookupValue("lightColorR", lightColor.x);
+		stage.lookupValue("lightColorG", lightColor.y);
+		stage.lookupValue("lightColorB", lightColor.z);
+		lightColor.w = 1.0f;
+
+		stage.lookupValue("skysphereColorR", skysphereColor.x);
+		stage.lookupValue("skysphereColorG", skysphereColor.y);
+		stage.lookupValue("skysphereColorB", skysphereColor.z);
+
+		stage.lookupValue("durationMultiplier", durationMultiplier);
+		stage.lookupValue("lightIntensity", lightIntensity);
+
+		//Assign variables to a struct
+		StageOfDayStruct temp;
+		temp.AmbientColor =				lightColor;
+		temp.DirectionalLightColor =	lightColor;
+		temp.SkysphereColor =			XMFLOAT4(ConvertColorValueTo_0_1_Range(skysphereColor.x),	ConvertColorValueTo_0_1_Range(skysphereColor.y),	ConvertColorValueTo_0_1_Range(skysphereColor.z), 1.0f);
+
+		temp.StartPosition =			startPosition;
+		temp.EndPosition =				endPosition;
+		temp.DurationOfStage =			timePerStage * durationMultiplier;
+		temp.LightIntensity =			lightIntensity;
+
+		//Add the struct...
+		stagesOfDay.push_back(temp);
 	}
-
-	//Extract start and end position of this stage of day so that we can lerp the directional light position 
-	//between them as to create the illusion of the sun moving during the course of the day
-	startPosition = XMLoadFloat3(&startAndEndPositions[currentStageOfDay*2]);
-	endPosition = XMLoadFloat3(&startAndEndPositions[currentStageOfDay*2+1]);
-
-
-	if(currentStageOfDay != previousFrameStageOfDay) //Tiny optimization
-	{
-		switch(currentStageOfDay)
-		{
-		case DAWN:
-			directionalLight->Color = directionalLightDayColor;
-			directionalLight->Intensity = 0.7f;
-
-			skysphere->SetCenterColor(skysphereDawnColor);
-			skysphere->SetApexColor(skysphereNightColor);
-			break;
-
-		case MORNING:
-			directionalLight->Color = directionalLightDayColor;
-			directionalLight->Intensity = 0.85f;
-
-			skysphere->SetCenterColor(skysphereDayColor);
-			skysphere->SetApexColor(skysphereDawnColor);
-			break;
-
-		case DAY:
-			directionalLight->Color = directionalLightDayColor;
-			directionalLight->Intensity = 1.0f;
-
-			skysphere->SetCenterColor(skysphereDayColor);
-			skysphere->SetApexColor(skysphereDayColor);
-			break;
-
-		case DUSK:
-			directionalLight->Color = directionalLightDayColor;
-			directionalLight->Intensity = 0.85f;
-
-			skysphere->SetCenterColor(skysphereDuskColor);
-			skysphere->SetApexColor(skysphereDayColor);
-			break;
-
-		case EVENING:
-			directionalLight->Color = directionalLightNightColor;
-			directionalLight->Intensity = 0.7f;
-
-			skysphere->SetCenterColor(skysphereNightColor);
-			skysphere->SetApexColor(skysphereDuskColor);
-			break;
-
-		case NIGHT:
-			directionalLight->Color = directionalLightNightColor;
-			directionalLight->Intensity = 0.55f;
-
-			skysphere->SetCenterColor(skysphereNightColor);
-			skysphere->SetApexColor(skysphereNightColor);
-			break;
-		}
-	}
-
-	currentPosition = XMVectorLerp(currentPosition, endPosition, lerpAmountThisFrame);
-	XMStoreFloat3(&directionalLight->Position, currentPosition);
-
-	previousFrameStageOfDay = currentStageOfDay;
-
-	return timeOfDay;
 }
 
-*/
+	/************************************************************************/
+	//Moonshine: 217 206 190
+	//Yellow sunshine: 231 187 65                                                            
+	/************************************************************************/
+
+	//StageOfDayStruct dawn;
+	//dawn.AmbientColor =		XMFLOAT4(0.3f,	0.3f,	0.3f,	1.0f);
+	//dawn.DirectionalLightColor = dawn.AmbientColor;
+	//dawn.SkysphereColor = XMFLOAT4(1.0f,	ConvertColorValueTo_0_1_Range(160.0f),	ConvertColorValueTo_0_1_Range(122.0f),	1.0f);
+	//
+	//dawn.StartPosition =	XMFLOAT3(150.0f, 45.0f, 30.0f);
+	//dawn.EndPosition =		XMFLOAT3(75.0f, 65.0f, 50.0f);
+	//dawn.DurationOfStage = timePerStage;
+	//dawn.LightIntensity = 0.7f;
+	//
+	//stagesOfDay.push_back(dawn);
+
+
+
+	//StageOfDayStruct morning;
+	//morning.AmbientColor =	XMFLOAT4(0.5f,	0.5f,	0.5f,	1.0f);
+	//morning.DirectionalLightColor = morning.AmbientColor;
+	//morning.SkysphereColor = XMFLOAT4(ConvertColorValueTo_0_1_Range(180.0f),	ConvertColorValueTo_0_1_Range(150.0f), ConvertColorValueTo_0_1_Range(180.0f), 1.0f);
+	//
+	//morning.StartPosition = dawn.EndPosition;
+	//morning.EndPosition =	XMFLOAT3(35.0f, 90.0f, 70.0f);
+	//morning.DurationOfStage = timePerStage;
+	//morning.LightIntensity = 0.85f;
+
+	//stagesOfDay.push_back(morning);
+
+
+	//StageOfDayStruct day;
+	//day.AmbientColor =		XMFLOAT4(0.7f,	0.7f,	0.7f,	1.0f);
+	//day.DirectionalLightColor = day.AmbientColor;
+	//day.SkysphereColor = XMFLOAT4(ConvertColorValueTo_0_1_Range(100.0f),	ConvertColorValueTo_0_1_Range(149.0f),	ConvertColorValueTo_0_1_Range(237.0f),	1.0f);
+	//
+	//day.StartPosition = morning.EndPosition;
+	//day.EndPosition =	XMFLOAT3(-35.0f, 90.0f, 50.0f);
+	//day.DurationOfStage = timePerStage*3.0f; //Make day three times as long as the other stages
+	//day.LightIntensity = 1.0f;
+
+	//stagesOfDay.push_back(day);
+
+
+
+	//StageOfDayStruct dusk;
+	//dusk.AmbientColor =		XMFLOAT4(0.5f,	0.5f,	0.5f,	1.0f);
+	//dusk.DirectionalLightColor = dusk.AmbientColor;
+	//dusk.SkysphereColor = morning.SkysphereColor;//XMFLOAT4(0.2f,	ConvertColorValueTo_0_1_Range(180.0f),	ConvertColorValueTo_0_1_Range(170.0f),	1.0f);
+	//
+	//dusk.StartPosition = day.EndPosition;
+	//dusk.EndPosition =	XMFLOAT3(-75.0f, 65.0f, 30.0f);
+	//dusk.DurationOfStage = timePerStage;
+	//dusk.LightIntensity = 0.85f;
+
+	//stagesOfDay.push_back(dusk);
+
+
+
+	//StageOfDayStruct evening;
+	//evening.AmbientColor =	XMFLOAT4(0.3f,	0.3f,	0.3f,	1.0f);
+	//evening.DirectionalLightColor = evening.AmbientColor;
+	//evening.SkysphereColor = dawn.SkysphereColor;//XMFLOAT4(0.15f,	0.23f,	0.25f,	1.0f);
+	//
+	//evening.StartPosition = dusk.EndPosition;
+	//evening.EndPosition =	XMFLOAT3(-150.0f, 45.0f, 30.0f);
+	//evening.DurationOfStage = timePerStage;
+	//evening.LightIntensity = 0.7f;
+
+	//stagesOfDay.push_back(evening);
+
+
+
+	//StageOfDayStruct night;
+	//night.AmbientColor =	XMFLOAT4(0.05f,	0.05f,	0.1f,	0.5f);
+	//night.DirectionalLightColor = night.AmbientColor;
+	//night.SkysphereColor = night.AmbientColor;
+	//
+	//night.StartPosition =	evening.EndPosition;
+	//night.EndPosition =		dawn.StartPosition;
+	//night.DurationOfStage = timePerStage*3.0f; //Make night five times as long as the other stages
+	//night.LightIntensity = 0.5f;
+
+	//stagesOfDay.push_back(night);

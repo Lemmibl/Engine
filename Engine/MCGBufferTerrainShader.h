@@ -7,6 +7,9 @@
 #include <d3dx11async.h>
 #include <fstream>
 #include <atlcomcli.h>
+#include "SettingsManager.h"
+#include <libconfig.h++>
+
 using namespace std;
 
 
@@ -21,9 +24,12 @@ private:
 		XMMATRIX WorldViewProjection;
 	};
 
-	struct ColorTypeBuffer
+	struct VariableBuffer
 	{
-		XMFLOAT4 colorModeInX_FarClipInY_ZWUnused;
+		float farClip;
+		float tighten;
+		float textureScale;
+		float colorMode;
 	};
 
 public:
@@ -33,6 +39,7 @@ public:
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
+	void OnSettingsReload(Config* cfg);
 	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, XMMATRIX* worldViewMatrix, 
 		XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** texAndMatLookupTable, int toggleColor, float cameraFarclip);
 
@@ -51,6 +58,9 @@ private:
 	CComPtr<ID3D11PixelShader> pixelShader;
 	CComPtr<ID3D11InputLayout> layout;
 	CComPtr<ID3D11Buffer> matrixBuffer;
-	CComPtr<ID3D11Buffer> colorTypeBuffer;
+	CComPtr<ID3D11Buffer> variableBuffer;
 	CComPtr<ID3D11SamplerState> sampler;
+
+	bool bufferNeedsUpdate;
+	VariableBuffer variables;
 };

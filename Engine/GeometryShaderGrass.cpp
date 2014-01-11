@@ -2,12 +2,7 @@
 
 GeometryShaderGrass::GeometryShaderGrass()
 {
-	//vertexShader = 0;
-	//pixelShader = 0;
-	//layout = 0;
-	//matrixBuffer = 0;
-	//colorTypeBuffer = 0;
-	//sampler = 0;
+	bufferNeedsUpdate = false;
 }
 
 
@@ -24,6 +19,12 @@ bool GeometryShaderGrass::Initialize(ID3D11Device* device, HWND hwnd)
 {
 	bool result;
 
+	//Get settings manager instance and add our function to reload event
+	SettingsManager& settings = SettingsManager::GetInstance();
+	settings.GetEvent()->Add(*this, (&GeometryShaderGrass::OnSettingsReload));
+
+	//Perhaps slightly hacky, but it saves on rewriting code.
+	OnSettingsReload(&settings.GetConfig());
 
 	// Initialize the vertex and pixel shaders.
 	result = InitializeShader(device, hwnd, L"../Engine/Shaders/GeometryShaderGrass.vsh", L"../Engine/Shaders/GeometryShaderGrass.gsh", L"../Engine/Shaders/GeometryShaderGrass.psh");
@@ -199,7 +200,6 @@ bool GeometryShaderGrass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 		return false;
 	}
 
-
 	// Setup the description of the matrix dynamic constant buffer that is in the vertex shader.
 	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
@@ -228,15 +228,19 @@ bool GeometryShaderGrass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHA
 		return false;
 	}
 
-	// Setup the description of the matrix dynamic constant buffer that is in the vertex shader.
 	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	matrixBufferDesc.ByteWidth = sizeof(ColorTypeBuffer);
+	matrixBufferDesc.ByteWidth = sizeof(VariableBuffer);
 	matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	matrixBufferDesc.MiscFlags = 0;
 	matrixBufferDesc.StructureByteStride = 0;
 
-	result = device->CreateBuffer(&matrixBufferDesc, NULL, &colorTypeBuffer);
+	D3D11_SUBRESOURCE_DATA initializeData;
+	initializeData.pSysMem = &values;
+	initializeData.SysMemPitch = sizeof(VariableBuffer);
+	initializeData.SysMemSlicePitch = 0;
+
+	result = device->CreateBuffer(&matrixBufferDesc, &initializeData, &variableBuffer);
 	if(FAILED(result))
 	{
 		return false;
@@ -314,7 +318,7 @@ bool GeometryShaderGrass::SetShaderParameters( ID3D11DeviceContext* deviceContex
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	MatrixBufferType* dataPtr;
-	ColorTypeBuffer* dataPtr2;
+	VariableBuffer* dataPtr2;
 	GeometryShaderBuffer* dataPtr3;
 	unsigned int bufferNumber;
 
@@ -349,8 +353,8 @@ bool GeometryShaderGrass::SetShaderParameters( ID3D11DeviceContext* deviceContex
 
 	//////////////////////////////////////////////////////////////////////////
 	//#2
-	
-	// Lock the matrix constant buffer so it can be written to.
+
+	// Lock the constant buffer so it can be written to.
 	result = deviceContext->Map(geometryShaderMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if(FAILED(result))
 	{
@@ -374,32 +378,38 @@ bool GeometryShaderGrass::SetShaderParameters( ID3D11DeviceContext* deviceContex
 	// Now set the matrix constant buffer in the vertex shader with the updated values.
 	deviceContext->GSSetConstantBuffers(bufferNumber, 1, &geometryShaderMatrixBuffer.p);
 
-
-
-	//////////////////////////////////////////////////////////////////////////
-	//#3
-
-	// Lock the matrix constant buffer so it can be written to.
-	result = deviceContext->Map(colorTypeBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	if(FAILED(result))
+	if(bufferNeedsUpdate)
 	{
-		return false;
+		// Lock the constant buffer so it can be written to.
+		result = deviceContext->Map(variableBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		if(FAILED(result))
+		{
+			return false;
+		}
+
+		// Get a pointer to the data in the constant buffer.
+		dataPtr2 = (VariableBuffer*)mappedResource.pData;
+
+		// Copy the matrices into the constant buffer.
+		dataPtr2->farClip			= values.farClip;
+		dataPtr2->forceScale		= values.forceScale;
+		dataPtr2->traversalSpeed	= values.traversalSpeed;
+		dataPtr2->vegetationFalloff	= values.vegetationFalloff;
+		dataPtr2->vegetationScale	= values.vegetationScale;
+		dataPtr2->waveLength		= values.waveLength;
+
+
+		// Unlock the matrix constant buffer.
+		deviceContext->Unmap(variableBuffer.p, 0);
+
+		// Set the position of the matrix constant buffer in the vertex shader.
+		bufferNumber = 1;
+
+		// Now set the matrix constant buffer in the vertex shader with the updated values.
+		deviceContext->GSSetConstantBuffers(bufferNumber, 1, &variableBuffer.p);
+
+		bufferNeedsUpdate = false;
 	}
-
-	// Get a pointer to the data in the constant buffer.
-	dataPtr2 = (ColorTypeBuffer*)mappedResource.pData;
-
-	// Copy the matrices into the constant buffer.
-	dataPtr2->colorModeInX_FarClipInY_ZWUnused = XMFLOAT4((float)toggleColor, farclip, 0.0f, 0.0f);
-
-	// Unlock the matrix constant buffer.
-	deviceContext->Unmap(colorTypeBuffer, 0);
-
-	// Set the position of the matrix constant buffer in the pixel sh§ader.
-	bufferNumber = 0;
-
-	// Now set the matrix constant buffer in the vertex shader with the updated values.
-	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &colorTypeBuffer.p);
 
 	//////////////////////////////////////////////////////////////////////////
 	// Assorted shit
@@ -435,4 +445,29 @@ void GeometryShaderGrass::RenderShader(ID3D11DeviceContext* deviceContext, int i
 	deviceContext->GSSetShader(NULL, NULL, 0);
 
 	return;
+}
+
+void GeometryShaderGrass::OnSettingsReload( Config* cfg )
+{
+	//Trigger a rebuild next time we call SetShaderParameters()
+	bufferNeedsUpdate = true;
+
+	//Just assigning some default values in case the lookup fails.
+	values.vegetationScale		= 2.2f;
+	values.vegetationFalloff	= 200.0f;
+	values.forceScale			= 0.75f;
+	values.waveLength			= 0.05f;
+	values.traversalSpeed		= 0.1f;
+
+	Setting& settings = cfg->getRoot()["shaders"]["grassShader"];
+
+	settings.lookupValue("vegetationScale",		values.vegetationScale	);
+	settings.lookupValue("vegetationFalloff",	values.vegetationFalloff);
+	settings.lookupValue("forceScale",			values.forceScale);
+	settings.lookupValue("waveLength",			values.waveLength);
+	settings.lookupValue("traversalSpeed",		values.traversalSpeed);
+
+	const Setting& settings2 = cfg->getRoot()["rendering"];
+
+	settings2.lookupValue("farClip", values.farClip);
 }

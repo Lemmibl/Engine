@@ -18,6 +18,12 @@ bool DRWaterClass::Initialize(ID3D11Device* device, HWND hwnd)
 {
 	bool result;
 
+	//Get settings manager instance and add our function to reload event
+	SettingsManager& settings = SettingsManager::GetInstance();
+	settings.GetEvent()->Add(*this, &DRWaterClass::OnSettingsReload);
+
+	//Perhaps slightly hacky, but it saves on rewriting code.
+	OnSettingsReload(&settings.GetConfig());
 
 	// Initialize the vertex and pixel shaders.
 	result = InitializeShader(device, hwnd, L"../Engine/Shaders/WaterShader.vsh", L"../Engine/Shaders/WaterShader.gsh", L"../Engine/Shaders/WaterShader.psh");
@@ -208,7 +214,7 @@ bool DRWaterClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFi
 
 	// Setup the description of the matrix dynamic constant buffer that is in the vertex shader.
 	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	matrixBufferDesc.ByteWidth = sizeof(GeometryTimeBuffer);
+	matrixBufferDesc.ByteWidth = sizeof(GeometryVariableBuffer);
 	matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	matrixBufferDesc.MiscFlags = 0;
@@ -293,9 +299,11 @@ bool DRWaterClass::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMA
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	MatrixBufferType* dataPtr;
-	GeometryTimeBuffer* dataPtr2;
+	GeometryVariableBuffer* dataPtr2;
 	PixelMatrixBuffer* dataPtr3;
 	unsigned int bufferNumber;
+
+	////////////////////////////////////////////////////////////////////////// #1
 
 	// Lock the matrix constant buffer so it can be written to.
 	result = deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -321,7 +329,7 @@ bool DRWaterClass::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMA
 	// Now set the matrix constant buffer in the vertex shader with the updated values.
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &matrixBuffer.p);
 
-
+	////////////////////////////////////////////////////////////////////////// #2
 
 	// Lock the matrix constant buffer so it can be written to.
 	result = deviceContext->Map(timeBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -331,11 +339,16 @@ bool DRWaterClass::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMA
 	}
 
 	// Get a pointer to the data in the constant buffer.
-	dataPtr2 = (GeometryTimeBuffer*)mappedResource.pData;
+	dataPtr2 = (GeometryVariableBuffer*)mappedResource.pData;
 
 	// Copy the matrices into the constant buffer.
-	dataPtr2->WorldViewProjection = *worldViewProjection;
-	dataPtr2->DeltaTime = deltaTime;
+	dataPtr2->WorldViewProjection		= *worldViewProjection;
+	dataPtr2->DeltaTime					= deltaTime;
+	dataPtr2->farClip 					= variables.farClip;
+	dataPtr2->heightScaling				= variables.heightScaling;
+	dataPtr2->positionSamplingOffset	= variables.positionSamplingOffset;
+	dataPtr2->samplingDirection			= variables.samplingDirection;
+	dataPtr2->timeScaling				= variables.timeScaling;
 
 	// Unlock the matrix constant buffer.
 	deviceContext->Unmap(timeBuffer, 0);
@@ -346,6 +359,7 @@ bool DRWaterClass::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMA
 	// Now set the matrix constant buffer in the vertex shader with the updated values.
 	deviceContext->GSSetConstantBuffers(bufferNumber, 1, &timeBuffer.p);
 
+	////////////////////////////////////////////////////////////////////////// #3
 
 	// Lock the matrix constant buffer so it can be written to.
 	result = deviceContext->Map(pixelMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -359,6 +373,8 @@ bool DRWaterClass::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMA
 
 	// Copy the matrices into the constant buffer.
 	dataPtr3->World = *worldMatrix;
+	dataPtr3->waterColorMultiplier = waterColorMultiplier;
+	dataPtr3->waterColorStartOffset = waterColorStartOffset;
 
 	// Unlock the matrix constant buffer.
 	deviceContext->Unmap(pixelMatrixBuffer, 0);
@@ -403,4 +419,31 @@ void DRWaterClass::RenderShader(ID3D11DeviceContext* deviceContext, int indexCou
 	deviceContext->GSSetShader(NULL, NULL, 0);
 
 	return;
+}
+
+void DRWaterClass::OnSettingsReload(Config* cfg)
+{
+	bufferNeedsUpdating = true;
+
+	variables.positionSamplingOffset	= 0.2;
+	variables.samplingDirection.x		= 0.8;
+	variables.samplingDirection.y		= 0.2;
+	variables.heightScaling				= 0.3;
+	variables.timeScaling				= 0.2;
+	waterColorStartOffset				= 0.2;
+	waterColorMultiplier				= 0.8;
+
+	Setting& settings = cfg->getRoot()["shaders"]["waterShader"];
+
+	settings.lookupValue("positionSamplingOffset",	variables.positionSamplingOffset	);
+	settings.lookupValue("samplingDirectionX",		variables.samplingDirection.x		);
+	settings.lookupValue("samplingDirectionY",		variables.samplingDirection.y		);
+	settings.lookupValue("heightScaling",			variables.heightScaling			);
+	settings.lookupValue("timeScaling",				variables.timeScaling				);
+	settings.lookupValue("waterColorStartOffset",	waterColorStartOffset	);
+	settings.lookupValue("waterColorMultiplier",	waterColorMultiplier	);
+
+	const Setting& settings2 = cfg->getRoot()["rendering"];
+
+	settings2.lookupValue("farClip", variables.farClip);
 }

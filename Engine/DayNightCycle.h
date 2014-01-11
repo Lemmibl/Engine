@@ -2,6 +2,8 @@
 #include "SkySphere.h"
 #include <math.h>
 #include "StructsAndEnums.h"
+#include "SettingsManager.h"
+#include <libconfig.h++>
 
 class DayNightCycle
 {
@@ -24,9 +26,11 @@ public:
 	DayNightCycle(const DayNightCycle&);
 	~DayNightCycle();
 
-	bool Initialize(float timePerStage, StageOfDay startStage);
+	bool Initialize(StageOfDay startStage);
 	float Update(float elapsedTime, DirLight* directionalLight, Skysphere* skysphere);
+	void OnSettingsReload(Config* cfg);
 
+	void SetTimePerStage(float time) { timePerStage = time; }
 	StageOfDay GetCurrentStageOfDay() { return currentStageOfDay; }
 	XMFLOAT4 GetAmbientLightColor();
 
@@ -45,7 +49,9 @@ private:
 	inline float ConvertColorValueTo_0_1_Range(float val)
 	{
 		return (val/255.0f);
-	}
+	} 
+
+	inline XMFLOAT3 SaturateColorVector(XMFLOAT3 color) { color.x /= 255.0f; color.y /= 255.0f; color.z /= 255.0f; return color; }
 
 private:
 	float timePerStage, elapsedTime;

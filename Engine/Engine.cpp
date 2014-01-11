@@ -41,8 +41,6 @@ bool Engine::Initialize()
 	// Initialize the windows api.
 	InitializeWindows(screenWidth, screenHeight);
 
-	SettingsManager& settings = SettingsManager::GetInstance();
-
 	broadphase				=	make_shared<btDbvtBroadphase>();
 	collisionConfiguration	=	make_shared<btDefaultCollisionConfiguration>();
 
@@ -53,7 +51,6 @@ bool Engine::Initialize()
 
 	//http://en.wikipedia.org/wiki/Gravity_of_Earth
 	dynamicsWorld->setGravity(btVector3(0.0f, -9.78f, 0.0f));
-
 	dynamicsWorld->stepSimulation(1.0f/180.0f, 60);
 
 	// Create the input object.  This object will be used to handle reading the keyboard input from the user.
@@ -341,6 +338,11 @@ void Engine::ShutdownWindows()
 	ApplicationHandle = NULL;
 
 	return;
+}
+
+void Engine::OnSettingsReload( Config* cfg )
+{
+	//TODO...
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam)

@@ -3,7 +3,7 @@
 
 #include <btBulletDynamicsCommon.h>
 #include <memory>
-#include "MCTerrainClass.h"
+#include "TerrainNoiseSeeder.h"
 #include "TerrainManager.h"
 #include "d3dmanager.h"
 #include "cameraclass.h"
@@ -12,8 +12,10 @@
 #include "Lemmi2DAABB.h"
 #include "MeshHandler.h"
 #include "SettingsManager.h"
+#include <libconfig.h++>
 
 using namespace std;
+using namespace libconfig;
 
 class World
 {
@@ -24,6 +26,7 @@ public:
 	void Initialize(shared_ptr<D3DManager> extD3DManager, shared_ptr<CameraClass> extCamera, shared_ptr<InputClass> extInput, shared_ptr<btDiscreteDynamicsWorld> collisionWorld);
 
 	void Update(float deltaTime);
+	void OnSettingsReload(Config* cfg);
 
 	Renderer::RenderableBundle* GetRenderableBundle() {  return &renderableBundle; };
 
@@ -35,6 +38,32 @@ private:
 
 	//Do frustum culling and that sort of stuff
 	void UpdateVisibility();
+
+private:
+	//Physics related stuff
+	XMFLOAT3 gravity;
+	float bulletTimestepScale;
+	int maxSubSteps;
+
+	//Collision classes
+	shared_ptr<btDiscreteDynamicsWorld> dynamicsWorld;
+
+	//Terrain related objects
+	shared_ptr<TerrainManager> terrainManager;
+
+	//Rendering
+	MeshHandler meshHandler;
+	Renderer::RenderableBundle renderableBundle;
+
+	//Misc.
+	FrustumClass frustum;
+	Lemmi2DAABB frustumAABB;
+
+	shared_ptr<InputClass> inputManager;
+	shared_ptr<CameraClass> camera;
+	shared_ptr<D3DManager> d3D;
+};
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -70,24 +99,3 @@ private:
 //		In general, it will contain functions bridging all of the managers together
 // 
 //////////////////////////////////////////////////////////////////////////
-
-private:
-	//Collision classes
-	shared_ptr<btDiscreteDynamicsWorld> dynamicsWorld;
-
-	//Terrain related objects
-	shared_ptr<TerrainManager> terrainManager;
-
-	//Rendering
-	MeshHandler meshHandler;
-	Renderer::RenderableBundle renderableBundle;
-
-	//Misc.
-	FrustumClass frustum;
-	Lemmi2DAABB frustumAABB;
-
-	shared_ptr<InputClass> inputManager;
-	shared_ptr<CameraClass> camera;
-	shared_ptr<D3DManager> d3D;
-};
-

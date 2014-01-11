@@ -8,7 +8,7 @@
 
 using std::vector;
 
-class MCTerrainClass
+class TerrainNoiseSeeder
 {
 public:
 	enum TerrainTypes
@@ -25,8 +25,8 @@ public:
 	};
 
 public:
-	MCTerrainClass();
-	~MCTerrainClass();
+	TerrainNoiseSeeder();
+	~TerrainNoiseSeeder();
 
 
 	void Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass* simplexNoise, TerrainTypes terrainType);

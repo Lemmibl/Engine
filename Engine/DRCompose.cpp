@@ -16,6 +16,17 @@ DRCompose::DRCompose()
 
 	//vertexMatrixBuffer = 0;
 	//pixelMatrixBuffer = 0;
+
+	//Assigning some default values
+	variables.sampleRadius = 0.6f; //Controls sampling radius. 0.1f to 1.0f are pretty ok values.
+	variables.intensity = 4.0f; //AO intensity. The higher this value is, the darker the occluded parts will be. 1.0f to 10.0f values is pretty ok values.
+	variables.scale = 0.8f; //Scales distance between occluders and occludee. Still a little unsure as to what values would be good to use.
+	variables.bias = 0.2f; //Cutoff value. The higher this value is, the harsher we are with cutting off low AO values. 0.01f to 0.4f values are pretty ok.
+	variables.fogStart = 150.0f;
+	variables.fogEnd = 380.0f;
+
+	variables.screenSize = XMFLOAT2(1024.0f, 768.0f);
+	variables.randomSize = XMFLOAT2(64.0f, 64.0f);
 }
 
 
@@ -32,6 +43,13 @@ DRCompose::~DRCompose()
 bool DRCompose::Initialize(ID3D11Device* device, HWND hwnd)
 {
 	bool result;
+
+	//Get settings manager instance and add our function to reload event
+	SettingsManager& settings = SettingsManager::GetInstance();
+	settings.GetEvent()->Add(*this, (&DRCompose::OnSettingsReload));
+
+	//Perhaps slightly hacky, but it saves on rewriting code.
+	OnSettingsReload(&settings.GetConfig());
 
 	// Initialize the vertex and pixel shaders.
 	result = InitializeShader(device, hwnd, L"../Engine/Shaders/DRCompose.vsh", L"../Engine/Shaders/DRCompose.hlsl");
@@ -249,6 +267,26 @@ bool DRCompose::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 		return false;
 	}
 
+	// Setup the description of the dynamic matrix constant buffer that is in the pixel shader.
+	vertexMatrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	vertexMatrixBufferDesc.ByteWidth = sizeof(VariableBuffer);
+	vertexMatrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	vertexMatrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	vertexMatrixBufferDesc.MiscFlags = 0;
+	vertexMatrixBufferDesc.StructureByteStride = 0;
+
+	D3D11_SUBRESOURCE_DATA data;
+	data.pSysMem = &variables;
+	data.SysMemPitch = sizeof(VariableBuffer);
+	data.SysMemSlicePitch = 0;
+
+	// Create the camera constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+	result = device->CreateBuffer(&vertexMatrixBufferDesc, &data, &variableBuffer.p);
+	if(FAILED(result))
+	{
+		return false;
+	}
+
 	return true;
 }
 
@@ -350,6 +388,7 @@ bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRI
 
 	VertexMatrixBuffer* dataPtr1;
 	PixelMatrixBuffer* dataPtr2;
+	VariableBuffer* dataPtr3;
 
 	/////////////#1
 
@@ -389,7 +428,6 @@ bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRI
 	dataPtr2->View = *view;
 	dataPtr2->InvertedProjection = *invertedProjection;
 	dataPtr2->FogColor = XMFLOAT4(fogColor->x, fogColor->y, fogColor->z, fogMinimum);
-	dataPtr2->toggleSSAO = toggle;
 
 	deviceContext->Unmap(pixelMatrixBuffer, 0);
 
@@ -397,6 +435,44 @@ bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRI
 	bufferNumber = 0;
 
 	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &pixelMatrixBuffer.p);
+
+	/////////////#3
+
+	if(bufferNeedsUpdate)
+	{
+
+		// Lock the vertex constant buffer so it can be written to.
+		result = deviceContext->Map(variableBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		if(FAILED(result))
+		{
+			return false;
+		}
+
+		// Get a pointer to the data in the constant buffer.
+		dataPtr3 = (VariableBuffer*)mappedResource.pData;
+
+		dataPtr3->bias			=	variables.bias;
+		dataPtr3->farClip		=	variables.farClip;
+		dataPtr3->fogEnd		=	variables.fogEnd;
+		dataPtr3->fogStart		=	variables.fogStart;
+		dataPtr3->intensity		=	variables.intensity;
+		dataPtr3->sampleRadius	=	variables.sampleRadius;
+		dataPtr3->scale			=	variables.scale;
+		dataPtr3->toggleSSAO	=	toggle;
+		dataPtr3->randomSize	=	variables.randomSize;
+		dataPtr3->screenSize	=	variables.screenSize;
+
+		deviceContext->Unmap(variableBuffer, 0);
+
+		bufferNeedsUpdate = false;
+	}
+
+	// Set the position of the constant buffer in the vertex shader.
+	bufferNumber = 1;
+
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &variableBuffer.p);
+
+	///////// Assorted shit
 
 	// Set shader texture resource in the pixel shader.
 	deviceContext->PSSetShaderResources(0, 1, &randomTexture);
@@ -422,4 +498,30 @@ void DRCompose::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
 	deviceContext->DrawIndexed(indexCount, 0, 0);
 
 	return;
+}
+
+void DRCompose::OnSettingsReload(Config* cfg)
+{
+	bufferNeedsUpdate = true;
+
+	const Setting& settings = cfg->getRoot()["shaders"]["composeShader"];
+
+	settings.lookupValue("sampleRadius", variables.sampleRadius);
+	settings.lookupValue("intensity", variables.intensity);
+	settings.lookupValue("scale", variables.scale);
+	settings.lookupValue("bias", variables.bias);
+
+	settings.lookupValue("FogStart", variables.fogStart);
+	settings.lookupValue("FogEnd", variables.fogEnd);
+
+	const Setting& settings2 = cfg->getRoot()["rendering"];
+
+	settings2.lookupValue("farClip", variables.farClip);
+	settings2.lookupValue("windowWidth", variables.screenSize.x);
+	settings2.lookupValue("windowHeight", variables.screenSize.y);
+
+	const Setting& settings3 = cfg->getRoot()["textures"];
+
+	settings3.lookupValue("ssaoNoiseTextureWidth", variables.randomSize.x);
+	settings3.lookupValue("ssaoNoiseTextureHeight", variables.randomSize.y);
 }

@@ -3,21 +3,15 @@
 
 SettingsManager::SettingsManager()
 {
-	auto text = filepath.c_str();
-	cfg.readFile(text);
-
-	const Setting &thing = cfg.getRoot()["camera"];
-
-	float posX, posY, posZ;
-	thing.lookupValue("positionX", posX);
-	thing.lookupValue("positionY", posY);
-	thing.lookupValue("positionZ", posZ);
+	//Load config file upon construction
+	cfg.readFile(filepath.c_str());
 }
 
 void SettingsManager::ReloadSettings()
 {
-	auto text = filepath.c_str();
-	cfg.readFile(text);
+	//Reload file
+	cfg.readFile(filepath.c_str());
 
+	//Shoot off event that we should re-initialize all values that are stored in settings.
 	loadEvent(&cfg);
 } 

@@ -24,7 +24,7 @@ Texture1DArray materialArray;
 Texture2D textures[3]; //Color, Normal, depth. In that order
 SamplerState pointSampler;
 
-static const float CameraFarClip = 500.0f;
+static const float CameraFarClip = 400.0f;
 
 //////////////////////////////////////////////////
 //	FUNCTIONS

@@ -223,7 +223,7 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	)
 	{
 		/*Variance shadow mapping. http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html */
-		shadowMultiplier = ShadowContribution(lightScreenPos.xy, realDistanceToLight);
+		shadowMultiplier = max(ShadowContribution(lightScreenPos.xy, realDistanceToLight)-0.3f, 0.0f);
 	}	
 	
 	//Calculate diffuse light

@@ -66,9 +66,9 @@ ControllerClass::ControllerClass(std::shared_ptr<btDynamicsWorld> world, std::sh
 {
 	SetCursorPos(0, 0);
 
-	//Attach load function to the event that might happen
+	//Get settings manager instance and add our function to reload event
 	SettingsManager& settings = SettingsManager::GetInstance();
-	settings.GetEvent()->Add(*this, &ControllerClass::OnSettingsReload);
+	settings.GetEvent()->Add(*this, (&ControllerClass::OnSettingsReload));
 
 	float collisionRadius = 2.5f;
 	sprintModifier = 10.0f;
@@ -84,7 +84,7 @@ ControllerClass::ControllerClass(std::shared_ptr<btDynamicsWorld> world, std::sh
 	btVector3 fallInertia(0, 0, 0);
 	collisionShape->calculateLocalInertia(mass,fallInertia);
 
-	motionState = std::make_shared<btDefaultMotionState>(btTransform(btQuaternion(0,0,0,1), btVector3(0, 50, 0)));
+	motionState = std::make_shared<btDefaultMotionState>(btTransform(btQuaternion(0,0,0,1), btVector3(0, 100, 0)));
 
 	btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(mass, motionState.get(), collisionShape.get(), fallInertia);
 
@@ -207,7 +207,7 @@ void ControllerClass::Update(float frameTime, XMFLOAT4X4* cameraMatrix)
 		tempRot = XMVectorSetX(tempRot, -89.0f);
 	}
 
-	//We clamp Y rotation to a decent, goodhearted value that heeds the word of our lord savior.
+	//We also clamp Y rotation to a decent, goodhearted value that heeds the word of our lord savior.
 	if(Y >= 360.0f || Y <= -360.0f)
 	{
 		tempRot = XMVectorSetY(tempRot, 0.0f);
@@ -218,9 +218,18 @@ void ControllerClass::Update(float frameTime, XMFLOAT4X4* cameraMatrix)
 	XMStoreFloat3(&movement, movementThisUpdate);
 	rigidBody->applyForce(btVector3(movement.x*movementValue, movement.y*movementValue, movement.z*movementValue), rigidBody->getCenterOfMassPosition()); //, btVector3(position.x, position.y, position.z)
 
-	//Copy our rigid body position to our XMFLOAT3 position that is used in rendering
+	//Copy our rigid body position to our XMFLOAT3 position that is used in rendering and that stuff
 	rigidBody->getMotionState()->getWorldTransform(trans);
 	position = btVector3_to_XMFLOAT3(trans.getOrigin());
+
+	//Just in worst case if we've somehow moved below the ground...
+	if(position.y < 0.0f)
+	{
+		//Reset ypos
+		position.y = 50.0f;
+
+		rigidBody->translate(btVector3(position.x, position.y, position.z));
+	}
 
 	//Store new rotation
 	XMStoreFloat3(&rotation, tempRot);
@@ -278,7 +287,8 @@ void ControllerClass::OnSettingsReload(Config* cfg)
 	btVector3 fallInertia(0, 0, 0);
 	collisionShape->calculateLocalInertia(mass,fallInertia);
 
-	motionState = std::make_shared<btDefaultMotionState>(btTransform(btQuaternion(0,0,0,1), btVector3(positionX, positionY, positionZ)));
+	//Don't change motionstate
+	//motionState = std::make_shared<btDefaultMotionState>(btTransform(btQuaternion(0,0,0,1), btVector3(0.0f, 50.0f, 0.0f))); //positionX, positionY, positionZ
 
 	btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(mass, motionState.get(), collisionShape.get(), fallInertia);
 

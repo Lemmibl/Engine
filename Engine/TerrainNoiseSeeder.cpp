@@ -1,18 +1,18 @@
-#include "MCTerrainClass.h"
+#include "TerrainNoiseSeeder.h"
 #include <math.h>       /* sin */
 
 #define PI 3.14159265
 
-MCTerrainClass::MCTerrainClass()
+TerrainNoiseSeeder::TerrainNoiseSeeder()
 {
 
 }
 
-MCTerrainClass::~MCTerrainClass()
+TerrainNoiseSeeder::~TerrainNoiseSeeder()
 {
 }
 
-void MCTerrainClass::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass* simplexNoise, TerrainTypes terrainType)
+void TerrainNoiseSeeder::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass* simplexNoise, TerrainTypes terrainType)
 {
 	terrainMode = terrainType;
 	noise = simplexNoise;
@@ -33,7 +33,7 @@ void MCTerrainClass::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass* sim
 	ZFactor = 1.0f / (2.0f*sizeZ);
 }
 
-void MCTerrainClass::MCHeightMap()
+void TerrainNoiseSeeder::MCHeightMap()
 {
 	//float* worldArray = new float[worldArraySize];
 
@@ -90,7 +90,7 @@ void MCTerrainClass::MCHeightMap()
 }
 
 
-void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned int startZ, unsigned int endX, unsigned int endY, unsigned int endZ )
+void TerrainNoiseSeeder::Noise3D(unsigned int startX, unsigned int startY, unsigned int startZ, unsigned int endX, unsigned int endY, unsigned int endZ )
 {
 	maxDensity = -511.0f;
 	minDensity = 511.0f;
@@ -108,7 +108,7 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 					{
 						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
 
-						XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
+						const XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
 
 						density = 1 + sizeY * 0.1f - y;
 						density += noise->SimplexNoise3D(position.x/220, position.y/20, position.z/220) * 2.0f;
@@ -141,7 +141,7 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 					{
 						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
 
-						XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
+						const XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
 
 						density = 1 + sizeY * 0.2f - y;
 						density += noise->SimplexNoise3D(position.x/220, position.y/20, position.z/220) * 10.0f;
@@ -172,7 +172,7 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 					{
 						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
 
-						XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
+						const XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
 
 						density = 1 + sizeY * 0.2f - y;
 						density += noise->SimplexNoise3D(position.x/220, position.y/20,	 position.z/220) *2.0f;
@@ -210,7 +210,7 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 					{
 						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
 
-						XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
+						const XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
 
 						density = 1 + sizeY * 0.4f - y;
 						density += noise->SimplexNoise3D( position.x/220,	position.y/220,	position.z/420) *20.0f;
@@ -268,7 +268,7 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 					{
 						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
 
-						XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
+						const XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
 
 						density = 1 + sizeY * 0.6f - y;
 
@@ -328,7 +328,7 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 					{
 						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
 
-						XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
+						const XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
 
 						density = 0 + sizeY * 0.001f - y*0.1f;
 						density += noise->SimplexNoise3D(position.x/40, position.y/10,	position.z/25) *10.0f;
@@ -361,7 +361,7 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 					{
 						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
 
-						XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
+						const XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
 
 						density = 1 + sizeY * 0.1f - y;
 						density += noise->SimplexNoise3D(position.x/220, position.y/20,	 position.z/220) *20.0f;
@@ -400,7 +400,7 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 					{
 						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
 
-						XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
+						const XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
 
 						density = 1 + sizeY * 0.1f - y;
 						density += noise->SimplexNoise3D(position.x/220,	position.y/220,	position.z/420) *2.0f;
@@ -440,7 +440,7 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 					{
 						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
 
-						XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
+						const XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
 
 						density = 7;
 						density += noise->SimplexNoise3D(position.x/60,	 position.y/60,	 position.z/60) *20.0f;
@@ -579,9 +579,8 @@ void MCTerrainClass::Noise3D(unsigned int startX, unsigned int startY, unsigned 
 	}
 }
 
-void MCTerrainClass::CreateMCVerts()
+void TerrainNoiseSeeder::CreateMCVerts()
 {
-	//  this is case where the resolution is too low anyway
 	(*marchingCubeVertices)[idx].normal.x = ((*marchingCubeVertices)[idx - 1].density -					(*marchingCubeVertices)[idx+1].density)					* XFactor;
 	(*marchingCubeVertices)[idx].normal.y = ((*marchingCubeVertices)[idx - sizeY].density -				(*marchingCubeVertices)[idx + sizeY].density)			* YFactor;
 	(*marchingCubeVertices)[idx].normal.z = ((*marchingCubeVertices)[idx - (sizeY * sizeZ)].density -	(*marchingCubeVertices)[idx + (sizeY * sizeZ)].density)	* ZFactor;
@@ -594,7 +593,7 @@ void MCTerrainClass::CreateMCVerts()
 	(*marchingCubeVertices)[idx].normal.z = (*marchingCubeVertices)[idx].normal.z/vectorLength;
 }
 
-float MCTerrainClass::GetHighestPositionOfCoordinate(int x, int z)
+float TerrainNoiseSeeder::GetHighestPositionOfCoordinate(int x, int z)
 {
 	int idx;
 	float j = 0.0f;

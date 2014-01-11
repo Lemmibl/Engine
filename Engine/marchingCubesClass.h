@@ -3,7 +3,7 @@
 
 #include "metaballsClass.h"
 #include "TreeClass.h"
-#include "MCTerrainClass.h"
+#include "TerrainNoiseSeeder.h"
 #include "types.h"
 #include <windows.h>
 #include "Utility.h"

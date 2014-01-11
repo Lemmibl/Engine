@@ -1,3 +1,4 @@
+
 struct VertexShaderOutput
 {
 		float4 Position : SV_POSITION;
@@ -10,23 +11,36 @@ SamplerState samplers[2]; //0 == linear sampler, 1 == point
 Texture2D randomTexture : register(ps_5_0, t0);
 Texture2D shaderTextures[4] : register(ps_5_0, t1); // 0 = color, 1 = light, 2 = depth, 3 = normal
 
-static const float sampleRadius = 0.6f; //Controls sampling radius. 0.1f to 1.0f are pretty ok values.
-static const float intensity = 4.0f; //AO intensity. The higher this value is, the darker the occluded parts will be. 1.0f to 10.0f values is pretty ok values.
-static const float scale = 0.8f; //Scales distance between occluders and occludee. Still a little unsure as to what values would be good to use.
-static const float bias = 0.2f; //Cutoff value. The higher this value is, the harsher we are with cutting off low AO values. 0.01f to 0.4f values are pretty ok.
-static const float CameraFarClip = 400.0f;
-static const float FogEnd = 380.0f;
-static const float FogStart = 200.0f;
-static const float2 screenSize = float2(1024.0f, 768.0f);
-static const float2 randomSize = float2(64.0f, 64.0f);
+//static const float sampleRadius = 0.6f; //Controls sampling radius. 0.1f to 1.0f are pretty ok values.
+//static const float intensity = 4.0f; //AO intensity. The higher this value is, the darker the occluded parts will be. 1.0f to 10.0f values is pretty ok values.
+//static const float scale = 0.8f; //Scales distance between occluders and occludee. Still a little unsure as to what values would be good to use.
+//static const float bias = 0.2f; //Cutoff value. The higher this value is, the harsher we are with cutting off low AO values. 0.01f to 0.4f values are pretty ok.
+//static const float farClip = 400.0f;
+//static const float fogEnd = 380.0f;
+//static const float fogStart = 200.0f;
+//static const float2 screenSize = float2(1024.0f, 768.0f);
+//static const float2 randomSize = float2(64.0f, 64.0f);
 
 cbuffer PixelMatrixBufferType
 {
 	float4x4 View;
 	float4x4 InvertedProjection;
 	float4 FogColor;
-	int toggleSSAO;
-}
+};
+
+cbuffer VariableBuffer
+{
+	int toggleSSAO		: packoffset(c0.x);
+	float sampleRadius	: packoffset(c0.y);	//Controls sampling radius. 0.1f to 1.0f are pretty ok values.
+	float intensity		: packoffset(c0.z); 	//AO intensity. The higher this value is, the darker the occluded parts will be. 1.0f to 10.0f values is pretty ok values.
+	float scale			: packoffset(c0.w);		//Scales distance between occluders and occludee. Still a little unsure as to what values would be good to use.
+	float bias			: packoffset(c1.x);			//Cutoff value. The higher this value is, the harsher we are with cutting off low AO values. 0.01f to 0.4f values are pretty ok.
+	float fogStart		: packoffset(c1.y);
+	float fogEnd		: packoffset(c1.z);
+	float farClip		: packoffset(c1.w);
+	float2 randomSize	: packoffset(c2.x);
+	float2 screenSize	: packoffset(c2.z);
+};
 
 //Decoding of GBuffer Normals
 float3 DecodeNormal(float2 enc)
@@ -45,7 +59,7 @@ float3 DecodeNormal(float2 enc)
 float3 DepthToPosition(float4 ScreenPosition, float depth)
 {
 	float3 viewPosition = mul(ScreenPosition, InvertedProjection).xyz;
-	return float3(viewPosition.xy * (CameraFarClip / viewPosition.z), CameraFarClip) * depth;
+	return float3(viewPosition.xy * (farClip / viewPosition.z), farClip) * depth;
 }
 
 float3 ReconstructViewPositionFromDepth(float3 viewPosition, float depth)
@@ -54,7 +68,7 @@ float3 ReconstructViewPositionFromDepth(float3 viewPosition, float depth)
 	//float3 viewRay = float3(viewPosition.xy * (150.0f / viewPosition.z), 150.0f);
 	//float normalizedDepth = shaderTextures[1].Sample(linearSampler, texCoord);
 
-	return float3(viewPosition.xy * (CameraFarClip / viewPosition.z), CameraFarClip) * depth;
+	return float3(viewPosition.xy * (farClip / viewPosition.z), farClip) * depth;
 }
 
 float DoAmbientOcclusion(float2 TexCoord, float2 Offset, float4 ScreenPosition, float3 Position, float3 Normal)
@@ -86,7 +100,7 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 			return float4(baseColor, 1.0f);
 		}
 
-		float fogFactor = saturate(((depth*CameraFarClip) - FogStart) / (FogEnd - FogStart));
+		float fogFactor = saturate(((depth*farClip) - fogStart) / (fogEnd - fogStart));
 		
 		if(fogFactor >= 1.0f)
 		{

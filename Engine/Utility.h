@@ -4,7 +4,7 @@
 #include <d3dx9.h>
 #include <string>
 #include <d3dx11tex.h>
-#include "MCTerrainClass.h"
+#include "TerrainNoiseSeeder.h"
 #include <vector>
 #include <stdint.h>
 #include "StructsAndEnums.h"

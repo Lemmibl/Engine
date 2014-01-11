@@ -48,8 +48,8 @@ class SettingsManager
 
 		//As separate function because we also want to trigger the re-load event
 		void ReloadSettings();
-		//Config& GetConfigFile() { return cfg; }
-		//void SaveSettings(std::string filePath);
+		
+		Config& GetConfig() { return cfg; }
 
 		/*
 		Used like this:
@@ -57,7 +57,6 @@ class SettingsManager
 		Foo foo;
 		event.Add(foo, &Foo::Method);
 		*/
-		//Config& GetConfigRoot() { return cfg; }
 		Event<Config*>* GetEvent() { return &loadEvent; }
 
 	private:

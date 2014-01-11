@@ -1,3 +1,12 @@
+
+cbuffer VariableBuffer
+{
+	float farClip : packoffset(c0.x);
+	float tighten : packoffset(c0.y);
+	float textureScale : packoffset(c0.z);
+	float colorMode : packoffset(c0.w);
+};
+
 struct VertexShaderOutput
 {
 	float4 Position : SV_POSITION;
@@ -13,19 +22,11 @@ struct PixelShaderOutput
 	float Depth : SV_TARGET2; //R32
 };
 
-cbuffer ColorTypeBuffer
-{
-	float4 toggleColorMode;
-}
-
 Texture2DArray shaderTextures;
 Texture2D materialAndTextureLookupTable;
 SamplerState textureSampler;
 
 static const float3 UpNormal = float3(0.0f, 1.0f, 0.0f);
-static const float tighten = 0.46f;
-static const float textureScale = 0.1f;
-
 
 //http://aras-p.info/texts/CompactNormalStorage.html#method04spheremap
 //Normal Encoding Function
@@ -53,7 +54,7 @@ float EncodeMaterialID(float id)
 float3 CalculateBlendWeights(float3 NormalizedWorldNormal)
 {
 	float3 blend_weights = abs(NormalizedWorldNormal);     
-	blend_weights = (blend_weights - 0.2f)*7.0f;  // Tighten up the blending zone
+	blend_weights = (blend_weights - tighten)*7.0f;  // Tighten up the blending zone
 	blend_weights = max(blend_weights, 0.0001f);
 	blend_weights /= (blend_weights.x + blend_weights.y + blend_weights.z).xxx; // Force weights to sum to 1.0 (very important!)
 
@@ -62,7 +63,7 @@ float3 CalculateBlendWeights(float3 NormalizedWorldNormal)
 
 PixelShaderOutput MCGBufferTerrainPixelShader(VertexShaderOutput input)
 {
-	PixelShaderOutput output = (PixelShaderOutput)0;
+	PixelShaderOutput output;
 	int texture1, texture2;
 	float material1, material2;
 
@@ -115,7 +116,7 @@ PixelShaderOutput MCGBufferTerrainPixelShader(VertexShaderOutput input)
 		XZColor = shaderTextures.Sample(textureSampler, float3(input.WorldPosition.zx * textureScale, texture1));
 	}
 	
-	if((int)toggleColorMode.x == 0)
+	if((int)colorMode == 0)
 	{
 		output.Color.xyz = finalTempColor.xyz;
 	}
@@ -131,7 +132,7 @@ PixelShaderOutput MCGBufferTerrainPixelShader(VertexShaderOutput input)
 	output.Normal.w = material2;
 
 	//Store linear depth. Farclip is stored in toggleColorMode.y.
-	output.Depth = (input.ViewDepth/toggleColorMode.y);
+	output.Depth = (input.ViewDepth/farClip);
 
 	return output;
 }

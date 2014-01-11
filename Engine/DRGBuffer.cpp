@@ -5,6 +5,8 @@
 
 DRGBuffer::DRGBuffer()
 {
+	//textureScale = tighten = 1.0f;
+
 	//vertexShader = 0;
 	//pixelShader = 0;
 	//layout = 0;
@@ -27,6 +29,13 @@ DRGBuffer::~DRGBuffer()
 bool DRGBuffer::Initialize(ID3D11Device* device, HWND hwnd)
 {
 	bool result;
+
+	//Get settings manager instance and add our function to reload event
+	SettingsManager& settings = SettingsManager::GetInstance();
+	settings.GetEvent()->Add(*this, (&DRGBuffer::OnSettingsReload));
+
+	//Perhaps slightly hacky, but it saves on rewriting code.
+	OnSettingsReload(&settings.GetConfig());
 
 	// Initialize the vertex and pixel shaders.
 	result = InitializeShader(device, hwnd, L"../Engine/Shaders/DRGbuffer.vsh", L"../Engine/Shaders/DRGbuffer.psh");
@@ -75,7 +84,7 @@ bool DRGBuffer::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 	D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
 	unsigned int numElements;
 	D3D11_BUFFER_DESC matrixBufferDesc;
-	D3D11_BUFFER_DESC pixelShaderBufferDesc;
+	D3D11_BUFFER_DESC variableBufferDesc;
 	D3D11_SAMPLER_DESC samplerDesc;
 
 	// Compile the vertex shader code.
@@ -208,15 +217,22 @@ bool DRGBuffer::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 	}
 
 	// Setup the description of the pixel shader constant buffer that is in the vertex shader.
-	pixelShaderBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	pixelShaderBufferDesc.ByteWidth = sizeof(PixelShaderBufferType);
-	pixelShaderBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	pixelShaderBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	pixelShaderBufferDesc.MiscFlags = 0;
-	pixelShaderBufferDesc.StructureByteStride = 0;
+	variableBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	variableBufferDesc.ByteWidth = sizeof(VariableBuffer);
+	variableBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	variableBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	variableBufferDesc.MiscFlags = 0;
+	variableBufferDesc.StructureByteStride = 0;
+
+	D3D11_SUBRESOURCE_DATA data;
+
+	data.pSysMem = &variables;
+	data.SysMemPitch = sizeof(VariableBuffer);
+	data.SysMemSlicePitch = 0;
+
 
 	// Create the matrix constant buffer pointer so we can access the vertex shader constant buffer from within this class.
-	result = device->CreateBuffer(&pixelShaderBufferDesc, NULL, &pixelFarZBuffer.p);
+	result = device->CreateBuffer(&variableBufferDesc, NULL, &variableBuffer.p);
 	if(FAILED(result))
 	{
 		return false;
@@ -361,8 +377,10 @@ bool DRGBuffer::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	MatrixBufferType* dataPtr;
-	PixelShaderBufferType* dataPtr2;
+	VariableBuffer* dataPtr2;
 	unsigned int bufferNumber;
+
+	///////////// #1
 
 	// Lock the matrix constant buffer so it can be written to.
 	result = deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -388,26 +406,37 @@ bool DRGBuffer::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX
 	// Now set the matrix constant buffer in the vertex shader with the updated values.
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &matrixBuffer.p);
 
-	// Lock the light constant buffer so it can be written to.
-	result = deviceContext->Map(pixelFarZBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	if(FAILED(result))
+	///////////// #2
+
+	if(bufferNeedsUpdate)
 	{
-		return false;
+		// Lock the light constant buffer so it can be written to.
+		result = deviceContext->Map(variableBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		if(FAILED(result))
+		{
+			return false;
+		}
+
+		// Get a pointer to the data in the constant buffer.
+		dataPtr2 = (VariableBuffer*)mappedResource.pData;
+
+		// Copy the lighting variables into the constant buffer.
+		dataPtr2->farClip		= variables.farClip;
+		dataPtr2->textureScale	= variables.textureScale;
+		dataPtr2->tighten		= variables.tighten;
+
+		// Unlock the constant buffer.
+		deviceContext->Unmap(variableBuffer, 0);
+
+		bufferNeedsUpdate = false;
 	}
-
-	// Get a pointer to the data in the constant buffer.
-	dataPtr2 = (PixelShaderBufferType*)mappedResource.pData;
-
-	// Copy the lighting variables into the constant buffer.
-	dataPtr2->FarZ = farZ;
-
-	// Unlock the constant buffer.
-	deviceContext->Unmap(pixelFarZBuffer, 0);
 
 	bufferNumber = 0;
 
 	// Finally set the light constant buffer in the pixel shader with the updated values.
-	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &pixelFarZBuffer.p);
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &variableBuffer.p);
+
+	//Assort shit.
 
 	// Set shader texture array resource in the pixel shader.
 	deviceContext->PSSetShaderResources(0, 1, &texture);
@@ -432,4 +461,18 @@ void DRGBuffer::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
 
 
 	return;
+}
+
+void DRGBuffer::OnSettingsReload( Config* cfg )
+{
+	bufferNeedsUpdate = true;
+
+	const Setting& settings = cfg->getRoot()["shaders"]["gbufferModel"];
+
+	settings.lookupValue("tighten", variables.tighten);
+	settings.lookupValue("textureScale", variables.textureScale);
+
+	const Setting& settings2 = cfg->getRoot()["rendering"];
+
+	settings2.lookupValue("farClip", variables.farClip);
 }

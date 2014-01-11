@@ -16,8 +16,9 @@ struct PixelShaderOutput
 
 cbuffer PixelShaderBuffer
 {
-	float FarZ;
-	float3 Padding;
+	float farClip		: packoffset(c0.x);
+	float textureScale  : packoffset(c0.y);
+	float tighten		: packoffset(c0.z);
 }
 
 //http://aras-p.info/texts/CompactNormalStorage.html#method04spheremap
@@ -37,8 +38,8 @@ float EncodeMaterialID(float id)
 Texture2D shaderTexture;
 SamplerState textureSampler;
 
-static const float textureScale = 0.2f;
-static const float tighten = 0.45f;
+//static const float textureScale = 0.2f;
+//static const float tighten = 0.45f;
 
 PixelShaderOutput GBufferPixelShader(VertexShaderOutput input)
 {
@@ -66,7 +67,7 @@ PixelShaderOutput GBufferPixelShader(VertexShaderOutput input)
 	output.Normal.xy = Encode(normalizedWorldNormal);
 	output.Normal.zw = EncodeMaterialID(1.0f); //TODO: send in material IDs
 
-	output.Depth = (input.ViewDepth / FarZ); //Store depth linearly.
+	output.Depth = (input.ViewDepth / farClip); //Store depth linearly.
 
 	return output;
 }

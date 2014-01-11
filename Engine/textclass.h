@@ -25,6 +25,10 @@ public:
 	bool SetCameraRotation(int, int, int,	ID3D11DeviceContext*);
 	bool SetLastChar(char,					ID3D11DeviceContext*);
 
+	//Update values and reciprocate to sentenceManager.
+	void SetScreenWidth(int width) { screenWidth = width; sentenceManager.SetScreenWidth(width); }
+	void SetScreenHeight(int height) { screenHeight = height; sentenceManager.SetScreenHeight(height); }
+
 private:
 	//This stays in text class because this is where we have fontshader class
 	bool RenderSentence(const SentenceManager::SentenceType* sentence, FontClass* font, ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection);

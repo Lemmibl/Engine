@@ -24,6 +24,12 @@ bool MCGBufferTerrainShader::Initialize(ID3D11Device* device, HWND hwnd)
 {
 	bool result;
 
+	//Get settings manager instance and add our function to reload event
+	SettingsManager& settings = SettingsManager::GetInstance();
+	settings.GetEvent()->Add(*this, &MCGBufferTerrainShader::OnSettingsReload);
+
+	//Perhaps slightly hacky, but it saves on rewriting code.
+	OnSettingsReload(&settings.GetConfig());
 
 	// Initialize the vertex and pixel shaders.
 	result = InitializeShader(device, hwnd, L"../Engine/Shaders/MCGBufferTerrainShader.vsh", L"../Engine/Shaders/MCGBufferTerrainShader.psh");
@@ -186,14 +192,19 @@ bool MCGBufferTerrainShader::InitializeShader(ID3D11Device* device, HWND hwnd, W
 
 	// Setup the description of the matrix dynamic constant buffer that is in the vertex shader.
 	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	matrixBufferDesc.ByteWidth = sizeof(ColorTypeBuffer);
+	matrixBufferDesc.ByteWidth = sizeof(VariableBuffer);
 	matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	matrixBufferDesc.MiscFlags = 0;
 	matrixBufferDesc.StructureByteStride = 0;
 
+	D3D11_SUBRESOURCE_DATA initData;
+	initData.pSysMem = &variables;
+	initData.SysMemPitch = sizeof(VariableBuffer);
+	initData.SysMemSlicePitch = 0;
+
 	// Create the matrix constant buffer pointer so we can access the vertex shader constant buffer from within this class.
-	result = device->CreateBuffer(&matrixBufferDesc, NULL, &colorTypeBuffer);
+	result = device->CreateBuffer(&matrixBufferDesc, &initData, &variableBuffer);
 	if(FAILED(result))
 	{
 		return false;
@@ -313,7 +324,7 @@ bool MCGBufferTerrainShader::SetShaderParameters( ID3D11DeviceContext* deviceCon
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	MatrixBufferType* dataPtr;
-	ColorTypeBuffer* dataPtr2;
+	VariableBuffer* dataPtr2;
 	unsigned int bufferNumber;
 
 	// Lock the matrix constant buffer so it can be written to.
@@ -340,27 +351,35 @@ bool MCGBufferTerrainShader::SetShaderParameters( ID3D11DeviceContext* deviceCon
 	// Now set the matrix constant buffer in the vertex shader with the updated values.
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &matrixBuffer.p);
 
-	// Lock the matrix constant buffer so it can be written to.
-	result = deviceContext->Map(colorTypeBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	if(FAILED(result))
+	if(bufferNeedsUpdate)
 	{
-		return false;
+		// Lock the matrix constant buffer so it can be written to.
+		result = deviceContext->Map(variableBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		if(FAILED(result))
+		{
+			return false;
+		}
+
+		// Get a pointer to the data in the constant buffer.
+		dataPtr2 = (VariableBuffer*)mappedResource.pData;
+
+		// Copy the matrices into the constant buffer.
+		dataPtr2->colorMode = toggleColor;
+		dataPtr2->farClip = variables.farClip;
+		dataPtr2->textureScale = variables.textureScale;
+		dataPtr2->tighten = variables.tighten;
+
+		// Unlock the matrix constant buffer.
+		deviceContext->Unmap(variableBuffer, 0);
+
+		bufferNeedsUpdate = false;
 	}
-
-	// Get a pointer to the data in the constant buffer.
-	dataPtr2 = (ColorTypeBuffer*)mappedResource.pData;
-
-	// Copy the matrices into the constant buffer.
-	dataPtr2->colorModeInX_FarClipInY_ZWUnused = XMFLOAT4((float)toggleColor, farclip, 0.0f, 0.0f);
-
-	// Unlock the matrix constant buffer.
-	deviceContext->Unmap(colorTypeBuffer, 0);
 
 	// Set the position of the matrix constant buffer in the pixel sh§ader.
 	bufferNumber = 0;
 
 	// Now set the matrix constant buffer in the vertex shader with the updated values.
-	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &colorTypeBuffer.p);
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &variableBuffer.p);
 
 	// Set shader texture array resource in the pixel shader.
 	deviceContext->PSSetShaderResources(0, 1, textureArray);
@@ -386,4 +405,20 @@ void MCGBufferTerrainShader::RenderShader(ID3D11DeviceContext* deviceContext, in
 
 
 	return;
+}
+
+void MCGBufferTerrainShader::OnSettingsReload( Config* cfg )
+{
+	bufferNeedsUpdate = true;
+
+	variables.colorMode = 0; //Just to initialize it.
+
+	const Setting& settings = cfg->getRoot()["shaders"]["gbufferTerrain"];
+
+	settings.lookupValue("tighten", variables.tighten);
+	settings.lookupValue("textureScale", variables.textureScale);
+
+	const Setting& settings2 = cfg->getRoot()["rendering"];
+
+	settings2.lookupValue("farClip", variables.farClip);
 }

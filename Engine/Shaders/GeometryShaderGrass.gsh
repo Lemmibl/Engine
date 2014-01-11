@@ -3,11 +3,21 @@ SamplerState linearSampler;
 
 cbuffer MatrixBuffer
 {
-	float4x4 World;
-	float4x4 WorldViewProjection;
-	float DeltaTime;
+	float4x4 World : packoffset(c0);
+	float4x4 WorldViewProjection : packoffset(c4);
+	float DeltaTime : packoffset(c8.x);
 };
-//TODO: float4(windDirection.xyz, deltaTime)
+
+cbuffer VariableBuffer
+{
+	float vegetationScale : packoffset(c0.x);
+	float vegetationFalloff : packoffset(c0.y);
+	float forceScale : packoffset(c0.z);
+	float waveLength : packoffset(c0.w);
+	float traversalSpeed : packoffset(c1.x);
+	float farClip : packoffset(c1.y);
+	//TODO: Possible windDirection
+};
 
 struct VS_OUTPUT
 {
@@ -24,15 +34,15 @@ struct PS_INPUT
 	float Opacity : OPACITY;
 };
 
-static const float vegetationScale = 2.2f;
+//static const float vegetationScale = 2.2f;
 static const float4 UpNormal = normalize(float4(0.0f, 1.0f, 0.0f, 1.0f));
 
 //TODO: Add all of these to the constant buffer to make them tweakable in normal code 
 //Just a temporary wind direction
-static const float vegetationFalloff = 200.0f;
-static const float forceScale = 0.75f;
-static const float waveLength = 0.05f;
-static const float traversalSpeed = 0.1f;
+//static const float vegetationFalloff = 200.0f;
+//static const float forceScale = 0.75f;
+//static const float waveLength = 0.05f;
+//static const float traversalSpeed = 0.1f;
 
 //TODO: waveLength = forceScale / traversalSpeed ? Other way around? forceScale * traversalSpeed?
 
@@ -79,7 +89,7 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, VS_OUTPUT v3, inout TriangleStream<PS_
 		if(viewDepth < (vegetationFalloff/3))
 		{
 			//TODO: Replace this with an external windDirection in a constant buffer
-			float4 WindDirection = normalize(float4( -0.7f+(rand.x*0.3f), 0.0f, -0.4f+(rand.y*0.3f), 0.0f));
+			float4 WindDirection = normalize(float4(-0.7f+(rand.x*0.3f), 0.0f, -0.4f+(rand.y*0.3f), 0.0f));
 
 			//Add wind direction to our already randomized normal. This value will be 
 			randomizedNormal += (WindDirection * (forceScale * LoadWindPowerValue((v1.Position.xz*waveLength) + (traversalSpeed*DeltaTime))));
@@ -88,22 +98,22 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, VS_OUTPUT v3, inout TriangleStream<PS_
 		//Define the four vertices, corners
 		output[0].Position = mul(pos1, WorldViewProjection);
 		output[0].Normal = normalize(v1.Normal);
-		output[0].TexCoord = float4(0.0f, 1.0f, textureID, viewDepth);
+		output[0].TexCoord = float4(0.0f, 1.0f, textureID, viewDepth/farClip);
 		output[0].Opacity = opacity;
 
 		output[1].Position = mul(pos2, WorldViewProjection);
 		output[1].Normal = normalize(v2.Normal);
-		output[1].TexCoord = float4(1.0f, 1.0f, textureID, viewDepth);
+		output[1].TexCoord = float4(1.0f, 1.0f, textureID, viewDepth/farClip);
 		output[1].Opacity = opacity;
 
 		output[2].Position = mul((pos1 + randomizedNormal), WorldViewProjection);
 		output[2].Normal = normalize(v1.Normal+randomizedNormal);
-		output[2].TexCoord = float4(0.0f, 0.0f, textureID, viewDepth);
+		output[2].TexCoord = float4(0.0f, 0.0f, textureID, viewDepth/farClip);
 		output[2].Opacity = opacity;
 
 		output[3].Position = mul((pos2 + randomizedNormal), WorldViewProjection);
 		output[3].Normal = normalize(v2.Normal + randomizedNormal);
-		output[3].TexCoord = float4(1.0f, 0.0f, textureID, viewDepth);
+		output[3].TexCoord = float4(1.0f, 0.0f, textureID, viewDepth/farClip);
 		output[3].Opacity = opacity;
 
 		//We're form a quad out of two triangles, meaning four vertices.
