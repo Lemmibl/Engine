@@ -1,5 +1,4 @@
 #pragma once
-
 #include <d3d11.h>
 #include <windows.h>
 #include <xnamath.h> 
@@ -9,12 +8,7 @@
 #include "SettingsManager.h"
 #include <libconfig.h++>
 
-using namespace std;
 
-
-////////////////////////////////////////////////////////////////////////////////
-// Class name: DRFinalComposition
-////////////////////////////////////////////////////////////////////////////////
 class DRCompose
 {
 private:

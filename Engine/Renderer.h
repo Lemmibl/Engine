@@ -68,9 +68,9 @@ public:
 
 	struct RenderableBundle
 	{
-		vector<IndexedMesh> indexedMeshes;
-		vector<IndexedInstancedMesh> indexedInstancedMeshes;
-		vector<MarchingCubeChunk*> terrainChunks;
+		std::vector<IndexedMesh> indexedMeshes;
+		std::vector<IndexedInstancedMesh> indexedInstancedMeshes;
+		std::vector<MarchingCubeChunk*> terrainChunks;
 		TestSphere testSphere; //temp.
 	};
 
@@ -79,7 +79,7 @@ public:
 	Renderer(const Renderer&);
 	~Renderer();
 
-	bool Initialize(HWND hwnd, shared_ptr<CameraClass> camera, shared_ptr<InputClass> inputManager, shared_ptr<D3DManager> d3D, UINT screenWidth, 
+	bool Initialize(HWND hwnd, std::shared_ptr<CameraClass> camera, std::shared_ptr<InputClass> inputManager, std::shared_ptr<D3DManager> d3D, UINT screenWidth, 
 		UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear, bool toggleDebug);
 
 	bool InitializeShaders(HWND hwnd);
@@ -103,13 +103,13 @@ public:
 	bool RenderGUI(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj);
 
 private:
-	shared_ptr<D3DManager> d3D;
-	shared_ptr<CameraClass> camera;
-	shared_ptr<InputClass> inputManager;
-	shared_ptr<TextClass> text;
+	std::shared_ptr<D3DManager> d3D;
+	std::shared_ptr<CameraClass> camera;
+	std::shared_ptr<InputClass> inputManager;
+	std::shared_ptr<TextClass> text;
 
 	DRPointLight pointLightShader;
-	vector<PointLight> pointLights;
+	std::vector<PointLight> pointLights;
 
 	VertexShaderOnly vertexOnlyShader;
 	DepthOnlyShader depthOnlyShader;
@@ -145,13 +145,7 @@ private:
 	Utility utility;
 	TextureAndMaterialHandler textureAndMaterialHandler;
 
-	//These should be temporary. Just used for testing my little LOD system.
-	vector<VegetationManager::InstanceType> LODVector500;
-	vector<VegetationManager::InstanceType> LODVector2500;
-	vector<VegetationManager::InstanceType> LODVector5000;
-	vector<VegetationManager::InstanceType> LODVector10000;
 	int toggleSSAO, toggleColorMode;
-
 	float xPos, yPos, backAndForth;
 
 	XMFLOAT3 camPos, camDir;

@@ -10,9 +10,6 @@
 #define WIN32_LEAN_AND_MEAN
 #define BT_NO_SIMD_OPERATOR_OVERLOADS //Needed to fix clash between bullet libraries and xnamath. https://code.google.com/p/bullet/issues/detail?id=710
 
-/////////////
-// GLOBALS //
-/////////////
 const bool SHOW_CURSOR = true;
 const bool FULL_SCREEN = false;
 const bool VSYNC_ENABLED = false;
@@ -71,23 +68,16 @@ private:
 	HINSTANCE hinstance;
 	HWND hwnd;
 
-	shared_ptr<D3DManager> d3D;
-	shared_ptr<InputClass> input;
-	shared_ptr<ControllerClass> cameraController;
-	shared_ptr<CameraClass> camera;
+	std::shared_ptr<D3DManager> d3D;
+	std::shared_ptr<InputClass> input;
+	std::shared_ptr<ControllerClass> cameraController;
+	std::shared_ptr<CameraClass> camera;
 
 	World world;
 	Renderer renderer;
 	FpsMeter fpsMeter;
 	CpuMeter cpuMeter;
 	TimerClass timer;
-
-	//Collision classes
-	shared_ptr<btBroadphaseInterface> broadphase;
-	shared_ptr<btDefaultCollisionConfiguration> collisionConfiguration;
-	shared_ptr<btCollisionDispatcher> dispatcher;
-	shared_ptr<btSequentialImpulseConstraintSolver> solver;
-	shared_ptr<btDiscreteDynamicsWorld> dynamicsWorld;
 
 	float rotationalValue;
 	int screenWidth, screenHeight;

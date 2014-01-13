@@ -1,6 +1,3 @@
-//////////////
-// INCLUDES //
-//////////////
 #pragma once
 #include <d3d11.h>
 #include <windows.h>
@@ -14,11 +11,6 @@
 #include "textureclass.h"
 #include "texturearray.h"
 
-using namespace std;
-
-////////////////////////////////////////////////////////////////////////////////
-// Class name: ModelClass
-////////////////////////////////////////////////////////////////////////////////
 class ModelClass
 {
 private:
@@ -89,9 +81,9 @@ private:
 
 	CComPtr<ID3D11Buffer> vertexBuffer, indexBuffer;
 	int vertexCount, indexCount;
-	shared_ptr<TextureClass> texture;
-	unique_ptr<ModelType []> model;
-	shared_ptr<TextureArray> textureArray;
+	std::shared_ptr<TextureClass> texture;
+	std::shared_ptr<TextureArray> textureArray;
+	std::unique_ptr<ModelType []> model;
 };
 
 

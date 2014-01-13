@@ -438,10 +438,10 @@ void DRWaterClass::OnSettingsReload(Config* cfg)
 	settings.lookupValue("positionSamplingOffset",	variables.positionSamplingOffset	);
 	settings.lookupValue("samplingDirectionX",		variables.samplingDirection.x		);
 	settings.lookupValue("samplingDirectionY",		variables.samplingDirection.y		);
-	settings.lookupValue("heightScaling",			variables.heightScaling			);
+	settings.lookupValue("heightScaling",			variables.heightScaling				);
 	settings.lookupValue("timeScaling",				variables.timeScaling				);
-	settings.lookupValue("waterColorStartOffset",	waterColorStartOffset	);
-	settings.lookupValue("waterColorMultiplier",	waterColorMultiplier	);
+	settings.lookupValue("waterColorStartOffset",	waterColorStartOffset				);
+	settings.lookupValue("waterColorMultiplier",	waterColorMultiplier				);
 
 	const Setting& settings2 = cfg->getRoot()["rendering"];
 

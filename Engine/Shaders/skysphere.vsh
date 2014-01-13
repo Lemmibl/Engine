@@ -3,7 +3,8 @@
 /////////////
 cbuffer MatrixBuffer
 {
-	matrix WorldViewProjection;
+	float4x4 WorldViewProjection	: packoffset(c0.x);
+	float cameraYPos				: packoffset(c4.x);
 };
 
 
@@ -18,7 +19,7 @@ struct VertexInputType
 struct PixelInputType
 {
 	float4 Position : SV_POSITION;
-	float DomePositionY : TEXCOORD0;
+	float2 DomePositionYAndWorldY : TEXCOORD0;
 };
 
 
@@ -32,7 +33,8 @@ PixelInputType SkysphereVertexShader(VertexInputType input)
 	// Change the position vector to be 4 units for proper matrix calculations.
 	input.Position.w = 1.0f;
 
-	output.DomePositionY = input.Position.y;
+	output.DomePositionYAndWorldY.x = input.Position.y;
+	output.DomePositionYAndWorldY.y = cameraYPos;
 
 	// Calculate the position of the vertex against the world, view, and projection matrices.
 	output.Position = mul(input.Position, WorldViewProjection);

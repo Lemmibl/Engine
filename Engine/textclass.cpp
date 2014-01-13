@@ -106,7 +106,7 @@ bool TextClass::RenderSentence(const SentenceManager::SentenceType* sentence, Fo
 
 bool TextClass::SetMousePosition(int mouseX, int mouseY, ID3D11DeviceContext* deviceContext)
 {
-	string finalStringX, finalStringY;
+	std::string  finalStringX, finalStringY;
 	bool result;
 
 	// Setup the mouseX string.
@@ -134,7 +134,7 @@ bool TextClass::SetMousePosition(int mouseX, int mouseY, ID3D11DeviceContext* de
 
 bool TextClass::SetFps(int fps, ID3D11DeviceContext* deviceContext)
 {
-	string fpsString;
+	std::string  fpsString;
 	bool result;
 
 
@@ -169,7 +169,7 @@ bool TextClass::SetFps(int fps, ID3D11DeviceContext* deviceContext)
 
 bool TextClass::SetCpu(int cpu, ID3D11DeviceContext* deviceContext)
 {
-	string cpuString;
+	std::string cpuString;
 	bool result;
 
 	cpuString += "CPU Load is at: " + std::to_string((long double)cpu) + "%";
@@ -195,7 +195,7 @@ bool TextClass::SetCpu(int cpu, ID3D11DeviceContext* deviceContext)
 
 bool TextClass::SetRendercount(int count, ID3D11DeviceContext* deviceContext)
 {
-	string countString;
+	std::string  countString;
 	bool result;
 
 	countString += "Amount of objects rendered: " + std::to_string((long double)count);
@@ -208,9 +208,9 @@ bool TextClass::SetRendercount(int count, ID3D11DeviceContext* deviceContext)
 
 bool TextClass::SetCameraPosition(int X, int Y, int Z, ID3D11DeviceContext* deviceContext)
 {
-	string finalResultX;
-	string finalResultY;
-	string finalResultZ;
+	std::string  finalResultX;
+	std::string  finalResultY;
+	std::string  finalResultZ;
 	bool result;
 
 	// Setup the cpu string.
@@ -238,7 +238,7 @@ bool TextClass::SetCameraPosition(int X, int Y, int Z, ID3D11DeviceContext* devi
 
 bool TextClass::SetCameraRotation(int X, int Y, int Z, ID3D11DeviceContext* deviceContext)
 {
-	string finalX, finalY, finalZ;
+	std::string  finalX, finalY, finalZ;
 	bool result;
 
 	finalX += "Camera rotation X: " + std::to_string((long double)X);
@@ -269,7 +269,7 @@ bool TextClass::SetCameraRotation(int X, int Y, int Z, ID3D11DeviceContext* devi
 
 bool TextClass::SetLastChar(char text, ID3D11DeviceContext* deviceContext)
 {
-	string stringThing;
+	std::string  stringThing;
 	bool result;
 
 	stringThing += "Last key pressed: " + text;

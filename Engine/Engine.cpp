@@ -6,8 +6,6 @@
 Engine::Engine()
 : renderer(), timer(), fpsMeter(), cpuMeter()
 {
-	cameraController = 0;
-	camera = 0;
 	d3D = 0;
 }
 
@@ -17,14 +15,6 @@ Engine::Engine(const Engine& other)
 
 Engine::~Engine()
 {
-	//remove the rigidbodies from the dynamics world and delete them
-	for (int i = dynamicsWorld->getNumCollisionObjects()-1; i >= 0; i--)
-	{
-		btCollisionObject* obj = dynamicsWorld->getCollisionObjectArray()[i];
-		dynamicsWorld->removeCollisionObject( obj );
-
-		//delete obj; //I use smart ptrs for everything, so this should be unnecessary
-	}
 }
 
 bool Engine::Initialize()
@@ -40,18 +30,6 @@ bool Engine::Initialize()
 
 	// Initialize the windows api.
 	InitializeWindows(screenWidth, screenHeight);
-
-	broadphase				=	make_shared<btDbvtBroadphase>();
-	collisionConfiguration	=	make_shared<btDefaultCollisionConfiguration>();
-
-	dispatcher				=	make_shared<btCollisionDispatcher>(collisionConfiguration.get());
-	solver					=	make_shared<btSequentialImpulseConstraintSolver>();
-
-	dynamicsWorld			=	make_shared<btDiscreteDynamicsWorld>(dispatcher.get(), broadphase.get(), solver.get(), collisionConfiguration.get());
-
-	//http://en.wikipedia.org/wiki/Gravity_of_Earth
-	dynamicsWorld->setGravity(btVector3(0.0f, -9.78f, 0.0f));
-	dynamicsWorld->stepSimulation(1.0f/180.0f, 60);
 
 	// Create the input object.  This object will be used to handle reading the keyboard input from the user.
 	input = std::make_shared<InputClass>();
@@ -83,33 +61,11 @@ bool Engine::Initialize()
 		return false;
 	}
 
-	cameraController = std::make_shared<ControllerClass>(dynamicsWorld, input, 50.0f, 0.05f); //0.03f
-	if(!cameraController)
-	{
-		return false;
-	}
-
-	// Create the camera object.
-	camera = std::make_shared<CameraClass>(cameraController);
-	if(!camera)
-	{
-		MessageBox(hwnd, L"Could not create the camera object. Look in engine.", L"Error", MB_OK);
-		return false;
-	}
-
-	// Initialize a base view matrix with the camera for 2D UI rendering.
-	camera->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
-	camera->Update(); //Call update once at default position to set up matrices properly
-
-	camera->SetPosition(XMFLOAT3(0.0f, 25.0f, -100.0f));
-	camera->SetRotation(XMFLOAT3(0.0f, 0.0f, 0.0f));
-	camera->SetPerspectiveProjection(screenWidth, screenHeight, XM_PIDIV4, SCREEN_NEAR, SCREEN_FAR); 
-
 	//Initialize world
-	world.Initialize(d3D, camera, input, dynamicsWorld);
+	world.Initialize(d3D, input);
 
 	// Initialize the renderer.
-	result = renderer.Initialize(hwnd, camera, input, d3D, screenWidth, screenHeight, 
+	result = renderer.Initialize(hwnd, world.GetCamera(), input, d3D, screenWidth, screenHeight, 
 		shadowMapWidth, shadowMapHeight, SCREEN_FAR, SCREEN_NEAR, toggleDebug);
 	if(!result)
 	{
@@ -198,10 +154,7 @@ bool Engine::Update()
 	}
 
 	//Here. Do world update stuff here.
-	world.Update(timer.GetFrameTimeSeconds());
-
-	cameraController->Update(timer.GetFrameTimeMilliseconds(), camera->GetWorldMatrix()); //Processes all of the movement for this controller.
-	camera->Update();
+	world.Update(timer.GetFrameTimeSeconds(), timer.GetFrameTimeMilliseconds());
 
 	// Do update renderer.
 	result = renderer.Update(hwnd, fpsMeter.GetFps(), cpuMeter.GetCpuPercentage(), timer.GetFrameTimeMilliseconds(), timer.GetFrameTimeSeconds());

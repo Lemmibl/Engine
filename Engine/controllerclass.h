@@ -14,7 +14,7 @@ using namespace libconfig;
 class ControllerClass
 {
 public:
-	ControllerClass(std::shared_ptr<btDynamicsWorld> dynamicsWorld, std::shared_ptr<InputClass> extInput, float movespeed, float turnspeed);
+	ControllerClass(std::shared_ptr<btDynamicsWorld> dynamicsWorld, std::shared_ptr<InputClass> extInput, float turnspeed);
 	~ControllerClass();
 
 	void Update(float frameTime, XMFLOAT4X4* cameraMatrix);

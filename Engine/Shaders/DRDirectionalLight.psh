@@ -42,7 +42,7 @@ struct VertexShaderOutput
 ////////////UTILITY FUNCTIONS////////////////
 /////////////////////////////////////////////
 void RetrieveMaterialData(int materialID, out float ambienceCoefficient, out float diffuseCoefficient, 
-	out float specularCoefficient, out float surfaceSmoothness, out bool recieveShadows)
+	out float specularCoefficient, out float surfaceSmoothness) // out bool recieveShadows
 {
 	/*
 	Because the runtime does not support 1D textures, the compiler will use a 2D texture with the knowledge 
@@ -65,9 +65,9 @@ void RetrieveMaterialData(int materialID, out float ambienceCoefficient, out flo
 	surfaceSmoothness = materialArray.Load(LoadingCoordinates);
 	LoadingCoordinates.x += 1;
 
-	//Kind of a crude way to store a bool, but it works.
-	recieveShadows = ((materialArray.Load(LoadingCoordinates)) >= 0.5f ? true : false);
-	LoadingCoordinates.x += 1;
+	////Kind of a crude way to store a bool, but it works.
+	//recieveShadows = ((materialArray.Load(LoadingCoordinates)) >= 0.5f ? true : false);
+	//LoadingCoordinates.x += 1;
 }
 
 //Decoding of GBuffer Normals
@@ -116,7 +116,7 @@ float3 DepthToPosition(float depth, float farClip, float4 ScreenPosition)
 //Calculate shadow contribution using chevyshev's inequality.
 float ChebyshevUpperBound(float2 moments, float t)  
 {
-	float minVariance = 0.000002f; //Scaling value.
+	float minVariance = 0.02f; //Scaling value.
 
 	// Compute variance.  
 	float variance = moments.y - (moments.x*moments.x);
@@ -150,20 +150,20 @@ float ShadowContribution(float2 lightTexCoord, float distanceToLight)
 ///////////////MAIN FUNCTION/////////////////
 /////////////////////////////////////////////
 
-float4 LightPixelShader(VertexShaderOutput input) : SV_Target
+float4 LightPixelShader(VertexShaderOutput input) : SV_Target0
 {
 	//http://gamedev.stackexchange.com/questions/29447/could-someone-explain-why-my-world-reconstructed-from-depth-position-is-incorrec
 
 	//Sample camera depth
 	float depth = shaderTextures[1].Sample(linearSampler, input.TexCoord);
 
-	if(depth <= 0.001f)
+	if(depth == 0.0f)
 	{
-		return float4(0.0f, 0.0f, 0.0f, 0.0f); //0 0 0 0. We break really early for optimization, and to not apply directional light to the sky sphere...
+		return AmbientColor; //0 0 0 0. We break really early for optimization, and to not apply directional light to the sky sphere...
 	}
 
 	float ambienceCoefficient, diffuseCoefficient, specularCoefficient, surfaceSmoothness;
-	bool recieveShadows = false; //Used to combat self-shadowing.
+	//bool recieveShadows = false; //Used to combat self-shadowing.
 	float3 finalDiffuseProduct = float3(0.0f, 0.0f, 0.0f);
 	float finalSpecularProduct = 0.0f;
 	float LightIntensity = LightDirection.w;
@@ -175,7 +175,7 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	int materialID = round(encodedNormal.z * 255);
 	int materialID2 = round(encodedNormal.w * 255);
 
-	RetrieveMaterialData(materialID, ambienceCoefficient, diffuseCoefficient, specularCoefficient, surfaceSmoothness, recieveShadows);
+	RetrieveMaterialData(materialID, ambienceCoefficient, diffuseCoefficient, specularCoefficient, surfaceSmoothness);
 	
 	//If there's a difference between our two materials, we have to lerp!
 	if(materialID != materialID2) 
@@ -183,15 +183,13 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 		float lerpVal = shaderTextures[3].Sample(linearSampler, input.TexCoord).w;
 		float ambienceCoefficient2, diffuseCoefficient2, specularCoefficient2, surfaceSmoothness2;
 
-		RetrieveMaterialData(materialID2, ambienceCoefficient2, diffuseCoefficient2, specularCoefficient2, surfaceSmoothness2, recieveShadows);
+		RetrieveMaterialData(materialID2, ambienceCoefficient2, diffuseCoefficient2, specularCoefficient2, surfaceSmoothness2);
 
-		ambienceCoefficient = lerp(ambienceCoefficient, ambienceCoefficient2, lerpVal);
-		diffuseCoefficient = lerp(diffuseCoefficient, diffuseCoefficient2, lerpVal);
-		specularCoefficient = lerp(specularCoefficient, specularCoefficient2, lerpVal);
-		surfaceSmoothness = lerp(surfaceSmoothness, surfaceSmoothness2, lerpVal);
+		ambienceCoefficient =	lerp(ambienceCoefficient, ambienceCoefficient2, lerpVal);
+		diffuseCoefficient =	lerp(diffuseCoefficient, diffuseCoefficient2, lerpVal);
+		specularCoefficient =	lerp(specularCoefficient, specularCoefficient2, lerpVal);
+		surfaceSmoothness =		lerp(surfaceSmoothness, surfaceSmoothness2, lerpVal);
 	}
-
-	float4 finalAmbienceProduct = ambienceCoefficient * AmbientColor;
 
 	float3 normal = normalize(DecodeNormal(encodedNormal.xy));
 
@@ -218,8 +216,8 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//We cull a large part of the light and shadow calculations if it's outside of the light frustum.
 	if
 	(		
-		!(	lightScreenPos.x > 0.99f || lightScreenPos.x	< 0.01f	|| 
-			lightScreenPos.y > 0.99f || lightScreenPos.y	< 0.01f	)
+		!(	lightScreenPos.x >= 0.99f || lightScreenPos.x <= 0.01f	|| 
+			lightScreenPos.y >= 0.99f || lightScreenPos.y <= 0.01f	)
 	)
 	{
 		/*Variance shadow mapping. http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html */
@@ -229,7 +227,7 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//Calculate diffuse light
 	finalDiffuseProduct += diffuseCoefficient * (NdL * DiffuseColor.rgb);
 
-	if(NdL > 0.0f)
+	if(NdL >= 0.0f)
 	{
 		//Reflection vector
 		float3 reflectionVector = normalize(reflect(lightVector, normal));
@@ -246,7 +244,7 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target
 	//This results in the quads looking really ass and they start flickering when the light moves and shit. Bad.
 	//if(recieveShadows)
 	//{
-		return LightIntensity*float4(finalAmbienceProduct.rgb + (finalDiffuseProduct * shadowMultiplier), (finalSpecularProduct * shadowMultiplier));
+	return LightIntensity*float4((ambienceCoefficient * AmbientColor.rgb) + (finalDiffuseProduct * shadowMultiplier), (finalSpecularProduct * shadowMultiplier));
 	//}
 	//else //Don't shade if it shouldn't recieve any shadows. This also includes the empty space where nothing exists, seeing as we clear the normal rendertarget alpha channel to 0.0f in gbuffer stage.
 	//{

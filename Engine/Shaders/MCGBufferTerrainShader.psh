@@ -4,7 +4,7 @@ cbuffer VariableBuffer
 	float farClip : packoffset(c0.x);
 	float tighten : packoffset(c0.y);
 	float textureScale : packoffset(c0.z);
-	float colorMode : packoffset(c0.w);
+	int colorMode : packoffset(c0.w);
 };
 
 struct VertexShaderOutput
@@ -116,7 +116,7 @@ PixelShaderOutput MCGBufferTerrainPixelShader(VertexShaderOutput input)
 		XZColor = shaderTextures.Sample(textureSampler, float3(input.WorldPosition.zx * textureScale, texture1));
 	}
 	
-	if((int)colorMode == 0)
+	if(colorMode == 0)
 	{
 		output.Color.xyz = finalTempColor.xyz;
 	}

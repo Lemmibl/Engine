@@ -1,23 +1,11 @@
-////////////////////////////////////////////////////////////////////////////////
-#ifndef _FONTSHADERCLASS_H_
-#define _FONTSHADERCLASS_H_
-
-
-//////////////
-// INCLUDES //
-//////////////
+#pragma once
 #include <d3d11.h>
 #include <windows.h>
 #include <xnamath.h>
 #include <d3dx11async.h>
 #include <fstream>
 #include <atlcomcli.h>
-using namespace std;
 
-
-////////////////////////////////////////////////////////////////////////////////
-// Class name: FontShaderClass
-////////////////////////////////////////////////////////////////////////////////
 class FontShaderClass
 {
 private:
@@ -56,5 +44,3 @@ private:
 	CComPtr<ID3D11SamplerState> sampleState;
 	CComPtr<ID3D11Buffer> pixelBuffer;
 };
-
-#endif

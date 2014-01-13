@@ -36,8 +36,9 @@ public:
 	~TerrainManager();
 
 	//Returns a bool to indicate if we've actually had to change anything. If true, it has changed and we should fetch the new data.
-	bool Update(ID3D11Device* device, ID3D11DeviceContext* deviceContext, XMFLOAT3 currentCameraPosition);
-	bool UpdateAgainstAABB(ID3D11Device* device, ID3D11DeviceContext* deviceContext, Lemmi2DAABB* aabb);
+	bool Update(ID3D11Device* device, ID3D11DeviceContext* deviceContext, XMFLOAT3 currentCameraPosition, float deltaTime);
+	
+	bool UpdateAgainstAABB(ID3D11Device* device, ID3D11DeviceContext* deviceContext, Lemmi2DAABB* aabb, float deltaTime);
 
 	void ResetTerrain(int currentPosX, int currrentPosZ);
 	void CreateChunk(ID3D11Device* device, ID3D11DeviceContext* deviceContext, int startPosX, int startPosZ);
@@ -51,7 +52,8 @@ public:
 	vector<RenderableInterface*>& GetActiveRenderables(){ return activeRenderables; }
 
 	void GenerateVegetation(ID3D11Device* device, bool UpdateInstanceBuffer, MarchingCubeChunk* chunk);
-	void RenderVegetation();
+	
+	void Cleanup(float posX, float posZ);
 
 	void SetTerrainType(TerrainNoiseSeeder::TerrainTypes val) { mcTerrain.SetTerrainType(val); }
 
@@ -84,6 +86,7 @@ private:
 	NoiseClass noise;
 	unsigned int vegetationCount;
 	float stepScaling;
+	float timePassed, timeThreshold, rangeThreshold;
 
 
 	std::shared_ptr<std::unordered_map<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>, int_pair_hash>> map;

@@ -56,7 +56,7 @@ XMVECTOR ControllerClass::MatrixDownVector(const XMFLOAT4X4* matrix)
 
 //http://gamedev.stackexchange.com/questions/53723/first-person-camera-with-bullet-physics
 
-ControllerClass::ControllerClass(std::shared_ptr<btDynamicsWorld> world, std::shared_ptr<InputClass> input, float movespeed, float turnspeed)
+ControllerClass::ControllerClass(std::shared_ptr<btDynamicsWorld> world, std::shared_ptr<InputClass> input, float turnspeed)
 :	inputManager(input),
 	rotationSpeed(turnspeed),
 	prevMousePos(input->GetMousePos()),
@@ -65,50 +65,47 @@ ControllerClass::ControllerClass(std::shared_ptr<btDynamicsWorld> world, std::sh
 	position(XMFLOAT3(0.0f, 0.0f, 0.0f))
 {
 	SetCursorPos(0, 0);
+	dynamicsWorld = world;
+
 
 	//Get settings manager instance and add our function to reload event
 	SettingsManager& settings = SettingsManager::GetInstance();
 	settings.GetEvent()->Add(*this, (&ControllerClass::OnSettingsReload));
 
-	float collisionRadius = 2.5f;
-	sprintModifier = 10.0f;
-	crouchModifier = 0.3f;
+	OnSettingsReload(&settings.GetConfig());
 
-	dynamicsWorld = world;
+	////Set up all collision related objects
+	//collisionShape = std::make_shared<btSphereShape>(collisionRadius);
 
-	//Set up all collision related objects
-	collisionShape = std::make_shared<btSphereShape>(collisionRadius);
+	//btScalar mass = 1.0f;
+	//btVector3 fallInertia(0, 0, 0);
+	//collisionShape->calculateLocalInertia(mass,fallInertia);
 
-	forceScale = movespeed;
-	btScalar mass = 1.0f;
-	btVector3 fallInertia(0, 0, 0);
-	collisionShape->calculateLocalInertia(mass,fallInertia);
+	//motionState = std::make_shared<btDefaultMotionState>(btTransform(btQuaternion(0,0,0,1), btVector3(0, 100, 0)));
 
-	motionState = std::make_shared<btDefaultMotionState>(btTransform(btQuaternion(0,0,0,1), btVector3(0, 100, 0)));
+	//btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(mass, motionState.get(), collisionShape.get(), fallInertia);
 
-	btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(mass, motionState.get(), collisionShape.get(), fallInertia);
+	//rigidBody = std::make_shared<btRigidBody>(rigidBodyCI);
 
-	rigidBody = std::make_shared<btRigidBody>(rigidBodyCI);
+	////Add it to the world
+	//dynamicsWorld->addRigidBody(rigidBody.get());
 
-	//Add it to the world
-	dynamicsWorld->addRigidBody(rigidBody.get());
+	////http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?f=9&t=8900&view=next
+	////This is a flying controller, it shouldn't be affected by gravity
+	//rigidBody->setGravity(btVector3(0.0f, 0.0f, 0.0f));
 
-	//http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?f=9&t=8900&view=next
-	//This is a flying controller, it shouldn't be affected by gravity
-	rigidBody->setGravity(btVector3(0.0f, 0.0f, 0.0f));
+	////Self explanatory.
+	//rigidBody->setFriction(10.0f);
+	//rigidBody->setAnisotropicFriction(btVector3(2.0f, 2.0f, 2.0f));
 
-	//Self explanatory.
-	rigidBody->setFriction(10.0f);
-	rigidBody->setAnisotropicFriction(btVector3(2.0f, 2.0f, 2.0f));
+	////Linear damping is ... air friction, ish. Angular friction is how 
+	//rigidBody->setDamping(0.85f, 5.0f);
 
-	//Linear damping is ... air friction, ish. Angular friction is how 
-	rigidBody->setDamping(0.85f, 5.0f);
+	////Bounciness.
+	//rigidBody->setRestitution(0.0f);
 
-	//Bounciness.
-	rigidBody->setRestitution(0.0f);
-
-	//rigidBody->setLinearVelocity(btVector3(1.0f, 1.0f, 1.0f));
-	//rigidBody->setCcdSweptSphereRadius(collisionRadius * 0.9f);
+	////rigidBody->setLinearVelocity(btVector3(1.0f, 1.0f, 1.0f));
+	////rigidBody->setCcdSweptSphereRadius(collisionRadius * 0.9f);
 }
 
 ControllerClass::~ControllerClass()
@@ -251,7 +248,6 @@ void ControllerClass::OnSettingsReload(Config* cfg)
 	float collisionRadius = 2.5;
 	float mass = 1.0;
 
-	float forceScale = 4.0;
 	float restitution = 0.0;
 	float friction = 10.0;
 	float anisotropicFriction = 2.0;
@@ -279,7 +275,10 @@ void ControllerClass::OnSettingsReload(Config* cfg)
 	settings.lookupValue("angulardamping", angularDamping);
 
 
-	dynamicsWorld->removeRigidBody(rigidBody.get());
+	if(rigidBody)
+	{
+		dynamicsWorld->removeRigidBody(rigidBody.get());
+	}
 
 	//Set up all collision related objects
 	collisionShape = std::make_shared<btSphereShape>(collisionRadius);
@@ -288,8 +287,11 @@ void ControllerClass::OnSettingsReload(Config* cfg)
 	collisionShape->calculateLocalInertia(mass,fallInertia);
 
 	//Don't change motionstate
-	//motionState = std::make_shared<btDefaultMotionState>(btTransform(btQuaternion(0,0,0,1), btVector3(0.0f, 50.0f, 0.0f))); //positionX, positionY, positionZ
-
+	if(!motionState)
+	{
+		motionState = std::make_shared<btDefaultMotionState>(btTransform(btQuaternion(0,0,0,1), btVector3(positionX, positionY, positionZ))); //positionX, positionY, positionZ
+	}
+	
 	btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(mass, motionState.get(), collisionShape.get(), fallInertia);
 
 	rigidBody = std::make_shared<btRigidBody>(rigidBodyCI);

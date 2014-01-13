@@ -1,6 +1,4 @@
-//////////////
-// INCLUDES //
-//////////////
+#pragma once
 #include <d3d11.h>
 #include <windows.h>
 #include <xnamath.h> 
@@ -9,8 +7,6 @@
 #include <atlcomcli.h>
 #include "SettingsManager.h"
 #include <libconfig.h++>
-
-using namespace std;
 
 
 class MCGBufferTerrainShader
@@ -29,7 +25,7 @@ private:
 		float farClip;
 		float tighten;
 		float textureScale;
-		float colorMode;
+		int colorMode;
 	};
 
 public:

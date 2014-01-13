@@ -1,13 +1,3 @@
-////////////////////////////////////////////////////////////////////////////////
-// Filename: SkySphere.h
-////////////////////////////////////////////////////////////////////////////////
-#ifndef _SKYSPHERE_H_
-#define _SKYSPHERE_H_
-
-
-//////////////
-// INCLUDES //
-//////////////
 #pragma once
 #include <d3d11.h>
 #include <windows.h>
@@ -17,8 +7,6 @@
 #include <atlcomcli.h>
 #include <memory>
 #include <vector>
-using namespace std;
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: Skysphere
@@ -45,7 +33,7 @@ public:
 
 	bool Initialize(ID3D11Device* device, HWND hwnd);
 	void Shutdown();
-	void Render(ID3D11DeviceContext* context, XMMATRIX* worldViewProjection, XMFLOAT4* fogColor, float time);
+	void Render(ID3D11DeviceContext* context, XMMATRIX* worldViewProjection, float cameraYPos, XMFLOAT4* fogColor, float time);
 
 	int GetIndexCount();
 
@@ -72,5 +60,3 @@ private:
 	XMFLOAT4 apexColor, centerColor;
 	SkysphereShader skysphereShader;
 };
-
-#endif

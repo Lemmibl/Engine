@@ -9,8 +9,6 @@
 #include <memory>
 #include <vector>
 
-using namespace std;
-
 class MeshHandler
 {
 private:
@@ -35,6 +33,6 @@ public:
 	~MeshHandler();
 
 	//Returns true on success
-	bool LoadIndexedMeshFromFile(ID3D11Device* device, string filepath, IndexedMesh* outMesh);
+	bool LoadIndexedMeshFromFile(ID3D11Device* device, std::string filepath, IndexedMesh* outMesh);
 };
 

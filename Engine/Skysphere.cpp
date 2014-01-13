@@ -1,6 +1,5 @@
 #include "Skysphere.h"
 
-
 #pragma region Properties
 int Skysphere::GetIndexCount()
 {
@@ -31,10 +30,6 @@ void Skysphere::SetCenterColor(XMFLOAT4 val)
 Skysphere::Skysphere()
 :	skysphereShader()
 {
-	//model = 0;
-	//vertexBuffer = 0;
-	//indexBuffer = 0;
-	//skysphereShader = 0;
 }
 
 
@@ -106,19 +101,19 @@ void Skysphere::Shutdown()
 	return;
 }
 
-void Skysphere::Render(ID3D11DeviceContext* context, XMMATRIX* worldViewProjection, XMFLOAT4* fogColor, float time)
+void Skysphere::Render( ID3D11DeviceContext* context, XMMATRIX* worldViewProjection, float cameraYPos, XMFLOAT4* fogColor, float time )
 {
 	// Render the sky dome.
 	RenderBuffers(context);
 
-	skysphereShader.Render(context, GetIndexCount(), worldViewProjection, apexColor, centerColor, *fogColor, time);
+	skysphereShader.Render(context, GetIndexCount(), worldViewProjection, cameraYPos, apexColor, centerColor, *fogColor, time);
 
 	return;
 }
 
 bool Skysphere::LoadModel(char* filename)
 {
-	ifstream fin;
+	std::ifstream fin;
 	char input;
 	int i;
 
@@ -146,7 +141,7 @@ bool Skysphere::LoadModel(char* filename)
 	indexCount = vertexCount;
 
 	// Create the model using the vertex count that was read in.
-	model = unique_ptr<ModelType[]>(new ModelType[vertexCount]());
+	model = std::unique_ptr<ModelType[]>(new ModelType[vertexCount]());
 	if(!model)
 	{
 		return false;
@@ -188,8 +183,8 @@ void Skysphere::ReleaseModel()
 
 bool Skysphere::InitializeBuffers(ID3D11Device* device)
 {
-	unique_ptr<VertexType []> vertices;
-	unique_ptr<unsigned long []> indices;
+	std::unique_ptr<VertexType []> vertices;
+	std::unique_ptr<unsigned long []> indices;
 	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA vertexData, indexData;
 	HRESULT result;
@@ -197,14 +192,14 @@ bool Skysphere::InitializeBuffers(ID3D11Device* device)
 
 
 	// Create the vertex array.
-	vertices = unique_ptr<VertexType[]>(new VertexType[vertexCount]());
+	vertices = std::unique_ptr<VertexType[]>(new VertexType[vertexCount]());
 	if(!vertices)
 	{
 		return false;
 	}
 
 	// Create the index array.
-	indices = unique_ptr<unsigned long[]>(new unsigned long[indexCount]());
+	indices = std::unique_ptr<unsigned long[]>(new unsigned long[indexCount]());
 	if(!indices)
 	{
 		return false;

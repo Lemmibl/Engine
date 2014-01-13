@@ -7,8 +7,6 @@
 #include <xnamath.h>
 #include <fstream>
 #include <memory>
-using namespace std;
-
 
 ///////////////////////
 // MY CLASS INCLUDES //
@@ -51,6 +49,6 @@ private:
 	bool LoadTexture(ID3D11Device*, WCHAR*);
 	void ReleaseTexture();
 
-	unique_ptr<FontType []> font;
-	unique_ptr<TextureClass> texture;
+	std::unique_ptr<FontType []> font;
+	std::unique_ptr<TextureClass> texture;
 };

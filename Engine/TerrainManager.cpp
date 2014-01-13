@@ -35,20 +35,24 @@ static const XMFLOAT3 stepSize(2.0f, 2.0f, 2.0f);
 static const XMFLOAT3 stepCount(28.0f, 28.0f, 28.0f);
 
 TerrainManager::TerrainManager(ID3D11Device* device, ID3D11DeviceContext* deviceContext, std::shared_ptr<btDiscreteDynamicsWorld> collisionWorld, HWND hwnd, XMFLOAT3 cameraPosition)
-:	marchingCubes((int)stepCount.x, (int)stepCount.y, (int)stepCount.z)
+	:	marchingCubes((int)stepCount.x, (int)stepCount.y, (int)stepCount.z)
 {
-	map = make_shared<std::unordered_map<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>, int_pair_hash>>();
+	timePassed = 0.0f;
+	timeThreshold = 10.0f;
+	rangeThreshold = 800.0f;
+
+	map = std::make_shared<std::unordered_map<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>, int_pair_hash>>();
 	collisionHandler = collisionWorld;
 
 	noise.ReseedRandom();
 
-	lastUsedKey = make_pair<int, int>(99, -99);
-	lastMin = make_pair<int, int>(-99, -99);
-	lastMax = make_pair<int, int>(99, 99);
+	lastUsedKey = std::make_pair<int, int>(99, -99);
+	lastMin = std::make_pair<int, int>(-99, -99);
+	lastMax = std::make_pair<int, int>(99, 99);
 
 	stepScaling = (stepSize.x*(stepCount.x-3)) / 5000;
 
-	TerrainNoiseSeeder::TerrainTypes terrainType = TerrainNoiseSeeder::Cave;//(MCTerrainClass::TerrainTypes)(1 + rand()%8); //
+	TerrainNoiseSeeder::TerrainTypes terrainType = TerrainNoiseSeeder::TerrainTypes::Plains;//(MCTerrainClass::TerrainTypes)(1 + rand()%8); //
 
 	mcTerrain.Initialize((int)stepCount.x, (int)stepCount.y, (int)stepCount.z, &noise, terrainType);
 
@@ -75,17 +79,19 @@ TerrainManager::TerrainManager(ID3D11Device* device, ID3D11DeviceContext* device
 	CreateChunk(device, deviceContext, startGridX-1, startGridZ+0);
 	CreateChunk(device, deviceContext, startGridX-1, startGridZ+1);
 
-	Update(device, deviceContext, cameraPosition);
+	Update(device, deviceContext, cameraPosition, 0.0f);
 }
 
 TerrainManager::~TerrainManager()
 {
 }
 
-bool TerrainManager::Update(ID3D11Device* device, ID3D11DeviceContext* deviceContext, XMFLOAT3 currentCameraPosition)
+bool TerrainManager::Update(ID3D11Device* device, ID3D11DeviceContext* deviceContext, XMFLOAT3 currentCameraPosition, float deltaTime)
 {
 	std::pair<int,int> key(RoundToNearest((currentCameraPosition.x)*stepScaling), RoundToNearest((currentCameraPosition.z)*stepScaling));
 	std::pair<int,int> neighbourKey;
+
+	timePassed += deltaTime;
 
 	if(key != lastUsedKey)
 	{
@@ -159,13 +165,13 @@ void TerrainManager::CreateChunk(ID3D11Device* device, ID3D11DeviceContext* devi
 		actualPosX = (float)(startPosX * ((stepCount.x-3)*stepSize.x));
 		actualPosZ = (float)(startPosZ * ((stepCount.z-3)*stepSize.z));
 
-		shared_ptr<MarchingCubeChunk> newChunk = make_shared<MarchingCubeChunk>
-		(
+		std::shared_ptr<MarchingCubeChunk> newChunk = std::make_shared<MarchingCubeChunk>
+			(
 			XMFLOAT3(actualPosX, 0, actualPosZ), 
 			XMFLOAT3(actualPosX + stepSize.x*stepCount.x, 0 + stepSize.y*stepCount.y, actualPosZ + stepSize.z*stepCount.z), 
 			stepSize, 
 			stepCount
-		);
+			);
 
 		//Noise the chunk
 		mcTerrain.SetCurrentVoxelField(newChunk->GetVoxelField());
@@ -175,14 +181,14 @@ void TerrainManager::CreateChunk(ID3D11Device* device, ID3D11DeviceContext* devi
 		marchingCubes.CalculateMesh(device, newChunk.get(), newChunk->GetTriMesh());
 
 		//Setup collision shape with the triMesh that was created inside marching cubes class
-		shared_ptr<btBvhTriangleMeshShape> triMeshShape = make_shared<btBvhTriangleMeshShape>(newChunk->GetTriMesh(), true);
+		std::shared_ptr<btBvhTriangleMeshShape> triMeshShape = std::make_shared<btBvhTriangleMeshShape>(newChunk->GetTriMesh(), true);
 
 		//Assign it to this chunk
 		newChunk->SetCollisionShape(triMeshShape);
 
 		//Set up some rigid body stuff
 		btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, NULL, newChunk->GetCollisionShape(), btVector3(0,0,0));
-		shared_ptr<btRigidBody> rigidBody = make_shared<btRigidBody>(groundRigidBodyCI);
+		std::shared_ptr<btRigidBody> rigidBody = std::make_shared<btRigidBody>(groundRigidBodyCI);
 		rigidBody->setFriction(1);
 		rigidBody->setRollingFriction(1);
 		rigidBody->setRestitution(0.5f);
@@ -377,22 +383,38 @@ vector<RenderableInterface*>* TerrainManager::GetTerrainRenderables(int x, int z
 	return &activeRenderables;
 }
 
-bool TerrainManager::UpdateAgainstAABB( ID3D11Device* device, ID3D11DeviceContext* deviceContext, Lemmi2DAABB* aabb )
+bool TerrainManager::UpdateAgainstAABB( ID3D11Device* device, ID3D11DeviceContext* deviceContext, Lemmi2DAABB* aabb, float deltaTime)
 {
 	std::pair<int,int> neighbourKey;
+
+	timePassed += deltaTime;
+
+	int startX	=	aabb->MinPoint().x;
+	int startZ	=	aabb->MinPoint().y;
+	int endX	=	aabb->MaxPoint().x;
+	int endZ	=	aabb->MaxPoint().y;
 
 	//Define the boundaries. We'll use the boundaries to loop through each relevant grid slot.
 	// I calculate the start and ending indices by dividing the positions by a large amount and casting them to int. 
 	// The amount I divide with is calculated through step size and step scaling.
 	//The *2 in there is ..... because before, the chunks used to be 100x100 units large... ish. Now they're 50x50 large... ish. Hence I needed a magic number offset. Yay!
-	int startX =	RoundToNearest(aabb->MinPoint().x*(2*stepScaling))-2;
-	int startZ =	RoundToNearest(aabb->MinPoint().y*(2*stepScaling))-2;
-	int endX =		RoundToNearest(aabb->MaxPoint().x*(2*stepScaling))+2;
-	int endZ =		RoundToNearest(aabb->MaxPoint().y*(2*stepScaling))+2;
+	startX =	RoundToNearest(startX*(2*stepScaling))-3;
+	startZ =	RoundToNearest(startZ*(2*stepScaling))-3;
+	endX =		RoundToNearest(endX*(2*stepScaling))+3;
+	endZ =		RoundToNearest(endZ*(2*stepScaling))+3;
 
 	//Instead of checking against like...... 25-30 grids we instead first check if the min and max points have changed.
 	if(lastMin.first != startX || lastMin.second != startZ || lastMax.first != endX || lastMax.second != endZ)
 	{
+		//Every few seconds we do a cleanup to remove old chunks
+		if(timePassed >= timeThreshold)
+		{
+			Cleanup((startX+endZ)/2, (startZ+endZ)/2);
+
+			//Reset
+			timePassed = 0.0f;
+		}
+
 		//Temp chunk to hold pointer from each GetChunk call.
 		MarchingCubeChunk* tempChunk;
 
@@ -401,34 +423,34 @@ bool TerrainManager::UpdateAgainstAABB( ID3D11Device* device, ID3D11DeviceContex
 		activeRenderables.clear();
 
 		/*	So in order to visualize what's actually going on in this function, this is what I do: 
-		 *
-		 *		 									endX,endZ
-		 *		   ____________________________________*
-		 *		   |X4	  |X4    |etc 	|etc   |X4	  |
-		 *		   |Z0	  |Z1    |	 	| 	   |Z4	  |
-		 *		   |______|______|______|______|______|
-		 *		   |X3	  |X3	 |etc	|etc   |etc   |
-		 *		   |Z0	  |Z1	 |	 	| 	   |	  |
-		 *		   |______|______|______|______|______|
-		 *		   |X2	  |X2    |etc   |etc   |etc   |
-		 *		   |Z0	  |Z1    |	    | 	   |	  |
-		 *		   |______|______|______|______|______|
-		 *		   |X1	  |X1    |etc   |etc   |etc   |
-		 *		   |Z0	  |Z1    |	    | 	   |	  |
-		 *		   |______|______|______|______|______|
-		 *		   |X0	  |X0    |etc 	|etc   |X0	  |
-		 *		   |Z0	  |Z1    |	 	| 	   |Z4	  |
-		 *		   |______|______|______|______|______|
-		 *		  *									
-		 *	startX,startZ								
-		 *	
-		 * Step through each grid by index, and then for each grid do the following:
-		 * 1) Check in the hash map if this grid already has a chunk assigned to it, in that case fetch it and put it in the active chunks vector
-		 * 2) If there isn't a chunk, create one and insert it into the hash map. Then insert it into the active chunks vector.
-		 * 
-		 * 
-		 * Yes. I did spend about 30 minutes making that little ascii... chart... box.
-		 */
+		*
+		*		 									endX,endZ
+		*		   ____________________________________*
+		*		   |X4	  |X4    |etc 	|etc   |X4	  |
+		*		   |Z0	  |Z1    |	 	| 	   |Z4	  |
+		*		   |______|______|______|______|______|
+		*		   |X3	  |X3	 |etc	|etc   |etc   |
+		*		   |Z0	  |Z1	 |	 	| 	   |	  |
+		*		   |______|______|______|______|______|
+		*		   |X2	  |X2    |etc   |etc   |etc   |
+		*		   |Z0	  |Z1    |	    | 	   |	  |
+		*		   |______|______|______|______|______|
+		*		   |X1	  |X1    |etc   |etc   |etc   |
+		*		   |Z0	  |Z1    |	    | 	   |	  |
+		*		   |______|______|______|______|______|
+		*		   |X0	  |X0    |etc 	|etc   |X0	  |
+		*		   |Z0	  |Z1    |	 	| 	   |Z4	  |
+		*		   |______|______|______|______|______|
+		*		  *									
+		*	startX,startZ								
+		*	
+		* Step through each grid by index, and then for each grid do the following:
+		* 1) Check in the hash map if this grid already has a chunk assigned to it, in that case fetch it and put it in the active chunks vector
+		* 2) If there isn't a chunk, create one and insert it into the hash map. Then insert it into the active chunks vector.
+		* 
+		* 
+		* Yes. I did spend about 30 minutes making that little ascii... chart... box.
+		*/
 
 		//Loop through box. Start at startpositions and end at endX.
 		for(int x = startX; x < endX; ++x)
@@ -465,11 +487,32 @@ bool TerrainManager::UpdateAgainstAABB( ID3D11Device* device, ID3D11DeviceContex
 		}
 
 		//After we've looped through the entire area, we save the keys that were used. This means that 
-		lastMin = make_pair<int, int>(startX, startZ);
-		lastMax = make_pair<int, int>(endX, endZ);
+		lastMin = std::make_pair<int, int>(startX, startZ);
+		lastMax = std::make_pair<int, int>(endX, endZ);
 
 		return true;
 	}
 
 	return false;
+}
+
+void TerrainManager::Cleanup(float posX, float posZ)
+{
+	//Iterate through entirety of map
+	for(auto it = map->begin(); it != map->end();)
+	{
+		const XMFLOAT3& position = it->second->GetPosition();
+
+		//If chunk is too far away from position (camera), remove it
+		if(abs(position.x - posX) >= rangeThreshold || abs(position.z - posZ) >= rangeThreshold)
+		{
+			collisionHandler->removeRigidBody(it->second->GetRigidBody());
+			it = map->erase(it);
+		}
+		else
+		{
+			//If we've erased an item we don't want to increment
+			++it;
+		}
+	}
 }

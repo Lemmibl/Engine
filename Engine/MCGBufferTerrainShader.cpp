@@ -287,7 +287,7 @@ void MCGBufferTerrainShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, 
 {
 	char* compileErrors;
 	unsigned long bufferSize, i;
-	ofstream fout;
+	std::ofstream fout;
 
 
 	// Get a pointer to the error message text buffer.
@@ -351,8 +351,15 @@ bool MCGBufferTerrainShader::SetShaderParameters( ID3D11DeviceContext* deviceCon
 	// Now set the matrix constant buffer in the vertex shader with the updated values.
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &matrixBuffer.p);
 
+	if(variables.colorMode != toggleColor)
+	{
+		bufferNeedsUpdate = true;
+	}
+
 	if(bufferNeedsUpdate)
 	{
+		variables.colorMode = toggleColor;
+
 		// Lock the matrix constant buffer so it can be written to.
 		result = deviceContext->Map(variableBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 		if(FAILED(result))
@@ -364,7 +371,7 @@ bool MCGBufferTerrainShader::SetShaderParameters( ID3D11DeviceContext* deviceCon
 		dataPtr2 = (VariableBuffer*)mappedResource.pData;
 
 		// Copy the matrices into the constant buffer.
-		dataPtr2->colorMode = toggleColor;
+		dataPtr2->colorMode = variables.colorMode;
 		dataPtr2->farClip = variables.farClip;
 		dataPtr2->textureScale = variables.textureScale;
 		dataPtr2->tighten = variables.tighten;

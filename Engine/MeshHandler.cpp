@@ -10,17 +10,17 @@ MeshHandler::~MeshHandler(void)
 {
 }
 
-bool MeshHandler::LoadIndexedMeshFromFile(ID3D11Device* device, string filepath, IndexedMesh* outMesh )
+bool MeshHandler::LoadIndexedMeshFromFile(ID3D11Device* device, std::string filepath, IndexedMesh* outMesh )
 {
 	//////////////////////////////////////////////////////////////////////////
 	// Load model information from file
 	//////////////////////////////////////////////////////////////////////////
 
-	ifstream fin;
+	std::ifstream fin;
 	char input;
 	//vector<ModelType> model;
-	vector<VertexType> vertices;
-	vector<unsigned int> indices;
+	std::vector<VertexType> vertices;
+	std::vector<unsigned int> indices;
 	unsigned int vertexCount, indexCount;
 
 	// Open the model file.

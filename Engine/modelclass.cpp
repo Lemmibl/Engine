@@ -119,8 +119,8 @@ void ModelClass::Render(ID3D11DeviceContext* deviceContext)
 
 bool ModelClass::InitializeBuffers(ID3D11Device* device)
 {
-	vector<VertexType> vertices;
-	vector<unsigned long> indices;
+	std::vector<VertexType> vertices;
+	std::vector<unsigned long> indices;
 	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA vertexData, indexData;
 	HRESULT result;
@@ -240,7 +240,7 @@ bool ModelClass::LoadTexture(ID3D11Device* device, WCHAR* filename)
 	bool result;
 
 	//Shared ptr with custom deleter.
-	texture = std::shared_ptr<TextureClass>(new TextureClass());
+	texture = std::make_shared<TextureClass>();
 	if(!texture)
 	{
 		return false;
@@ -273,7 +273,7 @@ bool ModelClass::LoadTextures(ID3D11Device* device, WCHAR* texture, WCHAR* norma
 	bool result;
 
 	//Shared ptr with custom deleter.
-	textureArray = shared_ptr<TextureArray>(new TextureArray());
+	textureArray = std::make_shared<TextureArray>();
 	if(!textureArray)
 	{
 		return false;
@@ -305,7 +305,7 @@ void ModelClass::ReleaseTextures()
 
 bool ModelClass::LoadModel(char* filename)
 {
-	ifstream fin;
+	std::ifstream fin;
 	char input;
 	int i;
 
@@ -332,7 +332,7 @@ bool ModelClass::LoadModel(char* filename)
 	indexCount = vertexCount;
 
 	// Create the model using the vertex count that was read in.
-	model = unique_ptr<ModelType []>(new ModelType[vertexCount]);
+	model = std::unique_ptr<ModelType []>(new ModelType[vertexCount]);
 	if(!model)
 	{
 		return false;

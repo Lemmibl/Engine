@@ -18,7 +18,7 @@ SentenceManager::~SentenceManager()
 void SentenceManager::Reset()
 {
 	//Reset prioQueue
-	prioQueue = std::priority_queue<unsigned short, vector<unsigned short>, std::greater<unsigned short>>();
+	prioQueue = std::priority_queue<unsigned short, std::vector<unsigned short>, std::greater<unsigned short>>();
 
 	activeSentenceCount = 0;
 
@@ -222,7 +222,7 @@ void SentenceManager::ReleaseSentence( int id )
 	sentence.id = MaxSentences+1;
 
 	//Swap sentence with furthest out active sentence.
-	swap(sentence, sentences[activeSentenceCount-1]);
+	std::swap(sentence, sentences[activeSentenceCount-1]);
 
 	//Swap indices.
 	indices[activeSentenceCount-1].index = idx.index;

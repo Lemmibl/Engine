@@ -49,7 +49,7 @@ private:
 
 private:
 	IndexedInstancedMesh mesh;
-	unique_ptr<VegetationShader> vegetationShader;
+	std::unique_ptr<VegetationShader> vegetationShader;
 };
 
 /*

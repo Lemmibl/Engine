@@ -1,13 +1,3 @@
-////////////////////////////////////////////////////////////////////////////////
-// Filename: dirlightshaderclass.h
-////////////////////////////////////////////////////////////////////////////////
-#ifndef _DRDIRLIGHT_H_
-#define _DRDIRLIGHT_H_
-
-
-//////////////
-// INCLUDES //
-//////////////
 #pragma once
 #include <d3d11.h>
 #include <windows.h>
@@ -16,15 +6,9 @@
 #include <fstream>
 #include "StructsAndEnums.h"
 #include <atlcomcli.h>
+#include "SettingsManager.h"
 #include <libconfig.h++>
 
-using namespace libconfig;
-using namespace std;
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Class name: DRDirLight
-////////////////////////////////////////////////////////////////////////////////
 class DRDirLight
 {
 private:
@@ -95,5 +79,3 @@ private:
 	CComPtr<ID3D11Buffer> positionalBuffer;
 	float cameraFarClip;
 };
-
-#endif

@@ -58,12 +58,12 @@ void FontClass::Shutdown()
 
 bool FontClass::LoadFontData(char* filename)
 {
-	ifstream fin;
+	std::ifstream fin;
 	int i;
 	char temp;
 
 	// Create the font spacing buffer.
-	font = unique_ptr<FontType []>(new FontType[95]);
+	font = std::unique_ptr<FontType []>(new FontType[95]);
 	if(!font)
 	{
 		return false;
@@ -119,9 +119,8 @@ bool FontClass::LoadTexture(ID3D11Device* device, WCHAR* filename)
 {
 	bool result;
 
-
 	// Create the texture object.
-	texture = unique_ptr<TextureClass>(new TextureClass);
+	texture = std::unique_ptr<TextureClass>(new TextureClass());
 	if(!texture)
 	{
 		return false;

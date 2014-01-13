@@ -2,7 +2,6 @@
 
 VegetationManager::VegetationManager()
 {
-	vegetationShader = 0;
 }
 
 VegetationManager::VegetationManager( const VegetationManager& )
@@ -19,7 +18,7 @@ bool VegetationManager::Initialize(ID3D11Device* device, HWND hwnd)
 {
 	HRESULT result;
 
-	vegetationShader = unique_ptr<VegetationShader>(new VegetationShader());
+	vegetationShader = std::unique_ptr<VegetationShader>();
 	if(!vegetationShader)
 	{
 		return false;
@@ -77,8 +76,8 @@ void VegetationManager::RenderBuffers( ID3D11DeviceContext* deviceContext)
 
 bool VegetationManager::BuildVertexAndIndexBuffers( ID3D11Device* device )
 {
-	unique_ptr<VertexType[]> vertices;
-	unique_ptr<unsigned int []> indices;
+	std::unique_ptr<VertexType[]> vertices;
+	std::unique_ptr<unsigned int []> indices;
 	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA vertexData, indexData;
 	HRESULT result;
@@ -94,13 +93,13 @@ bool VegetationManager::BuildVertexAndIndexBuffers( ID3D11Device* device )
 	int indexCount = 18;
 
 	// Create the vertex array.
-	vertices = unique_ptr<VertexType[]>(new VertexType[vertexCount]());
+	vertices = std::unique_ptr<VertexType[]>(new VertexType[vertexCount]());
 	if(!vertices)
 	{
 		return false;
 	}
 
-	indices = unique_ptr<unsigned int []>(new unsigned int[indexCount]());
+	indices = std::unique_ptr<unsigned int []>(new unsigned int[indexCount]());
 	if(!indices)
 	{
 		return false;

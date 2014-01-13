@@ -134,9 +134,9 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	dirt.shouldBeShadowed = 10.0f;
 
 	MaterialStruct grassQuads;
-	grassQuads.Kambience = 0.2f;
-	grassQuads.Kdiffuse = 1.4f;
-	grassQuads.Kspecular = 0.5f;
+	grassQuads.Kambience = 0.3f;
+	grassQuads.Kdiffuse = 1.2f;
+	grassQuads.Kspecular = 0.2f;
 	grassQuads.smoothness = 1.0f;
 	grassQuads.shouldBeShadowed = 10.0f;
 

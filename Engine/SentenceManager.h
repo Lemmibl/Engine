@@ -64,7 +64,7 @@ private:
 	int GetNextSentenceSlot() { int result = prioQueue.top(); prioQueue.pop(); return result; }
 
 private:
-	std::priority_queue<unsigned short, vector<unsigned short>, std::greater<unsigned short>> prioQueue;
+	std::priority_queue<unsigned short, std::vector<unsigned short>, std::greater<unsigned short>> prioQueue;
 
 	SentenceType sentences[MaxSentences];
 	Index indices[MaxSentences];

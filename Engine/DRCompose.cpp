@@ -348,8 +348,7 @@ void DRCompose::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WC
 {
 	char* compileErrors;
 	unsigned long bufferSize, i;
-	ofstream fout;
-
+	std::ofstream fout;
 
 	// Get a pointer to the error message text buffer.
 	compileErrors = (char*)(errorMessage->GetBufferPointer());
@@ -436,10 +435,15 @@ bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRI
 
 	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &pixelMatrixBuffer.p);
 
-	/////////////#3
+	if(variables.toggleSSAO != toggle)
+	{
+		bufferNeedsUpdate = true;
+	}
 
+	/////////////#3
 	if(bufferNeedsUpdate)
 	{
+		variables.toggleSSAO = toggle;
 
 		// Lock the vertex constant buffer so it can be written to.
 		result = deviceContext->Map(variableBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -458,7 +462,7 @@ bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRI
 		dataPtr3->intensity		=	variables.intensity;
 		dataPtr3->sampleRadius	=	variables.sampleRadius;
 		dataPtr3->scale			=	variables.scale;
-		dataPtr3->toggleSSAO	=	toggle;
+		dataPtr3->toggleSSAO	=	variables.toggleSSAO;
 		dataPtr3->randomSize	=	variables.randomSize;
 		dataPtr3->screenSize	=	variables.screenSize;
 
@@ -503,6 +507,8 @@ void DRCompose::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
 void DRCompose::OnSettingsReload(Config* cfg)
 {
 	bufferNeedsUpdate = true;
+
+	variables.toggleSSAO = 0;
 
 	const Setting& settings = cfg->getRoot()["shaders"]["composeShader"];
 

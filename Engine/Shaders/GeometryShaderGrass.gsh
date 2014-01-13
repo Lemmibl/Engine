@@ -10,12 +10,12 @@ cbuffer MatrixBuffer
 
 cbuffer VariableBuffer
 {
-	float vegetationScale : packoffset(c0.x);
+	float vegetationScale	: packoffset(c0.x);
 	float vegetationFalloff : packoffset(c0.y);
-	float forceScale : packoffset(c0.z);
-	float waveLength : packoffset(c0.w);
-	float traversalSpeed : packoffset(c1.x);
-	float farClip : packoffset(c1.y);
+	float forceScale		: packoffset(c0.z);
+	float waveLength		: packoffset(c0.w);
+	float traversalSpeed	: packoffset(c1.x);
+	float farClip			: packoffset(c1.y);
 	//TODO: Possible windDirection
 };
 
@@ -31,7 +31,7 @@ struct PS_INPUT
 	float4 Position : SV_POSITION;
 	float4 Normal :	TEXCOORD0;
 	float4 TexCoord : TEXCOORD1;
-	float Opacity : OPACITY;
+	//float Opacity : OPACITY;
 };
 
 //static const float vegetationScale = 2.2f;
@@ -66,7 +66,6 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, VS_OUTPUT v3, inout TriangleStream<PS_
 	{
 		//Allocate four output values
 		PS_INPUT output[4];
-		float viewDepth = v1.YPosDepthAndRand.y;
 
 		//In the future, this ID will be loaded from a lookup table
 		int textureID = round(v1.YPosDepthAndRand.z * 13);
@@ -77,8 +76,9 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, VS_OUTPUT v3, inout TriangleStream<PS_
 		//Randomizing the ground positions
 		float4 pos1 = v2.Position + float4(rand.x*0.5f, 0.0f, rand.y*0.5f, 0.0f); //Add a tiny offset to make placement of grass seem more random.
 		float4 pos2 = v1.Position + ((v2.YPosDepthAndRand.z * 2.0f) * (normalize(v3.Position - v2.Position)));	//+ float4(rand.x, 0.0f, rand.y, 0.0f);
+		pos1.w = pos2.w = 1.0f;
 
-		float opacity = (1.0f - (viewDepth / vegetationFalloff));
+		float opacity = (1.0f - (v1.YPosDepthAndRand.y / vegetationFalloff));
 		float height = (vegetationScale * opacity);
 
 		//This is the normal that we use to offset the upper vertices of the quad, as to angle it slightly. 
@@ -86,35 +86,36 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, VS_OUTPUT v3, inout TriangleStream<PS_
 		float4 randomizedNormal = float4(rand.x*0.2f, height, rand.y*0.2f, 0.0f);
 
 		//If the grass is close enough to the camera, add wind. Just pointless to add a bunch of wind to grass that is too far away to be seen properly.
-		if(viewDepth < (vegetationFalloff/3))
+		if(v1.YPosDepthAndRand.y < (vegetationFalloff*0.3f))
 		{
 			//TODO: Replace this with an external windDirection in a constant buffer
 			float4 WindDirection = normalize(float4(-0.7f+(rand.x*0.3f), 0.0f, -0.4f+(rand.y*0.3f), 0.0f));
 
 			//Add wind direction to our already randomized normal. This value will be 
 			randomizedNormal += (WindDirection * (forceScale * LoadWindPowerValue((v1.Position.xz*waveLength) + (traversalSpeed*DeltaTime))));
+			randomizedNormal.w = 0.0f;
 		}
 
 		//Define the four vertices, corners
 		output[0].Position = mul(pos1, WorldViewProjection);
 		output[0].Normal = normalize(v1.Normal);
-		output[0].TexCoord = float4(0.0f, 1.0f, textureID, viewDepth/farClip);
-		output[0].Opacity = opacity;
+		output[0].TexCoord = float4(0.0f, 1.0f, textureID, v1.YPosDepthAndRand.y/farClip);
+		//output[0].Opacity = opacity;
 
 		output[1].Position = mul(pos2, WorldViewProjection);
 		output[1].Normal = normalize(v2.Normal);
-		output[1].TexCoord = float4(1.0f, 1.0f, textureID, viewDepth/farClip);
-		output[1].Opacity = opacity;
+		output[1].TexCoord = float4(1.0f, 1.0f, textureID, v2.YPosDepthAndRand.y/farClip);
+		//output[1].Opacity = opacity;
 
 		output[2].Position = mul((pos1 + randomizedNormal), WorldViewProjection);
 		output[2].Normal = normalize(v1.Normal+randomizedNormal);
-		output[2].TexCoord = float4(0.0f, 0.0f, textureID, viewDepth/farClip);
-		output[2].Opacity = opacity;
+		output[2].TexCoord = float4(0.0f, 0.0f, textureID, v1.YPosDepthAndRand.y/farClip);
+		//output[2].Opacity = opacity;
 
 		output[3].Position = mul((pos2 + randomizedNormal), WorldViewProjection);
 		output[3].Normal = normalize(v2.Normal + randomizedNormal);
-		output[3].TexCoord = float4(1.0f, 0.0f, textureID, viewDepth/farClip);
-		output[3].Opacity = opacity;
+		output[3].TexCoord = float4(1.0f, 0.0f, textureID, v2.YPosDepthAndRand.y/farClip);
+		//output[3].Opacity = opacity;
 
 		//We're form a quad out of two triangles, meaning four vertices.
 		TriStream.Append(output[0]);
@@ -126,7 +127,7 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, VS_OUTPUT v3, inout TriangleStream<PS_
 	}
 };
 
-[maxvertexcount(20)] 
+[maxvertexcount(12)] 
 void GrassGS(triangle VS_OUTPUT Input[3], inout TriangleStream<PS_INPUT> TriStream)
 { 
 	//So we do a dot between the three normals of the triangle and an Up vector that just points straight up.

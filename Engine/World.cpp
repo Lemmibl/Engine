@@ -1,66 +1,91 @@
 #include "World.h"
 
 World::World()
-:	frustum(), renderableBundle(), frustumAABB(XMFLOAT2(-1, -1), XMFLOAT2(1, 1))
+	:	frustum(), renderableBundle(), frustumAABB(XMFLOAT2(-1, -1), XMFLOAT2(1, 1))
 {
 }
 
 World::~World()
 {
+	//remove the rigidbodies from the dynamics world and delete them
+	for (int i = dynamicsWorld->getNumCollisionObjects()-1; i >= 0; i--)
+	{
+		btCollisionObject* obj = dynamicsWorld->getCollisionObjectArray()[i];
+		dynamicsWorld->removeCollisionObject( obj );
+
+		//delete obj; //I use smart ptrs for everything, so this should be unnecessary
+	}
 }
 
-void World::Initialize( shared_ptr<D3DManager> extD3DManager, shared_ptr<CameraClass> extCamera, shared_ptr<InputClass> extInput, shared_ptr<btDiscreteDynamicsWorld> collisionWorld)
+void World::Initialize( std::shared_ptr<D3DManager> extD3DManager, std::shared_ptr<InputClass> extInput)
 {
 	inputManager = extInput;
-	camera = extCamera;
 	d3D = extD3DManager;
-	dynamicsWorld = collisionWorld;
 
 	//Attach load function to the event that might happen
 	SettingsManager& settingsManager = SettingsManager::GetInstance();
 	settingsManager.GetEvent()->Add(*this, &World::OnSettingsReload);
 
-	const Setting& settings = settingsManager.GetConfig().getRoot()["physics"];
+	//Load settings
+	OnSettingsReload(&settingsManager.GetConfig());
 
-	settings.lookupValue("timeStep", bulletTimestepScale);
-	settings.lookupValue("maxSubsteps", maxSubSteps);
-
-	settings.lookupValue("gravityX", gravity.x);
-	settings.lookupValue("gravityY", gravity.y);
-	settings.lookupValue("gravityZ", gravity.z);
-
-	dynamicsWorld->setGravity(btVector3(gravity.x, gravity.y,  gravity.z));
-
-	//1.77f is 16:9 aspect ratio
-	frustum.SetInternals((float)camera->GetScreenWidth() / (float)camera->GetScreenHeight(), XM_PIDIV2, camera->GetNearClip(), camera->GetFarClip());
-
-	//Load mesh from hdd
-	//meshHandler.LoadIndexedMeshFromFile(d3D->GetDevice(), "../Engine/data/sphere.txt", (&renderableBundle.testSphere.mesh));
-
-	InitializeCollisionStuff();
+	InitializeCollision();
+	InitializeCamera();
 	InitializeTerrain();
 }
 
-void World::InitializeCollisionStuff()
+void World::InitializeCamera()
 {
+	//Create camera and the camera controller
+	cameraController = std::make_shared<ControllerClass>(dynamicsWorld, inputManager, 0.05f); //0.03f
+	camera = std::make_shared<CameraClass>(cameraController);
+
+	// Initialize a base view matrix with the camera for 2D UI rendering.
+	camera->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
+	camera->Update(); //Call update once at default position to set up matrices properly
+
+	camera->SetPosition(XMFLOAT3(0.0f, 25.0f, -100.0f));
+	camera->SetRotation(XMFLOAT3(0.0f, 0.0f, 0.0f));
+	camera->SetPerspectiveProjection(screenWidth, screenHeight, XM_PIDIV4, nearClip, farClip); 
+}
+
+void World::InitializeCollision()
+{
+	broadphase				=	std::make_shared<btDbvtBroadphase>();
+	collisionConfiguration	=	std::make_shared<btDefaultCollisionConfiguration>();
+
+	dispatcher				=	std::make_shared<btCollisionDispatcher>(collisionConfiguration.get());
+	solver					=	std::make_shared<btSequentialImpulseConstraintSolver>();
+
+	dynamicsWorld			=	std::make_shared<btDiscreteDynamicsWorld>(dispatcher.get(), broadphase.get(), solver.get(), collisionConfiguration.get());
+
+	//Gravity is probably -9.78: http://en.wikipedia.org/wiki/Gravity_of_Earth
+	dynamicsWorld->setGravity(btVector3(gravity.x, gravity.y,  gravity.z));
+	dynamicsWorld->stepSimulation(bulletTimestepScale, maxSubSteps);
+
+	//1.77f is 16:9 aspect ratio
+	frustum.SetInternals((float)(screenWidth / screenHeight), XM_PIDIV2, nearClip, farClip);
 }
 
 void World::InitializeTerrain()
 {
 	//Initialize terrain manager
-	terrainManager = make_shared<TerrainManager>(d3D->GetDevice(), d3D->GetDeviceContext(), dynamicsWorld, GetDesktopWindow(), camera->GetPosition());
+	terrainManager = std::make_shared<TerrainManager>(d3D->GetDevice(), d3D->GetDeviceContext(), dynamicsWorld, GetDesktopWindow(), camera->GetPosition());
 
 	//Get the meshes from current terrain
 	renderableBundle.terrainChunks = terrainManager->GetActiveChunks();
 }
 
-void World::Update( float deltaTime)
+void World::Update( float deltaTimeSeconds, float deltaTimeMilliseconds )
 {
 	//Advance bullet world simulation stepping
 	dynamicsWorld->stepSimulation(bulletTimestepScale, maxSubSteps);
 
+	cameraController->Update(deltaTimeMilliseconds, camera->GetWorldMatrix()); //Processes all of the movement for this controller.
+	camera->Update();
+
 	HandleInput();
-	UpdateVisibility();
+	UpdateVisibility(deltaTimeSeconds);
 }
 
 void World::HandleInput()
@@ -116,12 +141,12 @@ void World::HandleInput()
 	}
 }
 
-void World::UpdateVisibility()
+void World::UpdateVisibility(float deltaTime)
 {
 	frustum.ConstructFrustum(camera->GetFarClip(), &camera->GetProj(), &camera->GetView());
 	frustum.CalculateFrustumExtents(&frustumAABB, XMLoadFloat3(&camera->GetPosition()), camera->ForwardVector(), camera->UpVector());
 
-	if(terrainManager->UpdateAgainstAABB(d3D->GetDevice(), d3D->GetDeviceContext(), &frustumAABB))
+	if(terrainManager->UpdateAgainstAABB(d3D->GetDevice(), d3D->GetDeviceContext(), &frustumAABB, deltaTime))
 	{
 		renderableBundle.terrainChunks.clear();
 		renderableBundle.terrainChunks = terrainManager->GetActiveChunks();
@@ -139,7 +164,12 @@ void World::OnSettingsReload( Config* cfg )
 	settings.lookupValue("gravityY", gravity.y);
 	settings.lookupValue("gravityZ", gravity.z);
 
-	dynamicsWorld->setGravity(btVector3(gravity.x, gravity.y,  gravity.z));
+	const Setting& settings2 = cfg->getRoot()["rendering"];
+
+	settings2.lookupValue("windowWidth", screenWidth);
+	settings2.lookupValue("windowHeight", screenHeight);
+	settings2.lookupValue("farClip", farClip);
+	settings2.lookupValue("nearClip", nearClip);
 }
 
 //TODO: camera body that collides with meshes

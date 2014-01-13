@@ -14,8 +14,7 @@
 #include "SettingsManager.h"
 #include <libconfig.h++>
 
-using namespace std;
-using namespace libconfig;
+//using namespace libconfig;
 
 class World
 {
@@ -23,21 +22,22 @@ public:
 	World();
 	~World();
 
-	void Initialize(shared_ptr<D3DManager> extD3DManager, shared_ptr<CameraClass> extCamera, shared_ptr<InputClass> extInput, shared_ptr<btDiscreteDynamicsWorld> collisionWorld);
+	void Initialize(std::shared_ptr<D3DManager> extD3DManager, std::shared_ptr<InputClass> extInput);
 
-	void Update(float deltaTime);
+	void Update(float deltaTimeSeconds, float deltaTimeMilliseconds);
 	void OnSettingsReload(Config* cfg);
 
 	Renderer::RenderableBundle* GetRenderableBundle() {  return &renderableBundle; };
-
+	std::shared_ptr<CameraClass> GetCamera() { return camera; }
 
 private:
-	void InitializeCollisionStuff();
+	void InitializeCollision();
+	void InitializeCamera();
 	void InitializeTerrain();
 	void HandleInput();
 
 	//Do frustum culling and that sort of stuff
-	void UpdateVisibility();
+	void UpdateVisibility(float deltaTime);
 
 private:
 	//Physics related stuff
@@ -46,22 +46,29 @@ private:
 	int maxSubSteps;
 
 	//Collision classes
-	shared_ptr<btDiscreteDynamicsWorld> dynamicsWorld;
+	std::shared_ptr<btBroadphaseInterface> broadphase;
+	std::shared_ptr<btDefaultCollisionConfiguration> collisionConfiguration;
+	std::shared_ptr<btCollisionDispatcher> dispatcher;
+	std::shared_ptr<btSequentialImpulseConstraintSolver> solver;
+	std::shared_ptr<btDiscreteDynamicsWorld> dynamicsWorld;
+
+	FrustumClass frustum;
+	Lemmi2DAABB frustumAABB;
 
 	//Terrain related objects
-	shared_ptr<TerrainManager> terrainManager;
+	std::shared_ptr<TerrainManager> terrainManager;
 
 	//Rendering
 	MeshHandler meshHandler;
 	Renderer::RenderableBundle renderableBundle;
+	int screenWidth, screenHeight;
+	float nearClip, farClip;
 
 	//Misc.
-	FrustumClass frustum;
-	Lemmi2DAABB frustumAABB;
-
-	shared_ptr<InputClass> inputManager;
-	shared_ptr<CameraClass> camera;
-	shared_ptr<D3DManager> d3D;
+	std::shared_ptr<ControllerClass> cameraController;
+	std::shared_ptr<CameraClass> camera;
+	std::shared_ptr<InputClass> inputManager;
+	std::shared_ptr<D3DManager> d3D;
 };
 
 

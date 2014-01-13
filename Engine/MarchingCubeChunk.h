@@ -20,8 +20,10 @@ public:
 	IndexedMesh* GetTerrainMesh() { return &terrainMesh; }
 	IndexedMesh* GetWaterMesh() { return &waterMesh; }
 
-	vector<MarchingCubeVoxel>* GetVoxelField() { return &voxels; }
-	vector<unsigned int>* GetIndices() { return &indices; }
+	std::vector<MarchingCubeVoxel>* GetVoxelField() { return &voxels; }
+	std::vector<unsigned int>* GetIndices() { return &indices; }
+
+	XMFLOAT3 GetPosition() const { return centerPosition; }
 
 	unsigned int GetStepCountX() const { return stepCountX; }
 	unsigned int GetStepCountY() const { return stepCountY; }
@@ -47,13 +49,13 @@ public:
 	btCollisionShape* GetCollisionShape() const { return collisionShape.get(); }
 	btTriangleMesh* GetTriMesh() { return triMesh.get(); }
 
-	void SetRigidBody(shared_ptr<btRigidBody> body) { rigidBody = body; }
-	void SetCollisionShape(shared_ptr<btCollisionShape> shape) { collisionShape = shape; }
+	void SetRigidBody(std::shared_ptr<btRigidBody> body) { rigidBody = body; }
+	void SetCollisionShape(std::shared_ptr<btCollisionShape> shape) { collisionShape = shape; }
 
 private:
 	//voxels is sizeX*sizeY*sizeZ big
-	vector<MarchingCubeVoxel> voxels;
-	vector<unsigned int> indices;
+	std::vector<MarchingCubeVoxel> voxels;
+	std::vector<unsigned int> indices;
 
 	//Our mesh that we'll be rendering. Contains all vertex/index data.
 	IndexedMesh terrainMesh;
@@ -72,8 +74,8 @@ private:
 	unsigned int stepCountY;
 	unsigned int stepCountZ;
 
-	shared_ptr<btTriangleMesh> triMesh;
-	shared_ptr<btCollisionShape> collisionShape; //triMesh
-	shared_ptr<btRigidBody> rigidBody;
+	std::shared_ptr<btTriangleMesh> triMesh;
+	std::shared_ptr<btCollisionShape> collisionShape; //triMesh
+	std::shared_ptr<btRigidBody> rigidBody;
 };
 

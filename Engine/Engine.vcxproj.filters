@@ -7,9 +7,6 @@
     <ClCompile Include="cpumeter.cpp">
       <Filter>General Code\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="DepthOnlyQuadShader.cpp">
       <Filter>Rendering\Shader wrappers\Shadow shader wrappers</Filter>
     </ClCompile>
@@ -24,12 +21,6 @@
     </ClCompile>
     <ClCompile Include="inputclass.cpp">
       <Filter>General Code\Utility</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine.cpp">
-      <Filter>General Code</Filter>
-    </ClCompile>
-    <ClCompile Include="main.cpp">
-      <Filter>General Code</Filter>
     </ClCompile>
     <ClCompile Include="Utility.cpp">
       <Filter>General Code\Utility</Filter>
@@ -187,6 +178,9 @@
     <ClCompile Include="SentenceManager.cpp">
       <Filter>Rendering\Managers</Filter>
     </ClCompile>
+    <ClCompile Include="Engine.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cpumeter.h">
@@ -194,9 +188,6 @@
     </ClInclude>
     <ClInclude Include="controllerclass.h">
       <Filter>General Code\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer.h">
-      <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="DepthOnlyShader.h">
       <Filter>Rendering\Shader wrappers\Shadow shader wrappers</Filter>
@@ -212,9 +203,6 @@
     </ClInclude>
     <ClInclude Include="inputclass.h">
       <Filter>General Code\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine.h">
-      <Filter>General Code</Filter>
     </ClInclude>
     <ClInclude Include="Utility.h">
       <Filter>General Code\Utility</Filter>
@@ -390,6 +378,8 @@
     <ClInclude Include="SentenceManager.h">
       <Filter>Rendering\Managers</Filter>
     </ClInclude>
+    <ClInclude Include="Renderer.h" />
+    <ClInclude Include="Engine.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shader-error.txt" />

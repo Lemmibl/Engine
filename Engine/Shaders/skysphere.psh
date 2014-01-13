@@ -18,7 +18,7 @@ cbuffer GradientBuffer
 struct PixelInputType
 {
 	float4 Position : SV_POSITION;
-	float DomePositionY : TEXCOORD0;
+	float2 DomePositionYAndWorldY : TEXCOORD0;
 };
 
 //This function is used for values in the 0 to 1 range; lerp values etc. 
@@ -45,7 +45,16 @@ float4 SkyspherePixelShader(PixelInputType input) : SV_TARGET0
 	//Fog/Skysphere color lerp multiplier. It basically scales with the Y position of this pixel, plus a little offset to make the fog begin higher up.
 	//We clamp it to 0-1 to make sure the lerp value doesn't get screwy.
 	//After that we put it through a perlin ease curve to make the beginning and the end more extreme
-	float fogMultiplier = PerlinEaseCurve(clamp(0.35f-input.DomePositionY, 0.0f, 1.0f)); //.. Saturate instead of clamp?
+	
+	float fogMultiplier = 0.0f;
+	
+	if(input.DomePositionYAndWorldY.y < 200.0f)
+	{
+		fogMultiplier = max(input.DomePositionYAndWorldY.x-0.2f, 0.0f); //.. Saturate instead of clamp?
+		fogMultiplier += (0.8f - (input.DomePositionYAndWorldY.y/200));
+		
+		fogMultiplier = clamp(fogMultiplier, 0.0f, 1.0f);
+	}
 
 	return lerp(sphereColor, FogColor, fogMultiplier); //We want to scale so that furthest down on the skysphere is covered in fog
 }

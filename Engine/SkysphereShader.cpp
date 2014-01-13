@@ -5,18 +5,7 @@
 
 SkysphereShader::SkysphereShader()
 {
-	//vertexShader = 0;
-	//pixelShader = 0;
-	//layout = 0;
-	//matrixBuffer = 0;
-	//gradientBuffer = 0;
 }
-
-
-SkysphereShader::SkysphereShader(const SkysphereShader& other)
-{
-}
-
 
 SkysphereShader::~SkysphereShader()
 {
@@ -47,21 +36,19 @@ void SkysphereShader::Shutdown()
 }
 
 
-bool SkysphereShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldViewProjection, XMFLOAT4 apexColor, 
-	XMFLOAT4 centerColor, XMFLOAT4 fogColor, float time)
+bool SkysphereShader::Render( ID3D11DeviceContext* context, int indexCount, XMMATRIX* worldViewProjection, float cameraYPos, XMFLOAT4 apexColor, XMFLOAT4 centerColor, XMFLOAT4 fogColor, float time )
 {
 	bool result;
 
-
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldViewProjection, apexColor, centerColor, fogColor, time);
+	result = SetShaderParameters(context, worldViewProjection, cameraYPos, apexColor, centerColor, fogColor, time);
 	if(!result)
 	{
 		return false;
 	}
 
 	// Now render the prepared buffers with the shader.
-	RenderShader(deviceContext, indexCount);
+	RenderShader(context, indexCount);
 
 	return true;
 }
@@ -151,6 +138,7 @@ bool SkysphereShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* v
 	// Create the vertex input layout.
 	result = device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), 
 		&layout);
+
 	if(FAILED(result))
 	{
 		return false;
@@ -243,7 +231,7 @@ void SkysphereShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hw
 {
 	char* compileErrors;
 	unsigned long bufferSize, i;
-	ofstream fout;
+	std::ofstream fout;
 
 
 	// Get a pointer to the error message text buffer.
@@ -275,8 +263,7 @@ void SkysphereShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hw
 }
 
 
-bool SkysphereShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, XMFLOAT4 apexColor, 
-	XMFLOAT4 centerColor, XMFLOAT4 fogColor, float time)
+bool SkysphereShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, float cameraYPos, XMFLOAT4 apexColor, XMFLOAT4 centerColor, XMFLOAT4 fogColor, float time)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -296,6 +283,7 @@ bool SkysphereShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XM
 
 	// Copy the matrices into the constant buffer.
 	dataPtr->WorldViewProjection =	*worldViewProjection;
+	dataPtr->cameraYPos = cameraYPos;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(matrixBuffer, 0);

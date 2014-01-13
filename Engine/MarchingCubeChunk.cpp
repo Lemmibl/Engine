@@ -11,7 +11,7 @@ MarchingCubeChunk::MarchingCubeChunk(XMFLOAT3 startPos, XMFLOAT3 endPos, XMFLOAT
 	stepCountZ((unsigned int)stepCount.z),
 	terrainMesh(),
 	waterMesh(),
-	triMesh(make_shared<btTriangleMesh>())
+	triMesh(std::make_shared<btTriangleMesh>())
 {
 	voxels.resize((stepCountX+1) * (stepCountY+1) * (stepCountZ+1));
 	//indices.resize((stepCountX+1) * (stepCountY+1) * (stepCountZ+1));

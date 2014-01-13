@@ -6,8 +6,6 @@
 
 DebugWindowClass::DebugWindowClass()
 {
-	vertexBuffer = 0;
-	indexBuffer = 0;
 }
 
 

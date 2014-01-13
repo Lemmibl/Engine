@@ -8,8 +8,6 @@
 #include "SettingsManager.h"
 #include <libconfig.h++>
 
-using namespace std;
-
 class GeometryShaderGrass
 {
 

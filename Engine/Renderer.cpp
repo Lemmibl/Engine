@@ -26,7 +26,7 @@ Renderer::~Renderer()
 }
 
 
-bool Renderer::Initialize(HWND hwnd, shared_ptr<CameraClass> camera, shared_ptr<InputClass> inputManager, shared_ptr<D3DManager> d3D, UINT screenWidth, 
+bool Renderer::Initialize(HWND hwnd, std::shared_ptr<CameraClass> camera, std::shared_ptr<InputClass> inputManager, std::shared_ptr<D3DManager> d3D, UINT screenWidth, 
 	UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear, bool toggleDebug)
 {
 	bool result;
@@ -273,7 +273,7 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 {
 	bool result;
 
-	text = make_shared<TextClass>(d3D->GetDevice(), d3D->GetDeviceContext(), hwnd, width, height);
+	text = std::make_shared<TextClass>(d3D->GetDevice(), d3D->GetDeviceContext(), hwnd, width, height);
 
 	result = textureAndMaterialHandler.Initialize(d3D->GetDevice(), d3D->GetDeviceContext(), &noise, &utility);
 	if(!result)
@@ -421,13 +421,13 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 	//	struct tm parts;
 	//	localtime_s(&parts, &timeObject );
 	//
-	//	std::ostringstream stringStream;
+	//	std::ostringstream std::stringStream;
 	//
-	//	//Create the string that will hold the screenshot's name when it gets pooped out into the directory
-	//	stringStream << "SavedTexture_" << (1+parts.tm_mon) << "-" << parts.tm_mday <<  "-" << parts.tm_min << "-" << parts.tm_sec << ".bmp";
+	//	//Create the std::string that will hold the screenshot's name when it gets pooped out into the directory
+	//	std::stringStream << "SavedTexture_" << (1+parts.tm_mon) << "-" << parts.tm_mday <<  "-" << parts.tm_min << "-" << parts.tm_sec << ".bmp";
 	//
 	//	LPCSTR fileName;
-	//	string temp = stringStream.str();
+	//	std::string temp = std::stringStream.str();
 	//	fileName = (temp).c_str();
 	//
 	//	textureAndMaterialHandler.SaveTextureToFile(d3D->GetDeviceContext(), *textureAndMaterialHandler.GetNoiseTexture(), D3DX11_IFF_BMP, fileName);
@@ -440,13 +440,13 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 	//	struct tm parts;
 	//	localtime_s(&parts, &timeObject );
 	//
-	//	std::ostringstream stringStream;
+	//	std::ostringstream std::stringStream;
 	//
-	//	//Create the string that will hold the screenshot's name when it gets pooped out into the directory
-	//	stringStream << "SavedTexture_" << (1+parts.tm_mon) << "-" << parts.tm_mday <<  "-" << parts.tm_min << "-" << parts.tm_sec << ".bmp";
+	//	//Create the std::string that will hold the screenshot's name when it gets pooped out into the directory
+	//	std::stringStream << "SavedTexture_" << (1+parts.tm_mon) << "-" << parts.tm_mday <<  "-" << parts.tm_min << "-" << parts.tm_sec << ".bmp";
 	//
 	//	LPCSTR fileName;
-	//	string temp = stringStream.str();
+	//	std::string temp = stringStream.str();
 	//	fileName = (temp).c_str();
 	//
 	//	textureAndMaterialHandler.SaveTextureToFile(d3D->GetDeviceContext(), *textureAndMaterialHandler.GetTerrainTexture(), D3DX11_IFF_BMP, fileName);
@@ -741,11 +741,13 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 	d3D->SetNoCullRasterizer();
 	d3D->TurnZBufferOff();
 
+	worldMatrix = XMMatrixTranslation(camPos.x, camPos.y, camPos.z);
+
 	//Scale skysphere by 3.0f because camera nearClip is 2.0f. Nearclip is 2.0f because else I get precision issues when rendering water.
-	worldViewProjMatrix = (XMMatrixScaling(3.0f, 3.0f, 3.0f) * XMMatrixTranslation(camPos.x, camPos.y, camPos.z)) * ((*viewMatrix) * (*projectionMatrix));
+	worldViewProjMatrix = (XMMatrixScaling(3.0f, 3.0f, 3.0f) * worldMatrix) * ((*viewMatrix) * (*projectionMatrix));
 	worldViewProjMatrix = XMMatrixTranspose(worldViewProjMatrix);
 
-	skySphere.Render(deviceContext, &worldViewProjMatrix, &dayNightCycle.GetAmbientLightColor(), timeOfDay);
+	skySphere.Render(deviceContext, &worldViewProjMatrix, camPos.y, &dayNightCycle.GetAmbientLightColor(), timeOfDay);
 
 	d3D->TurnZBufferOn();
 	d3D->SetBackFaceCullingRasterizer();
@@ -773,11 +775,13 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 
 	unsigned int vecSize = renderableBundle->terrainChunks.size();
 
+	const auto& chunks = renderableBundle->terrainChunks;
+
 	for(unsigned int i = 0; i < vecSize; i++)
 	{	
-		 renderableBundle->terrainChunks[i]->GetTerrainMesh()->Render(deviceContext);
+		 chunks[i]->GetTerrainMesh()->Render(deviceContext);
 
-		if(!mcubeShader.Render(d3D->GetDeviceContext(),  renderableBundle->terrainChunks[i]->GetTerrainMesh()->GetIndexCount(), &worldMatrix, &worldView, 
+		if(!mcubeShader.Render(d3D->GetDeviceContext(),  chunks[i]->GetTerrainMesh()->GetIndexCount(), &worldMatrix, &worldView, 
 			identityWorldViewProj, textureAndMaterialHandler.GetTerrainTextureArray(), textureAndMaterialHandler.GetMaterialLookupTexture(), toggleColorMode, farClip))
 		{
 			return false;
@@ -785,14 +789,13 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 	}
 
 	d3D->TurnOnTransparencyBlending();
-	d3D->SetNoCullRasterizer();
-
+	d3D->SetBackFaceCullingRasterizer();
 
 	for(unsigned int i = 0; i < vecSize; i++)
 	{	
-		 renderableBundle->terrainChunks[i]->GetWaterMesh()->Render(deviceContext);
+		 chunks[i]->GetWaterMesh()->Render(deviceContext);
 
-		if(!waterShader.Render(d3D->GetDeviceContext(),  renderableBundle->terrainChunks[i]->GetWaterMesh()->GetIndexCount(), &worldMatrix, &worldView, identityWorldViewProj, 
+		if(!waterShader.Render(d3D->GetDeviceContext(),  chunks[i]->GetWaterMesh()->GetIndexCount(), &worldMatrix, &worldView, identityWorldViewProj, 
 			textureAndMaterialHandler.GetVegetationTextureArray(), textureAndMaterialHandler.GetWindTexture(), textureAndMaterialHandler.GetWindNormalMap(), 
 			farClip, backAndForth))
 		{
@@ -801,13 +804,13 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 	}
 
 	d3D->TurnOnAlphaBlending();
-	//d3D->SetNoCullRasterizer();
+	d3D->SetNoCullRasterizer();
 
 	for(unsigned int i = 0; i < vecSize; i++)
 	{	
-		 renderableBundle->terrainChunks[i]->GetTerrainMesh()->Render(deviceContext);
+		chunks[i]->GetTerrainMesh()->Render(deviceContext);
 
-		if(!geometryShaderGrass.Render(d3D->GetDeviceContext(),  renderableBundle->terrainChunks[i]->GetTerrainMesh()->GetIndexCount(), &worldMatrix, &worldView, 
+		if(!geometryShaderGrass.Render(d3D->GetDeviceContext(),  chunks[i]->GetTerrainMesh()->GetIndexCount(), &worldMatrix, &worldView, 
 			identityWorldViewProj, textureAndMaterialHandler.GetVegetationTextureArray(), textureAndMaterialHandler.GetMaterialLookupTexture(), 
 			textureAndMaterialHandler.GetWindTexture(), toggleColorMode, farClip, backAndForth))
 		{

@@ -61,7 +61,7 @@ private:
 	XMFLOAT4 currentAmbienceColor;
 	XMFLOAT4 currentDirectionalLightColor;
 
-	vector<StageOfDayStruct> stagesOfDay;
+	std::vector<StageOfDayStruct> stagesOfDay;
 
 	StageOfDay currentStageOfDay, previousFrameStageOfDay;
 	StageOfDayStruct previousStageStruct;

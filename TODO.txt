@@ -2,11 +2,6 @@
 /********************************************************************************/
 /*						TODO AND THINGS OF THAT SORT							*/
 /********************************************************************************/
-
-* Implement the settings library and populate it with everything relevant.
-
-* Make some kind of cleanup function in terrainmanager that removes really far away chunks to keep memory down
-
 * Decide upon a GUI library and implement it
 
 * RTW shadowmapping < Cuz it's fuckin' awesome.
@@ -15,10 +10,8 @@
 	-Should pretty much be finished now, just need to do the lookup-based-on-height thing.
 
 * Water normal texture sliding thing that they do in arma2
-* Skysphere texture mapping!!! Clouds? Stars?
+* Skysphere texture mapping! Clouds? Stars?
 * Shadow&Light manager...?
-* Some sort of XML loader/reader for configs / keybindings / texture&material IDs
-
 
 ======== Idea regarding multithreading the terrain generation =============
 
@@ -41,15 +34,6 @@ Then you use the loaded texture ID to sample from your texture2DArray
 
 ###################################################################
 
-¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤ How to identify separate islands and other parts to make separate meshes out of them ¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
-	
-Simply walk through the entire voxel field, if something is inside==true, we create a vector to contain all of those vertices in a separate vector. 
-Whenever we reach a vertice that isn't inside, it's clear that we have reached the end... 
-
-Alternative would simply be to keep the voxel field after we've created the entire mesh. Every time a collision happens we re-create the mesh.
-
-¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
-
 Rendering and general layout of rendering system:
 http://gamedev.stackexchange.com/questions/22080/which-of-these-directx11-calls-actually-sends-data-to-the-gpu
 http://www.dataorienteddesign.com/dodmain/node14.html
@@ -69,37 +53,3 @@ http://www.gamasutra.com/view/feature/1830/multithreaded_game_engine_.php
 http://www.gamasutra.com/view/feature/2463/threading_3d_game_engine_basics.php
 http://bitsquid.blogspot.se/2010/03/task-management-practical-example.html
 */
-
-/*
-http://stackoverflow.com/questions/86582/singleton-how-should-it-be-used
-http://stackoverflow.com/questions/10892167/proper-implementation-of-global-configuration
-
- * C++ Singleton
- * Limitation: Single Threaded Design
- * See: http://www.aristeia.com/Papers/DDJ_Jul_Aug_2004_revised.pdf
- *      For problems associated with locking in multi threaded applications
- *
- * Limitation:
- * If you use this Singleton (A) within a destructor of another Singleton (B)
- * This Singleton (A) must be fully constructed before the constructor of (B)
- * is called.
- */
-class MySingleton
-{
-	private:
-		// Private Constructor
-		MySingleton();
-		// Stop the compiler generating methods of copy the object
-		MySingleton(MySingleton const& copy);            // Not Implemented
-		MySingleton& operator=(MySingleton const& copy); // Not Implemented
-
-	public:
-		static MySingleton& getInstance()
-		{
-			// The only instance
-			// Guaranteed to be lazy initialized
-			// Guaranteed that it will be destroyed correctly
-			static MySingleton instance;
-			return instance;
-		}
-};

@@ -10,14 +10,14 @@ SamplerState linearSampler;
 struct PixelShaderInput
 {
 	float4 Position : SV_POSITION;
-	float3 Normal :	NORMAL;
-	float4 TexCoord : TEXCOORD;
-	float Opacity : OPACITY;
+	float4 Normal :	TEXCOORD0;
+	float4 TexCoord : TEXCOORD1;
+	//float Opacity : OPACITY;
 };
 
 struct PixelShaderOutput
 {
-	half4 Color : SV_TARGET0; //R8G8B8A8
+	float4 Color : SV_TARGET0; //R8G8B8A8
 	float4 Normal : SV_TARGET1; //R8G8B8A8
 	float Depth : SV_TARGET2; //R32
 };
@@ -44,15 +44,15 @@ float2 Encode(float3 n)
 ////////////////////////////////////////////////////////////////////////////////
 PixelShaderOutput GrassPS(PixelShaderInput input)
 {
-	//Viewspace depth is saved in the .w channel.
-	float depth = input.TexCoord.w;
-
 	PixelShaderOutput output;
-	output.Color = shaderTexture.Sample(linearSampler, input.TexCoord.xyz);// * input.Opacity;
 
-	output.Depth = depth;
+	output.Color = shaderTexture.Sample(linearSampler, input.TexCoord.xyz);// * input.Opacity;
 	
-	output.Normal.xy = Encode(normalize(input.Normal));
+	//Viewspace depth is saved in the .w channel.
+	output.Depth = input.TexCoord.w;
+
+	//Encode normal into .xy channels
+	output.Normal.xy = Encode(normalize(input.Normal.xyz));
 	
 	//This is our material ID. Our normal map is R8G8B8A8, so our z and w channels each have 8 bits == 255 possible values.
 	output.Normal.zw = EncodeMaterialID(4.0f);
