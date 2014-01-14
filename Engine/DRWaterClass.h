@@ -51,7 +51,7 @@ public:
 	void OnSettingsReload(Config* cfg);
 	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, XMMATRIX* worldViewMatrix, XMMATRIX* worldViewProjection, 
 	ID3D11ShaderResourceView** waterTexture, ID3D11ShaderResourceView** offsetNoiseTexture, ID3D11ShaderResourceView** offsetNoiseNormalTexture, 
-	float cameraFarclip, float deltaTime);
+	float deltaTime);
 
 private:
 	bool InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* gsFilename, WCHAR* psFilename);
@@ -60,7 +60,7 @@ private:
 
 	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, XMMATRIX* worldViewMatrix, XMMATRIX* worldViewProjection, 
 	ID3D11ShaderResourceView** waterTexture, ID3D11ShaderResourceView** offsetNoiseTexture, ID3D11ShaderResourceView** offsetNoiseNormalTexture,
-	 float cameraFarclip, float deltaTime);
+	float deltaTime);
 
 	void RenderShader(ID3D11DeviceContext* deviceContext, int indexCount);
 

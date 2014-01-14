@@ -47,11 +47,12 @@ float4 SkyspherePixelShader(PixelInputType input) : SV_TARGET0
 	//After that we put it through a perlin ease curve to make the beginning and the end more extreme
 	
 	float fogMultiplier = 0.0f;
+
 	
 	if(input.DomePositionYAndWorldY.y < 200.0f)
 	{
-		fogMultiplier = max(input.DomePositionYAndWorldY.x-0.2f, 0.0f); //.. Saturate instead of clamp?
-		fogMultiplier += (0.8f - (input.DomePositionYAndWorldY.y/200));
+		fogMultiplier = PerlinEaseCurve(clamp(0.35f-input.DomePositionYAndWorldY.x, 0.0f, 1.0f));
+		fogMultiplier *= (1.0f + 3.0f*(1.0f - (input.DomePositionYAndWorldY.y/200)));
 		
 		fogMultiplier = clamp(fogMultiplier, 0.0f, 1.0f);
 	}

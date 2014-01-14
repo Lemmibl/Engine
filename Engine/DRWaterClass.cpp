@@ -44,12 +44,12 @@ void DRWaterClass::Shutdown()
 }
 
 bool DRWaterClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, XMMATRIX* worldViewMatrix, XMMATRIX* worldViewProjection, 
-	ID3D11ShaderResourceView** waterTexture, ID3D11ShaderResourceView** offsetNoiseTexture, ID3D11ShaderResourceView** offsetNoiseNormalTexture, float farclip, float deltaTime)
+	ID3D11ShaderResourceView** waterTexture, ID3D11ShaderResourceView** offsetNoiseTexture, ID3D11ShaderResourceView** offsetNoiseNormalTexture, float deltaTime)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldMatrix, worldViewMatrix, worldViewProjection, waterTexture, offsetNoiseTexture, offsetNoiseNormalTexture, farclip, deltaTime);
+	result = SetShaderParameters(deviceContext, worldMatrix, worldViewMatrix, worldViewProjection, waterTexture, offsetNoiseTexture, offsetNoiseNormalTexture, deltaTime);
 	if(!result)
 	{
 		return false;
@@ -294,7 +294,7 @@ void DRWaterClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd,
 
 bool DRWaterClass::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, XMMATRIX* worldViewMatrix, 
 	XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** waterTexture, ID3D11ShaderResourceView** offsetNoiseTexture, 
-	ID3D11ShaderResourceView** offsetNoiseNormalTexture, float farclip, float deltaTime)
+	ID3D11ShaderResourceView** offsetNoiseNormalTexture, float deltaTime)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;

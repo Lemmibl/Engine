@@ -5,15 +5,6 @@
 
 DepthOnlyShader::DepthOnlyShader()
 {
-	vertexShader = 0;
-	pixelShader = 0;
-	layout = 0;
-	matrixBuffer = 0;
-}
-
-
-DepthOnlyShader::DepthOnlyShader(const DepthOnlyShader& other)
-{
 }
 
 
@@ -26,6 +17,12 @@ bool DepthOnlyShader::Initialize(ID3D11Device* device, HWND hwnd)
 {
 	bool result;
 
+	//Get settings manager instance and add our function to reload event
+	SettingsManager& settings = SettingsManager::GetInstance();
+	settings.GetEvent()->Add(*this, &DepthOnlyShader::OnSettingsReload);
+
+	//Perhaps slightly hacky, but it saves on rewriting code.
+	OnSettingsReload(&settings.GetConfig());
 
 	// Initialize the vertex and pixel shaders.
 	result = InitializeShader(device, hwnd, L"../Engine/Shaders/DepthOnlyShader.vsh", L"../Engine/Shaders/DepthOnlyShader.psh");
@@ -173,6 +170,21 @@ bool DepthOnlyShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* v
 		return false;
 	}
 
+	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
+	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	matrixBufferDesc.ByteWidth = sizeof(FarClipBuffer);
+	matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	matrixBufferDesc.MiscFlags = 0;
+	matrixBufferDesc.StructureByteStride = 0;
+
+	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+	result = device->CreateBuffer(&matrixBufferDesc, NULL, &farClipBuffer.p);
+	if(FAILED(result))
+	{
+		return false;
+	}
+
 	return true;
 }
 
@@ -251,7 +263,10 @@ bool DepthOnlyShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XM
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	MatrixBufferType* dataPtr;
+	FarClipBuffer* dataPtr2;
 	unsigned int bufferNumber;
+
+	////////////////////////////////////////////////////////////////////////// #1
 
 	// Lock the constant buffer so it can be written to.
 	result = deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -276,6 +291,35 @@ bool DepthOnlyShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XM
 	// Finanly set the constant buffer in the vertex shader with the updated values.
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &matrixBuffer.p);
 
+	////////////////////////////////////////////////////////////////////////// #2
+
+	if(bufferNeedsUpdate)
+	{
+		// Lock the constant buffer so it can be written to.
+		result = deviceContext->Map(farClipBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		if(FAILED(result))
+		{
+			return false;
+		}
+
+		// Get a pointer to the data in the constant buffer.
+		dataPtr2 = (FarClipBuffer*)mappedResource.pData;
+
+		// Copy the matrices into the constant buffer.
+		dataPtr2->farClip = farClip;
+
+		// Unlock the constant buffer.
+		deviceContext->Unmap(farClipBuffer, 0);
+
+		bufferNeedsUpdate = false;
+	}
+
+	// Set the position of the constant buffer in the vertex shader.
+	bufferNumber = 0;
+
+	// Finanly set the constant buffer in the vertex shader with the updated values.
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &farClipBuffer.p);
+
 	return true;
 }
 
@@ -287,10 +331,19 @@ void DepthOnlyShader::RenderShader(ID3D11DeviceContext* deviceContext, int index
 
 	// Set the vertex and pixel shaders that will be used to render this triangle.
 	deviceContext->VSSetShader(vertexShader, NULL, 0);
-	deviceContext->PSSetShader(pixelShader, NULL, 0);//pixelShader
+	deviceContext->PSSetShader(pixelShader, NULL, 0);
 
 	// Render the triangle.
 	deviceContext->DrawIndexed(indexCount, 0, 0);
 
 	return;
+}
+
+void DepthOnlyShader::OnSettingsReload( Config* cfg )
+{
+	bufferNeedsUpdate = true;
+
+	const Setting& settings = cfg->getRoot()["rendering"];
+
+	settings.lookupValue("farClip", farClip);
 }

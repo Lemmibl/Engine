@@ -6,7 +6,7 @@ Renderer::Renderer()
 	xPos = yPos = 0.0f;
 	timeOfDay = 0.0f;
 	timer = 10.0f;
-	backAndForth = 0.0f;
+	textureOffsetDeltaTime = 0.0f;
 
 	toggleTextureShader = false;
 	returning = false;
@@ -314,13 +314,12 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 	bool result;
 
 	timer += seconds;
-
-	backAndForth += seconds;
+	textureOffsetDeltaTime += seconds;
 
 	//Reset every 100 seconds.
-	if(backAndForth >= 100.0f)
+	if(textureOffsetDeltaTime >= 100.0f)
 	{
-		backAndForth = 0.0f;
+		textureOffsetDeltaTime = 0.0f;
 	}
 
 	if(inputManager->WasKeyPressed(DIK_E))
@@ -730,7 +729,7 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 
 	//GBuffer building stage
 	d3D->SetDefaultViewport();
-	depthStencil = d3D->GetDepthStencilView();
+	depthStencil.p = d3D->GetDepthStencilView();
 	deviceContext->OMSetRenderTargets(3, &gbufferRenderTargets[0].p, depthStencil);
 	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
@@ -782,7 +781,7 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 		 chunks[i]->GetTerrainMesh()->Render(deviceContext);
 
 		if(!mcubeShader.Render(d3D->GetDeviceContext(),  chunks[i]->GetTerrainMesh()->GetIndexCount(), &worldMatrix, &worldView, 
-			identityWorldViewProj, textureAndMaterialHandler.GetTerrainTextureArray(), textureAndMaterialHandler.GetMaterialLookupTexture(), toggleColorMode, farClip))
+			identityWorldViewProj, textureAndMaterialHandler.GetTerrainTextureArray(), textureAndMaterialHandler.GetMaterialLookupTexture(), toggleColorMode))
 		{
 			return false;
 		}
@@ -797,7 +796,7 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 
 		if(!waterShader.Render(d3D->GetDeviceContext(),  chunks[i]->GetWaterMesh()->GetIndexCount(), &worldMatrix, &worldView, identityWorldViewProj, 
 			textureAndMaterialHandler.GetVegetationTextureArray(), textureAndMaterialHandler.GetWindTexture(), textureAndMaterialHandler.GetWindNormalMap(), 
-			farClip, backAndForth))
+			textureOffsetDeltaTime))
 		{
 			return false;
 		}
@@ -812,7 +811,7 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 
 		if(!geometryShaderGrass.Render(d3D->GetDeviceContext(),  chunks[i]->GetTerrainMesh()->GetIndexCount(), &worldMatrix, &worldView, 
 			identityWorldViewProj, textureAndMaterialHandler.GetVegetationTextureArray(), textureAndMaterialHandler.GetMaterialLookupTexture(), 
-			textureAndMaterialHandler.GetWindTexture(), toggleColorMode, farClip, backAndForth))
+			textureAndMaterialHandler.GetWindTexture(), toggleColorMode, textureOffsetDeltaTime))
 		{
 			return false;
 		}

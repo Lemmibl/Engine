@@ -146,7 +146,7 @@ private:
 	TextureAndMaterialHandler textureAndMaterialHandler;
 
 	int toggleSSAO, toggleColorMode;
-	float xPos, yPos, backAndForth;
+	float xPos, yPos, textureOffsetDeltaTime;
 
 	XMFLOAT3 camPos, camDir;
 

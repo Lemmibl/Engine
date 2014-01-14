@@ -47,7 +47,7 @@ public:
 	void OnSettingsReload(Config* cfg);
 	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, XMMATRIX* worldViewMatrix, 
 		XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** texIDLookupTexture, 
-		ID3D11ShaderResourceView** windForceTexture, int toggleColor, float cameraFarclip, 	float deltaTime);
+		ID3D11ShaderResourceView** windForceTexture, int toggleColor, float deltaTime);
 
 private:
 	bool InitializeShader(ID3D11Device*, HWND, WCHAR* vsFilename, WCHAR* gsFilename, WCHAR* psFilename);
@@ -56,7 +56,7 @@ private:
 
 	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, XMMATRIX* worldViewMatrix, 
 		XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** texIDLookupTexture, 
-		ID3D11ShaderResourceView** windForceTexture, int toggleColor, float cameraFarclip, 	float deltaTime);
+		ID3D11ShaderResourceView** windForceTexture, int toggleColor, float deltaTime);
 
 	void RenderShader(ID3D11DeviceContext*, int);
 
