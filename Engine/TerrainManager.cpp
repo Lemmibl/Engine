@@ -32,14 +32,14 @@ enum Direction
 };
 
 static const XMFLOAT3 stepSize(2.0f, 2.0f, 2.0f);
-static const XMFLOAT3 stepCount(28.0f, 28.0f, 28.0f);
+static const XMFLOAT3 stepCount(25.0f, 25.0f, 25.0f);
 
 TerrainManager::TerrainManager(ID3D11Device* device, ID3D11DeviceContext* deviceContext, std::shared_ptr<btDiscreteDynamicsWorld> collisionWorld, HWND hwnd, XMFLOAT3 cameraPosition)
 	:	marchingCubes((int)stepCount.x, (int)stepCount.y, (int)stepCount.z)
 {
 	timePassed = 0.0f;
 	timeThreshold = 10.0f;
-	rangeThreshold = 800.0f;
+	rangeThreshold = 1000.0f;
 
 	map = std::make_shared<std::unordered_map<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>, int_pair_hash>>();
 	collisionHandler = collisionWorld;
@@ -50,9 +50,10 @@ TerrainManager::TerrainManager(ID3D11Device* device, ID3D11DeviceContext* device
 	lastMin = std::make_pair<int, int>(-99, -99);
 	lastMax = std::make_pair<int, int>(99, 99);
 
+	//Very powerful black magic going on here. Do not disturb.
 	stepScaling = (stepSize.x*(stepCount.x-3)) / 5000;
 
-	TerrainNoiseSeeder::TerrainTypes terrainType = TerrainNoiseSeeder::TerrainTypes::Plains;//(MCTerrainClass::TerrainTypes)(1 + rand()%8); //
+	TerrainNoiseSeeder::TerrainTypes terrainType = TerrainNoiseSeeder::TerrainTypes::Cave;//(MCTerrainClass::TerrainTypes)(1 + rand()%8); //
 
 	mcTerrain.Initialize((int)stepCount.x, (int)stepCount.y, (int)stepCount.z, &noise, terrainType);
 

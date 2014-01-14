@@ -8,7 +8,7 @@
 #include "d3dmanager.h"
 #include "cameraclass.h"
 #include "frustumclass.h"
-#include "Renderer.h"
+#include "WorldRenderer.h"
 #include "Lemmi2DAABB.h"
 #include "MeshHandler.h"
 #include "SettingsManager.h"
@@ -27,7 +27,7 @@ public:
 	void Update(float deltaTimeSeconds, float deltaTimeMilliseconds);
 	void OnSettingsReload(Config* cfg);
 
-	Renderer::RenderableBundle* GetRenderableBundle() {  return &renderableBundle; };
+	WorldRenderer::RenderableBundle* GetRenderableBundle() {  return &renderableBundle; };
 	std::shared_ptr<CameraClass> GetCamera() { return camera; }
 
 private:
@@ -60,7 +60,7 @@ private:
 
 	//Rendering
 	MeshHandler meshHandler;
-	Renderer::RenderableBundle renderableBundle;
+	WorldRenderer::RenderableBundle renderableBundle;
 	int screenWidth, screenHeight;
 	float nearClip, farClip;
 

@@ -32,7 +32,7 @@ const float SCREEN_NEAR = 2.0f;
 ///////////////////////
 #include <btBulletDynamicsCommon.h>
 #include "inputclass.h"
-#include "Renderer.h"
+#include "WorldRenderer.h"
 #include "fpsmeter.h"
 #include "cpumeter.h"
 #include "timerclass.h"
@@ -70,14 +70,14 @@ private:
 
 	std::shared_ptr<D3DManager> d3D;
 	std::shared_ptr<InputClass> input;
-	std::shared_ptr<ControllerClass> cameraController;
-	std::shared_ptr<CameraClass> camera;
-
-	World world;
-	Renderer renderer;
 	FpsMeter fpsMeter;
 	CpuMeter cpuMeter;
 	TimerClass timer;
+
+	std::shared_ptr<ControllerClass> cameraController;
+	std::shared_ptr<CameraClass> camera;
+	World world;
+	WorldRenderer renderer;
 
 	float rotationalValue;
 	int screenWidth, screenHeight;

@@ -60,9 +60,10 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, VS_OUTPUT v3, inout TriangleStream<PS_
 { 
 	//Sum up random values to decide if we want to draw grass here.
 	float randSum = v2.YPosDepthAndRand.z + v1.YPosDepthAndRand.z;
-	
+	float opacity = (1.0f - (v1.YPosDepthAndRand.y / vegetationFalloff));
+
 	//Skip if random sum is too low. It's a crude way to make empty patches appear, as opposed to vegetation EVERYWHERE. TODO: Density maps..?
-	if(randSum <= 1.15f)
+	if(randSum <= 1.15f && opacity >= 0.1f)
 	{
 		//Allocate four output values
 		PS_INPUT output[4];
@@ -75,11 +76,10 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, VS_OUTPUT v3, inout TriangleStream<PS_
 
 		//Randomizing the ground positions
 		float4 pos1 = v2.Position + float4(rand.x*0.5f, 0.0f, rand.y*0.5f, 0.0f); //Add a tiny offset to make placement of grass seem more random.
-		float4 pos2 = v1.Position + ((v2.YPosDepthAndRand.z * 2.0f) * (normalize(v3.Position - v2.Position)));	//+ float4(rand.x, 0.0f, rand.y, 0.0f);
+		float4 pos2 = v1.Position + ((rand.y) * (normalize(v3.Position - v2.Position)));	//+ float4(rand.x, 0.0f, rand.y, 0.0f);
 		pos1.w = pos2.w = 1.0f;
 
-		float opacity = (1.0f - (v1.YPosDepthAndRand.y / vegetationFalloff));
-		float height = (vegetationScale * opacity);
+		float height = ((vegetationScale+(rand.x)) * opacity);
 
 		//This is the normal that we use to offset the upper vertices of the quad, as to angle it slightly. 
 		//Height is of course used to control how high the quad will be.

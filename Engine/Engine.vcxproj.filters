@@ -88,16 +88,10 @@
     <ClCompile Include="SkySphere.cpp">
       <Filter>Rendering\Objects</Filter>
     </ClCompile>
-    <ClCompile Include="modellistclass.cpp">
-      <Filter>Rendering\Objects</Filter>
-    </ClCompile>
     <ClCompile Include="modelclass.cpp">
       <Filter>Rendering\Objects</Filter>
     </ClCompile>
     <ClCompile Include="TerrainManager.cpp">
-      <Filter>Procedural generation</Filter>
-    </ClCompile>
-    <ClCompile Include="MarchingCubeChunk.cpp">
       <Filter>Procedural generation</Filter>
     </ClCompile>
     <ClCompile Include="IndexedMesh.cpp">
@@ -180,7 +174,10 @@
     </ClCompile>
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="WorldRenderer.cpp" />
+    <ClCompile Include="MarchingCubeChunk.cpp">
+      <Filter>Procedural generation\MC</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cpumeter.h">
@@ -282,9 +279,6 @@
     <ClInclude Include="SkySphere.h">
       <Filter>Rendering\Objects</Filter>
     </ClInclude>
-    <ClInclude Include="modellistclass.h">
-      <Filter>Rendering\Objects</Filter>
-    </ClInclude>
     <ClInclude Include="modelclass.h">
       <Filter>Rendering\Objects</Filter>
     </ClInclude>
@@ -292,9 +286,6 @@
       <Filter>Procedural generation\MC</Filter>
     </ClInclude>
     <ClInclude Include="TerrainManager.h">
-      <Filter>Procedural generation</Filter>
-    </ClInclude>
-    <ClInclude Include="MarchingCubeChunk.h">
       <Filter>Procedural generation</Filter>
     </ClInclude>
     <ClInclude Include="RenderableInterface.h">
@@ -378,8 +369,11 @@
     <ClInclude Include="SentenceManager.h">
       <Filter>Rendering\Managers</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer.h" />
     <ClInclude Include="Engine.h" />
+    <ClInclude Include="WorldRenderer.h" />
+    <ClInclude Include="MarchingCubeChunk.h">
+      <Filter>Procedural generation\MC</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader-error.txt" />

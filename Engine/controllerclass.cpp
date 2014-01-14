@@ -250,19 +250,20 @@ void ControllerClass::OnSettingsReload(Config* cfg)
 {
 	const Setting& settings = cfg->getRoot()["camera"];
 
-	float positionX = 0.0; 
-	float positionY = 50.0;
-	float positionZ = 0.0;
+	//Just initialize the variables to some value in case reading from settings file fails.
+	float positionX = 0.0f; 
+	float positionY = 50.0f;
+	float positionZ = 0.0f;
 
-	float collisionRadius = 2.5;
-	float mass = 1.0;
+	float collisionRadius = 2.5f;
+	float mass = 1.0f;
 
-	float restitution = 0.0;
-	float friction = 10.0;
-	float anisotropicFriction = 2.0;
+	float restitution = 0.0f;
+	float friction = 10.0f;
+	float anisotropicFriction = 2.0f;
 
-	float linearDamping = 0.8; 
-	float angularDamping = 5.0;
+	float linearDamping = 0.8f; 
+	float angularDamping = 5.0f;
 
 	settings.lookupValue("positionX", positionX);
 	settings.lookupValue("positionY", positionY);

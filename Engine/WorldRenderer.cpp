@@ -1,6 +1,6 @@
-#include "Renderer.h"
+#include "WorldRenderer.h"
 
-Renderer::Renderer()
+WorldRenderer::WorldRenderer()
 : noise()
 {
 	xPos = yPos = 0.0f;
@@ -16,17 +16,17 @@ Renderer::Renderer()
 }
 
 
-Renderer::Renderer(const Renderer& other)
+WorldRenderer::WorldRenderer(const WorldRenderer& other)
 {
 }
 
 
-Renderer::~Renderer()
+WorldRenderer::~WorldRenderer()
 {
 }
 
 
-bool Renderer::Initialize(HWND hwnd, std::shared_ptr<CameraClass> camera, std::shared_ptr<InputClass> inputManager, std::shared_ptr<D3DManager> d3D, UINT screenWidth, 
+bool WorldRenderer::Initialize(HWND hwnd, std::shared_ptr<CameraClass> camera, std::shared_ptr<InputClass> inputManager, std::shared_ptr<D3DManager> d3D, UINT screenWidth, 
 	UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear, bool toggleDebug)
 {
 	bool result;
@@ -50,7 +50,7 @@ bool Renderer::Initialize(HWND hwnd, std::shared_ptr<CameraClass> camera, std::s
 
 	//Get settings manager instance and add our function to reload event
 	SettingsManager& settings = SettingsManager::GetInstance();
-	settings.GetEvent()->Add(*this, (&Renderer::OnSettingsReload));
+	settings.GetEvent()->Add(*this, (&WorldRenderer::OnSettingsReload));
 
 	//Perhaps slightly hacky, but it saves on rewriting code.
 	OnSettingsReload(&settings.GetConfig());
@@ -88,7 +88,7 @@ bool Renderer::Initialize(HWND hwnd, std::shared_ptr<CameraClass> camera, std::s
 }
 
 
-bool Renderer::InitializeShaders( HWND hwnd )
+bool WorldRenderer::InitializeShaders( HWND hwnd )
 {
 	bool result;
 
@@ -172,7 +172,7 @@ bool Renderer::InitializeShaders( HWND hwnd )
 }
 
 
-bool Renderer::InitializeLights( HWND hwnd )
+bool WorldRenderer::InitializeLights( HWND hwnd )
 {
 	bool result;
 
@@ -253,7 +253,7 @@ bool Renderer::InitializeLights( HWND hwnd )
 }
 
 
-bool Renderer::InitializeModels( HWND hwnd )
+bool WorldRenderer::InitializeModels( HWND hwnd )
 {
 	bool result;
 
@@ -269,7 +269,7 @@ bool Renderer::InitializeModels( HWND hwnd )
 }
 
 
-bool Renderer::InitializeEverythingElse( HWND hwnd )
+bool WorldRenderer::InitializeEverythingElse( HWND hwnd )
 {
 	bool result;
 
@@ -309,7 +309,7 @@ bool Renderer::InitializeEverythingElse( HWND hwnd )
 }
 
 
-bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float seconds)
+bool WorldRenderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float seconds)
 {
 	bool result;
 
@@ -524,7 +524,7 @@ bool Renderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float second
 }
 
 
-void Renderer::InitializeRenderTargets()
+void WorldRenderer::InitializeRenderTargets()
 {
 	shadowDepthStencil = d3D->GetShadowmapDSV();
 
@@ -563,7 +563,7 @@ void Renderer::InitializeRenderTargets()
 }
 
 
-bool Renderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
+bool WorldRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 {
 	// Clear the scene.
 	d3D->BeginScene(0.1f, 0.1f, 0.45f, 0.0f);
@@ -660,7 +660,7 @@ bool Renderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 }
 
 
-bool Renderer::RenderShadowmap( ID3D11DeviceContext* deviceContext, XMMATRIX* lightWorldViewProj, XMMATRIX* lightWorldView, RenderableBundle* renderableBundle)
+bool WorldRenderer::RenderShadowmap( ID3D11DeviceContext* deviceContext, XMMATRIX* lightWorldViewProj, XMMATRIX* lightWorldView, RenderableBundle* renderableBundle)
 {
 	//Early depth pass for shadowmap
 	deviceContext->OMSetRenderTargets(1, &shadowTarget[0].p, shadowDepthStencil);
@@ -685,7 +685,7 @@ bool Renderer::RenderShadowmap( ID3D11DeviceContext* deviceContext, XMMATRIX* li
 
 
 //TODO: change this function to just take two generic render targets and a depth stencil, as to make it possible to blur anything
-bool Renderer::RenderTwoPassGaussianBlur(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj )
+bool WorldRenderer::RenderTwoPassGaussianBlur(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj )
 {
 	//Shadow map blur stage
 	//Change render target to prepare for ping-ponging
@@ -723,7 +723,7 @@ bool Renderer::RenderTwoPassGaussianBlur(ID3D11DeviceContext* deviceContext, XMM
 }
 
 
-bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, XMMATRIX* identityWorldViewProj, RenderableBundle* renderableBundle)
+bool WorldRenderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, XMMATRIX* identityWorldViewProj, RenderableBundle* renderableBundle)
 {
 	XMMATRIX worldViewProjMatrix, worldMatrix, worldView, view, proj;
 
@@ -824,7 +824,7 @@ bool Renderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewM
 }
 
 
-bool Renderer::RenderPointLight( ID3D11DeviceContext* deviceContext, XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* viewProjection )
+bool WorldRenderer::RenderPointLight( ID3D11DeviceContext* deviceContext, XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* viewProjection )
 {
 	XMMATRIX world, worldView, worldViewProj;
 
@@ -883,7 +883,7 @@ bool Renderer::RenderPointLight( ID3D11DeviceContext* deviceContext, XMMATRIX* v
 }
 
 
-bool Renderer::RenderDirectionalLight( ID3D11DeviceContext* deviceContext, XMMATRIX* viewMatrix, XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* lightView, XMMATRIX* lightProj, XMMATRIX* invertedProjection )
+bool WorldRenderer::RenderDirectionalLight( ID3D11DeviceContext* deviceContext, XMMATRIX* viewMatrix, XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* lightView, XMMATRIX* lightProj, XMMATRIX* invertedProjection )
 {
 	XMMATRIX worldMatrix, worldView, invertedWorldView, invertedView;
 
@@ -919,7 +919,7 @@ bool Renderer::RenderDirectionalLight( ID3D11DeviceContext* deviceContext, XMMAT
 	return true;
 }
 
-bool Renderer::RenderComposedScene(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* worldView, XMMATRIX* view, XMMATRIX* invertedProjection, XMMATRIX* invertedViewProjection )
+bool WorldRenderer::RenderComposedScene(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* worldView, XMMATRIX* view, XMMATRIX* invertedProjection, XMMATRIX* invertedViewProjection )
 {
 	//Render final composed scene that is the sum of all the previous scene
 	d3D->SetBackBufferRenderTarget();
@@ -935,7 +935,7 @@ bool Renderer::RenderComposedScene(ID3D11DeviceContext* deviceContext, XMMATRIX*
 }
 
 
-bool Renderer::RenderGUI(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj )
+bool WorldRenderer::RenderGUI(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj )
 {
 	XMMATRIX worldMatrix;
 
@@ -1029,12 +1029,12 @@ bool Renderer::RenderGUI(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBase
 }
 
 
-void Renderer::Shutdown()
+void WorldRenderer::Shutdown()
 {
 	return;
 }
 
-void Renderer::OnSettingsReload(Config* cfg)
+void WorldRenderer::OnSettingsReload(Config* cfg)
 {
 	const Setting& settings = cfg->getRoot()["rendering"];
 

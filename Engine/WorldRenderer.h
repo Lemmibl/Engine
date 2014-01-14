@@ -56,7 +56,7 @@
 #include "DRWaterClass.h"
 #include "DRGBuffer.h"
 
-class Renderer
+class WorldRenderer
 {
 public:
 
@@ -75,9 +75,9 @@ public:
 	};
 
 public:
-	Renderer();
-	Renderer(const Renderer&);
-	~Renderer();
+	WorldRenderer();
+	WorldRenderer(const WorldRenderer&);
+	~WorldRenderer();
 
 	bool Initialize(HWND hwnd, std::shared_ptr<CameraClass> camera, std::shared_ptr<InputClass> inputManager, std::shared_ptr<D3DManager> d3D, UINT screenWidth, 
 		UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear, bool toggleDebug);

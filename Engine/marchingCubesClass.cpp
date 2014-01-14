@@ -478,7 +478,7 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 				triIndex++;
 
 				//Some if checks to cut away the extreme edges on the bottom and sides to remove LOTS of unnecessary triangles
-				if(indexX > 0 && indexZ > 0 && indexX < sizeX-2 && indexZ < sizeZ-2 && indexY >= 1)
+				if(indexX > 0 && indexZ > 0 && indexX < sizeX-1 && indexZ < sizeZ-1 && indexY >= 1)
 				{	
 					MarchingCubeVectors temp;
 					temp.position = XMFLOAT4(verts[tritableLookupValue].position.x, verts[tritableLookupValue].position.y, verts[tritableLookupValue].position.z, RandomFloat());
@@ -593,9 +593,9 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 					index = (int)(x + (z * stepsX));
 
 					//Offset each position with a magic number to make sure there are no seams between the different water meshes.
-					vertices[index].x = (minPos.x + x-(x*0.0908f)); //0.0475f
+					vertices[index].x = (minPos.x + x); //0.0475f -(x*0.115f)
 					vertices[index].y = waterLevel;
-					vertices[index].z = (minPos.y + z-(z*0.0908f));
+					vertices[index].z = (minPos.y + z); //0.00908 -(z*0.115f)
 				}
 			}
 
