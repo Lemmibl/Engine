@@ -2,7 +2,11 @@
 /********************************************************************************/
 /*						TODO AND THINGS OF THAT SORT							*/
 /********************************************************************************/
+* Send windvector to grass and water shaders
+
 * Decide upon a GUI library and implement it
+
+* Spotlight shader
 
 * RTW shadowmapping < Cuz it's fuckin' awesome.
 
@@ -26,7 +30,7 @@ Can I call the same function with several threads? Or just use one separate thre
 ########## Idea regarding vegetation lookup table ##################
 
 First you have a lookup texture, a 1DTextureArray that has the same amount of textures as you have height in the world. You index into this texture array with the grassquad's worldPos.Y
-Each texture has the first pixel allocated to the amount of textures there are. So you read the first pixel value to know how many textures there are in this texture.
+Each texture has the first pixel allocated to the amount of textures ID there are for this height. So you read the first pixel value to know how many textures there are in this texture.
 Then, when you know how many textures there are, you randomly select which texture you want to use. And then Load(1+(RandomVal*AmountOfTextures)). 
 1+ because you don't want to use the first pixel in the texture.
 

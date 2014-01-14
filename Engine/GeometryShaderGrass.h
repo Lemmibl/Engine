@@ -24,6 +24,7 @@ private:
 		XMMATRIX World;
 		XMMATRIX WorldViewProjection;
 		float DeltaTime;
+		XMFLOAT3 WindDirection;
 	};
 
 	struct VariableBuffer
@@ -45,9 +46,9 @@ public:
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
 	void OnSettingsReload(Config* cfg);
-	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, XMMATRIX* worldViewMatrix, 
-		XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** texIDLookupTexture, 
-		ID3D11ShaderResourceView** windForceTexture, int toggleColor, float deltaTime);
+	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, XMMATRIX* worldViewMatrix, XMMATRIX* worldViewProjection, 
+	ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** texIDLookupTexture, ID3D11ShaderResourceView** windForceTexture, int toggleColor, 
+	float deltaTime, XMFLOAT3* windDirection);
 
 private:
 	bool InitializeShader(ID3D11Device*, HWND, WCHAR* vsFilename, WCHAR* gsFilename, WCHAR* psFilename);
@@ -56,7 +57,7 @@ private:
 
 	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, XMMATRIX* worldViewMatrix, 
 		XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** texIDLookupTexture, 
-		ID3D11ShaderResourceView** windForceTexture, int toggleColor, float deltaTime);
+		ID3D11ShaderResourceView** windForceTexture, int toggleColor, float deltaTime, XMFLOAT3* windDirection);
 
 	void RenderShader(ID3D11DeviceContext*, int);
 

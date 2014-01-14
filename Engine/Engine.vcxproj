@@ -31,8 +31,6 @@
     <ClCompile Include="GeometryShaderGrass.cpp" />
     <ClCompile Include="IndexedInstancedMesh.cpp" />
     <ClCompile Include="Lemmi3DAABB.h" />
-    <ClCompile Include="LemmiEntity.cpp" />
-    <ClCompile Include="LemmiGridTable.cpp" />
     <ClCompile Include="LemmiQuadtree.h" />
     <ClCompile Include="LerpInstance.cpp" />
     <ClCompile Include="IndexedMesh.cpp" />
@@ -99,9 +97,6 @@
     <ClInclude Include="GeometryShaderGrass.h" />
     <ClInclude Include="interfacepointers.h" />
     <ClInclude Include="Lemmi2DAABB.h" />
-    <ClInclude Include="LemmiEntity.h" />
-    <ClInclude Include="LemmiGridTable.h" />
-    <ClInclude Include="LemmiLinkedList.h" />
     <ClInclude Include="LerpInstance.h" />
     <ClInclude Include="IndexedMesh.h" />
     <ClInclude Include="SchladetschEvents.h" />

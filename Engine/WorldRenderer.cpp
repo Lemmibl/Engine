@@ -309,12 +309,13 @@ bool WorldRenderer::InitializeEverythingElse( HWND hwnd )
 }
 
 
-bool WorldRenderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float seconds)
+bool WorldRenderer::Update( HWND hwnd, int fps, int cpuPercentage, float millisecondDeltaTime, float secondDeltaTime, XMFLOAT3* windDirection )
 {
 	bool result;
 
-	timer += seconds;
-	textureOffsetDeltaTime += seconds;
+	timer += secondDeltaTime;
+	textureOffsetDeltaTime += secondDeltaTime;
+	windDir = *windDirection;
 
 	//Reset every 100 seconds.
 	if(textureOffsetDeltaTime >= 100.0f)
@@ -338,7 +339,7 @@ bool WorldRenderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float s
 		return false;
 	}
 
-	result = text->SetCpu(cpu, d3D->GetDeviceContext());
+	result = text->SetCpu(cpuPercentage, d3D->GetDeviceContext());
 	if(!result)
 	{
 		return false;
@@ -365,7 +366,7 @@ bool WorldRenderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float s
 
 		for(int i = 0; i < (int)(pointLights.size()); i++)
 		{
-			pointLights[i].Position.y += frameTime*0.01f;
+			pointLights[i].Position.y += millisecondDeltaTime*0.01f;
 
 			XMStoreFloat4x4(&pointLights[i].World, (tempScale*XMMatrixTranslation(pointLights[i].Position.x, pointLights[i].Position.y, pointLights[i].Position.z)));
 		}
@@ -378,7 +379,7 @@ bool WorldRenderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float s
 
 		for(int i = 0; i < (int)(pointLights.size()); i++)
 		{
-			pointLights[i].Position.y -= frameTime*0.01f;
+			pointLights[i].Position.y -= millisecondDeltaTime*0.01f;
 
 			XMStoreFloat4x4(&pointLights[i].World, (tempScale*XMMatrixTranslation(pointLights[i].Position.x, pointLights[i].Position.y, pointLights[i].Position.z)));
 		}
@@ -454,7 +455,7 @@ bool WorldRenderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float s
 	//Speed up the change of day
 	if(inputManager->IsKeyPressed(DIK_1))
 	{
-		seconds = timeOfDay += frameTime;
+		secondDeltaTime += (millisecondDeltaTime);
 	}
 
 	//Toggle the coloring mode of materials
@@ -511,7 +512,7 @@ bool WorldRenderer::Update(HWND hwnd, int fps, int cpu, float frameTime, float s
 #pragma endregion
 
 
-	timeOfDay = dayNightCycle.Update(seconds, &dirLight, &skySphere);
+	timeOfDay = dayNightCycle.Update(secondDeltaTime, &dirLight, &skySphere);
 
 	XMVECTOR lookAt = XMLoadFloat3(&camera->GetPosition());//XMVectorSet(30.0f, 20.0f, 30.0f, 1.0f);//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition())+(camera->ForwardVector()*30.0f);//XMLoadFloat3(&camera->GetPosition());//
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
@@ -796,7 +797,7 @@ bool WorldRenderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* 
 
 		if(!waterShader.Render(d3D->GetDeviceContext(),  chunks[i]->GetWaterMesh()->GetIndexCount(), &worldMatrix, &worldView, identityWorldViewProj, 
 			textureAndMaterialHandler.GetVegetationTextureArray(), textureAndMaterialHandler.GetWindTexture(), textureAndMaterialHandler.GetWindNormalMap(), 
-			textureOffsetDeltaTime))
+			textureOffsetDeltaTime, &windDir))
 		{
 			return false;
 		}
@@ -811,7 +812,7 @@ bool WorldRenderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* 
 
 		if(!geometryShaderGrass.Render(d3D->GetDeviceContext(),  chunks[i]->GetTerrainMesh()->GetIndexCount(), &worldMatrix, &worldView, 
 			identityWorldViewProj, textureAndMaterialHandler.GetVegetationTextureArray(), textureAndMaterialHandler.GetMaterialLookupTexture(), 
-			textureAndMaterialHandler.GetWindTexture(), toggleColorMode, textureOffsetDeltaTime))
+			textureAndMaterialHandler.GetWindTexture(), toggleColorMode, textureOffsetDeltaTime, &windDir))
 		{
 			return false;
 		}

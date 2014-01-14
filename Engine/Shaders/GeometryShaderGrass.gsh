@@ -6,6 +6,7 @@ cbuffer MatrixBuffer
 	float4x4 World : packoffset(c0);
 	float4x4 WorldViewProjection : packoffset(c4);
 	float DeltaTime : packoffset(c8.x);
+	float3 WindDirection : packoffset(c8.y);
 };
 
 cbuffer VariableBuffer
@@ -60,10 +61,9 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, VS_OUTPUT v3, inout TriangleStream<PS_
 { 
 	//Sum up random values to decide if we want to draw grass here.
 	float randSum = v2.YPosDepthAndRand.z + v1.YPosDepthAndRand.z;
-	float opacity = (1.0f - (v1.YPosDepthAndRand.y / vegetationFalloff));
-
+	
 	//Skip if random sum is too low. It's a crude way to make empty patches appear, as opposed to vegetation EVERYWHERE. TODO: Density maps..?
-	if(randSum <= 1.15f && opacity >= 0.1f)
+	if(randSum <= 1.15f)
 	{
 		//Allocate four output values
 		PS_INPUT output[4];
@@ -79,6 +79,7 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, VS_OUTPUT v3, inout TriangleStream<PS_
 		float4 pos2 = v1.Position + ((rand.y) * (normalize(v3.Position - v2.Position)));	//+ float4(rand.x, 0.0f, rand.y, 0.0f);
 		pos1.w = pos2.w = 1.0f;
 
+		float opacity = (1.0f - (v1.YPosDepthAndRand.y / vegetationFalloff));
 		float height = ((vegetationScale+(rand.x)) * opacity);
 
 		//This is the normal that we use to offset the upper vertices of the quad, as to angle it slightly. 
@@ -86,13 +87,13 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, VS_OUTPUT v3, inout TriangleStream<PS_
 		float4 randomizedNormal = float4(rand.x*0.2f, height, rand.y*0.2f, 0.0f);
 
 		//If the grass is close enough to the camera, add wind. Just pointless to add a bunch of wind to grass that is too far away to be seen properly.
-		if(v1.YPosDepthAndRand.y < (vegetationFalloff*0.3f))
+		if(v1.YPosDepthAndRand.y < (vegetationFalloff*0.4f))
 		{
 			//TODO: Replace this with an external windDirection in a constant buffer
-			float4 WindDirection = normalize(float4(-0.7f+(rand.x*0.3f), 0.0f, -0.4f+(rand.y*0.3f), 0.0f));
+			//float4 WindDirection = normalize(float4(-0.7f+(rand.x*0.3f), 0.0f, -0.4f+(rand.y*0.3f), 0.0f));
 
 			//Add wind direction to our already randomized normal. This value will be 
-			randomizedNormal += (WindDirection * (forceScale * LoadWindPowerValue((v1.Position.xz*waveLength) + (traversalSpeed*DeltaTime))));
+			randomizedNormal.xyz += (WindDirection * (forceScale * LoadWindPowerValue((v1.Position.xz*waveLength) + (traversalSpeed*DeltaTime))));
 			randomizedNormal.w = 0.0f;
 		}
 

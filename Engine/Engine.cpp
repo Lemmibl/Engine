@@ -157,7 +157,7 @@ bool Engine::Update()
 	world.Update(timer.GetFrameTimeSeconds(), timer.GetFrameTimeMilliseconds());
 
 	// Do update renderer.
-	result = renderer.Update(hwnd, fpsMeter.GetFps(), cpuMeter.GetCpuPercentage(), timer.GetFrameTimeMilliseconds(), timer.GetFrameTimeSeconds());
+	result = renderer.Update(hwnd, fpsMeter.GetFps(), cpuMeter.GetCpuPercentage(), timer.GetFrameTimeMilliseconds(), timer.GetFrameTimeSeconds(), world.GetWindDirection());
 	if(!result)
 	{
 		return false;

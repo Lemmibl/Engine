@@ -91,7 +91,7 @@ public:
 	void OnSettingsReload(Config* cfg);
 	void Shutdown();
 
-	bool Update(HWND hwnd, int, int, float, float seconds);
+	bool Update(HWND hwnd, int fps, int cpuPercentage, float millisecondDeltaTime, float secondDeltaTime, XMFLOAT3* windDirection);
 	bool Render(HWND hwnd, RenderableBundle* renderableBundle);
 
 	bool RenderShadowmap(ID3D11DeviceContext* deviceContext, XMMATRIX* lightWorldViewProj, XMMATRIX* lightWorldView, RenderableBundle* renderableBundle);
@@ -148,7 +148,7 @@ private:
 	int toggleSSAO, toggleColorMode;
 	float xPos, yPos, textureOffsetDeltaTime;
 
-	XMFLOAT3 camPos, camDir;
+	XMFLOAT3 camPos, camDir, windDir;
 
 	RenderTarget2D colorRT; // render target for storing color. 8R 8G 8B 8A. stores specular intensity in alpha value.
 	RenderTarget2D depthRT; // render target for storing depth. it's a R16 G16 because we use variance shadowmapping

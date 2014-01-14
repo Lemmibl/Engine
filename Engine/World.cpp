@@ -1,7 +1,7 @@
 #include "World.h"
 
 World::World()
-	:	frustum(), renderableBundle(), frustumAABB(XMFLOAT2(-1, -1), XMFLOAT2(1, 1))
+	:	frustum(), renderableBundle(), frustumAABB(XMFLOAT2(-1, -1), XMFLOAT2(1, 1)), weatherSystem()
 {
 }
 
@@ -80,6 +80,8 @@ void World::Update( float deltaTimeSeconds, float deltaTimeMilliseconds )
 {
 	//Advance bullet world simulation stepping
 	dynamicsWorld->stepSimulation(bulletTimestepScale, maxSubSteps);
+
+	weatherSystem.Update(deltaTimeSeconds);
 
 	cameraController->Update(deltaTimeMilliseconds, camera->GetWorldMatrix()); //Processes all of the movement for this controller.
 	camera->Update();

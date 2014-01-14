@@ -67,9 +67,9 @@ private:
 		////Normalize the normal
 		float vectorlength = sqrt((v.normal.x*v.normal.x) + (v.normal.y*v.normal.y) + (v.normal.z*v.normal.z));
 
-		v.normal.x /= vectorlength;
-		v.normal.y /= vectorlength;
-		v.normal.z /= vectorlength;
+		v.normal.x = v.normal.x / vectorlength;
+		v.normal.y = v.normal.y / vectorlength;
+		v.normal.z = v.normal.z / vectorlength;
 
 		return v;
 	}

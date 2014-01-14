@@ -43,13 +43,14 @@ void DRWaterClass::Shutdown()
 	return;
 }
 
-bool DRWaterClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, XMMATRIX* worldViewMatrix, XMMATRIX* worldViewProjection, 
-	ID3D11ShaderResourceView** waterTexture, ID3D11ShaderResourceView** offsetNoiseTexture, ID3D11ShaderResourceView** offsetNoiseNormalTexture, float deltaTime)
+bool DRWaterClass::Render( ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, XMMATRIX* worldViewMatrix, XMMATRIX* worldViewProjection, 
+							ID3D11ShaderResourceView** waterTexture, ID3D11ShaderResourceView** offsetNoiseTexture, 
+							ID3D11ShaderResourceView** offsetNoiseNormalTexture, float deltaTime, XMFLOAT3* windDirection )
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldMatrix, worldViewMatrix, worldViewProjection, waterTexture, offsetNoiseTexture, offsetNoiseNormalTexture, deltaTime);
+	result = SetShaderParameters(deviceContext, worldMatrix, worldViewMatrix, worldViewProjection, waterTexture, offsetNoiseTexture, offsetNoiseNormalTexture, deltaTime, windDirection);
 	if(!result)
 	{
 		return false;
@@ -221,7 +222,7 @@ bool DRWaterClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFi
 	matrixBufferDesc.StructureByteStride = 0;
 
 	// Create the matrix constant buffer pointer so we can access the vertex shader constant buffer from within this class.
-	result = device->CreateBuffer(&matrixBufferDesc, NULL, &timeBuffer);
+	result = device->CreateBuffer(&matrixBufferDesc, NULL, &variableBuffer);
 	if(FAILED(result))
 	{
 		return false;
@@ -294,7 +295,7 @@ void DRWaterClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd,
 
 bool DRWaterClass::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, XMMATRIX* worldViewMatrix, 
 	XMMATRIX* worldViewProjection, ID3D11ShaderResourceView** waterTexture, ID3D11ShaderResourceView** offsetNoiseTexture, 
-	ID3D11ShaderResourceView** offsetNoiseNormalTexture, float deltaTime)
+	ID3D11ShaderResourceView** offsetNoiseNormalTexture, float deltaTime, XMFLOAT3* windDirection)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -332,7 +333,7 @@ bool DRWaterClass::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMA
 	////////////////////////////////////////////////////////////////////////// #2
 
 	// Lock the matrix constant buffer so it can be written to.
-	result = deviceContext->Map(timeBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	result = deviceContext->Map(variableBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if(FAILED(result))
 	{
 		return false;
@@ -347,17 +348,17 @@ bool DRWaterClass::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMA
 	dataPtr2->farClip 					= variables.farClip;
 	dataPtr2->heightScaling				= variables.heightScaling;
 	dataPtr2->positionSamplingOffset	= variables.positionSamplingOffset;
-	dataPtr2->samplingDirection			= variables.samplingDirection;
+	dataPtr2->windDirection				= *windDirection;
 	dataPtr2->timeScaling				= variables.timeScaling;
 
 	// Unlock the matrix constant buffer.
-	deviceContext->Unmap(timeBuffer, 0);
+	deviceContext->Unmap(variableBuffer, 0);
 
 	// Set the position of the matrix constant buffer in the pixel sh§ader.
 	bufferNumber = 0;
 
 	// Now set the matrix constant buffer in the vertex shader with the updated values.
-	deviceContext->GSSetConstantBuffers(bufferNumber, 1, &timeBuffer.p);
+	deviceContext->GSSetConstantBuffers(bufferNumber, 1, &variableBuffer.p);
 
 	////////////////////////////////////////////////////////////////////////// #3
 
@@ -426,8 +427,6 @@ void DRWaterClass::OnSettingsReload(Config* cfg)
 	bufferNeedsUpdating = true;
 
 	variables.positionSamplingOffset	= 0.2;
-	variables.samplingDirection.x		= 0.8;
-	variables.samplingDirection.y		= 0.2;
 	variables.heightScaling				= 0.3;
 	variables.timeScaling				= 0.2;
 	waterColorStartOffset				= 0.2;
@@ -436,8 +435,6 @@ void DRWaterClass::OnSettingsReload(Config* cfg)
 	Setting& settings = cfg->getRoot()["shaders"]["waterShader"];
 
 	settings.lookupValue("positionSamplingOffset",	variables.positionSamplingOffset	);
-	settings.lookupValue("samplingDirectionX",		variables.samplingDirection.x		);
-	settings.lookupValue("samplingDirectionY",		variables.samplingDirection.y		);
 	settings.lookupValue("heightScaling",			variables.heightScaling				);
 	settings.lookupValue("timeScaling",				variables.timeScaling				);
 	settings.lookupValue("waterColorStartOffset",	waterColorStartOffset				);

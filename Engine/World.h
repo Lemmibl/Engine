@@ -11,6 +11,7 @@
 #include "WorldRenderer.h"
 #include "Lemmi2DAABB.h"
 #include "MeshHandler.h"
+#include "WeatherSystem.h"
 #include "SettingsManager.h"
 #include <libconfig.h++>
 
@@ -29,6 +30,7 @@ public:
 
 	WorldRenderer::RenderableBundle* GetRenderableBundle() {  return &renderableBundle; };
 	std::shared_ptr<CameraClass> GetCamera() { return camera; }
+	XMFLOAT3* GetWindDirection() { return weatherSystem.GetWindDirection(); }
 
 private:
 	void InitializeCollision();
@@ -57,6 +59,7 @@ private:
 
 	//Terrain related objects
 	std::shared_ptr<TerrainManager> terrainManager;
+	WeatherSystem weatherSystem;
 
 	//Rendering
 	MeshHandler meshHandler;

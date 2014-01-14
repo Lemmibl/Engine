@@ -29,8 +29,7 @@ private:
 		float heightScaling;
 		float timeScaling;
 		float farClip;
-		XMFLOAT2 samplingDirection;
-		float padding;
+		XMFLOAT3 windDirection;
 	};
 
 	struct PixelMatrixBuffer
@@ -50,8 +49,8 @@ public:
 	void Shutdown();
 	void OnSettingsReload(Config* cfg);
 	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldMatrix, XMMATRIX* worldViewMatrix, XMMATRIX* worldViewProjection, 
-	ID3D11ShaderResourceView** waterTexture, ID3D11ShaderResourceView** offsetNoiseTexture, ID3D11ShaderResourceView** offsetNoiseNormalTexture, 
-	float deltaTime);
+				ID3D11ShaderResourceView** waterTexture, ID3D11ShaderResourceView** offsetNoiseTexture, 
+				ID3D11ShaderResourceView** offsetNoiseNormalTexture, float deltaTime, XMFLOAT3* windDirection);
 
 private:
 	bool InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* gsFilename, WCHAR* psFilename);
@@ -60,7 +59,7 @@ private:
 
 	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, XMMATRIX* worldViewMatrix, XMMATRIX* worldViewProjection, 
 	ID3D11ShaderResourceView** waterTexture, ID3D11ShaderResourceView** offsetNoiseTexture, ID3D11ShaderResourceView** offsetNoiseNormalTexture,
-	float deltaTime);
+	float deltaTime, XMFLOAT3* windDirection);
 
 	void RenderShader(ID3D11DeviceContext* deviceContext, int indexCount);
 
@@ -70,7 +69,7 @@ private:
 	CComPtr<ID3D11PixelShader> pixelShader;
 	CComPtr<ID3D11InputLayout> layout;
 	CComPtr<ID3D11Buffer> matrixBuffer;
-	CComPtr<ID3D11Buffer> timeBuffer;
+	CComPtr<ID3D11Buffer> variableBuffer;
 	CComPtr<ID3D11Buffer> pixelMatrixBuffer;
 	CComPtr<ID3D11SamplerState> sampler;
 	CComPtr<ID3D11SamplerState> comparisonSampler;

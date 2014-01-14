@@ -70,12 +70,6 @@
     <ClCompile Include="StructsAndEnums.cpp">
       <Filter>General Code</Filter>
     </ClCompile>
-    <ClCompile Include="LemmiGridTable.cpp">
-      <Filter>General Code\Data classes</Filter>
-    </ClCompile>
-    <ClCompile Include="LemmiEntity.cpp">
-      <Filter>General Code\Data classes</Filter>
-    </ClCompile>
     <ClCompile Include="TextureAndMaterialHandler.cpp">
       <Filter>Rendering\Managers</Filter>
     </ClCompile>
@@ -255,17 +249,8 @@
     <ClInclude Include="StructsAndEnums.h">
       <Filter>General Code</Filter>
     </ClInclude>
-    <ClInclude Include="LemmiLinkedList.h">
-      <Filter>General Code\Data classes</Filter>
-    </ClInclude>
     <ClInclude Include="interfacepointers.h">
       <Filter>General Code\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="LemmiGridTable.h">
-      <Filter>General Code\Data classes</Filter>
-    </ClInclude>
-    <ClInclude Include="LemmiEntity.h">
-      <Filter>General Code\Data classes</Filter>
     </ClInclude>
     <ClInclude Include="TextureAndMaterialHandler.h">
       <Filter>Rendering\Managers</Filter>
@@ -522,9 +507,6 @@
     </Filter>
     <Filter Include="Procedural generation\LSystem">
       <UniqueIdentifier>{d7a6d75b-5b8d-4413-9b4b-adcd086ff366}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="General Code\Data classes">
-      <UniqueIdentifier>{bc5a4fa4-dd48-4d65-bc01-3a92785c764c}</UniqueIdentifier>
     </Filter>
     <Filter Include="Rendering\Managers">
       <UniqueIdentifier>{0caad27d-4c85-41f6-8346-251466473ad0}</UniqueIdentifier>
