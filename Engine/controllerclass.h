@@ -40,6 +40,7 @@ private:
 	inline btVector3 XMVECTOR_to_btVector3(const XMVECTOR& vec) { XMFLOAT3 temp; XMStoreFloat3(&temp, vec); return btVector3(temp.x, temp.y, temp.z); }
 
 private:
+	bool noclip;
 	float frameTime;
 	XMFLOAT2 prevMousePos;
 	XMFLOAT3 rotation, position;

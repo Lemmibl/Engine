@@ -62,7 +62,8 @@ ControllerClass::ControllerClass(std::shared_ptr<btDynamicsWorld> world, std::sh
 	prevMousePos(input->GetMousePos()),
 	frameTime(0.0f),
 	rotation(XMFLOAT3(0.0f, 0.0f, 0.0f)),
-	position(XMFLOAT3(0.0f, 0.0f, 0.0f))
+	position(XMFLOAT3(0.0f, 0.0f, 0.0f)),
+	noclip(false)
 {
 	SetCursorPos(0, 0);
 	dynamicsWorld = world;
@@ -114,6 +115,23 @@ ControllerClass::~ControllerClass()
 
 void ControllerClass::Update(float frameTime, XMFLOAT4X4* cameraMatrix)
 {
+	//Toggle noclip if E was pressed
+	if(inputManager->WasKeyPressed(DIK_R))
+	{
+		noclip = !noclip;
+
+		if(noclip == true)
+		{
+			//If we have collision flag 2, we should collide with nothing
+			rigidBody->setCollisionFlags(1<<2);
+		}
+		else
+		{
+			//0 should be default for everything else
+			rigidBody->setCollisionFlags(0);
+		}
+	}
+
 	//scalar for things like sprint/crouch
 	float movementValue;
 
@@ -219,15 +237,6 @@ void ControllerClass::Update(float frameTime, XMFLOAT4X4* cameraMatrix)
 	rigidBody->getMotionState()->getWorldTransform(trans);
 	position = btVector3_to_XMFLOAT3(trans.getOrigin());
 
-	//Just in worst case if we've somehow moved below the ground...
-	if(position.y < 0.0f)
-	{
-		//Reset ypos
-		position.y = 50.0f;
-
-		rigidBody->translate(btVector3(position.x, position.y, position.z));
-	}
-
 	//Store new rotation
 	XMStoreFloat3(&rotation, tempRot);
 
@@ -282,9 +291,9 @@ void ControllerClass::OnSettingsReload(Config* cfg)
 
 	//Set up all collision related objects
 	collisionShape = std::make_shared<btSphereShape>(collisionRadius);
-
+	 
 	btVector3 fallInertia(0, 0, 0);
-	collisionShape->calculateLocalInertia(mass,fallInertia);
+	collisionShape->calculateLocalInertia(mass, fallInertia);
 
 	//Don't change motionstate
 	if(!motionState)
