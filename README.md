@@ -6,18 +6,16 @@ DirectX11 / C++ videogame "Engine" made by me, Carl "Lemmi" Engström. Originall
 ***********************************
 IMPORTANT:
 
-This project has really only been tested on Windows 7 64-bit with an nvidia card. I know for a fact that it's shittier on my laptop with an ATI 5650; for some reason there's loads of z-fighting and texture filtering is all fucked.
+This project has really only been tested on Windows 7 64-bit with an nvidia card. I know for a fact that it runs worse on my laptop with an ATI 5650; for some reason there's loads of z-fighting and texture filtering is all messed up.
 
-For a real installer to the project, here's a pretty new one:
-ftp://lemminas.dlinkddns.com/Public/LemmiInstaller.msi
+For a real installer to the project, here's a pretty new one: ftp://lemminas.dlinkddns.com/Public/LemmiInstaller.msi
 
 It should work fine, as long as your x86 vc++ 2010 redist is up to date: (http://www.microsoft.com/en-us/download/details.aspx?id=5555)
 
-and your directx redist is up to date:
-http://www.microsoft.com/en-us/download/details.aspx?id=8109
+and your directx redist is up to date: http://www.microsoft.com/en-us/download/details.aspx?id=8109
 
-If you want to download the project as a zip and compile it, you need to open it through the Engine.vcxproj inside the code folder!
-I don't really know why but it seems like git breaks the .sln files somehow.
+If you want to download the project as a zip and compile it and have several versions of visual studio, you need to start the solution file with a specific version of VS, as opposed to the VS version selector. Else it somehow can't decide which one to pick and just doesn't start.
+
 ***********************************
 
 
