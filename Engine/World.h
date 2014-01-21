@@ -8,7 +8,7 @@
 #include "d3dmanager.h"
 #include "cameraclass.h"
 #include "frustumclass.h"
-#include "WorldRenderer.h"
+#include "GameRenderer.h"
 #include "Lemmi2DAABB.h"
 #include "MeshHandler.h"
 #include "WeatherSystem.h"
@@ -17,25 +17,26 @@
 
 //using namespace libconfig;
 
-class World
+class GameWorld
 {
 public:
-	World();
-	~World();
+	GameWorld();
+	~GameWorld();
 
 	void Initialize(std::shared_ptr<D3DManager> extD3DManager, std::shared_ptr<InputClass> extInput);
 
 	void Update(float deltaTimeSeconds, float deltaTimeMilliseconds);
 	void OnSettingsReload(Config* cfg);
 
-	WorldRenderer::RenderableBundle* GetRenderableBundle() {  return &renderableBundle; };
+	GameRenderer::RenderableBundle* GetRenderableBundle() {  return &renderableBundle; };
 	std::shared_ptr<CameraClass> GetCamera() { return camera; }
 	XMFLOAT3* GetWindDirection() { return weatherSystem.GetWindDirection(); }
+
+	void InitializeTerrain();
 
 private:
 	void InitializeCollision();
 	void InitializeCamera();
-	void InitializeTerrain();
 	void HandleInput();
 
 	//Do frustum culling and that sort of stuff
@@ -63,9 +64,8 @@ private:
 
 	//Rendering
 	MeshHandler meshHandler;
-	WorldRenderer::RenderableBundle renderableBundle;
-	int screenWidth, screenHeight;
-	float nearClip, farClip;
+	GameRenderer::RenderableBundle renderableBundle;
+	float nearClip, farClip, screenWidth, screenHeight;
 
 	//Misc.
 	std::shared_ptr<ControllerClass> cameraController;

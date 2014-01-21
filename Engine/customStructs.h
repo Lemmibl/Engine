@@ -1,6 +1,4 @@
-#ifndef MCUBES_TYPES_H
-#define MCUBES_TYPES_H
-
+#pragma once
 #include <d3d11.h>
 #include <windows.h>
 #include <xnamath.h>
@@ -25,4 +23,20 @@ struct MarchingCubeVectors
 	XMFLOAT3 normal;
 };
 
-#endif
+//http://stackoverflow.com/questions/514194/using-enum-inside-types-compiler-warning-c4482-c
+namespace TerrainTypes
+{
+	typedef int Type;
+	enum
+	{
+		SeaBottom = 1,
+		Plains = 2,
+		Hills = 3,
+		Terraces = 4,
+		DramaticHills = 5,
+		FlyingIslands = 6,
+		Alien = 7,
+		Fancy = 8,
+		Cave = 9
+	};
+};

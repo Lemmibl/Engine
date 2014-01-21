@@ -1,36 +1,298 @@
 #include "TerrainNoiseSeeder.h"
-#include <math.h>       /* sin */
-
-#define PI 3.14159265
 
 TerrainNoiseSeeder::TerrainNoiseSeeder()
 {
-
 }
 
 TerrainNoiseSeeder::~TerrainNoiseSeeder()
 {
 }
 
-void TerrainNoiseSeeder::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass* simplexNoise, TerrainTypes terrainType)
+void TerrainNoiseSeeder::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass* simplexNoise, TerrainTypes::Type terrainType)
 {
 	terrainMode = terrainType;
 	noise = simplexNoise;
 
-	this->sizeX = sizeX;
-	this->sizeY = sizeY;
-	this->sizeZ = sizeZ;
-
 	densityToBeInside = 0.2f;
 
-	pulverize = false;
 	worldSize = 0;
 	worldSizeMargin = 1;
 	worldArraySize = sizeX * sizeY;
 
+	this->sizeX = sizeX;
+	this->sizeY = sizeY;
+	this->sizeZ = sizeZ;
 	XFactor = 1.0f / (2.0f*sizeX);
 	YFactor = 1.0f / (2.0f*sizeY);
 	ZFactor = 1.0f / (2.0f*sizeZ);
+
+	std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)> seabottomNoise =
+	
+	[](IndexingValue& index, const XMFLOAT3& position, NoiseClass* noise) -> float
+	{
+		float density;
+		unsigned int idx = index.x + (index.y*index.sizeY) + (index.z * index.sizeY * index.sizeZ);
+
+		density = 1 + index.sizeY * 0.1f - index.y;
+		density += noise->SimplexNoise3D(position.x/220, position.y/20, position.z/220) * 2.0f;
+		density += noise->SimplexNoise3D(position.x/120, position.y/220, position.z/40) * 2.0f;
+		density += noise->SimplexNoise3D(position.x/20, position.y/420, position.z/20) * 2.0f;
+
+		if(density < -2)
+		{
+			density = -2;
+		}
+		else if (density > 2)
+		{
+			density = 2;
+		}
+
+		return density;
+	};
+
+
+	std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)> plainsNoise =
+	[](IndexingValue& index, const XMFLOAT3& position, NoiseClass* noise) -> float
+	{
+		float density;
+		unsigned int idx = index.x + (index.y*index.sizeY) + (index.z * index.sizeY * index.sizeZ);
+
+		density = 1 + index.sizeY * 0.2f - index.y;
+		density += noise->SimplexNoise3D(position.x/220, position.y/20, position.z/220) * 10.0f;
+
+		if(density < -2)
+		{
+			density = -2;
+		}
+		else if (density > 2)
+		{
+			density = 2;
+		}
+
+		return density;
+	};
+
+	std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)> hillsNoise =
+	[](IndexingValue& index, const XMFLOAT3& position, NoiseClass* noise) -> float
+	{
+		float density;
+		unsigned int idx = index.x + (index.y*index.sizeY) + (index.z * index.sizeY * index.sizeZ);
+
+		density = 1 + index.sizeY * 0.2f - index.y;
+		density += noise->SimplexNoise3D(position.x/220, position.y/20,	 position.z/220) *2.0f;
+		density += noise->SimplexNoise3D(position.x/80,	 position.y/220, position.z/40) *20.0f;
+		density += noise->SimplexNoise3D(position.x/20,	 position.y/420, position.z/20) *10.0f;
+
+		if(density < -2)
+		{
+			density = -2;
+		}
+		else if (density > 2)
+		{
+			density = 2;
+		}
+
+		if(index.y == 1)
+		{
+			density += 1000000.0f;
+		}
+
+		return density;
+	};
+
+	std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)> terraceNoise =
+	[](IndexingValue& index, const XMFLOAT3& position, NoiseClass* noise) -> float
+	{
+		float density;
+		unsigned int idx = index.x + (index.y*index.sizeY) + (index.z * index.sizeY * index.sizeZ);
+
+		density = 1 + index.sizeY * 0.4f - index.y;
+		density += noise->SimplexNoise3D( position.x/220,	position.y/220,	position.z/420) *20.0f;
+		density += noise->SimplexNoise3D( position.x/120,	position.y/20,	position.z/20) *20.0f;
+		density += noise->SimplexNoise3D( position.x/20,	position.y/20,	position.z/120) *20.0f;
+		density += noise->SimplexNoise3D( position.x/120,	position.y/20,	position.z/120) *5.0f;
+
+		//**Toplvl**//
+		if(index.y > 20)
+		{
+			density -= 12.0f*((index.y-20)/5);
+		}
+
+
+		if(density < -2)
+		{
+			density = -2;
+		}
+		else if (density > 2)
+		{
+			density = 2;
+		}
+
+		if(index.y == 1)
+		{
+			density += 1000000.0f;
+		}
+
+		return density;
+	};
+
+
+	std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)> dramaticHillsNoise =
+		[](IndexingValue& index, const XMFLOAT3& position, NoiseClass* noise) -> float
+	{
+		float density;
+		unsigned int idx = index.x + (index.y*index.sizeY) + (index.z * index.sizeY * index.sizeZ);
+
+		density = 1 + index.sizeY * 0.6f - index.y;
+
+		density += noise->SimplexNoise3D(position.x/80,	 position.y/80,	 position.z/520) *30.0f;
+		density += noise->SimplexNoise3D(position.x/40,	 position.y/30,	 position.z/500) *30.0f;
+		density += noise->SimplexNoise3D(position.x/180, position.y/20,	 position.z/50) *20.0f;
+		density += noise->SimplexNoise3D(position.x/120, position.y/20,	 position.z/120) *5.0f;
+		density += noise->SimplexNoise3D(position.x/80,	 position.y/420, position.z/80) *30.0f;
+
+		//**Toplvl**//
+		if(index.y > 20)
+		{
+			density -= 12.0f*((index.y-20)/5);
+		}
+
+		if(density < -2)
+		{
+			density = -2;
+		}
+		else if (density > 2)
+		{
+			density = 2;
+		}
+
+		if(index.y == 1)
+		{
+			density += 1000000.0f;
+		}
+
+		return density;
+	};
+
+	std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)> flyingIslandsNoise =
+		[](IndexingValue& index, const XMFLOAT3& position, NoiseClass* noise) -> float
+	{
+		float density;
+		unsigned int idx = index.x + (index.y*index.sizeY) + (index.z * index.sizeY * index.sizeZ);
+
+		density = 0 + index.sizeY * 0.001f - index.y*0.1f;
+		density += noise->SimplexNoise3D(position.x/40, position.y/10,	position.z/25) *10.0f;
+		density += noise->SimplexNoise3D(position.x/60, position.y/5,	position.z/35) *10.0f;
+		density += noise->SimplexNoise3D(position.x/21, position.y/10,	position.z/43) *10.0f;
+
+		if(density < -2)
+		{
+			density = -2;
+		}
+		else if (density > 2)
+		{
+			density = 2;
+		}
+
+		return density;
+	};
+
+	std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)> alienNoise =
+		[](IndexingValue& index, const XMFLOAT3& position, NoiseClass* noise) -> float
+	{
+		float density;
+		unsigned int idx = index.x + (index.y*index.sizeY) + (index.z * index.sizeY * index.sizeZ);
+
+		density = 1 + index.sizeY * 0.1f - index.y;
+		density += noise->SimplexNoise3D(position.x/220, position.y/20,	 position.z/220) *20.0f;
+		density += noise->SimplexNoise3D(position.x/120, position.y/220, position.z/40) *20.0f;
+		density += noise->SimplexNoise3D(position.x/20,	 position.y/420, position.z/20) *10.0f;
+
+		if(density < -2)
+		{
+			density = -2;
+		}
+		else if (density > 2)
+		{
+			density = 2;
+		}
+
+		if(index.y == 1)
+		{
+			density += 1000000.0f;
+		}
+
+		return density;
+	};
+
+
+	std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)> fancyNoise =
+		[](IndexingValue& index, const XMFLOAT3& position, NoiseClass* noise) -> float
+	{
+		float density;
+		unsigned int idx = index.x + (index.y*index.sizeY) + (index.z * index.sizeY * index.sizeZ);
+
+		density = 1 + index.sizeY * 0.1f - index.y;
+		density += noise->SimplexNoise3D(position.x/220,	position.y/220,	position.z/420) *2.0f;
+		density += noise->SimplexNoise3D(position.x/120,	position.y/20,	position.z/20) *20.0f;
+		density += noise->SimplexNoise3D(position.x/20,		position.y/20,	position.z/120) *20.0f;
+		density += noise->SimplexNoise3D(position.x/120,	position.y/20,	position.z/120) *2.0f;
+
+		if(density < -2)
+		{
+			density = -2;
+		}
+		else if (density > 2)
+		{
+			density = 2;
+		}
+
+		if(index.y == 1)
+		{
+			density += 1000000.0f;
+		}
+
+		return density;
+	};
+
+	std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)> caveNoise =
+	[](IndexingValue& index, const XMFLOAT3& position, NoiseClass* noise) -> float
+	{
+		float density;
+		unsigned int idx = index.x + (index.y*index.sizeY) + (index.z * index.sizeY * index.sizeZ);
+
+		density = 7;
+		density += noise->SimplexNoise3D(position.x/60,	 position.y/60,	 position.z/60) *20.0f;
+		density += noise->SimplexNoise3D(position.x/20,	 position.y/20,	 position.z/120) *10.0f;
+		density += noise->SimplexNoise3D(position.x/20,	 position.y/120, position.z/20) *10.0f;
+		density += noise->SimplexNoise3D(position.x/120, position.y/20,	 position.z/20) *10.0f;
+
+		if(density < -2)
+		{
+			density = -2;
+		}
+		else if (density > 2)
+		{
+			density = 2;
+		}
+
+		if(index.y == 1)
+		{
+			density += 1000000.0f;
+		}
+
+		return density;
+	};
+
+	functionMap.insert(std::make_pair<TerrainTypes::Type, std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)>>(TerrainTypes::SeaBottom, seabottomNoise));
+	functionMap.insert(std::make_pair<TerrainTypes::Type, std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)>>(TerrainTypes::Plains, plainsNoise));
+	functionMap.insert(std::make_pair<TerrainTypes::Type, std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)>>(TerrainTypes::Hills, hillsNoise));
+	functionMap.insert(std::make_pair<TerrainTypes::Type, std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)>>(TerrainTypes::Terraces, terraceNoise));
+	functionMap.insert(std::make_pair<TerrainTypes::Type, std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)>>(TerrainTypes::DramaticHills, dramaticHillsNoise));
+	functionMap.insert(std::make_pair<TerrainTypes::Type, std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)>>(TerrainTypes::FlyingIslands, flyingIslandsNoise));
+	functionMap.insert(std::make_pair<TerrainTypes::Type, std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)>>(TerrainTypes::Alien, alienNoise));
+	functionMap.insert(std::make_pair<TerrainTypes::Type, std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)>>(TerrainTypes::Fancy, fancyNoise));
+	functionMap.insert(std::make_pair<TerrainTypes::Type, std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)>>(TerrainTypes::Cave, caveNoise));
 }
 
 void TerrainNoiseSeeder::MCHeightMap()
@@ -92,512 +354,62 @@ void TerrainNoiseSeeder::MCHeightMap()
 
 void TerrainNoiseSeeder::Noise3D(unsigned int startX, unsigned int startY, unsigned int startZ, unsigned int endX, unsigned int endY, unsigned int endZ )
 {
-	maxDensity = -511.0f;
-	minDensity = 511.0f;
-	float density;
+	unsigned int idx;
 
-	switch ( terrainMode ) 
+	//Initialize index to some default values.
+	IndexingValue index(0, 0, 0, sizeX, sizeY, sizeZ);
+
+	//Select which noise function to use depending on what terrain type we currently have selected.
+	auto& noiseFunction = functionMap[terrainMode];
+
+	//Get a local reference to out voxel field with a shorter name for added readability
+	std::vector<MarchingCubeVoxel>& verts = (*marchingCubeVertices);
+
+	for(index.y = startY; index.y < (endY-1); ++index.y)
 	{
-	case SeaBottom:
+		for (index.z = startZ; index.z < (endZ-1); ++index.z)
 		{
-			for (y = startY; y < (endY-1); ++y)
+			for (index.x = startX; index.x < (endX-1); ++index.x)
 			{
-				for (z = startZ; z < (endZ-1); ++z)
-				{
-					for (x = startX; x < (endX-1); ++x)
-					{
-						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
+				//Index value into the vertex voxel field
+				idx = index.x + (index.y*index.sizeY) + (index.z * index.sizeY * index.sizeZ);
 
-						const XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
+				//Extract density value from selected noise function
+				verts[idx].density = noiseFunction(index, verts[idx].position, noise);
 
-						density = 1 + sizeY * 0.1f - y;
-						density += noise->SimplexNoise3D(position.x/220, position.y/20, position.z/220) * 2.0f;
-						density += noise->SimplexNoise3D(position.x/120, position.y/220, position.z/40) * 2.0f;
-						density += noise->SimplexNoise3D(position.x/20, position.y/420, position.z/20) * 2.0f;
-
-						if(density < -2)
-						{
-							density = -2;
-						}
-						else if (density > 2)
-						{
-							density = 2;
-						}
-
-						(*marchingCubeVertices)[idx].density = density;
-					}
-				}
+				//Decide if the vertex is considered inside
+				verts[idx].inside = (verts[idx].density >= densityToBeInside) ? true : false;
 			}
-			break;
-		}
-
-	case Plains:
-		{
-			for (y = startY; y < (endY-1); ++y)
-			{
-				for (z = startZ; z < (endZ-1); ++z)
-				{
-					for (x = startX; x < (endX-1); ++x)
-					{
-						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
-
-						const XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
-
-						density = 1 + sizeY * 0.2f - y;
-						density += noise->SimplexNoise3D(position.x/220, position.y/20, position.z/220) * 10.0f;
-
-						if(density < -2)
-						{
-							density = -2;
-						}
-						else if (density > 2)
-						{
-							density = 2;
-						}
-
-						(*marchingCubeVertices)[idx].density = density;
-					}
-				}
-			}
-			break;
-		}
-
-	case Hills:
-		{
-			for (y = startY; y < (endY-1); ++y)
-			{
-				for (z = startZ; z < (endZ-1); ++z)
-				{
-					for (x = startX; x < (endX-1); ++x)
-					{
-						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
-
-						const XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
-
-						density = 1 + sizeY * 0.2f - y;
-						density += noise->SimplexNoise3D(position.x/220, position.y/20,	 position.z/220) *2.0f;
-						density += noise->SimplexNoise3D(position.x/80,	 position.y/220, position.z/40) *20.0f;
-						density += noise->SimplexNoise3D(position.x/20,	 position.y/420, position.z/20) *10.0f;
-
-						if(density < -2)
-						{
-							density = -2;
-						}
-						else if (density > 2)
-						{
-							density = 2;
-						}
-
-						if(y == 1)
-						{
-							density += 1000000.0f;
-						}
-
-						(*marchingCubeVertices)[idx].density = density;
-					}
-				}
-			}
-			break;
-		}
-
-	case Terraces:
-		{
-			for (y = startY; y < (endY-1); ++y)
-			{
-				for (z = startZ; z < (endZ-1); ++z)
-				{
-					for (x = startX; x < (endX-1); ++x)
-					{
-						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
-
-						const XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
-
-						density = 1 + sizeY * 0.4f - y;
-						density += noise->SimplexNoise3D( position.x/220,	position.y/220,	position.z/420) *20.0f;
-						density += noise->SimplexNoise3D( position.x/120,	position.y/20,	position.z/20) *20.0f;
-						density += noise->SimplexNoise3D( position.x/20,	position.y/20,	position.z/120) *20.0f;
-						density += noise->SimplexNoise3D( position.x/120,	position.y/20,	position.z/120) *5.0f;
-
-						//**Toplvl**//
-						if(y > 20)
-						{
-							density -= 12.0f*((y-20)/5);
-						}
-						//if(y > 25)
-						//{
-						//	density -= 12.0f;
-						//}
-						//if(y > 30)
-						//{
-						//	density -= 12.0f;
-						//}
-						//if(y > 35)
-						//{
-						//	density -= 12.0f;
-						//}
-
-						if(density < -2)
-						{
-							density = -2;
-						}
-						else if (density > 2)
-						{
-							density = 2;
-						}
-
-						if(y == 1)
-						{
-							density += 1000000.0f;
-						}
-
-						(*marchingCubeVertices)[idx].density = density;
-					}
-				}
-			}
-			break;
-		}
-
-
-	case DramaticHills:
-		{
-			for (y = startY; y < (endY-1); ++y)
-			{
-				for (z = startZ; z < (endZ-1); ++z)
-				{
-					for (x = startX; x < (endX-1); ++x)
-					{
-						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
-
-						const XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
-
-						density = 1 + sizeY * 0.6f - y;
-
-						density += noise->SimplexNoise3D(position.x/80,	 position.y/80,	 position.z/520) *30.0f;
-						density += noise->SimplexNoise3D(position.x/40,	 position.y/30,	 position.z/500) *30.0f;
-						density += noise->SimplexNoise3D(position.x/180, position.y/20,	 position.z/50) *20.0f;
-						density += noise->SimplexNoise3D(position.x/120, position.y/20,	 position.z/120) *5.0f;
-						density += noise->SimplexNoise3D(position.x/80,	 position.y/420, position.z/80) *30.0f;
-
-						//**Toplvl**//
-						if(y > 20)
-						{
-							density -= 12.0f*((y-20)/5);
-						}
-						//if(y > 25)
-						//{
-						//	density -= 12.0f;
-						//}
-						//if(y > 30)
-						//{
-						//	density -= 12.0f;
-						//}
-						//if(y > 35)
-						//{
-						//	density -= 12.0f;
-						//}
-
-						if(density < -2)
-						{
-							density = -2;
-						}
-						else if (density > 2)
-						{
-							density = 2;
-						}
-
-						if(y == 1)
-						{
-							density += 1000000.0f;
-						}
-
-						(*marchingCubeVertices)[idx].density = density;
-					}
-				}
-			}
-			break;
-		}
-
-
-	case FlyingIslands:
-		{
-			for (y = startY; y < (endY-1); ++y)
-			{
-				for (z = startZ; z < (endZ-1); ++z)
-				{
-					for (x = startX; x < (endX-1); ++x)
-					{
-						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
-
-						const XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
-
-						density = 0 + sizeY * 0.001f - y*0.1f;
-						density += noise->SimplexNoise3D(position.x/40, position.y/10,	position.z/25) *10.0f;
-						density += noise->SimplexNoise3D(position.x/60, position.y/5,	position.z/35) *10.0f;
-						density += noise->SimplexNoise3D(position.x/21, position.y/10,	position.z/43) *10.0f;
-
-						if(density < -2)
-						{
-							density = -2;
-						}
-						else if (density > 2)
-						{
-							density = 2;
-						}
-
-						(*marchingCubeVertices)[idx].density = density;
-					}
-				}
-			}
-			break;
-		}
-
-	case Alien:
-		{
-			for (y = startY; y < (endY-1); ++y)
-			{
-				for (z = startZ; z < (endZ-1); ++z)
-				{
-					for (x = startX; x < (endX-1); ++x)
-					{
-						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
-
-						const XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
-
-						density = 1 + sizeY * 0.1f - y;
-						density += noise->SimplexNoise3D(position.x/220, position.y/20,	 position.z/220) *20.0f;
-						density += noise->SimplexNoise3D(position.x/120, position.y/220, position.z/40) *20.0f;
-						density += noise->SimplexNoise3D(position.x/20,	 position.y/420, position.z/20) *10.0f;
-
-						if(density < -2)
-						{
-							density = -2;
-						}
-						else if (density > 2)
-						{
-							density = 2;
-						}
-
-						if(y == 1)
-						{
-							density += 1000000.0f;
-						}
-
-						(*marchingCubeVertices)[idx].density = density;
-					}
-				}
-			}
-			break;
-		}
-
-
-	case Fancy:
-		{
-			for (y = startY; y < (endY-1); ++y)
-			{
-				for (z = startZ; z < (endZ-1); ++z)
-				{
-					for (x = startX; x < (endX-1); ++x)
-					{
-						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
-
-						const XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
-
-						density = 1 + sizeY * 0.1f - y;
-						density += noise->SimplexNoise3D(position.x/220,	position.y/220,	position.z/420) *2.0f;
-						density += noise->SimplexNoise3D(position.x/120,	position.y/20,	position.z/20) *20.0f;
-						density += noise->SimplexNoise3D(position.x/20,		position.y/20,	position.z/120) *20.0f;
-						density += noise->SimplexNoise3D(position.x/120,	position.y/20,	position.z/120) *2.0f;
-
-						if(density < -2)
-						{
-							density = -2;
-						}
-						else if (density > 2)
-						{
-							density = 2;
-						}
-
-						if(y == 1)
-						{
-							density += 1000000.0f;
-						}
-
-						(*marchingCubeVertices)[idx].density = density;
-					}
-				}
-			}
-			break;
-		}
-
-		break;
-	case Cave:
-		{
-			for (y = startY; y < (endY-1); ++y)
-			{
-				for (z = startZ; z < (endZ-1); ++z)
-				{
-					for (x = startX; x < (endX-1); ++x)
-					{
-						idx = x + (y*sizeY) + (z * sizeY * sizeZ);
-
-						const XMFLOAT3& position = (*marchingCubeVertices)[idx].position;
-
-						density = 7;
-						density += noise->SimplexNoise3D(position.x/60,	 position.y/60,	 position.z/60) *20.0f;
-						density += noise->SimplexNoise3D(position.x/20,	 position.y/20,	 position.z/120) *10.0f;
-						density += noise->SimplexNoise3D(position.x/20,	 position.y/120, position.z/20) *10.0f;
-						density += noise->SimplexNoise3D(position.x/120, position.y/20,	 position.z/20) *10.0f;
-
-						if(density < -2)
-						{
-							density = -2;
-						}
-						else if (density > 2)
-						{
-							density = 2;
-						}
-
-						if(y == 1)
-						{
-							density += 1000000.0f;
-						}
-
-						(*marchingCubeVertices)[idx].density = density;
-					}
-				}
-			}
-			break;
-		}
-
-	default:
-		{
-			density = 1 + sizeY * 0.1f - y;
-
-			if(density < -2)
-			{
-				density = -2;
-			}
-			else if (density > 2)
-			{
-				density = 2;
-			}
-
-			(*marchingCubeVertices)[idx].density = density;
-
-			break;
 		}
 	}
 
-	//if (pulverize == true)
-	//{
-	//	density += noise->SimplexNoise3D((*marchingCubeVertices)[idx].position.x*0.2f,(*marchingCubeVertices)[idx].position.y*0.2f,(*marchingCubeVertices)[idx].position.z*0.2f)*2.0f;
-	//}
-	//
-	//	////**Hardfloor**//
-	//if(y == 1)
-	//{
-	//	density += 1000000.0f;
-	//}
-	//
-	//
-	//if(density < -2)
-	//{
-	//	density = -2;
-	//}
-	//else if (density > 2)
-	//{
-	//	density = 4;
-	//}
-	//
-	//(*marchingCubeVertices)[idx].density = density;
-
-	//if (maxDensity < density)
-	//{
-	//	maxDensity = density;
-	//}
-	//else if (minDensity > density)
-	//{
-	//	minDensity = density;
-	//}
-
-	//densityRangeUpper = maxDensity - densityToBeInside;
-	//if (densityRangeUpper != 0)
-	//{
-	//	densityRangeUpper = 1 / densityRangeUpper;
-	//}
-	//densityRangeLower = densityToBeInside - minDensity;
-	//if (densityRangeUpper != 0)
-	//{
-	//	densityRangeLower = 1 / densityRangeLower;
-	//}
-
-	for (y = startY; y < (endY-1); ++y)
+	//Calculate normals for each point in terrain voxel field. 
+	//This needs to be done in a second loop because we need all the values to be noised before we do normal creation.
+	for(index.y = startY; index.y < (endY-1); ++index.y)
 	{
-		for (z = startZ; z < (endZ-1); ++z)
+		for (index.z = startZ; index.z < (endZ-1); ++index.z)
 		{
-			for (x = startX; x < (endX-1); ++x)
+			for (index.x = startX; index.x < (endX-1); ++index.x)
 			{
-				idx = x + y*sizeY + z * sizeY * sizeZ;
+				//Index value into the vertex voxel field
+				idx = index.x + (index.y*index.sizeY) + (index.z * index.sizeY * index.sizeZ);
 
-				//if ((*marchingCubeVertices)[idx].density > densityToBeInside)
-				//{
-				//	(*marchingCubeVertices)[idx].density = ((*marchingCubeVertices)[idx].density ) * densityRangeUpper;
-				//}
-
-				//if ((*marchingCubeVertices)[idx].density < densityToBeInside)
-				//{
-				//	(*marchingCubeVertices)[idx].density = ((*marchingCubeVertices)[idx].density ) * densityRangeLower;
-				//}
-
-				if ((*marchingCubeVertices)[idx].density >= densityToBeInside)
-				{
-					(*marchingCubeVertices)[idx].inside = true;
-				}
-				else
-				{
-					(*marchingCubeVertices)[idx].inside = false;
-				}
-
-				//if((*marchingCubeVertices)[idx].density < 0)
-				//{
-				//	densityArray3D[x][y][z] = 0.0f;
-				//}
-				//else if((*marchingCubeVertices)[idx].density > 1)
-				//{
-				//	densityArray3D[x][y][z] = 1.0f;
-				//}
-				//else
-				//{
-				//	densityArray3D[x][y][z] = (*marchingCubeVertices)[idx].density;
-				//}
-
-				//densityArray3D[x][y][z] = (*marchingCubeVertices)[idx].density;
-
-				CreateMCVerts();
+				CreateNormal(verts, index, idx);
 			}
 		}
 	}
 }
 
-void TerrainNoiseSeeder::CreateMCVerts()
-{
-	(*marchingCubeVertices)[idx].normal.x = ((*marchingCubeVertices)[idx - 1].density -					(*marchingCubeVertices)[idx+1].density)					* XFactor;
-	(*marchingCubeVertices)[idx].normal.y = ((*marchingCubeVertices)[idx - sizeY].density -				(*marchingCubeVertices)[idx + sizeY].density)			* YFactor;
-	(*marchingCubeVertices)[idx].normal.z = ((*marchingCubeVertices)[idx - (sizeY * sizeZ)].density -	(*marchingCubeVertices)[idx + (sizeY * sizeZ)].density)	* ZFactor;
-
-	//Normalize results.
-	float vectorLength = ((*marchingCubeVertices)[idx].normal.x*(*marchingCubeVertices)[idx].normal.x) + ((*marchingCubeVertices)[idx].normal.y*(*marchingCubeVertices)[idx].normal.y) + ((*marchingCubeVertices)[idx].normal.z*(*marchingCubeVertices)[idx].normal.z);
-
-	(*marchingCubeVertices)[idx].normal.x = (*marchingCubeVertices)[idx].normal.x/vectorLength;
-	(*marchingCubeVertices)[idx].normal.y = (*marchingCubeVertices)[idx].normal.y/vectorLength;
-	(*marchingCubeVertices)[idx].normal.z = (*marchingCubeVertices)[idx].normal.z/vectorLength;
-}
-
-float TerrainNoiseSeeder::GetHighestPositionOfCoordinate(int x, int z)
+float TerrainNoiseSeeder::GetHighestPositionOfCoordinate(int x, int z, const MarchingCubeChunk* chunk)
 {
 	int idx;
 	float j = 0.0f;
 	int i = 0;
+
+	//OR stepSize? can't remember
+	int sizeY = chunk->GetStepCountY();
+	int sizeZ = chunk->GetStepCountZ();
+
 	int idxPreCalc = x + z * sizeY * sizeZ;
 
 	//So what this function does is that it takes a point in our voxel field, then it starts from the absolute highest point in the field, 

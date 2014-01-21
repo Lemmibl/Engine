@@ -1,6 +1,6 @@
-#include "WorldRenderer.h"
+#include "GameRenderer.h"
 
-WorldRenderer::WorldRenderer()
+GameRenderer::GameRenderer()
 : noise()
 {
 	xPos = yPos = 0.0f;
@@ -12,26 +12,25 @@ WorldRenderer::WorldRenderer()
 	returning = false;
 	toggleOtherPointLights = false;
 	drawWireFrame = false;
-	width = height = 0;
 }
 
 
-WorldRenderer::WorldRenderer(const WorldRenderer& other)
+GameRenderer::GameRenderer(const GameRenderer& other)
 {
 }
 
 
-WorldRenderer::~WorldRenderer()
+GameRenderer::~GameRenderer()
 {
 }
 
 
-bool WorldRenderer::Initialize(HWND hwnd, std::shared_ptr<CameraClass> camera, std::shared_ptr<InputClass> inputManager, std::shared_ptr<D3DManager> d3D, UINT screenWidth, 
-	UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear, bool toggleDebug)
+bool GameRenderer::Initialize(HWND hwnd, std::shared_ptr<CameraClass> camera, std::shared_ptr<InputClass> inputManager, 
+std::shared_ptr<D3DManager> d3D, UINT screenWidth, UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear)
 {
 	bool result;
 
-	this->toggleDebugInfo = toggleDebug;
+	this->toggleDebugInfo = false;
 	this->inputManager = inputManager;
 	this->shadowMapWidth = shadowmapWidth;
 	this->shadowMapHeight = shadowmapHeight;
@@ -50,7 +49,7 @@ bool WorldRenderer::Initialize(HWND hwnd, std::shared_ptr<CameraClass> camera, s
 
 	//Get settings manager instance and add our function to reload event
 	SettingsManager& settings = SettingsManager::GetInstance();
-	settings.GetEvent()->Add(*this, (&WorldRenderer::OnSettingsReload));
+	settings.GetEvent()->Add(*this, (&GameRenderer::OnSettingsReload));
 
 	//Perhaps slightly hacky, but it saves on rewriting code.
 	OnSettingsReload(&settings.GetConfig());
@@ -82,13 +81,13 @@ bool WorldRenderer::Initialize(HWND hwnd, std::shared_ptr<CameraClass> camera, s
 		return false;
 	}
 
-	InitializeRenderTargets();
+	InitializeRenderingSpecifics();
 
 	return true;
 }
 
 
-bool WorldRenderer::InitializeShaders( HWND hwnd )
+bool GameRenderer::InitializeShaders( HWND hwnd )
 {
 	bool result;
 
@@ -172,7 +171,7 @@ bool WorldRenderer::InitializeShaders( HWND hwnd )
 }
 
 
-bool WorldRenderer::InitializeLights( HWND hwnd )
+bool GameRenderer::InitializeLights( HWND hwnd )
 {
 	bool result;
 
@@ -253,7 +252,7 @@ bool WorldRenderer::InitializeLights( HWND hwnd )
 }
 
 
-bool WorldRenderer::InitializeModels( HWND hwnd )
+bool GameRenderer::InitializeModels( HWND hwnd )
 {
 	bool result;
 
@@ -269,11 +268,11 @@ bool WorldRenderer::InitializeModels( HWND hwnd )
 }
 
 
-bool WorldRenderer::InitializeEverythingElse( HWND hwnd )
+bool GameRenderer::InitializeEverythingElse( HWND hwnd )
 {
 	bool result;
 
-	text = std::make_shared<TextClass>(d3D->GetDevice(), d3D->GetDeviceContext(), hwnd, width, height);
+	text = std::make_shared<TextClass>(d3D->GetDevice(), d3D->GetDeviceContext(), hwnd, (int)screenWidth, (int)screenHeight);
 
 	result = textureAndMaterialHandler.Initialize(d3D->GetDevice(), d3D->GetDeviceContext(), &noise, &utility);
 	if(!result)
@@ -309,7 +308,7 @@ bool WorldRenderer::InitializeEverythingElse( HWND hwnd )
 }
 
 
-bool WorldRenderer::Update( HWND hwnd, int fps, int cpuPercentage, float millisecondDeltaTime, float secondDeltaTime, XMFLOAT3* windDirection )
+bool GameRenderer::Update( HWND hwnd, int fps, int cpuPercentage, float millisecondDeltaTime, float secondDeltaTime, XMFLOAT3* windDirection )
 {
 	bool result;
 
@@ -385,73 +384,6 @@ bool WorldRenderer::Update( HWND hwnd, int fps, int cpuPercentage, float millise
 		}
 	}
 
-	//if(inputManager->WasKeyPressed(DIK_U))
-	//{
-	//	textureAndMaterialHandler.RebuildRandom2DTexture(d3D->GetDevice(), d3D->GetDeviceContext());
-	//}
-	//
-	//if(inputManager->WasKeyPressed(DIK_I))
-	//{
-	//	textureAndMaterialHandler.RebuildMirroredSimplex2DTexture(d3D->GetDevice(), d3D->GetDeviceContext());
-	//}
-	//
-	//if(inputManager->WasKeyPressed(DIK_O))
-	//{
-	//	textureAndMaterialHandler.RebuildSeamlessSimplex2DTexture(d3D->GetDevice(), d3D->GetDeviceContext(), 0, 0, 100, 100);
-	//}
-	//
-	//if(inputManager->WasKeyPressed(DIK_J))
-	//{
-	//	xPos += 30.0f;
-	//
-	//	textureAndMaterialHandler.RebuildTexture(d3D->GetDevice(), d3D->GetDeviceContext(), TEXTURE_GRASS, 1024, 1024, xPos, yPos, true);
-	//}
-	//
-	//if(inputManager->WasKeyPressed(DIK_K))
-	//{
-	//	yPos += 30.0f;
-	//
-	//	textureAndMaterialHandler.RebuildTexture(d3D->GetDevice(), d3D->GetDeviceContext(), TEXTURE_DIRT, 1024, 1024, xPos, yPos, true);
-	//}
-	//
-	//if(inputManager->WasKeyPressed(DIK_P))
-	//{
-	//	//Create and initialize our time... things.
-	//	const time_t timeObject = time(NULL);
-	//	struct tm parts;
-	//	localtime_s(&parts, &timeObject );
-	//
-	//	std::ostringstream std::stringStream;
-	//
-	//	//Create the std::string that will hold the screenshot's name when it gets pooped out into the directory
-	//	std::stringStream << "SavedTexture_" << (1+parts.tm_mon) << "-" << parts.tm_mday <<  "-" << parts.tm_min << "-" << parts.tm_sec << ".bmp";
-	//
-	//	LPCSTR fileName;
-	//	std::string temp = std::stringStream.str();
-	//	fileName = (temp).c_str();
-	//
-	//	textureAndMaterialHandler.SaveTextureToFile(d3D->GetDeviceContext(), *textureAndMaterialHandler.GetNoiseTexture(), D3DX11_IFF_BMP, fileName);
-	//}
-	//
-	//if(inputManager->WasKeyPressed(DIK_L))
-	//{
-	//	//Create and initialize our time... things.
-	//	const time_t timeObject = time(NULL);
-	//	struct tm parts;
-	//	localtime_s(&parts, &timeObject );
-	//
-	//	std::ostringstream std::stringStream;
-	//
-	//	//Create the std::string that will hold the screenshot's name when it gets pooped out into the directory
-	//	std::stringStream << "SavedTexture_" << (1+parts.tm_mon) << "-" << parts.tm_mday <<  "-" << parts.tm_min << "-" << parts.tm_sec << ".bmp";
-	//
-	//	LPCSTR fileName;
-	//	std::string temp = stringStream.str();
-	//	fileName = (temp).c_str();
-	//
-	//	textureAndMaterialHandler.SaveTextureToFile(d3D->GetDeviceContext(), *textureAndMaterialHandler.GetTerrainTexture(), D3DX11_IFF_BMP, fileName);
-	//}
-
 	//Speed up the change of day
 	if(inputManager->IsKeyPressed(DIK_1))
 	{
@@ -504,14 +436,6 @@ bool WorldRenderer::Update( HWND hwnd, int fps, int cpuPercentage, float millise
 		}
 	}
 
-#pragma region Generate new marching cubes world
-	if(inputManager->WasKeyPressed(DIK_N))
-	{
-
-	}
-#pragma endregion
-
-
 	timeOfDay = dayNightCycle.Update(secondDeltaTime, &dirLight, &skySphere);
 
 	XMVECTOR lookAt = XMLoadFloat3(&camera->GetPosition());//XMVectorSet(30.0f, 20.0f, 30.0f, 1.0f);//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition())+(camera->ForwardVector()*30.0f);//XMLoadFloat3(&camera->GetPosition());//
@@ -525,9 +449,13 @@ bool WorldRenderer::Update( HWND hwnd, int fps, int cpuPercentage, float millise
 }
 
 
-void WorldRenderer::InitializeRenderTargets()
+void GameRenderer::InitializeRenderingSpecifics()
 {
-	shadowDepthStencil = d3D->GetShadowmapDSV();
+	deviceContext = d3D->GetDeviceContext();
+	device = d3D->GetDevice();
+
+	shadowDepthStencil.p = d3D->GetShadowManager()->GetShadowmapDSV();
+	depthStencil.p = d3D->GetDepthStencilManager()->GetDepthStencilView();
 
 	//For shadow pre-gbuffer pass
 	shadowTarget[0] = shadowRT.RTView;
@@ -564,25 +492,21 @@ void WorldRenderer::InitializeRenderTargets()
 }
 
 
-bool WorldRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
+bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 {
 	// Clear the scene.
 	d3D->BeginScene(0.1f, 0.1f, 0.45f, 0.0f);
 
-	ID3D11DeviceContext* deviceContext = d3D->GetDeviceContext();
-	ID3D11Device* device = d3D->GetDevice();
-
-#pragma region Preparation
+#pragma region Other Preparation
 	// Generate the view matrix based on the camera's position.
 	camPos = camera->GetPosition();
 	XMStoreFloat3(&camDir, XMVector3Normalize(camera->ForwardVector()));
-
 #pragma endregion
 
 #pragma region Matrix preparations
-	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, scalingMatrix, viewProjection, invertedViewProjection, invertedView, 
-		lightView, lightProj, lightViewProj, baseView, worldBaseViewOrthoProj, identityWorldViewProj, lightWorldViewProj, 
-		invertedProjection, untransposedViewProj, lightWorldView, invertedWorldView, worldView, worldBaseView;
+	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, viewProjection, invertedViewProjection, invertedView, 
+		lightView, lightProj, baseView, worldBaseViewOrthoProj, identityWorldViewProj, lightWorldViewProj, 
+		invertedProjection, lightWorldView, invertedWorldView, worldBaseView;
 
 	//XMMATRIX shadowScaleBiasMatrix = new XMMATRIX
 	//	(
@@ -592,33 +516,29 @@ bool WorldRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 	//	0.0f, 0.0f, 0.0f, 1.0f
 	//	);
 
-	d3D->GetWorldMatrix(worldMatrix);
-	d3D->GetOrthoMatrix(orthoMatrix);
+	worldMatrix = XMMatrixIdentity(); //XMLoadFloat4x4(camera->GetWorldMatrix());//
+	camera->GetOrthographicProjection(orthoMatrix);
 	camera->GetViewMatrix(viewMatrix);
 	camera->GetProjectionMatrix(projectionMatrix);
 	lightView = XMLoadFloat4x4(&dirLight.View);
 	lightProj = XMLoadFloat4x4(&dirLight.Projection);
 
-	XMVECTOR nullVec = XMVectorSplatOne();
+	//XMVECTOR nullVec = ;
 	viewProjection = XMMatrixMultiply(viewMatrix, projectionMatrix);
 
-	invertedView = XMMatrixInverse(&nullVec, viewMatrix);
-	invertedProjection = XMMatrixInverse(&nullVec, projectionMatrix);
-	invertedViewProjection = XMMatrixInverse(&nullVec, viewProjection);
-	invertedWorldView = XMMatrixInverse(&nullVec, worldMatrix*viewMatrix);
+	invertedView = XMMatrixInverse(&XMVectorSplatOne(), viewMatrix);
+	invertedProjection = XMMatrixInverse(&XMVectorSplatOne(), projectionMatrix);
+	invertedViewProjection = XMMatrixInverse(&XMVectorSplatOne(), viewProjection);
+	invertedWorldView = XMMatrixInverse(&XMVectorSplatOne(), worldMatrix*viewMatrix);
 
-
-	lightViewProj =	lightView * lightProj;
 	lightWorldView = worldMatrix * lightView;
 	lightWorldViewProj = worldMatrix * lightView * lightProj;
 
 	identityWorldViewProj = worldMatrix * viewMatrix * projectionMatrix;
-	worldView = worldMatrix * viewMatrix;
-	worldBaseView = worldMatrix * baseView;
+	worldBaseView = worldMatrix * XMLoadFloat4x4(&baseViewMatrix);
 
 
 	lightWorldView =			XMMatrixTranspose(lightWorldView);
-	lightViewProj =				XMMatrixTranspose(lightViewProj);
 	lightWorldViewProj =		XMMatrixTranspose(lightWorldViewProj);
 	lightView =					XMMatrixTranspose(lightView);
 	lightProj =					XMMatrixTranspose(lightProj);
@@ -633,7 +553,6 @@ bool WorldRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 	//projectionMatrix =		XMMatrixTranspose(projectionMatrix);
 	baseView =					XMMatrixTranspose(XMLoadFloat4x4(&baseViewMatrix));
 
-	worldView =					XMMatrixTranspose(worldView);
 	worldBaseView =				XMMatrixTranspose(worldBaseView);
 	//viewProjection =			XMMatrixTranspose(viewProjection);
 	identityWorldViewProj =		XMMatrixTranspose(identityWorldViewProj);
@@ -644,32 +563,58 @@ bool WorldRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 	baseView = XMMatrixTranspose(baseView);
 #pragma endregion
 
-	RenderShadowmap(deviceContext, &lightWorldViewProj, &lightWorldView, renderableBundle);
-	RenderTwoPassGaussianBlur(deviceContext, &worldBaseViewOrthoProj);
-	RenderGBuffer(deviceContext, &viewMatrix, &projectionMatrix, &identityWorldViewProj, renderableBundle);
+	if(!RenderShadowmap(&lightWorldViewProj, &lightWorldView, renderableBundle))
+	{
+		return false;
+	}
 
-	RenderPointLight(deviceContext, &viewMatrix, &invertedView, &viewProjection);
-	RenderDirectionalLight(deviceContext, &viewMatrix, &worldBaseViewOrthoProj, &lightView, &lightProj, &invertedProjection);
+	if(!RenderTwoPassGaussianBlur(&worldBaseViewOrthoProj))
+	{
+		return false;
+	}
 
-	RenderComposedScene(deviceContext, &worldBaseViewOrthoProj, &worldBaseView, &baseView, &invertedProjection, &invertedViewProjection);
-	RenderGUI(deviceContext, &worldBaseViewOrthoProj);
+	if(!RenderGBuffer(&viewMatrix, &projectionMatrix, &identityWorldViewProj, renderableBundle))
+	{
+		return false;
+	}
+
+	if(!RenderPointLight(&viewMatrix, &invertedView, &viewProjection))
+	{
+		return false;
+	}
+
+	if(!RenderDirectionalLight(&viewMatrix, &worldBaseViewOrthoProj, &lightView, &lightProj, &invertedProjection))
+	{
+		return false;
+	}
+
+	if(!RenderComposedScene(&worldBaseViewOrthoProj, &worldBaseView, &baseView, &invertedProjection, &invertedViewProjection))
+	{
+		return false;
+	}
+	
+	if(!RenderGUI(&worldBaseViewOrthoProj))
+	{
+		return false;
+	}
 
 	// Present the rendered scene to the screen.
-	d3D->EndScene();
+	d3D->PresentFrame();
 
 	return true;
 }
 
 
-bool WorldRenderer::RenderShadowmap( ID3D11DeviceContext* deviceContext, XMMATRIX* lightWorldViewProj, XMMATRIX* lightWorldView, RenderableBundle* renderableBundle)
+bool GameRenderer::RenderShadowmap(XMMATRIX* lightWorldViewProj, XMMATRIX* lightWorldView, RenderableBundle* renderableBundle)
 {
 	//Early depth pass for shadowmap
+	d3D->GetShadowManager()->SetShadowViewport();
+
 	deviceContext->OMSetRenderTargets(1, &shadowTarget[0].p, shadowDepthStencil);
 	deviceContext->ClearDepthStencilView(shadowDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
 	deviceContext->ClearRenderTargetView(shadowTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
-	d3D->SetShadowViewport();
-
-	d3D->SetNoCullRasterizer();
+	
+	d3D->GetRasterizerStateManager()->SetNoCullRasterizer();
 
 	for(unsigned int i = 0; i < renderableBundle->terrainChunks.size(); i++)
 	{	
@@ -686,13 +631,13 @@ bool WorldRenderer::RenderShadowmap( ID3D11DeviceContext* deviceContext, XMMATRI
 
 
 //TODO: change this function to just take two generic render targets and a depth stencil, as to make it possible to blur anything
-bool WorldRenderer::RenderTwoPassGaussianBlur(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj )
+bool GameRenderer::RenderTwoPassGaussianBlur(XMMATRIX* worldBaseViewOrthoProj )
 {
 	//Shadow map blur stage
 	//Change render target to prepare for ping-ponging
 	deviceContext->OMSetRenderTargets(1, &gaussianBlurPingPongRTView[0].p, shadowDepthStencil);
 	deviceContext->ClearRenderTargetView(gaussianBlurPingPongRTView[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 1.0f));
-	deviceContext->ClearDepthStencilView(shadowDepthStencil, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
+	deviceContext->ClearDepthStencilView(shadowDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	//Blur shadow map texture horizontally
 	if(!fullScreenQuad.Render(deviceContext, 0, 0))
@@ -707,7 +652,7 @@ bool WorldRenderer::RenderTwoPassGaussianBlur(ID3D11DeviceContext* deviceContext
 
 	//Change render target back to our shadow map to render the second blur and get the final result
 	deviceContext->OMSetRenderTargets(1, &shadowTarget[0].p, shadowDepthStencil);
-	deviceContext->ClearDepthStencilView(shadowDepthStencil, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
+	deviceContext->ClearDepthStencilView(shadowDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	//Blur shadow map texture vertically
 	if(!fullScreenQuad.Render(deviceContext, 0, 0))
@@ -724,13 +669,14 @@ bool WorldRenderer::RenderTwoPassGaussianBlur(ID3D11DeviceContext* deviceContext
 }
 
 
-bool WorldRenderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, XMMATRIX* identityWorldViewProj, RenderableBundle* renderableBundle)
+bool GameRenderer::RenderGBuffer(XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, XMMATRIX* identityWorldViewProj, RenderableBundle* renderableBundle)
 {
 	XMMATRIX worldViewProjMatrix, worldMatrix, worldView, view, proj;
 
 	//GBuffer building stage
 	d3D->SetDefaultViewport();
-	depthStencil.p = d3D->GetDepthStencilView();
+
+	//depthStencil.p = d3D->GetDepthStencilManager()->GetDepthStencilView();
 	deviceContext->OMSetRenderTargets(3, &gbufferRenderTargets[0].p, depthStencil);
 	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
@@ -738,8 +684,8 @@ bool WorldRenderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* 
 	deviceContext->ClearRenderTargetView(gbufferRenderTargets[1], D3DXVECTOR4(0.5f, 0.5f, 0.5f, 0.5f));
 	deviceContext->ClearRenderTargetView(gbufferRenderTargets[2], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 1.0f));
 
-	d3D->SetNoCullRasterizer();
-	d3D->TurnZBufferOff();
+	d3D->GetRasterizerStateManager()->SetNoCullRasterizer();
+	d3D->GetDepthStencilManager()->SetDepthDisabledStencilState();
 
 	worldMatrix = XMMatrixTranslation(camPos.x, camPos.y, camPos.z);
 
@@ -749,9 +695,9 @@ bool WorldRenderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* 
 
 	skySphere.Render(deviceContext, &worldViewProjMatrix, camPos.y, &dayNightCycle.GetAmbientLightColor(), timeOfDay);
 
-	d3D->TurnZBufferOn();
-	d3D->SetBackFaceCullingRasterizer();
-	d3D->ResetBlendState();
+	d3D->GetDepthStencilManager()->SetDefaultDepthStencilView();
+	d3D->GetRasterizerStateManager()->SetBackFaceCullingRasterizer();
+	d3D->GetBlendStateManager()->TurnOnDefaultBlendState();
 
 	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	
@@ -770,7 +716,7 @@ bool WorldRenderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* 
 
 	if(drawWireFrame)
 	{	
-		d3D->SetWireframeRasterizer();
+		d3D->GetRasterizerStateManager()->SetWireframeRasterizer();
 	}
 
 	unsigned int vecSize = renderableBundle->terrainChunks.size();
@@ -788,8 +734,8 @@ bool WorldRenderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* 
 		}
 	}
 
-	d3D->TurnOnTransparencyBlending();
-	d3D->SetBackFaceCullingRasterizer();
+	d3D->GetBlendStateManager()->TurnOnTransparencyBlending();
+	d3D->GetRasterizerStateManager()->SetBackFaceCullingRasterizer();
 
 	for(unsigned int i = 0; i < vecSize; i++)
 	{	
@@ -803,8 +749,8 @@ bool WorldRenderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* 
 		}
 	}
 
-	d3D->TurnOnAlphaBlending();
-	d3D->SetNoCullRasterizer();
+	d3D->GetBlendStateManager()->TurnOnAlphaBlending();
+	d3D->GetRasterizerStateManager()->SetNoCullRasterizer();
 
 	for(unsigned int i = 0; i < vecSize; i++)
 	{	
@@ -818,14 +764,14 @@ bool WorldRenderer::RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* 
 		}
 	}
 
-	d3D->ResetBlendState();
-	d3D->SetBackFaceCullingRasterizer();
+	d3D->GetBlendStateManager()->TurnOnDefaultBlendState();
+	d3D->GetRasterizerStateManager()->SetBackFaceCullingRasterizer();
 
 	return true;
 }
 
 
-bool WorldRenderer::RenderPointLight( ID3D11DeviceContext* deviceContext, XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* viewProjection )
+bool GameRenderer::RenderPointLight(XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* viewProjection )
 {
 	XMMATRIX world, worldView, worldViewProj;
 
@@ -834,7 +780,7 @@ bool WorldRenderer::RenderPointLight( ID3D11DeviceContext* deviceContext, XMMATR
 	deviceContext->ClearRenderTargetView(lightTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	d3D->TurnOnLightBlending();
+	d3D->GetBlendStateManager()->TurnOnLightBlending();
 
 	if(toggleOtherPointLights)
 	{
@@ -849,8 +795,8 @@ bool WorldRenderer::RenderPointLight( ID3D11DeviceContext* deviceContext, XMMATR
 			worldViewProj = XMMatrixTranspose(worldViewProj);
 
 			//Phase one, draw sphere with vertex-only shader.
-			d3D->SetLightStencilMethod1Phase1();
-			d3D->SetNoCullRasterizer();
+			d3D->GetDepthStencilManager()->SetLightStencilMethod1Phase1();
+			d3D->GetRasterizerStateManager()->SetNoCullRasterizer();
 
 			sphereModel.Render(deviceContext);
 
@@ -860,8 +806,8 @@ bool WorldRenderer::RenderPointLight( ID3D11DeviceContext* deviceContext, XMMATR
 			}
 
 			//Phase two, draw sphere with light algorithm
-			d3D->SetLightStencilMethod1Phase2();
-			d3D->SetFrontFaceCullingRasterizer();
+			d3D->GetDepthStencilManager()->SetLightStencilMethod1Phase2();
+			d3D->GetRasterizerStateManager()->SetFrontFaceCullingRasterizer();
 
 			sphereModel.Render(deviceContext);
 
@@ -884,15 +830,17 @@ bool WorldRenderer::RenderPointLight( ID3D11DeviceContext* deviceContext, XMMATR
 }
 
 
-bool WorldRenderer::RenderDirectionalLight( ID3D11DeviceContext* deviceContext, XMMATRIX* viewMatrix, XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* lightView, XMMATRIX* lightProj, XMMATRIX* invertedProjection )
+bool GameRenderer::RenderDirectionalLight(XMMATRIX* viewMatrix, XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* lightView, XMMATRIX* lightProj, XMMATRIX* invertedProjection )
 {
 	XMMATRIX worldMatrix, worldView, invertedWorldView, invertedView;
 
 	//Directional light stage
 	/*TODO: Create a directional light stencilstate that does a NOTEQUAL==0 stencil check.*/
-	depthStencil = d3D->GetDepthStencilView();
-	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_STENCIL|D3D11_CLEAR_DEPTH, 1.0f, 0);
-	d3D->SetBackFaceCullingRasterizer();
+	
+	d3D->GetDepthStencilManager()->SetDepthDisabledStencilState();
+	d3D->GetRasterizerStateManager()->SetNoCullRasterizer();
+
+	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	XMVECTOR det = XMVectorSplatOne();
 	worldMatrix = XMMatrixIdentity();
@@ -920,127 +868,133 @@ bool WorldRenderer::RenderDirectionalLight( ID3D11DeviceContext* deviceContext, 
 	return true;
 }
 
-bool WorldRenderer::RenderComposedScene(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* worldView, XMMATRIX* view, XMMATRIX* invertedProjection, XMMATRIX* invertedViewProjection )
+bool GameRenderer::RenderComposedScene(XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* worldView, XMMATRIX* view, XMMATRIX* invertedProjection, XMMATRIX* invertedViewProjection )
 {
 	//Render final composed scene that is the sum of all the previous scene
-	d3D->SetBackBufferRenderTarget();
-	d3D->ResetBlendState();
-	d3D->GetDeviceContext()->ClearDepthStencilView(depthStencil,  D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
+	d3D->ResetBackBufferRenderTarget();
 
-	fullScreenQuad.Render(deviceContext, 0, 0);
+	//d3D->GetDepthStencilManager()->SetDefaultDepthStencilView();
+	d3D->GetBlendStateManager()->TurnOnDefaultBlendState();
+	deviceContext->ClearDepthStencilView(depthStencil,  D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	composeShader.Render(deviceContext, fullScreenQuad.GetIndexCount(), worldBaseViewOrthoProj, worldView, view, invertedProjection, 
-		invertedViewProjection, &dayNightCycle.GetAmbientLightColor(), fogMinimum, &finalTextures[0].p, *textureAndMaterialHandler.GetSSAORandomTexture(), toggleSSAO);
-
-	return true;
-}
-
-
-bool WorldRenderer::RenderGUI(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj )
-{
-	XMMATRIX worldMatrix;
-
-	d3D->ResetRasterizerState();
-	d3D->ResetBlendState();
-	depthStencil = d3D->GetDepthStencilView(); //This also resets the depth stencil state to "default".
-	deviceContext->ClearDepthStencilView(depthStencil,  D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-	d3D->GetWorldMatrix(worldMatrix);
-	worldMatrix = XMMatrixTranspose(worldMatrix);
-
-	if(toggleDebugInfo)
+	if(!fullScreenQuad.Render(deviceContext, 0, 0))
 	{
-		for(int i = 0; i < 3; i++)
-		{
-			if(!debugWindows[i].Render(d3D->GetDeviceContext(), 200+200*i, 0))
-			{
-				return false;
-			}
+		return false;
+	}
 
-			if(!textureShader.Render(d3D->GetDeviceContext(), debugWindows[i].GetIndexCount(), 
-				worldBaseViewOrthoProj, gbufferTextures[i]))
-			{
-				return false;
-			}
-		}
-
-		if(!debugWindows[4].Render(d3D->GetDeviceContext(), 800, 0))
-		{
-			return false;
-		}
-
-		if(!textureShader.Render(d3D->GetDeviceContext(), debugWindows[4].GetIndexCount(), 
-			worldBaseViewOrthoProj, shadowRT.SRView))
-		{
-			return false;
-		}
-
-		if(!debugWindows[3].Render(d3D->GetDeviceContext(), 200, 200))
-		{
-			return false;
-		}
-
-		if(!textureShader.Render(d3D->GetDeviceContext(), debugWindows[3].GetIndexCount(), 
-			worldBaseViewOrthoProj, lightRT.SRView))
-		{
-			return false;
-		}
-
-		if(!debugWindows[5].Render(d3D->GetDeviceContext(), 400, 200))
-		{
-			return false;
-		}
-
-		//*textureAndMaterialHandler.GetNoiseTexture()
-		if(!textureShader.Render(d3D->GetDeviceContext(), debugWindows[5].GetIndexCount(), 
-			worldBaseViewOrthoProj, *textureAndMaterialHandler.GetWindNormalMap()))
-		{
-			return false;
-		}
-
-		if(!debugWindows[6].Render(d3D->GetDeviceContext(), 600, 200))
-		{
-			return false;
-		}
-
-		if(!textureShader.Render(d3D->GetDeviceContext(), debugWindows[6].GetIndexCount(), 
-			worldBaseViewOrthoProj, *textureAndMaterialHandler.GetWindTexture()))
-		{
-			return false;
-		}
-
-		d3D->TurnZBufferOff();
-
-		d3D->TurnOnAlphaBlending();
-
-		// Render the text user interface elements.
-		if(!text->Render(d3D->GetDeviceContext(), worldBaseViewOrthoProj))
-		{
-			return false;
-		}
-
-		// Turn off alpha blending after rendering the text->
-		d3D->TurnOffAlphaBlending();
-
-		// Turn the Z buffer back on now that all 2D rendering has completed.
-		d3D->TurnZBufferOn();
+	if(!composeShader.Render(deviceContext, fullScreenQuad.GetIndexCount(), worldBaseViewOrthoProj, worldView, view, invertedProjection, 
+		invertedViewProjection, &dayNightCycle.GetAmbientLightColor(), fogMinimum, &finalTextures[0].p, *textureAndMaterialHandler.GetSSAORandomTexture(), toggleSSAO))
+	{
+		return false;
 	}
 
 	return true;
 }
 
 
-void WorldRenderer::Shutdown()
+bool GameRenderer::RenderGUI(XMMATRIX* worldBaseViewOrthoProj )
+{
+	XMMATRIX worldMatrix;
+
+	d3D->GetBlendStateManager()->TurnOnDefaultBlendState();
+	//depthStencil = d3D->GetDepthStencilManager()->GetDepthStencilView(); //This also resets the depth stencil state to "default".
+	deviceContext->ClearDepthStencilView(depthStencil,  D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	worldMatrix = XMMatrixIdentity();
+	worldMatrix = XMMatrixTranspose(worldMatrix);
+
+	if(toggleDebugInfo)
+	{
+		for(int i = 0; i < 3; i++)
+		{
+			if(!debugWindows[i].Render(deviceContext, 200+200*i, 0))
+			{
+				return false;
+			}
+
+			if(!textureShader.Render(deviceContext, debugWindows[i].GetIndexCount(), 
+				worldBaseViewOrthoProj, gbufferTextures[i]))
+			{
+				return false;
+			}
+		}
+
+		if(!debugWindows[4].Render(deviceContext, 800, 0))
+		{
+			return false;
+		}
+
+		if(!textureShader.Render(deviceContext, debugWindows[4].GetIndexCount(), 
+			worldBaseViewOrthoProj, shadowRT.SRView))
+		{
+			return false;
+		}
+
+		if(!debugWindows[3].Render(deviceContext, 200, 200))
+		{
+			return false;
+		}
+
+		if(!textureShader.Render(deviceContext, debugWindows[3].GetIndexCount(), 
+			worldBaseViewOrthoProj, lightRT.SRView))
+		{
+			return false;
+		}
+
+		if(!debugWindows[5].Render(deviceContext, 400, 200))
+		{
+			return false;
+		}
+
+		if(!textureShader.Render(deviceContext, debugWindows[5].GetIndexCount(), 
+			worldBaseViewOrthoProj, *textureAndMaterialHandler.GetWindNormalMap()))
+		{
+			return false;
+		}
+
+		if(!debugWindows[6].Render(deviceContext, 600, 200))
+		{
+			return false;
+		}
+
+		if(!textureShader.Render(deviceContext, debugWindows[6].GetIndexCount(), 
+			worldBaseViewOrthoProj, *textureAndMaterialHandler.GetWindTexture()))
+		{
+			return false;
+		}
+
+		d3D->GetDepthStencilManager()->SetDepthDisabledStencilState();
+
+		d3D->GetBlendStateManager()->TurnOnAlphaBlending();
+
+		// Render the text user interface elements.
+		if(!text->Render(deviceContext, worldBaseViewOrthoProj))
+		{
+			return false;
+		}
+
+		// Turn off alpha blending after rendering the text->
+		d3D->GetBlendStateManager()->TurnOnDefaultBlendState();
+
+		// Turn the Z buffer back on now that all 2D rendering has completed.
+		d3D->GetDepthStencilManager()->SetDefaultDepthStencilView();
+	}
+
+	return true;
+}
+
+
+void GameRenderer::Shutdown()
 {
 	return;
 }
 
-void WorldRenderer::OnSettingsReload(Config* cfg)
+void GameRenderer::OnSettingsReload(Config* cfg)
 {
 	const Setting& settings = cfg->getRoot()["rendering"];
 
-	settings.lookupValue("windowWidth", width);
-	settings.lookupValue("windowHeight", height);
+	settings.lookupValue("windowWidth", screenWidth);
+	settings.lookupValue("windowHeight", screenHeight);
 
 	//result = dayNightCycle.Initialize(500.0f, DAY); //86400.0f/6 <-- This is realistic day/night cycle. 86400 seconds in a day.
 	//if(!result)
@@ -1064,3 +1018,71 @@ void WorldRenderer::OnSettingsReload(Config* cfg)
 	//shadowRT.Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R32G32_FLOAT);
 	//gaussianBlurPingPongRT.Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R32G32_FLOAT); //Needs to be identical to shadowRT
 }
+
+
+//if(inputManager->WasKeyPressed(DIK_U))
+//{
+//	textureAndMaterialHandler.RebuildRandom2DTexture(d3D->GetDevice(), d3D->GetDeviceContext());
+//}
+//
+//if(inputManager->WasKeyPressed(DIK_I))
+//{
+//	textureAndMaterialHandler.RebuildMirroredSimplex2DTexture(d3D->GetDevice(), d3D->GetDeviceContext());
+//}
+//
+//if(inputManager->WasKeyPressed(DIK_O))
+//{
+//	textureAndMaterialHandler.RebuildSeamlessSimplex2DTexture(d3D->GetDevice(), d3D->GetDeviceContext(), 0, 0, 100, 100);
+//}
+//
+//if(inputManager->WasKeyPressed(DIK_J))
+//{
+//	xPos += 30.0f;
+//
+//	textureAndMaterialHandler.RebuildTexture(d3D->GetDevice(), d3D->GetDeviceContext(), TEXTURE_GRASS, 1024, 1024, xPos, yPos, true);
+//}
+//
+//if(inputManager->WasKeyPressed(DIK_K))
+//{
+//	yPos += 30.0f;
+//
+//	textureAndMaterialHandler.RebuildTexture(d3D->GetDevice(), d3D->GetDeviceContext(), TEXTURE_DIRT, 1024, 1024, xPos, yPos, true);
+//}
+//
+//if(inputManager->WasKeyPressed(DIK_P))
+//{
+//	//Create and initialize our time... things.
+//	const time_t timeObject = time(NULL);
+//	struct tm parts;
+//	localtime_s(&parts, &timeObject );
+//
+//	std::ostringstream std::stringStream;
+//
+//	//Create the std::string that will hold the screenshot's name when it gets pooped out into the directory
+//	std::stringStream << "SavedTexture_" << (1+parts.tm_mon) << "-" << parts.tm_mday <<  "-" << parts.tm_min << "-" << parts.tm_sec << ".bmp";
+//
+//	LPCSTR fileName;
+//	std::string temp = std::stringStream.str();
+//	fileName = (temp).c_str();
+//
+//	textureAndMaterialHandler.SaveTextureToFile(d3D->GetDeviceContext(), *textureAndMaterialHandler.GetNoiseTexture(), D3DX11_IFF_BMP, fileName);
+//}
+//
+//if(inputManager->WasKeyPressed(DIK_L))
+//{
+//	//Create and initialize our time... things.
+//	const time_t timeObject = time(NULL);
+//	struct tm parts;
+//	localtime_s(&parts, &timeObject );
+//
+//	std::ostringstream std::stringStream;
+//
+//	//Create the std::string that will hold the screenshot's name when it gets pooped out into the directory
+//	std::stringStream << "SavedTexture_" << (1+parts.tm_mon) << "-" << parts.tm_mday <<  "-" << parts.tm_min << "-" << parts.tm_sec << ".bmp";
+//
+//	LPCSTR fileName;
+//	std::string temp = stringStream.str();
+//	fileName = (temp).c_str();
+//
+//	textureAndMaterialHandler.SaveTextureToFile(d3D->GetDeviceContext(), *textureAndMaterialHandler.GetTerrainTexture(), D3DX11_IFF_BMP, fileName);
+//}

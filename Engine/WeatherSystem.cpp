@@ -37,9 +37,7 @@ void WeatherSystem::Update( float deltaTime )
 	}
 	else
 	{
-
 		lerpAmountThisUpdate = (deltaTime / updateThreshold); //Calculate amount we'll be moving by this frame //stagesOfDay[currentStageOfDay].DurationOfStage
-
 
 		windDirection.x = JustALerpFunction(windDirection.x, newWindDirection.x, lerpAmountThisUpdate);
 		windDirection.y = JustALerpFunction(windDirection.y, newWindDirection.y, lerpAmountThisUpdate);

@@ -4,14 +4,16 @@
 
 #include <btBulletDynamicsCommon.h>
 #include "Lemmi2DAABB.h"
+#include "TerrainNoiseSeeder.h"
 #include "MarchingCubeChunk.h"
 #include <unordered_map>
-#include "TerrainNoiseSeeder.h"
 #include "VegetationManager.h"
 #include <memory> //For shared_ptrs
 #include "marchingCubesClass.h"
 #include "d3dmanager.h"
 #include <math.h>
+#include "SettingsManager.h"
+#include <libconfig.h++>
 
 class TerrainManager
 {
@@ -38,26 +40,29 @@ public:
 	//Returns a bool to indicate if we've actually had to change anything. If true, it has changed and we should fetch the new data.
 	bool Update(ID3D11Device* device, ID3D11DeviceContext* deviceContext, XMFLOAT3 currentCameraPosition, float deltaTime);
 	
+	//Returns a bool to indicate if we've actually had to change anything. If true, it has changed and we should fetch the new render data.
 	bool UpdateAgainstAABB(ID3D11Device* device, ID3D11DeviceContext* deviceContext, Lemmi2DAABB* aabb, float deltaTime);
 
-	void ResetTerrain(int currentPosX, int currrentPosZ);
-	void CreateChunk(ID3D11Device* device, ID3D11DeviceContext* deviceContext, int startPosX, int startPosZ);
-	void MergeWithNeighbourChunks(MarchingCubeChunk* chunk,  int idX, int idZ);
+	void OnSettingsReload(Config* cfg);
+	void ResetTerrain();
 
 	VegetationManager* const GetVegetationManager() { return &vegetationManager; };
-	bool GetChunk(int x, int z, MarchingCubeChunk** outChunk);
-	vector<RenderableInterface*>* GetTerrainRenderables(int x, int z);
+	std::vector<RenderableInterface*>* GetTerrainRenderables(int x, int z);
+	std::vector<MarchingCubeChunk*>& GetActiveChunks() { return activeChunks; }
+	std::vector<RenderableInterface*>& GetActiveRenderables(){ return activeRenderables; }
 
-	vector<MarchingCubeChunk*>& GetActiveChunks() { return activeChunks; }
-	vector<RenderableInterface*>& GetActiveRenderables(){ return activeRenderables; }
 
-	void GenerateVegetation(ID3D11Device* device, bool UpdateInstanceBuffer, MarchingCubeChunk* chunk);
-	
-	void Cleanup(float posX, float posZ);
-
-	void SetTerrainType(TerrainNoiseSeeder::TerrainTypes val) { mcTerrain.SetTerrainType(val); }
+	void SetTerrainType(TerrainTypes::Type val) { terrainNoiser.SetTerrainType(val); }
 
 private:
+	bool GetChunk(int x, int z, MarchingCubeChunk** outChunk);
+
+	void CreateChunk(ID3D11Device* device, ID3D11DeviceContext* deviceContext, int startPosX, int startPosZ);
+	void MergeWithNeighbourChunks(MarchingCubeChunk* chunk,  int idX, int idZ);
+	void GenerateVegetation(ID3D11Device* device, bool UpdateInstanceBuffer, MarchingCubeChunk* chunk);
+	void Cleanup(float posX, float posZ);
+
+
 	inline std::pair<int,int> AddPairs(std::pair<int,int> pairOne, std::pair<int,int> pairTwo)
 	{
 		return std::make_pair<int, int>(pairOne.first+pairTwo.first, pairOne.second+pairTwo.second);
@@ -81,7 +86,7 @@ private:
 	std::shared_ptr<btDiscreteDynamicsWorld> collisionHandler;
 
 	MarchingCubesClass marchingCubes;
-	TerrainNoiseSeeder mcTerrain;
+	TerrainNoiseSeeder terrainNoiser;
 	VegetationManager vegetationManager;
 	NoiseClass noise;
 	unsigned int vegetationCount;
@@ -90,8 +95,8 @@ private:
 
 
 	std::shared_ptr<std::unordered_map<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>, int_pair_hash>> map;
-	vector<MarchingCubeChunk*> activeChunks;
-	vector<RenderableInterface*> activeRenderables; //We add each chunk's mesh to this list and only change it when our activechunks change
+	std::vector<MarchingCubeChunk*> activeChunks;
+	std::vector<RenderableInterface*> activeRenderables; //We add each chunk's mesh to this list and only change it when our activechunks change
 
 	std::pair<int,int> lastUsedKey;
 	std::pair<int,int> lastMin;

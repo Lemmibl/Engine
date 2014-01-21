@@ -4,12 +4,7 @@
 #include "Engine.h"
 
 Engine::Engine()
-: renderer(), timer(), fpsMeter(), cpuMeter()
-{
-	d3D = 0;
-}
-
-Engine::Engine(const Engine& other)
+: timer(), screenManager()
 {
 }
 
@@ -22,13 +17,12 @@ bool Engine::Initialize()
 	bool result;
 
 	// Initialize values.
-	toggleDebug = false;
 	screenWidth = 0;
 	screenHeight = 0;
-	shadowMapWidth = 1024;
-	shadowMapHeight = 1024;
+	float shadowMapWidth = 1024;
+	float shadowMapHeight = 1024;
 
-	// Initialize the windows api.
+	// load in the windows api.
 	InitializeWindows(screenWidth, screenHeight);
 
 	// Create the input object.  This object will be used to handle reading the keyboard input from the user.
@@ -46,6 +40,7 @@ bool Engine::Initialize()
 		return false;
 	}
 
+	//Create shared pointer containing a d3dmanager
 	d3D = std::make_shared<D3DManager>();
 	if(!d3D)
 	{
@@ -54,26 +49,12 @@ bool Engine::Initialize()
 
 	// Initialize the Direct3D object.
 	result = d3D->Initialize(hwnd, VSYNC_ENABLED, FULL_SCREEN, SCREEN_NEAR, SCREEN_FAR, 
-		screenWidth, screenHeight, shadowMapWidth, shadowMapHeight);
+		screenWidth, screenHeight, (UINT)shadowMapWidth, (UINT)shadowMapHeight);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize Direct3D. Look in engine.", L"Error", MB_OK);
 		return false;
 	}
-
-	//Initialize world
-	world.Initialize(d3D, input);
-
-	// Initialize the renderer.
-	result = renderer.Initialize(hwnd, world.GetCamera(), input, d3D, screenWidth, screenHeight, 
-		shadowMapWidth, shadowMapHeight, SCREEN_FAR, SCREEN_NEAR, toggleDebug);
-	if(!result)
-	{
-		return false;
-	}
-
-	fpsMeter.Initialize();
-	cpuMeter.Initialize();
 
 	// Initialize the timer object.
 	result = timer.Initialize();
@@ -82,19 +63,18 @@ bool Engine::Initialize()
 		MessageBox(hwnd, L"Could not initialize the Timer object.", L"Error", MB_OK);
 		return false;
 	}
+	
+	result = screenManager.InitializeStates(hwnd, input, d3D);
+	if(!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the Screen Manager.", L"Error", MB_OK);
+		return false;
+	}	
 
 	return true;	
 }
 
-void Engine::Shutdown()
-{
-	// Shutdown the window.
-	ShutdownWindows();
-
-	return;
-}
-
-void Engine::Run()
+void Engine::MainLoop()
 {
 	MSG msg;
 	bool done, result;
@@ -143,8 +123,6 @@ bool Engine::Update()
 	bool result;
 
 	timer.Update();
-	fpsMeter.Update();
-	cpuMeter.Update();
 
 	// Do the input frame processing.
 	result = input->Update(hwnd);
@@ -153,22 +131,7 @@ bool Engine::Update()
 		return false;
 	}
 
-	//Here. Do world update stuff here.
-	world.Update(timer.GetFrameTimeSeconds(), timer.GetFrameTimeMilliseconds());
-
-	// Do update renderer.
-	result = renderer.Update(hwnd, fpsMeter.GetFps(), cpuMeter.GetCpuPercentage(), timer.GetFrameTimeMilliseconds(), timer.GetFrameTimeSeconds(), world.GetWindDirection());
-	if(!result)
-	{
-		return false;
-	}
-
-	// Finally render the graphics to the screen.
-	result = renderer.Render(hwnd, world.GetRenderableBundle());
-	if(!result)
-	{
-		return false;
-	}
+	screenManager.UpdateActiveScreen(timer.GetFrameTimeSeconds());
 
 	return true;
 }
@@ -268,6 +231,40 @@ void Engine::InitializeWindows(int& screenWidth, int& screenHeight)
 	return;
 }
 
+LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam)
+{
+	switch(umessage)
+	{
+		// Check if the window is being destroyed.
+	case WM_DESTROY:
+		{
+			PostQuitMessage(0);
+			return 0;
+		}
+
+		// Check if the window is being closed.
+	case WM_CLOSE:
+		{
+			PostQuitMessage(0);		
+			return 0;
+		}
+
+		// All other messages pass to the message handler in the system class.
+	default:
+		{
+			return ApplicationHandle->MessageHandler(hwnd, umessage, wparam, lparam);
+		}
+	}
+}
+
+void Engine::Shutdown()
+{
+	// Shutdown the window.
+	ShutdownWindows();
+
+	return;
+}
+
 void Engine::ShutdownWindows()
 {
 	// Show the mouse cursor.
@@ -293,33 +290,7 @@ void Engine::ShutdownWindows()
 	return;
 }
 
-void Engine::OnSettingsReload( Config* cfg )
+void Engine::OnSettingsReload(Config* cfg )
 {
 	//TODO...
-}
-
-LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam)
-{
-	switch(umessage)
-	{
-		// Check if the window is being destroyed.
-	case WM_DESTROY:
-		{
-			PostQuitMessage(0);
-			return 0;
-		}
-
-		// Check if the window is being closed.
-	case WM_CLOSE:
-		{
-			PostQuitMessage(0);		
-			return 0;
-		}
-
-		// All other messages pass to the message handler in the system class.
-	default:
-		{
-			return ApplicationHandle->MessageHandler(hwnd, umessage, wparam, lparam);
-		}
-	}
 }

@@ -27,17 +27,17 @@ public:
 
 private:
 	//Extract a cube from the .. voxel field...
-	void ExtractCube(MarchingCubeVoxel** cube, vector<MarchingCubeVoxel>* vertices, unsigned int sizeX, unsigned int sizeY, unsigned int sizeZ);
+	void ExtractCube(MarchingCubeVoxel** cube, std::vector<MarchingCubeVoxel>* vertices, unsigned int sizeX, unsigned int sizeY, unsigned int sizeZ);
 
 	//Calculate the lookup value we'll be using to index into the fields
 	void CalculateLookupValue(unsigned int* lookup, unsigned int index, MarchingCubeVoxel** cube);
 
 	//Triangulate the cube that was extracted before, with the help of our lookup value
-	void ProcessCube(btTriangleMesh* triMesh, unsigned int lookupValue, MarchingCubeVoxel* verts, MarchingCubeVoxel** cube, vector<unsigned int>* indices, vector<MarchingCubeVectors>* vertices, 
+	void ProcessCube(btTriangleMesh* triMesh, unsigned int lookupValue, MarchingCubeVoxel* verts, MarchingCubeVoxel** cube, std::vector<unsigned int>* indices, std::vector<MarchingCubeVectors>* vertices, 
 		unsigned int& indexCounter, unsigned int& vertexCounter, unsigned int sizeX,  unsigned int sizeY, unsigned int sizeZ);
 
 	//Create vertex and index buffers from the data that we've created
-	void CreateMesh(ID3D11Device* device, IndexedMesh* mesh, vector<unsigned int>* indices, vector<MarchingCubeVectors>* vertices, unsigned int indexCount, unsigned int vertexCount);
+	void CreateMesh(ID3D11Device* device, IndexedMesh* mesh, std::vector<unsigned int>* indices, std::vector<MarchingCubeVectors>* vertices, unsigned int indexCount, unsigned int vertexCount);
 
 	//Creates a flat mesh from a min and max pos.
 	void CreateWaterMesh(ID3D11Device* device, MarchingCubeChunk* chunk, IndexedMesh* waterMesh);

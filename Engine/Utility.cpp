@@ -3,17 +3,10 @@
 
 Utility::Utility()
 {
-
-}
-
-Utility::Utility( const Utility& )
-{
-
 }
 
 Utility::~Utility()
 {
-
 }
 
 float Utility::VectorDistance( XMFLOAT3 vector1, XMFLOAT3 vector2 )

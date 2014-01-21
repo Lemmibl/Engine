@@ -74,39 +74,6 @@ ControllerClass::ControllerClass(std::shared_ptr<btDynamicsWorld> world, std::sh
 	settings.GetEvent()->Add(*this, (&ControllerClass::OnSettingsReload));
 
 	OnSettingsReload(&settings.GetConfig());
-
-	////Set up all collision related objects
-	//collisionShape = std::make_shared<btSphereShape>(collisionRadius);
-
-	//btScalar mass = 1.0f;
-	//btVector3 fallInertia(0, 0, 0);
-	//collisionShape->calculateLocalInertia(mass,fallInertia);
-
-	//motionState = std::make_shared<btDefaultMotionState>(btTransform(btQuaternion(0,0,0,1), btVector3(0, 100, 0)));
-
-	//btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(mass, motionState.get(), collisionShape.get(), fallInertia);
-
-	//rigidBody = std::make_shared<btRigidBody>(rigidBodyCI);
-
-	////Add it to the world
-	//dynamicsWorld->addRigidBody(rigidBody.get());
-
-	////http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?f=9&t=8900&view=next
-	////This is a flying controller, it shouldn't be affected by gravity
-	//rigidBody->setGravity(btVector3(0.0f, 0.0f, 0.0f));
-
-	////Self explanatory.
-	//rigidBody->setFriction(10.0f);
-	//rigidBody->setAnisotropicFriction(btVector3(2.0f, 2.0f, 2.0f));
-
-	////Linear damping is ... air friction, ish. Angular friction is how 
-	//rigidBody->setDamping(0.85f, 5.0f);
-
-	////Bounciness.
-	//rigidBody->setRestitution(0.0f);
-
-	////rigidBody->setLinearVelocity(btVector3(1.0f, 1.0f, 1.0f));
-	////rigidBody->setCcdSweptSphereRadius(collisionRadius * 0.9f);
 }
 
 ControllerClass::~ControllerClass()

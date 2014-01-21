@@ -53,11 +53,15 @@ void CameraClass::GetProjectionMatrix(XMMATRIX& projMatrix)
 }
 
 
+void CameraClass::GetOrthographicProjection( XMMATRIX& orthoMtrx)
+{
+	orthoMtrx = XMLoadFloat4x4(&orthoProjection);
+}
+
 XMFLOAT4X4* CameraClass::GetWorldMatrix()
 {
 	return &world; 
 }
-
 
 XMMATRIX CameraClass::GetView()
 {
@@ -179,7 +183,7 @@ CameraClass::~CameraClass()
 {
 }
 
-void CameraClass::SetPerspectiveProjection(int screenWidth, int screenHeight, float FOVinDegrees, float zNear, float zFar)
+void CameraClass::SetPerspectiveProjection(float screenWidth, float screenHeight, float FOVinRadians, float zNear, float zFar)
 {
 	this->screenWidth = screenWidth;
 	this->screenHeight = screenHeight;
@@ -187,9 +191,10 @@ void CameraClass::SetPerspectiveProjection(int screenWidth, int screenHeight, fl
 	this->farClip = zFar;
 
 	// Setup the projection matrix.
-	float FOV = FOVinDegrees;// * (float)DEG_TO_RAD;
-	float aspectRatio = (float)screenWidth / (float)screenHeight;
+	float FOV = FOVinRadians;// * (float)DEG_TO_RAD;
+	float aspectRatio = screenWidth / screenHeight;
 
+	XMStoreFloat4x4(&orthoProjection, XMMatrixOrthographicLH(screenWidth, screenHeight, zNear, zFar));
 	XMStoreFloat4x4(&projection, XMMatrixPerspectiveFovLH(FOV, aspectRatio, zNear, zFar));
 }
 
@@ -228,6 +233,7 @@ void CameraClass::Update()
 
 	return;
 }
+
 
 /*
 void camera::updateView()

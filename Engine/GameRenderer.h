@@ -56,7 +56,7 @@
 #include "DRWaterClass.h"
 #include "DRGBuffer.h"
 
-class WorldRenderer
+class GameRenderer
 {
 public:
 
@@ -75,18 +75,18 @@ public:
 	};
 
 public:
-	WorldRenderer();
-	WorldRenderer(const WorldRenderer&);
-	~WorldRenderer();
+	GameRenderer();
+	GameRenderer(const GameRenderer&);
+	~GameRenderer();
 
-	bool Initialize(HWND hwnd, std::shared_ptr<CameraClass> camera, std::shared_ptr<InputClass> inputManager, std::shared_ptr<D3DManager> d3D, UINT screenWidth, 
-		UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear, bool toggleDebug);
+	bool Initialize(HWND hwnd, std::shared_ptr<CameraClass> camera, std::shared_ptr<InputClass> inputManager, std::shared_ptr<D3DManager> d3D, 
+		UINT screenWidth, UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear);
 
 	bool InitializeShaders(HWND hwnd);
 	bool InitializeLights(HWND hwnd);
 	bool InitializeEverythingElse(HWND hwnd);
 	bool InitializeModels(HWND hwnd);
-	void InitializeRenderTargets();
+	void InitializeRenderingSpecifics();
 
 	void OnSettingsReload(Config* cfg);
 	void Shutdown();
@@ -94,15 +94,18 @@ public:
 	bool Update(HWND hwnd, int fps, int cpuPercentage, float millisecondDeltaTime, float secondDeltaTime, XMFLOAT3* windDirection);
 	bool Render(HWND hwnd, RenderableBundle* renderableBundle);
 
-	bool RenderShadowmap(ID3D11DeviceContext* deviceContext, XMMATRIX* lightWorldViewProj, XMMATRIX* lightWorldView, RenderableBundle* renderableBundle);
-	bool RenderTwoPassGaussianBlur(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj);
-	bool RenderGBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, XMMATRIX* identityWorldViewProj, RenderableBundle* renderableBundle);
-	bool RenderDirectionalLight(ID3D11DeviceContext* deviceContext, XMMATRIX* viewMatrix, XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* lightView, XMMATRIX* lightProj, XMMATRIX* invertedProjection);
-	bool RenderPointLight(ID3D11DeviceContext* deviceContext, XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* viewProjection);
-	bool RenderComposedScene(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* worldView, XMMATRIX* view, XMMATRIX* invertedProjection, XMMATRIX* invertedViewProjection);
-	bool RenderGUI(ID3D11DeviceContext* deviceContext, XMMATRIX* worldBaseViewOrthoProj);
+	bool RenderShadowmap(XMMATRIX* lightWorldViewProj, XMMATRIX* lightWorldView, RenderableBundle* renderableBundle);
+	bool RenderTwoPassGaussianBlur(XMMATRIX* worldBaseViewOrthoProj);
+	bool RenderGBuffer(XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, XMMATRIX* identityWorldViewProj, RenderableBundle* renderableBundle);
+	bool RenderDirectionalLight(XMMATRIX* viewMatrix, XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* lightView, XMMATRIX* lightProj, XMMATRIX* invertedProjection);
+	bool RenderPointLight(XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* viewProjection);
+	bool RenderComposedScene(XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* worldView, XMMATRIX* view, XMMATRIX* invertedProjection, XMMATRIX* invertedViewProjection);
+	bool RenderGUI(XMMATRIX* worldBaseViewOrthoProj);
 
 private:
+	ID3D11DeviceContext* deviceContext;
+	ID3D11Device* device;
+
 	std::shared_ptr<D3DManager> d3D;
 	std::shared_ptr<CameraClass> camera;
 	std::shared_ptr<InputClass> inputManager;
@@ -134,7 +137,6 @@ private:
 
 	UINT shadowMapWidth, shadowMapHeight, screenWidth, screenHeight;
 	float farClip, nearClip, timer, timeOfDay;
-	int width, height;
 
 	bool returning, toggleDebugInfo, toggleTextureShader, toggleOtherPointLights, drawWireFrame;
 	float fogMinimum;
@@ -172,5 +174,5 @@ private:
 	CComPtr<ID3D11ShaderResourceView> lightMap;
 
 	CComPtr<ID3D11DepthStencilView> shadowDepthStencil;
-	CComPtr<ID3D11DepthStencilView> depthStencil; //We set it later on when we need it. Calling d3D->GetDepthStencilView() also calls a reset on DS settings to default, hence we wait with calling it.
+	CComPtr<ID3D11DepthStencilView> depthStencil;
 };

@@ -5,98 +5,73 @@
 #include <stdlib.h> //srand
 #include <time.h>
 #include <vector>
-
-using std::vector;
+#include <map>
+#include <functional>
+#include "MarchingCubeChunk.h"
 
 class TerrainNoiseSeeder
 {
-public:
-	enum TerrainTypes
+private:
+	struct IndexingValue
 	{
-		SeaBottom = 1,
-		Plains = 2,
-		Hills = 3,
-		Terraces = 4,
-		DramaticHills = 5,
-		FlyingIslands = 6,
-		Alien = 7,
-		Fancy = 8,
-		Cave = 9
+		UINT x, y, z, sizeX, sizeY, sizeZ;
+
+		IndexingValue(UINT x, UINT y, UINT z, UINT sizeX, UINT sizeY, UINT sizeZ)
+		: x(x), y(y), z(z), sizeX(sizeX), sizeY(sizeY), sizeZ(sizeZ)
+		{
+		}
 	};
 
 public:
 	TerrainNoiseSeeder();
 	~TerrainNoiseSeeder();
 
-
-	void Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass* simplexNoise, TerrainTypes terrainType);
+	void Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass* simplexNoise, TerrainTypes::Type terrainType);
 	void LSystem();
 	void LSystemTree();
 	void MCHeightMap();
 
-	void SetCurrentVoxelField(vector<MarchingCubeVoxel>* val){ marchingCubeVertices = val; }
+	void SetCurrentVoxelField(std::vector<MarchingCubeVoxel>* val){ marchingCubeVertices = val; }
 
 	void Noise3D(unsigned int startX, unsigned int startY, unsigned int startZ, unsigned int endX, unsigned int endY, unsigned int endZ);
+	float GetHighestPositionOfCoordinate(int x, int z, const MarchingCubeChunk* chunk);
 
-	float GetDensityRangeUpper()
-	{
-		return densityRangeUpper;
-	}
-
-	float GetDensityRangeLower()
-	{
-		return densityRangeLower;
-	}
-	
-	void SetTerrainType(TerrainTypes terrainMode)
+	void SetTerrainType(TerrainTypes::Type terrainMode)
 	{
 		this->terrainMode = terrainMode;
 	}
 
-	void PulverizeWorldToggle()
+	inline void CreateNormal(std::vector<MarchingCubeVoxel>& verts, IndexingValue& index, unsigned int idx)
 	{
-		if (pulverize)
-		pulverize = false;
-		else
-		pulverize = true;
+		verts[idx].normal.x = (verts[idx - 1].density -	verts[idx+1].density)					* XFactor;
+		verts[idx].normal.y = (verts[idx - index.sizeY].density - verts[idx + index.sizeY].density)			* YFactor;
+		verts[idx].normal.z = (verts[idx - (index.sizeY * index.sizeZ)].density - verts[idx + (index.sizeY * index.sizeZ)].density)	* ZFactor;
+
+		//Normalize results.
+		float vectorLength = (verts[idx].normal.x*verts[idx].normal.x) + (verts[idx].normal.y*verts[idx].normal.y) + (verts[idx].normal.z*verts[idx].normal.z);
+
+		verts[idx].normal.x = verts[idx].normal.x/vectorLength;
+		verts[idx].normal.y = verts[idx].normal.y/vectorLength;
+		verts[idx].normal.z = verts[idx].normal.z/vectorLength;
 	}
 
-	bool GetPulverizeWorld()
-	{
-		return pulverize;
-	}
-
-	void SetPulverizeWorld(bool pulverize)
-	{
-		this->pulverize = pulverize;
-	}
-
-	int getTerrainType()
+	int GetTerrainType()
 	{
 		return terrainMode;
 	}
-
 	//float GetHighestPositionOfCoordinate(vector<MarchingCubeVoxel>* marchingCubeVertices, int x, int z);
-	float GetHighestPositionOfCoordinate(int x, int z);
 
 private:
-	void CreateMCVerts();
-
-
-private:
-	int sizeX, sizeY, sizeZ;
 	int worldSize;
 	int worldSizeMargin;
-	unsigned int x,y,z, idx;
 	int worldArraySize;
-	TerrainTypes terrainMode;
+	TerrainTypes::Type terrainMode;
 	float densityToBeInside;
-	float maxDensity, minDensity, densityRangeUpper,densityRangeLower;
-	float XFactor;
-	float YFactor;
-	float ZFactor;
-	bool pulverize;
+	float XFactor, YFactor, ZFactor;
+	int sizeX, sizeY, sizeZ;
 
-	vector<MarchingCubeVoxel>* marchingCubeVertices;
-	NoiseClass *noise;
+	std::map<TerrainTypes::Type, std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)>> functionMap;
+
+	std::vector<MarchingCubeVoxel>* marchingCubeVertices;
+	NoiseClass* noise;
 };

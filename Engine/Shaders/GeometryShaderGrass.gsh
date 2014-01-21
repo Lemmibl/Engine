@@ -74,13 +74,15 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, VS_OUTPUT v3, inout TriangleStream<PS_
 		//Taking [0, 1] rand values and changing them to a span that can go negative ([-1, 1]).
 		float2 rand = (2.0f * float2(v1.YPosDepthAndRand.z, v2.YPosDepthAndRand.z) - 0.5f);
 
-		//Randomizing the ground positions
-		float4 pos1 = v2.Position + float4(rand.x*0.5f, 0.0f, rand.y*0.5f, 0.0f); //Add a tiny offset to make placement of grass seem more random.
-		float4 pos2 = v1.Position + ((rand.y) * (normalize(v3.Position - v2.Position)));	//+ float4(rand.x, 0.0f, rand.y, 0.0f);
-		pos1.w = pos2.w = 1.0f;
-
 		float opacity = (1.0f - (v1.YPosDepthAndRand.y / vegetationFalloff));
 		float height = ((vegetationScale+(rand.x)) * opacity);
+
+		//Randomizing the ground positions
+		float4 pos1 = v2.Position + float4(rand.x*0.5f, 0.0f, rand.y*0.5f, 0.0f); //Add a tiny offset to make placement of grass seem more random.
+
+		//Scale second position with a random value times height, in the direction of the two other vectors. The aim with this is to make taller quads broader.
+		float4 pos2 = v1.Position + ((rand.y*height) * (normalize(v3.Position - v2.Position)));	//+ float4(rand.x, 0.0f, rand.y, 0.0f);
+		pos1.w = pos2.w = 1.0f;
 
 		//This is the normal that we use to offset the upper vertices of the quad, as to angle it slightly. 
 		//Height is of course used to control how high the quad will be.

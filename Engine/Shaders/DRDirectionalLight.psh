@@ -116,7 +116,7 @@ float3 DepthToPosition(float depth, float farClip, float4 ScreenPosition)
 //Calculate shadow contribution using chevyshev's inequality.
 float ChebyshevUpperBound(float2 moments, float t)  
 {
-	float minVariance = 0.02f; //Scaling value.
+	float minVariance = 0.002f; //Scaling value.
 
 	// Compute variance.  
 	float variance = moments.y - (moments.x*moments.x);
@@ -221,7 +221,7 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target0
 	)
 	{
 		/*Variance shadow mapping. http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html */
-		shadowMultiplier = max(ShadowContribution(lightScreenPos.xy, realDistanceToLight)-0.3f, 0.0f);
+		shadowMultiplier = ShadowContribution(lightScreenPos.xy, realDistanceToLight);//max(-0.3f, 0.0f);
 	}	
 	
 	//Calculate diffuse light

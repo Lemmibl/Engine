@@ -53,34 +53,35 @@ TerrainManager::TerrainManager(ID3D11Device* device, ID3D11DeviceContext* device
 	//Very powerful black magic going on here. Do not disturb.
 	stepScaling = (stepSize.x*(stepCount.x-3)) / 5000;
 
-	TerrainNoiseSeeder::TerrainTypes terrainType = TerrainNoiseSeeder::TerrainTypes::Cave;//(MCTerrainClass::TerrainTypes)(1 + rand()%8); //
+	//I give no shits if this throws a warning, it helps me remember which terraintypes there are and their names.
+	TerrainTypes::Type terrainType = TerrainTypes::SeaBottom;//(TerrainNoiseSeeder::TerrainTypes)(1 + rand()%8); //
 
-	mcTerrain.Initialize((int)stepCount.x, (int)stepCount.y, (int)stepCount.z, &noise, terrainType);
+	terrainNoiser.Initialize((int)stepCount.x, (int)stepCount.y, (int)stepCount.z, &noise, terrainType);
 
 	vegetationManager.Initialize(device, hwnd);
 
-	float randVal = (float)RoundToNearest(RandomFloat()*100.0f);
+	//float randVal = (float)RoundToNearest(RandomFloat()*100.0f);
 
-	//Define starting point for chunk generation
-	int startGridX, startGridZ;
+	////Define starting point for chunk generation
+	//int startGridX, startGridZ;
 
-	startGridX = RoundToNearest(cameraPosition.x*stepScaling);
-	startGridZ = RoundToNearest(cameraPosition.z*stepScaling);
+	//startGridX = RoundToNearest(cameraPosition.x*stepScaling);
+	//startGridZ = RoundToNearest(cameraPosition.z*stepScaling);
 
-	//Create 9 chunks around the starting point
-	CreateChunk(device, deviceContext, startGridX, startGridZ-1);
-	CreateChunk(device, deviceContext, startGridX, startGridZ+0);
-	CreateChunk(device, deviceContext, startGridX, startGridZ+1);
+	////Create 9 chunks around the starting point
+	//CreateChunk(device, deviceContext, startGridX, startGridZ-1);
+	//CreateChunk(device, deviceContext, startGridX, startGridZ+0);
+	//CreateChunk(device, deviceContext, startGridX, startGridZ+1);
 
-	CreateChunk(device, deviceContext, startGridX+1, startGridZ-1);
-	CreateChunk(device, deviceContext, startGridX+1, startGridZ+0);
-	CreateChunk(device, deviceContext, startGridX+1, startGridZ+1);
+	//CreateChunk(device, deviceContext, startGridX+1, startGridZ-1);
+	//CreateChunk(device, deviceContext, startGridX+1, startGridZ+0);
+	//CreateChunk(device, deviceContext, startGridX+1, startGridZ+1);
 
-	CreateChunk(device, deviceContext, startGridX-1, startGridZ-1);
-	CreateChunk(device, deviceContext, startGridX-1, startGridZ+0);
-	CreateChunk(device, deviceContext, startGridX-1, startGridZ+1);
+	//CreateChunk(device, deviceContext, startGridX-1, startGridZ-1);
+	//CreateChunk(device, deviceContext, startGridX-1, startGridZ+0);
+	//CreateChunk(device, deviceContext, startGridX-1, startGridZ+1);
 
-	Update(device, deviceContext, cameraPosition, 0.0f);
+	//Update(device, deviceContext, cameraPosition, 0.0f);
 }
 
 TerrainManager::~TerrainManager()
@@ -121,11 +122,11 @@ bool TerrainManager::Update(ID3D11Device* device, ID3D11DeviceContext* deviceCon
 			//If this chunk is valid
 			if(result == true)
 			{
-				//Add ptr to active chunk vector
+				//Add ptr to active chunk std::vector
 				activeChunks.push_back(tempChunk);
 				activeRenderables.push_back(tempChunk->GetTerrainMesh());
 
-				////Add this chunk's instances to the temporary vector
+				////Add this chunk's instances to the temporary std::vector
 				//tempVec.insert(tempVec.end(), tempChunk->GetVegetationInstances()->cbegin(), tempChunk->GetVegetationInstances()->cend());
 			}
 			else
@@ -134,7 +135,7 @@ bool TerrainManager::Update(ID3D11Device* device, ID3D11DeviceContext* deviceCon
 			}
 		}
 
-		//Send temporary vector to be built into a vegetation instance buffer
+		//Send temporary std::vector to be built into a vegetation instance buffer
 		//vegetationManager.BuildInstanceBuffer(device, &tempVec);
 
 		lastUsedKey = key;
@@ -145,9 +146,23 @@ bool TerrainManager::Update(ID3D11Device* device, ID3D11DeviceContext* deviceCon
 	return false;
 }
 
-void TerrainManager::ResetTerrain( int currentPosX, int currrentPosZ )
+void TerrainManager::ResetTerrain()
 {
+	for(auto it = map->begin(); it != map->end(); it++)
+	{
+		collisionHandler->removeRigidBody(it->second->GetRigidBody());
+	}
+
 	map->clear();
+	activeRenderables.clear();
+	activeChunks.clear();
+
+	timePassed = 0.0f;
+	lastUsedKey = std::make_pair<int, int>(99, -99);
+	lastMin = std::make_pair<int, int>(-99, -99);
+	lastMax = std::make_pair<int, int>(99, 99);
+
+	noise.ReseedRandom();
 }
 
 void TerrainManager::CreateChunk(ID3D11Device* device, ID3D11DeviceContext* deviceContext, int startPosX, int startPosZ)
@@ -175,8 +190,8 @@ void TerrainManager::CreateChunk(ID3D11Device* device, ID3D11DeviceContext* devi
 			);
 
 		//Noise the chunk
-		mcTerrain.SetCurrentVoxelField(newChunk->GetVoxelField());
-		mcTerrain.Noise3D(1, 1, 1, (int)stepCount.x, (int)stepCount.y, (int)stepCount.z);
+		terrainNoiser.SetCurrentVoxelField(newChunk->GetVoxelField());
+		terrainNoiser.Noise3D(1, 1, 1, (int)stepCount.x, (int)stepCount.y, (int)stepCount.z);
 
 		//Create the mesh for the chunk with marching cubes algorithm
 		marchingCubes.CalculateMesh(device, newChunk.get(), newChunk->GetTriMesh());
@@ -203,7 +218,7 @@ void TerrainManager::CreateChunk(ID3D11Device* device, ID3D11DeviceContext* devi
 		//...Generate and place vegetation based on data from the chunk.
 		//GenerateVegetation(device, false, newChunk.get());
 
-		//Clean up and remove the HUGE index and vertex vectors because they are no longer needed.
+		//Clean up and remove the HUGE index and vertex std::vectors because they are no longer needed.
 		newChunk->GetIndices()->clear();
 		newChunk->GetIndices()->swap(*(newChunk->GetIndices()));
 
@@ -364,13 +379,13 @@ void TerrainManager::GenerateVegetation( ID3D11Device* device, bool UpdateInstan
 	//}
 }
 
-vector<RenderableInterface*>* TerrainManager::GetTerrainRenderables(int x, int z)
+std::vector<RenderableInterface*>* TerrainManager::GetTerrainRenderables(int x, int z)
 {
 	//Make a key out of the values
 	std::pair<int,int> key(x, z);
 
-	//The usual, see if we haven't already used this key recently, or if the vector is empty.
-	//If either of those things are true, we empty the activeRenderables vector and insert new, relevant renderables.
+	//The usual, see if we haven't already used this key recently, or if the std::vector is empty.
+	//If either of those things are true, we empty the activeRenderables std::vector and insert new, relevant renderables.
 	if(key != lastUsedKey || activeRenderables.size() == 0)
 	{
 		activeRenderables.clear();
@@ -390,10 +405,10 @@ bool TerrainManager::UpdateAgainstAABB( ID3D11Device* device, ID3D11DeviceContex
 
 	timePassed += deltaTime;
 
-	int startX	=	aabb->MinPoint().x;
-	int startZ	=	aabb->MinPoint().y;
-	int endX	=	aabb->MaxPoint().x;
-	int endZ	=	aabb->MaxPoint().y;
+	int startX	=	static_cast<int>(aabb->MinPoint().x);
+	int startZ	=	static_cast<int>(aabb->MinPoint().y);
+	int endX	=	static_cast<int>(aabb->MaxPoint().x);
+	int endZ	=	static_cast<int>(aabb->MaxPoint().y);
 
 	//Define the boundaries. We'll use the boundaries to loop through each relevant grid slot.
 	// I calculate the start and ending indices by dividing the positions by a large amount and casting them to int. 
@@ -410,7 +425,7 @@ bool TerrainManager::UpdateAgainstAABB( ID3D11Device* device, ID3D11DeviceContex
 		//Every few seconds we do a cleanup to remove old chunks
 		if(timePassed >= timeThreshold)
 		{
-			Cleanup((startX+endZ)/2, (startZ+endZ)/2);
+			Cleanup(static_cast<float>((startX+endZ)/2), static_cast<float>((startZ+endZ)/2));
 
 			//Reset
 			timePassed = 0.0f;
@@ -446,8 +461,8 @@ bool TerrainManager::UpdateAgainstAABB( ID3D11Device* device, ID3D11DeviceContex
 		*	startX,startZ								
 		*	
 		* Step through each grid by index, and then for each grid do the following:
-		* 1) Check in the hash map if this grid already has a chunk assigned to it, in that case fetch it and put it in the active chunks vector
-		* 2) If there isn't a chunk, create one and insert it into the hash map. Then insert it into the active chunks vector.
+		* 1) Check in the hash map if this grid already has a chunk assigned to it, in that case fetch it and put it in the active chunks std::vector
+		* 2) If there isn't a chunk, create one and insert it into the hash map. Then insert it into the active chunks std::vector.
 		* 
 		* 
 		* Yes. I did spend about 30 minutes making that little ascii... chart... box.
@@ -468,7 +483,7 @@ bool TerrainManager::UpdateAgainstAABB( ID3D11Device* device, ID3D11DeviceContex
 				//If this chunk is valid
 				if(result == true)
 				{
-					//Add ptr to active chunk vector
+					//Add ptr to active chunk std::vector
 					activeChunks.push_back(tempChunk);
 					activeRenderables.push_back(tempChunk->GetTerrainMesh());
 				}
@@ -480,7 +495,7 @@ bool TerrainManager::UpdateAgainstAABB( ID3D11Device* device, ID3D11DeviceContex
 					//Fetch it
 					result = GetChunk(neighbourKey.first, neighbourKey.second, &tempChunk);
 
-					//Add ptr to active chunk vector
+					//Add ptr to active chunk std::vector
 					activeChunks.push_back(tempChunk);
 					activeRenderables.push_back(tempChunk->GetTerrainMesh());
 				}
@@ -516,4 +531,9 @@ void TerrainManager::Cleanup(float posX, float posZ)
 			++it;
 		}
 	}
+}
+
+void TerrainManager::OnSettingsReload( Config* cfg )
+{
+	//TODO: terraintype..
 }

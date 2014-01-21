@@ -26,6 +26,7 @@ public:
 
 	void GetViewMatrix(XMMATRIX&);
 	void GetProjectionMatrix(XMMATRIX&);
+	void GetOrthographicProjection(XMMATRIX&);
 
 	XMMATRIX GetView();
 	XMMATRIX GetProj();
@@ -50,15 +51,15 @@ public:
 	XMVECTOR UpVector();
 	XMVECTOR DownVector();
 
-	unsigned int GetScreenWidth() { return screenWidth; };
-	unsigned int GetScreenHeight() { return screenHeight; };
+	float GetScreenWidth() { return screenWidth; };
+	float GetScreenHeight() { return screenHeight; };
 
 	float GetNearClip() { return nearClip; };
 	float GetFarClip() { return farClip; };
 	#pragma endregion
 
 	void Update();
-	void SetPerspectiveProjection(int screenWidth, int screenHeight, float FOVinDegrees, float zNear, float zFar);
+	void SetPerspectiveProjection(float screenWidth, float screenHeight, float FOVinDegrees, float zNear, float zFar);
 
 private:
 	XMFLOAT3 MatrixForward();
@@ -70,9 +71,9 @@ private:
 
 	std::shared_ptr<ControllerClass> controller;
 	XMFLOAT3 position, rotation;
-	XMFLOAT4X4 world, view, projection;
+	XMFLOAT4X4 world, view, projection, orthoProjection;
 	float yaw, pitch, roll;
-	unsigned int screenWidth, screenHeight;
+	float screenWidth, screenHeight;
 	float nearClip, farClip;
 
 	const float PITCHROOF, PITCHFLOOR;

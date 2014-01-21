@@ -101,7 +101,7 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 		return false;
 	}
 
-	vector<MaterialStruct> materials;
+	std::vector<MaterialStruct> materials;
 
 	//The lower the smoothness the wider/more spread out the specular is.
 	//Meaning the higher the smoothness is the more focused and intense the specular is.
@@ -134,9 +134,9 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	dirt.shouldBeShadowed = 10.0f;
 
 	MaterialStruct grassQuads;
-	grassQuads.Kambience = 0.3f;
+	grassQuads.Kambience = 0.35f;
 	grassQuads.Kdiffuse = 1.2f;
-	grassQuads.Kspecular = 0.2f;
+	grassQuads.Kspecular = 0.3f;
 	grassQuads.smoothness = 1.0f;
 	grassQuads.shouldBeShadowed = 10.0f;
 
@@ -248,12 +248,12 @@ HRESULT TextureAndMaterialHandler::Build1DMaterialTexture( ID3D11Device* device,
 
 //Builds a Texture1DArray out of 1D material textures and finally assigns the Texture1DArray to an external shader resource view
 HRESULT TextureAndMaterialHandler::Build1DMaterialTextureArray( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
-	vector<MaterialStruct> materials, int materialCount, int textureWidth, ID3D11ShaderResourceView** materialSRV )
+	std::vector<MaterialStruct> materials, int materialCount, int textureWidth, ID3D11ShaderResourceView** materialSRV )
 {
 	HRESULT hResult;
 
-	//Create a vector to temporarily store the textures that we load from the HDD
-	vector<ID3D11Texture1D*> srcTex;
+	//Create a std::vector to temporarily store the textures that we load from the HDD
+	std::vector<ID3D11Texture1D*> srcTex;
 	srcTex.resize(materialCount);
 
 	//For each texture, load it from harddrive and put it in a texture2D object
@@ -352,7 +352,7 @@ HRESULT TextureAndMaterialHandler::Build1DMaterialTextureArray( ID3D11Device* de
 /*Okay, so this function recieves PixelData, which  is a struct that contains 4 UINT8 (because we use the DXGI_FORMAT_R8G8B8A8_UNORM format.
 Then it creates a texture that is textureWidth*textureHeight big and fills it with data. Then it finally assigns the texture to an external shader resource view.*/
 HRESULT TextureAndMaterialHandler::Build2DTextureProgrammatically( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
-	const vector<PixelData>& pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV )
+	const std::vector<PixelData>& pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV )
 {
 	HRESULT hResult;
 	D3D11_TEXTURE2D_DESC texDesc;
@@ -503,8 +503,8 @@ HRESULT TextureAndMaterialHandler::Build2DTextureArrayFromFile(ID3D11Device* dev
 {
 	HRESULT hResult;
 
-	//Create a vector to temporarily store the textures that we load from the HDD
-	vector<ID3D11Texture2D*> srcTex;
+	//Create a std::vector to temporarily store the textures that we load from the HDD
+	std::vector<ID3D11Texture2D*> srcTex;
 	srcTex.resize(textureCount);
 
 	//For each texture, load it from harddrive and put it in a texture2D object
@@ -744,7 +744,7 @@ HRESULT TextureAndMaterialHandler::CreateRandom2DTexture(ID3D11Device* device, I
 	textureWidth = 128;
 	textureHeight = 128;
 
-	vector<PixelData> pixelData;
+	std::vector<PixelData> pixelData;
 	pixelData.resize(textureWidth*textureHeight);
 
 	//Don't use utility.Random(). We do not want floats.
@@ -767,7 +767,7 @@ HRESULT TextureAndMaterialHandler::CreateSimplex2DTexture(ID3D11Device* device, 
 	textureHeight = 512;
 	i = 0;
 
-	vector<PixelData> pixelData;
+	std::vector<PixelData> pixelData;
 	pixelData.resize(textureWidth*textureHeight);
 
 	noise->ReseedRandom();
@@ -818,7 +818,7 @@ HRESULT TextureAndMaterialHandler::CreateMirroredSimplex2DTexture(ID3D11Device* 
 	textureHeight = 512;
 	i = 0;
 
-	vector<PixelData> pixelData;
+	std::vector<PixelData> pixelData;
 	pixelData.resize(textureWidth*textureHeight);
 
 	noise->ReseedRandom();
@@ -1067,7 +1067,7 @@ HRESULT TextureAndMaterialHandler::CreateSeamlessSimplex2DTexture( ID3D11Device*
 
 	float radius = (textureWidth/2)-2.0f;
 
-	vector<UINT8> pixelData;
+	std::vector<UINT8> pixelData;
 	pixelData.resize(textureWidth*textureHeight);
 
 	for(float x = startPosX; x < startPosX+textureWidth; x++)

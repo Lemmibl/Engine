@@ -1,11 +1,11 @@
 #include "World.h"
 
-World::World()
+GameWorld::GameWorld()
 	:	frustum(), renderableBundle(), frustumAABB(XMFLOAT2(-1, -1), XMFLOAT2(1, 1)), weatherSystem()
 {
 }
 
-World::~World()
+GameWorld::~GameWorld()
 {
 	//remove the rigidbodies from the dynamics world and delete them
 	for (int i = dynamicsWorld->getNumCollisionObjects()-1; i >= 0; i--)
@@ -17,14 +17,14 @@ World::~World()
 	}
 }
 
-void World::Initialize( std::shared_ptr<D3DManager> extD3DManager, std::shared_ptr<InputClass> extInput)
+void GameWorld::Initialize( std::shared_ptr<D3DManager> extD3DManager, std::shared_ptr<InputClass> extInput)
 {
 	inputManager = extInput;
 	d3D = extD3DManager;
 
 	//Attach load function to the event that might happen
 	SettingsManager& settingsManager = SettingsManager::GetInstance();
-	settingsManager.GetEvent()->Add(*this, &World::OnSettingsReload);
+	settingsManager.GetEvent()->Add(*this, &GameWorld::OnSettingsReload);
 
 	//Load settings
 	OnSettingsReload(&settingsManager.GetConfig());
@@ -34,7 +34,7 @@ void World::Initialize( std::shared_ptr<D3DManager> extD3DManager, std::shared_p
 	InitializeTerrain();
 }
 
-void World::InitializeCamera()
+void GameWorld::InitializeCamera()
 {
 	//Create camera and the camera controller
 	cameraController = std::make_shared<ControllerClass>(dynamicsWorld, inputManager, 0.05f); //0.03f
@@ -49,7 +49,7 @@ void World::InitializeCamera()
 	camera->SetPerspectiveProjection(screenWidth, screenHeight, XM_PIDIV4, nearClip, farClip); 
 }
 
-void World::InitializeCollision()
+void GameWorld::InitializeCollision()
 {
 	broadphase				=	std::make_shared<btDbvtBroadphase>();
 	collisionConfiguration	=	std::make_shared<btDefaultCollisionConfiguration>();
@@ -67,83 +67,89 @@ void World::InitializeCollision()
 	frustum.SetInternals((float)(screenWidth / screenHeight), XM_PIDIV2, nearClip, farClip);
 }
 
-void World::InitializeTerrain()
+void GameWorld::InitializeTerrain()
 {
 	//Initialize terrain manager
-	terrainManager = std::make_shared<TerrainManager>(d3D->GetDevice(), d3D->GetDeviceContext(), dynamicsWorld, GetDesktopWindow(), camera->GetPosition());
+	terrainManager = std::make_shared<TerrainManager>(d3D->GetDevice(), d3D->GetDeviceContext(), dynamicsWorld, d3D->GetHwnd(), camera->GetPosition());
 
 	//Get the meshes from current terrain
 	renderableBundle.terrainChunks = terrainManager->GetActiveChunks();
 }
 
-void World::Update( float deltaTimeSeconds, float deltaTimeMilliseconds )
+void GameWorld::Update( float deltaTimeSeconds, float deltaTimeMilliseconds )
 {
 	//Advance bullet world simulation stepping
 	dynamicsWorld->stepSimulation(bulletTimestepScale, maxSubSteps);
 
+	//Update wind system, used for wind direction and other fun things.
 	weatherSystem.Update(deltaTimeSeconds);
 
-	cameraController->Update(deltaTimeMilliseconds, camera->GetWorldMatrix()); //Processes all of the movement for this controller.
+	cameraController->Update(deltaTimeMilliseconds, camera->GetWorldMatrix());
 	camera->Update();
 
 	HandleInput();
 	UpdateVisibility(deltaTimeSeconds);
 }
 
-void World::HandleInput()
+void GameWorld::HandleInput()
 {
 	if(inputManager->IsKeyPressed(DIK_G))
 	{
 		SettingsManager::GetInstance().ReloadSettings();
 	}
 
+	if(inputManager->WasKeyPressed(DIK_N))
+	{
+		terrainManager->ResetTerrain();
+	}
+
 	if(inputManager->WasKeyPressed(DIK_NUMPAD1) || inputManager->WasKeyPressed(DIK_F1))
 	{
-		terrainManager->SetTerrainType(TerrainNoiseSeeder::SeaBottom);
+		terrainManager->SetTerrainType(TerrainTypes::SeaBottom);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD2) || inputManager->WasKeyPressed(DIK_F2))
 	{
-		terrainManager->SetTerrainType(TerrainNoiseSeeder::Plains);
+		terrainManager->SetTerrainType(TerrainTypes::Plains);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD3) || inputManager->WasKeyPressed(DIK_F3))
 	{
-		terrainManager->SetTerrainType(TerrainNoiseSeeder::Hills);
+		terrainManager->SetTerrainType(TerrainTypes::Hills);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD4) || inputManager->WasKeyPressed(DIK_F4))
 	{
-		terrainManager->SetTerrainType(TerrainNoiseSeeder::Terraces);
+		terrainManager->SetTerrainType(TerrainTypes::Terraces);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD5) || inputManager->WasKeyPressed(DIK_F5))
 	{
-		terrainManager->SetTerrainType(TerrainNoiseSeeder::DramaticHills);
+		terrainManager->SetTerrainType(TerrainTypes::DramaticHills);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD6) || inputManager->WasKeyPressed(DIK_F6))
 	{
-		terrainManager->SetTerrainType(TerrainNoiseSeeder::FlyingIslands);
+		terrainManager->SetTerrainType(TerrainTypes::FlyingIslands);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD7) || inputManager->WasKeyPressed(DIK_F7))
 	{
-		terrainManager->SetTerrainType(TerrainNoiseSeeder::Alien);
+		terrainManager->SetTerrainType(TerrainTypes::Alien);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD8) || inputManager->WasKeyPressed(DIK_F8))
 	{
-		terrainManager->SetTerrainType(TerrainNoiseSeeder::Fancy);
+		terrainManager->SetTerrainType(TerrainTypes::Fancy);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD9) || inputManager->WasKeyPressed(DIK_F9))
 	{
-		terrainManager->SetTerrainType(TerrainNoiseSeeder::Cave);
+		terrainManager->SetTerrainType(TerrainTypes::Cave);
 	}
 }
 
-void World::UpdateVisibility(float deltaTime)
+void GameWorld::UpdateVisibility(float deltaTime)
 {
 	frustum.ConstructFrustum(camera->GetFarClip(), &camera->GetProj(), &camera->GetView());
 	frustum.CalculateFrustumExtents(&frustumAABB, XMLoadFloat3(&camera->GetPosition()), camera->ForwardVector(), camera->UpVector());
@@ -155,7 +161,7 @@ void World::UpdateVisibility(float deltaTime)
 	}
 }
 
-void World::OnSettingsReload( Config* cfg )
+void GameWorld::OnSettingsReload( Config* cfg )
 {
 	const Setting& settings = cfg->getRoot()["physics"];
 

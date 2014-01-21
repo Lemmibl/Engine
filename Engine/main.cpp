@@ -17,7 +17,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pScmdline,
 	result = system->Initialize();
 	if(result)
 	{
-		system->Run();
+		system->MainLoop();
 	}
 
 	system->Shutdown();

@@ -98,7 +98,7 @@ private:
 	HRESULT Build1DMaterialTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
 		MaterialStruct materialData, int textureWidth, ID3D11Texture1D** texture);
 
-	HRESULT Build1DMaterialTextureArray(ID3D11Device* device, ID3D11DeviceContext* deviceContext, vector<MaterialStruct> materials,
+	HRESULT Build1DMaterialTextureArray(ID3D11Device* device, ID3D11DeviceContext* deviceContext, std::vector<MaterialStruct> materials,
 		int materialCount, int textureWidth, ID3D11ShaderResourceView** textureSRV );
 
 	HRESULT Build2DTextureProgrammatically( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 

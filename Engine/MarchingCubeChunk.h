@@ -1,15 +1,15 @@
 #pragma once
-#define BT_NO_SIMD_OPERATOR_OVERLOADS //Needed to fix clash between bullet libraries and xnamath. https://code.google.com/p/bullet/issues/detail?id=710
-
 #include "types.h"
-#include "Utility.h"
 #include <windows.h>
 #include <vector>
 #include "IndexedMesh.h"
-#include "Lemmi3DAABB.h"
-#include "VegetationManager.h"
+
+#define BT_NO_SIMD_OPERATOR_OVERLOADS //Needed to fix clash between bullet libraries and xnamath. https://code.google.com/p/bullet/issues/detail?id=710
+
 #include "BulletDynamics\Dynamics\btRigidBody.h"
 #include "BulletCollision\CollisionShapes\btTriangleMesh.h"
+#include <xnamath.h>
+#include "customStructs.h"
 
 class MarchingCubeChunk
 {

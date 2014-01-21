@@ -13,7 +13,6 @@ class Utility
 {
 public:
 	Utility();
-	Utility(const Utility&);
 	~Utility();
 	
 	float RandomFloat();

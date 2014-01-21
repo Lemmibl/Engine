@@ -2,7 +2,6 @@
 /********************************************************************************/
 /*						TODO AND THINGS OF THAT SORT							*/
 /********************************************************************************/
-* Send windvector to grass and water shaders
 
 * Decide upon a GUI library and implement it
 
@@ -12,6 +11,9 @@
 
 * Make geometry shader grass more fancy.
 	-Should pretty much be finished now, just need to do the lookup-based-on-height thing.
+
+* Particles
+	-> Finally look into compute shader..?
 
 * Water normal texture sliding thing that they do in arma2
 * Skysphere texture mapping! Clouds? Stars?
@@ -43,6 +45,12 @@ http://gamedev.stackexchange.com/questions/22080/which-of-these-directx11-calls-
 http://www.dataorienteddesign.com/dodmain/node14.html
 http://www.bitsquid.se/presentations/benefits-of-a-data-driven-renderer.pdf
 
+Trees:
+http://http.developer.nvidia.com/GPUGems3/gpugems3_ch04.html
+
+Wind affecting vegetation:
+http://http.developer.nvidia.com/GPUGems3/gpugems3_ch06.html
+
 Entity system:
 http://www.gameprogblog.com/managing-entities/#more-79
 
@@ -51,9 +59,52 @@ http://www.madgamedev.com/post/2010/04/21/Article-Sun-and-Lens-Flare-as-a-Post-P
 http://stackoverflow.com/questions/14161727/hlsl-drawing-a-centered-circle
 if dot(cameraDirection, lightDirection) == -1 then they're both facing opposite ways I think
 
+GPU Particles:
+http://www.gamedev.net/topic/644489-gpu-particles/
+http://directtovideo.wordpress.com/2009/10/06/a-thoroughly-modern-particle-system/
+http://realtimecollisiondetection.net/blog/?p=91
+http://http.developer.nvidia.com/GPUGems3/gpugems3_ch23.html
+
 Multithreading:
 http://gamedev.stackexchange.com/questions/2116/multi-threaded-game-engine-design-resources
 http://www.gamasutra.com/view/feature/1830/multithreaded_game_engine_.php
 http://www.gamasutra.com/view/feature/2463/threading_3d_game_engine_basics.php
 http://bitsquid.blogspot.se/2010/03/task-management-practical-example.html
 */
+
+/*
+Game engine requirements:
+-Math, Physics and collision detection
+-Rendering the scene, lighting, shadows, animation, etc with a high frame rate
+-Network code for multiplayer
+-Game world management
+-GUI management
+-Game state management
+-Particle effects, sprite rendering, billboards, primitive geometry (points, lines, triangles, quads)
+-Importing assets, like sound files, textures, models, font files, shaders, etc. and managing them
+-Camera interfaces. A camera is a view into the game world. How do I make the camera do what I want it to do?
+-IO interfaces for creating log files, saving and loading game states, loading game data files, etc.
+-How to use the game engine to create a game (DLL file? stand alone IDE such as Unity? Source code include?). Who is going to be using the game engine? What kind of documentation will they need to use it effectively? What happens if they want to use a feature which isn't supported by the engine?
+-How do I create my game world? Do I use an external tool?
+*/
+
+TODO: Slerp.
+
+// Special Thanks to Johnathan, Shaun and Geof!
+Vector3 Slerp(Vector3 start, Vector3 end, float percent)
+{
+     // Dot product - the cosine of the angle between 2 vectors.
+     float dot = Vector3.Dot(start, end);     
+     // Clamp it to be in the range of Acos()
+     // This may be unnecessary, but floating point
+     // precision can be a fickle mistress.
+     Mathf.Clamp(dot, -1.0f, 1.0f);
+     // Acos(dot) returns the angle between start and end,
+     // And multiplying that by percent returns the angle between
+     // start and the final result.
+     float theta = Mathf.Acos(dot)*percent;
+     Vector3 RelativeVec = end - start*dot;
+     RelativeVec.Normalize();     // Orthonormal basis
+     // The final result.
+     return ((start*Mathf.Cos(theta)) + (RelativeVec*Mathf.Sin(theta)));
+}

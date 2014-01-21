@@ -1,12 +1,8 @@
-////////////////////////////////////////////////////////////////////////////////
-// Filename: systemclass.h
-////////////////////////////////////////////////////////////////////////////////
-#ifndef _SYSTEMCLASS_H_
-#define _SYSTEMCLASS_H_
+#ifndef _ENGINE_H_
+#define _ENGINE_H_
 
-///////////////////////////////
-// PRE-PROCESSING DIRECTIVES //
-///////////////////////////////
+#pragma once
+
 #define WIN32_LEAN_AND_MEAN
 #define BT_NO_SIMD_OPERATOR_OVERLOADS //Needed to fix clash between bullet libraries and xnamath. https://code.google.com/p/bullet/issues/detail?id=710
 
@@ -16,44 +12,28 @@ const bool VSYNC_ENABLED = false;
 const float SCREEN_FAR = 400.0f;
 const float SCREEN_NEAR = 2.0f;
 
-//////////////
-// INCLUDES //
-//////////////
-#pragma once
-#include <windows.h>
-#include <xnamath.h>
-#include <memory>
-
 //Enable if you want to check for memory leaks.
 //#include <vld.h>
 
-///////////////////////
-// MY CLASS INCLUDES //
-///////////////////////
-#include <btBulletDynamicsCommon.h>
+#include <windows.h>
+#include <memory>
+#include <xnamath.h>
+
 #include "inputclass.h"
-#include "WorldRenderer.h"
-#include "fpsmeter.h"
-#include "cpumeter.h"
 #include "timerclass.h"
-#include "controllerclass.h"
-#include "World.h"
 #include "SettingsManager.h"
 #include <libconfig.h++>
+#include "ScreenManager.h"
 
-////////////////////////////////////////////////////////////////////////////////
-// Class name: Engine
-////////////////////////////////////////////////////////////////////////////////
 class Engine
 {
 public:
 	Engine();
-	Engine(const Engine&);
 	~Engine();
 
 	bool Initialize();
 	void Shutdown();
-	void Run();
+	void MainLoop();
 	void OnSettingsReload(Config* cfg);
 
 	LRESULT CALLBACK MessageHandler(HWND, UINT, WPARAM, LPARAM);
@@ -70,31 +50,15 @@ private:
 
 	std::shared_ptr<D3DManager> d3D;
 	std::shared_ptr<InputClass> input;
-	FpsMeter fpsMeter;
-	CpuMeter cpuMeter;
 	TimerClass timer;
 
-	std::shared_ptr<ControllerClass> cameraController;
-	std::shared_ptr<CameraClass> camera;
-	World world;
-	WorldRenderer renderer;
+	ScreenManager screenManager;
 
-	float rotationalValue;
 	int screenWidth, screenHeight;
-	UINT shadowMapWidth, shadowMapHeight;
-	bool toggleDebug;
 };
 
-
-/////////////////////////
-// FUNCTION PROTOTYPES //
-/////////////////////////
 static LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
-
-/////////////
-// GLOBALS //
-/////////////
 static Engine* ApplicationHandle = 0;
 
 #endif

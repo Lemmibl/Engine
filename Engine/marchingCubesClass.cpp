@@ -386,7 +386,7 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 		CreateWaterMesh(device, chunk, chunk->GetWaterMesh());
 	}
 
-	void MarchingCubesClass::ExtractCube( MarchingCubeVoxel** cube, vector<MarchingCubeVoxel>* vertices, unsigned int sizeX, unsigned int sizeY, unsigned int sizeZ )
+	void MarchingCubesClass::ExtractCube( MarchingCubeVoxel** cube, std::vector<MarchingCubeVoxel>* vertices, unsigned int sizeX, unsigned int sizeY, unsigned int sizeZ )
 	{
 		cube[7]	= &(*vertices)[index];
 		cube[6]	= &(*vertices)[index+1];
@@ -444,8 +444,8 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 		}
 	}
 
-	void MarchingCubesClass::ProcessCube(btTriangleMesh* triMesh, unsigned int lookupValue, MarchingCubeVoxel* verts, MarchingCubeVoxel** cube, vector<unsigned int>* indices, 
-		vector<MarchingCubeVectors>* vertices, unsigned int& indexCounter, unsigned int& vertexCounter, unsigned int sizeX, unsigned int sizeY, unsigned int sizeZ )
+	void MarchingCubesClass::ProcessCube(btTriangleMesh* triMesh, unsigned int lookupValue, MarchingCubeVoxel* verts, MarchingCubeVoxel** cube, std::vector<unsigned int>* indices, 
+		std::vector<MarchingCubeVectors>* vertices, unsigned int& indexCounter, unsigned int& vertexCounter, unsigned int sizeX, unsigned int sizeY, unsigned int sizeZ )
 	{
 		if(lookupValue == 0)
 			return;
@@ -508,7 +508,7 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 		}
 	}
 
-	void MarchingCubesClass::CreateMesh(ID3D11Device* device, IndexedMesh* mesh, vector<unsigned int>* indices, vector<MarchingCubeVectors>* vertices, unsigned int indexCount, unsigned int vertexCount )
+	void MarchingCubesClass::CreateMesh(ID3D11Device* device, IndexedMesh* mesh, std::vector<unsigned int>* indices, std::vector<MarchingCubeVectors>* vertices, unsigned int indexCount, unsigned int vertexCount )
 	{
 		D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
 		D3D11_SUBRESOURCE_DATA vertexData, indexData;
@@ -576,8 +576,8 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 			unsigned int stepsX = (unsigned int)((chunk->GetStepCountX())*chunk->GetStepSizeX());
 			unsigned int stepsZ = (unsigned int)((chunk->GetStepCountZ())*chunk->GetStepSizeZ());
 
-			vector<XMFLOAT3> vertices;
-			vector<unsigned int> indices;
+			std::vector<XMFLOAT3> vertices;
+			std::vector<unsigned int> indices;
 
 			//Rather shitty tutorial with wrong algorithms in some places, but I managed to piece it together anyway.
 			//http://www.uniqsoft.co.uk/directx/html/tut3/tut3.htm

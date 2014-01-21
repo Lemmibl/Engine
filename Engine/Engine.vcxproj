@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bitmapclass.cpp" />
+    <ClCompile Include="BlendStateManager.cpp" />
     <ClCompile Include="cameraclass.cpp" />
     <ClCompile Include="controllerclass.cpp" />
     <ClCompile Include="cpumeter.cpp" />
@@ -20,6 +21,7 @@
     <ClCompile Include="debugwindowclass.cpp" />
     <ClCompile Include="DepthOnlyQuadShader.cpp" />
     <ClCompile Include="DepthOnlyShader.cpp" />
+    <ClCompile Include="DepthStencilManager.cpp" />
     <ClCompile Include="DRDirectionalLight.cpp" />
     <ClCompile Include="DRCompose.cpp" />
     <ClCompile Include="DRGBuffer.cpp" />
@@ -27,7 +29,11 @@
     <ClCompile Include="fontshaderclass.cpp" />
     <ClCompile Include="fpsmeter.cpp" />
     <ClCompile Include="frustumclass.cpp" />
+    <ClCompile Include="GameplayScreen.cpp" />
+    <ClCompile Include="RasterizerStateManager.cpp" />
+    <ClCompile Include="ScreenManager.cpp" />
     <ClCompile Include="GaussianBlur.cpp" />
+    <ClCompile Include="GenericScreen.cpp" />
     <ClCompile Include="GeometryShaderGrass.cpp" />
     <ClCompile Include="IndexedInstancedMesh.cpp" />
     <ClCompile Include="Lemmi3DAABB.h" />
@@ -39,15 +45,17 @@
     <ClCompile Include="SentenceManager.cpp" />
     <ClCompile Include="MarchingCubeChunk.cpp" />
     <ClCompile Include="SettingsManager.cpp" />
+    <ClCompile Include="ShadowManager.cpp" />
     <ClCompile Include="TerrainManager.cpp" />
     <ClCompile Include="TextureAndMaterialHandler.cpp" />
     <ClCompile Include="LSystemBranch.cpp" />
+    <ClCompile Include="TurnToSmokeShader.cpp" />
     <ClCompile Include="Utility.cpp" />
     <ClCompile Include="LSystemClass.cpp" />
     <ClCompile Include="VegetationManager.cpp" />
     <ClCompile Include="VegetationShader.cpp" />
     <ClCompile Include="MCGBufferTerrainShader.cpp" />
-    <ClCompile Include="WorldRenderer.cpp" />
+    <ClCompile Include="GameRenderer.cpp" />
     <ClCompile Include="inputclass.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="marchingCubesClass.cpp" />
@@ -72,6 +80,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bitmapclass.h" />
+    <ClInclude Include="BlendStateManager.h" />
     <ClInclude Include="cameraclass.h" />
     <ClInclude Include="controllerclass.h" />
     <ClInclude Include="cpumeter.h" />
@@ -81,6 +90,7 @@
     <ClInclude Include="debugwindowclass.h" />
     <ClInclude Include="DepthOnlyQuadShader.h" />
     <ClInclude Include="DepthOnlyShader.h" />
+    <ClInclude Include="DepthStencilManager.h" />
     <ClInclude Include="DRDirectionalLight.h" />
     <ClInclude Include="DRCompose.h" />
     <ClInclude Include="DRWaterClass.h" />
@@ -89,7 +99,11 @@
     <ClInclude Include="fpsmeter.h" />
     <ClInclude Include="frustumclass.h" />
     <ClInclude Include="DRGBuffer.h" />
+    <ClInclude Include="GameplayScreen.h" />
+    <ClInclude Include="RasterizerStateManager.h" />
+    <ClInclude Include="ScreenManager.h" />
     <ClInclude Include="GaussianBlur.h" />
+    <ClInclude Include="GenericScreen.h" />
     <ClInclude Include="IndexedInstancedMesh.h" />
     <ClInclude Include="MeshHandler.h" />
     <ClInclude Include="ParticleManager.h" />
@@ -103,14 +117,16 @@
     <ClInclude Include="SentenceManager.h" />
     <ClInclude Include="MarchingCubeChunk.h" />
     <ClInclude Include="SettingsManager.h" />
+    <ClInclude Include="ShadowManager.h" />
     <ClInclude Include="TerrainManager.h" />
     <ClInclude Include="TextureAndMaterialHandler.h" />
     <ClInclude Include="LSystemBranch.h" />
+    <ClInclude Include="TurnToSmokeShader.h" />
     <ClInclude Include="Utility.h" />
     <ClInclude Include="LSystemClass.h" />
     <ClInclude Include="VegetationShader.h" />
     <ClInclude Include="MCGBufferTerrainShader.h" />
-    <ClInclude Include="WorldRenderer.h" />
+    <ClInclude Include="GameRenderer.h" />
     <ClInclude Include="inputclass.h" />
     <ClInclude Include="marchingCubesClass.h" />
     <ClInclude Include="TerrainNoiseSeeder.h" />
