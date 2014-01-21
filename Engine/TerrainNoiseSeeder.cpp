@@ -26,8 +26,7 @@ void TerrainNoiseSeeder::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass*
 	YFactor = 1.0f / (2.0f*sizeY);
 	ZFactor = 1.0f / (2.0f*sizeZ);
 
-	std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)> seabottomNoise =
-	
+	NoiseFunction seabottomNoise =
 	[](IndexingValue& index, const XMFLOAT3& position, NoiseClass* noise) -> float
 	{
 		float density;
@@ -51,7 +50,7 @@ void TerrainNoiseSeeder::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass*
 	};
 
 
-	std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)> plainsNoise =
+	NoiseFunction plainsNoise =
 	[](IndexingValue& index, const XMFLOAT3& position, NoiseClass* noise) -> float
 	{
 		float density;
@@ -72,7 +71,7 @@ void TerrainNoiseSeeder::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass*
 		return density;
 	};
 
-	std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)> hillsNoise =
+	NoiseFunction hillsNoise =
 	[](IndexingValue& index, const XMFLOAT3& position, NoiseClass* noise) -> float
 	{
 		float density;
@@ -100,7 +99,7 @@ void TerrainNoiseSeeder::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass*
 		return density;
 	};
 
-	std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)> terraceNoise =
+	NoiseFunction terraceNoise =
 	[](IndexingValue& index, const XMFLOAT3& position, NoiseClass* noise) -> float
 	{
 		float density;
@@ -137,7 +136,7 @@ void TerrainNoiseSeeder::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass*
 	};
 
 
-	std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)> dramaticHillsNoise =
+	NoiseFunction dramaticHillsNoise =
 		[](IndexingValue& index, const XMFLOAT3& position, NoiseClass* noise) -> float
 	{
 		float density;
@@ -174,7 +173,7 @@ void TerrainNoiseSeeder::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass*
 		return density;
 	};
 
-	std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)> flyingIslandsNoise =
+	NoiseFunction flyingIslandsNoise =
 		[](IndexingValue& index, const XMFLOAT3& position, NoiseClass* noise) -> float
 	{
 		float density;
@@ -197,7 +196,7 @@ void TerrainNoiseSeeder::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass*
 		return density;
 	};
 
-	std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)> alienNoise =
+	NoiseFunction alienNoise =
 		[](IndexingValue& index, const XMFLOAT3& position, NoiseClass* noise) -> float
 	{
 		float density;
@@ -226,7 +225,7 @@ void TerrainNoiseSeeder::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass*
 	};
 
 
-	std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)> fancyNoise =
+	NoiseFunction fancyNoise =
 		[](IndexingValue& index, const XMFLOAT3& position, NoiseClass* noise) -> float
 	{
 		float density;
@@ -255,8 +254,8 @@ void TerrainNoiseSeeder::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass*
 		return density;
 	};
 
-	std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)> caveNoise =
-	[](IndexingValue& index, const XMFLOAT3& position, NoiseClass* noise) -> float
+	NoiseFunction caveNoise = 
+		[](IndexingValue& index, const XMFLOAT3& position, NoiseClass* noise) -> float
 	{
 		float density;
 		unsigned int idx = index.x + (index.y*index.sizeY) + (index.z * index.sizeY * index.sizeZ);
@@ -284,15 +283,15 @@ void TerrainNoiseSeeder::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass*
 		return density;
 	};
 
-	functionMap.insert(std::make_pair<TerrainTypes::Type, std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)>>(TerrainTypes::SeaBottom, seabottomNoise));
-	functionMap.insert(std::make_pair<TerrainTypes::Type, std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)>>(TerrainTypes::Plains, plainsNoise));
-	functionMap.insert(std::make_pair<TerrainTypes::Type, std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)>>(TerrainTypes::Hills, hillsNoise));
-	functionMap.insert(std::make_pair<TerrainTypes::Type, std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)>>(TerrainTypes::Terraces, terraceNoise));
-	functionMap.insert(std::make_pair<TerrainTypes::Type, std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)>>(TerrainTypes::DramaticHills, dramaticHillsNoise));
-	functionMap.insert(std::make_pair<TerrainTypes::Type, std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)>>(TerrainTypes::FlyingIslands, flyingIslandsNoise));
-	functionMap.insert(std::make_pair<TerrainTypes::Type, std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)>>(TerrainTypes::Alien, alienNoise));
-	functionMap.insert(std::make_pair<TerrainTypes::Type, std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)>>(TerrainTypes::Fancy, fancyNoise));
-	functionMap.insert(std::make_pair<TerrainTypes::Type, std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)>>(TerrainTypes::Cave, caveNoise));
+	functionMap.insert(std::make_pair<TerrainTypes::Type, NoiseFunction>(TerrainTypes::SeaBottom, seabottomNoise));
+	functionMap.insert(std::make_pair<TerrainTypes::Type, NoiseFunction>(TerrainTypes::Plains, plainsNoise));
+	functionMap.insert(std::make_pair<TerrainTypes::Type, NoiseFunction>(TerrainTypes::Hills, hillsNoise));
+	functionMap.insert(std::make_pair<TerrainTypes::Type, NoiseFunction>(TerrainTypes::Terraces, terraceNoise));
+	functionMap.insert(std::make_pair<TerrainTypes::Type, NoiseFunction>(TerrainTypes::DramaticHills, dramaticHillsNoise));
+	functionMap.insert(std::make_pair<TerrainTypes::Type, NoiseFunction>(TerrainTypes::FlyingIslands, flyingIslandsNoise));
+	functionMap.insert(std::make_pair<TerrainTypes::Type, NoiseFunction>(TerrainTypes::Alien, alienNoise));
+	functionMap.insert(std::make_pair<TerrainTypes::Type, NoiseFunction>(TerrainTypes::Fancy, fancyNoise));
+	functionMap.insert(std::make_pair<TerrainTypes::Type, NoiseFunction>(TerrainTypes::Cave, caveNoise));
 }
 
 void TerrainNoiseSeeder::MCHeightMap()
@@ -360,7 +359,7 @@ void TerrainNoiseSeeder::Noise3D(unsigned int startX, unsigned int startY, unsig
 	IndexingValue index(0, 0, 0, sizeX, sizeY, sizeZ);
 
 	//Select which noise function to use depending on what terrain type we currently have selected.
-	auto& noiseFunction = functionMap[terrainMode];
+	NoiseFunction& noiseFunction = functionMap[terrainMode];
 
 	//Get a local reference to out voxel field with a shorter name for added readability
 	std::vector<MarchingCubeVoxel>& verts = (*marchingCubeVertices);

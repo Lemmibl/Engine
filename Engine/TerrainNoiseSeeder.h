@@ -22,6 +22,8 @@ private:
 		}
 	};
 
+	typedef std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)> NoiseFunction;
+
 public:
 	TerrainNoiseSeeder();
 	~TerrainNoiseSeeder();
@@ -70,7 +72,7 @@ private:
 	float XFactor, YFactor, ZFactor;
 	int sizeX, sizeY, sizeZ;
 
-	std::map<TerrainTypes::Type, std::function<float(IndexingValue&, const XMFLOAT3&, NoiseClass*)>> functionMap;
+	std::map<TerrainTypes::Type, NoiseFunction> functionMap;
 
 	std::vector<MarchingCubeVoxel>* marchingCubeVertices;
 	NoiseClass* noise;
