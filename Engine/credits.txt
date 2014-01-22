@@ -1,22 +1,36 @@
 
 
-
 ******************************************************************************
 This is where I list credits for everyone who has written code that I use.
 ******************************************************************************
 
-This program uses Bullet. (c) <link to webpage>
+BULLET:
+Bullet Collision Detection and Physics Library
+Copyright (c) 2012 Advanced Micro Devices, Inc.  http://bulletphysics.org
 
-This program uses the Event class by Schladetsch. <webpage>
+This software is provided 'as-is', without any express or implied warranty.
+In no event will the authors be held liable for any damages arising from the use of this software.
+Permission is granted to anyone to use this software for any purpose, 
+including commercial applications, and to alter it and redistribute it freely, 
+subject to the following restrictions:
 
-Marching cubes tables by that guy
+1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
+2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
+3. This notice may not be removed or altered from any source distribution.
 
-Using some textures from CGTextures
 
-Simplex noise
+EVENTS CLASSES BY CHRISTIAN SCHLADETSCH:
+http://www.altdevblogaday.com/2011/10/30/c-events/
 
-That random function in vertex shader
 
-That normal encoding function in pixel shader
+MARCHING CUBES TABLES BY CORY GENE BLOYD:
+http://paulbourke.net/geometry/polygonise/
 
-Using libconfig
+
+USING SOME TEXTURES (Vegetation) FROM CGTEXTURES:
+http://www.cgtextures.com/
+
+
+LIBCONFIG:
+http://www.hyperrealm.com/libconfig/
+Libconfig is distributed under the terms of the GNU Lesser General Public License.
