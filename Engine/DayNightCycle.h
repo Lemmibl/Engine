@@ -27,7 +27,7 @@ public:
 	~DayNightCycle();
 
 	bool Initialize(StageOfDay startStage);
-	float Update(float elapsedTime, DirLight* directionalLight, Skysphere* skysphere);
+	float Update(float elapsedTime, DirLight* directionalLight, Skysphere* skysphere, XMFLOAT3* cameraPosition);
 	void OnSettingsReload(Config* cfg);
 
 	void SetTimePerStage(float time) { timePerStage = time; }

@@ -478,7 +478,7 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 				triIndex++;
 
 				//Some if checks to cut away the extreme edges on the bottom and sides to remove LOTS of unnecessary triangles
-				if(indexX > 0 && indexZ > 0 && indexX < sizeX-1 && indexZ < sizeZ-1 && indexY >= 1)
+				if(indexX > 0 && indexZ > 0 && indexX < sizeX-2 && indexZ < sizeZ-2 && indexY >= 1)
 				{	
 					MarchingCubeVectors temp;
 					temp.position = XMFLOAT4(verts[tritableLookupValue].position.x, verts[tritableLookupValue].position.y, verts[tritableLookupValue].position.z, RandomFloat());

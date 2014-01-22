@@ -232,13 +232,13 @@ bool GameRenderer::InitializeLights( HWND hwnd )
 		return false;
 	}
 
-	XMVECTOR lookAt = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);//LookAt for dir light. We always want this to be (0,0,0), because it's the easiest to visualize.
+	XMVECTOR lookAt = XMLoadFloat3(&camera->GetPosition());//LookAt for dir light. We always want this to be (0,0,0), because it's the easiest to visualize.
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 
 	// Initialize the directional light.
 	dirLight.Color = XMFLOAT4(0.6f, 0.4f, 0.4f, 1.0f);
 	dirLight.Intensity = 1.5f;
-	dirLight.Position = XMFLOAT3(150.0f, 0.0f, 0.0f);
+	XMStoreFloat3(&dirLight.Position, (lookAt + XMVectorSet(50.0f, 150.0f, 0.0f, 0.0f)));
 
 	XMVECTOR direction = XMVector3Normalize(XMVectorSubtract(lookAt, XMLoadFloat3(&dirLight.Position)));
 	XMStoreFloat3(&dirLight.Direction, direction);
@@ -436,11 +436,11 @@ bool GameRenderer::Update( HWND hwnd, int fps, int cpuPercentage, float millisec
 		}
 	}
 
-	timeOfDay = dayNightCycle.Update(secondDeltaTime, &dirLight, &skySphere);
+	timeOfDay = dayNightCycle.Update(secondDeltaTime, &dirLight, &skySphere, &camera->GetPosition());
 
 	XMVECTOR lookAt = XMLoadFloat3(&camera->GetPosition());//XMVectorSet(30.0f, 20.0f, 30.0f, 1.0f);//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition())+(camera->ForwardVector()*30.0f);//XMLoadFloat3(&camera->GetPosition());//
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
-	XMVECTOR currentLightPos = XMVectorAdd(XMLoadFloat3(&camera->GetPosition()), XMLoadFloat3(&dirLight.Position));//XMLoadFloat3(&camera->GetPosition())-(camera->ForwardVector()*30.0f);
+	XMVECTOR currentLightPos = XMLoadFloat3(&dirLight.Position);//XMLoadFloat3(&camera->GetPosition())-(camera->ForwardVector()*30.0f);
 
 	XMStoreFloat3(&dirLight.Direction, XMVector3Normalize(XMVectorSubtract(lookAt, currentLightPos)));//XMLoadFloat3(&dirLight.Position)
 	XMStoreFloat4x4(&dirLight.View, XMMatrixLookAtLH(currentLightPos, lookAt, up)); //Generate light view matrix
@@ -896,8 +896,6 @@ bool GameRenderer::RenderGUI(XMMATRIX* worldBaseViewOrthoProj )
 {
 	XMMATRIX worldMatrix;
 
-	d3D->GetBlendStateManager()->TurnOnDefaultBlendState();
-	//depthStencil = d3D->GetDepthStencilManager()->GetDepthStencilView(); //This also resets the depth stencil state to "default".
 	deviceContext->ClearDepthStencilView(depthStencil,  D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	worldMatrix = XMMatrixIdentity();
@@ -905,6 +903,11 @@ bool GameRenderer::RenderGUI(XMMATRIX* worldBaseViewOrthoProj )
 
 	if(toggleDebugInfo)
 	{
+
+		d3D->GetDepthStencilManager()->SetDepthDisabledStencilState();
+
+		d3D->GetBlendStateManager()->TurnOnAlphaBlending();
+
 		for(int i = 0; i < 3; i++)
 		{
 			if(!debugWindows[i].Render(deviceContext, 200+200*i, 0))
@@ -963,22 +966,18 @@ bool GameRenderer::RenderGUI(XMMATRIX* worldBaseViewOrthoProj )
 			return false;
 		}
 
-		d3D->GetDepthStencilManager()->SetDepthDisabledStencilState();
-
-		d3D->GetBlendStateManager()->TurnOnAlphaBlending();
-
 		// Render the text user interface elements.
 		if(!text->Render(deviceContext, worldBaseViewOrthoProj))
 		{
 			return false;
 		}
-
-		// Turn off alpha blending after rendering the text->
-		d3D->GetBlendStateManager()->TurnOnDefaultBlendState();
-
-		// Turn the Z buffer back on now that all 2D rendering has completed.
-		d3D->GetDepthStencilManager()->SetDefaultDepthStencilView();
 	}
+
+	// Turn off alpha blending after rendering the text->
+	d3D->GetBlendStateManager()->TurnOnDefaultBlendState();
+
+	// Turn the Z buffer back on now that all 2D rendering has completed.
+	d3D->GetDepthStencilManager()->SetDefaultDepthStencilView();
 
 	return true;
 }

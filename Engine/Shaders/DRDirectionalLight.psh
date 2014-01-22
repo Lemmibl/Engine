@@ -206,7 +206,7 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target0
 	//Extract pixel position as seen from light POV for shadow map extraction.
 	float4 lightScreenPos = mul(position,  mul(LightView, LightProjection));
 
-	float realDistanceToLight = mul(position, LightView).z/CameraPosition.w;
+	float realDistanceToLight = 0.01f+(mul(position, LightView).z/CameraPosition.w);
 
 	lightScreenPos.xy = 0.5 * lightScreenPos.xy / lightScreenPos.w + float2(0.5f, 0.5f);
 	lightScreenPos.y = 1.0f - lightScreenPos.y;
@@ -221,13 +221,12 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target0
 	)
 	{
 		/*Variance shadow mapping. http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html */
-		shadowMultiplier = ShadowContribution(lightScreenPos.xy, realDistanceToLight);//max(-0.3f, 0.0f);
+		shadowMultiplier = ShadowContribution(lightScreenPos.xy, realDistanceToLight);
 	}	
-	
-	//Calculate diffuse light
-	finalDiffuseProduct += diffuseCoefficient * (NdL * DiffuseColor.rgb);
 
-	if(NdL >= 0.0f)
+
+	//If we aren't in shadow and surface angle is satisfactory, calculate specular
+	if(NdL >= 0.0f && shadowMultiplier == 1.0f)
 	{
 		//Reflection vector
 		float3 reflectionVector = normalize(reflect(lightVector, normal));
@@ -238,6 +237,9 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target0
 		//Calculate specular light 
 		finalSpecularProduct += specularCoefficient * pow( saturate( dot(reflectionVector, directionToCamera)), surfaceSmoothness);
 	}
+
+	//Calculate diffuse light
+	finalDiffuseProduct += diffuseCoefficient * (NdL * DiffuseColor.rgb);
 
 	//Essentially I save a float in the normal render target's .w channel that decides if the object should be shaded or not.
 	//I do this because of how the vegatation quads are built -- they each consist of three different quads, and they all shade eachother.

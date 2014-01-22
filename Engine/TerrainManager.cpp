@@ -54,7 +54,7 @@ TerrainManager::TerrainManager(ID3D11Device* device, ID3D11DeviceContext* device
 	stepScaling = (stepSize.x*(stepCount.x-3)) / 5000;
 
 	//I give no shits if this throws a warning, it helps me remember which terraintypes there are and their names.
-	TerrainTypes::Type terrainType = TerrainTypes::SeaBottom;//(TerrainNoiseSeeder::TerrainTypes)(1 + rand()%8); //
+	TerrainTypes::Type terrainType = TerrainTypes::Cave;//(TerrainNoiseSeeder::TerrainTypes)(1 + rand()%8); //
 
 	terrainNoiser.Initialize((int)stepCount.x, (int)stepCount.y, (int)stepCount.z, &noise, terrainType);
 
@@ -178,16 +178,16 @@ void TerrainManager::CreateChunk(ID3D11Device* device, ID3D11DeviceContext* devi
 	{
 		float actualPosX, actualPosZ;
 
-		actualPosX = (float)(startPosX * ((stepCount.x-3)*stepSize.x));
-		actualPosZ = (float)(startPosZ * ((stepCount.z-3)*stepSize.z));
+		actualPosX = (float)(startPosX * (stepSize.x*(stepCount.x-3)));
+		actualPosZ = (float)(startPosZ * (stepSize.x*(stepCount.x-3)));
 
 		std::shared_ptr<MarchingCubeChunk> newChunk = std::make_shared<MarchingCubeChunk>
-			(
+		(
 			XMFLOAT3(actualPosX, 0, actualPosZ), 
 			XMFLOAT3(actualPosX + stepSize.x*stepCount.x, 0 + stepSize.y*stepCount.y, actualPosZ + stepSize.z*stepCount.z), 
 			stepSize, 
 			stepCount
-			);
+		);
 
 		//Noise the chunk
 		terrainNoiser.SetCurrentVoxelField(newChunk->GetVoxelField());

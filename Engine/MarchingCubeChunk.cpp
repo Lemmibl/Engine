@@ -42,9 +42,9 @@ MarchingCubeChunk::MarchingCubeChunk(XMFLOAT3 startPos, XMFLOAT3 endPos, XMFLOAT
 				voxels[index].position.z = startPosition.z + stepSizeZ * z;
 				voxels[index].density = 0.0f;
 				voxels[index].inside = false;
-				voxels[index].normal.x = 0.0f;
-				voxels[index].normal.y = 0.0f;
-				voxels[index].normal.z = 0.0f;
+				voxels[index].normal.x = 0.5f;
+				voxels[index].normal.y = 0.5f;
+				voxels[index].normal.z = 0.5f;
 			}
 		}
 	}

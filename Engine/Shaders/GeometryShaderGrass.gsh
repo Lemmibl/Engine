@@ -30,13 +30,13 @@ struct VS_OUTPUT
 struct PS_INPUT
 {
 	float4 Position : SV_POSITION;
-	float4 Normal :	TEXCOORD0;
+	float4 Normal	: TEXCOORD0;
 	float4 TexCoord : TEXCOORD1;
-	//float Opacity : OPACITY;
+	float Opacity : OPACITY;
 };
 
 //static const float vegetationScale = 2.2f;
-static const float4 UpNormal = normalize(float4(0.0f, 1.0f, 0.0f, 1.0f));
+static const float4 UpNormal = float4(0.0f, 1.0f, 0.0f, 1.0f);
 
 //TODO: Add all of these to the constant buffer to make them tweakable in normal code 
 //Just a temporary wind direction
@@ -57,7 +57,7 @@ float LoadWindPowerValue(float2 coords)
 }
 
 //Function for making grass quads
-void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, VS_OUTPUT v3, inout TriangleStream<PS_INPUT> TriStream)
+void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, float distanceHeightScaling, inout TriangleStream<PS_INPUT> TriStream)
 { 
 	//Sum up random values to decide if we want to draw grass here.
 	float randSum = v2.YPosDepthAndRand.z + v1.YPosDepthAndRand.z;
@@ -74,19 +74,26 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, VS_OUTPUT v3, inout TriangleStream<PS_
 		//Taking [0, 1] rand values and changing them to a span that can go negative ([-1, 1]).
 		float2 rand = (2.0f * float2(v1.YPosDepthAndRand.z, v2.YPosDepthAndRand.z) - 0.5f);
 
-		float opacity = (1.0f - (v1.YPosDepthAndRand.y / vegetationFalloff));
-		float height = ((vegetationScale+(rand.x)) * opacity);
+		//Scale how much of the grass should be drawn. This is done to smoothly fade in distant grass.
+		float opacity = (1.0f - (v1.YPosDepthAndRand.y / distanceHeightScaling));
 
-		//Randomizing the ground positions
-		float4 pos1 = v2.Position + float4(rand.x*0.5f, 0.0f, rand.y*0.5f, 0.0f); //Add a tiny offset to make placement of grass seem more random.
+		//Scale height of the quad with opacity times vegetation scale plus a small random value.
+		//I make it abs just to make sure it's positive.
+		float height = abs((vegetationScale+(rand.x*1.5f)));
 
-		//Scale second position with a random value times height, in the direction of the two other vectors. The aim with this is to make taller quads broader.
-		float4 pos2 = v1.Position + ((rand.y*height) * (normalize(v3.Position - v2.Position)));	//+ float4(rand.x, 0.0f, rand.y, 0.0f);
+		float4 pos1, pos2;
+ 
+		//Create a random position for the quad
+		pos1 = v1.Position + float4(rand.x*0.7f, 0.0f, rand.y*0.7f, 0.0f); //Add a tiny offset to make placement of grass seem more random.
+
+		//Second position will be a certain distance away from pos1, scaled by height. This is to always make the quads look uniform as opposed to sometimes being squished/stretched.
+		pos2 = pos1 + (height * normalize(pos1 - (v2.Position+float4(rand.y, 0.0f, rand.x, 0.0f))));
+
 		pos1.w = pos2.w = 1.0f;
 
 		//This is the normal that we use to offset the upper vertices of the quad, as to angle it slightly. 
 		//Height is of course used to control how high the quad will be.
-		float4 randomizedNormal = float4(rand.x*0.2f, height, rand.y*0.2f, 0.0f);
+		float4 randomizedNormal = float4(rand.x*0.3f, height, rand.y*0.3f, 0.0f);
 
 		//If the grass is close enough to the camera, add wind. Just pointless to add a bunch of wind to grass that is too far away to be seen properly.
 		if(v1.YPosDepthAndRand.y < (vegetationFalloff*0.4f))
@@ -96,6 +103,7 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, VS_OUTPUT v3, inout TriangleStream<PS_
 
 			//Add wind direction to our already randomized normal. This value will be 
 			randomizedNormal.xyz += (WindDirection * (forceScale * LoadWindPowerValue((v1.Position.xz*waveLength) + (traversalSpeed*DeltaTime))));
+
 			randomizedNormal.w = 0.0f;
 		}
 
@@ -103,22 +111,22 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, VS_OUTPUT v3, inout TriangleStream<PS_
 		output[0].Position = mul(pos1, WorldViewProjection);
 		output[0].Normal = normalize(v1.Normal);
 		output[0].TexCoord = float4(0.0f, 1.0f, textureID, v1.YPosDepthAndRand.y/farClip);
-		//output[0].Opacity = opacity;
+		output[0].Opacity = opacity;
 
 		output[1].Position = mul(pos2, WorldViewProjection);
 		output[1].Normal = normalize(v2.Normal);
 		output[1].TexCoord = float4(1.0f, 1.0f, textureID, v2.YPosDepthAndRand.y/farClip);
-		//output[1].Opacity = opacity;
+		output[1].Opacity = opacity;
 
 		output[2].Position = mul((pos1 + randomizedNormal), WorldViewProjection);
 		output[2].Normal = normalize(v1.Normal+randomizedNormal);
 		output[2].TexCoord = float4(0.0f, 0.0f, textureID, v1.YPosDepthAndRand.y/farClip);
-		//output[2].Opacity = opacity;
+		output[2].Opacity = opacity;
 
 		output[3].Position = mul((pos2 + randomizedNormal), WorldViewProjection);
 		output[3].Normal = normalize(v2.Normal + randomizedNormal);
 		output[3].TexCoord = float4(1.0f, 0.0f, textureID, v2.YPosDepthAndRand.y/farClip);
-		//output[3].Opacity = opacity;
+		output[3].Opacity = opacity;
 
 		//We're form a quad out of two triangles, meaning four vertices.
 		TriStream.Append(output[0]);
@@ -130,19 +138,38 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, VS_OUTPUT v3, inout TriangleStream<PS_
 	}
 };
 
-[maxvertexcount(12)] 
+[maxvertexcount(24)] 
 void GrassGS(triangle VS_OUTPUT Input[3], inout TriangleStream<PS_INPUT> TriStream)
 { 
 	//So we do a dot between the three normals of the triangle and an Up vector that just points straight up.
 	//Which means that if the surface is angled too far in any direction, we don't create grass there.
 	float dotResult = dot(normalize(Input[0].Normal+Input[1].Normal+Input[2].Normal), UpNormal);
 
+	float viewDepth = Input[0].YPosDepthAndRand.y;
+
+	//TODO: higher values
+	float lowestLODDistance = vegetationFalloff;
+	float mediumLODDistance = vegetationFalloff*0.5f;
+	float highestLODDistance = vegetationFalloff*0.15f;
+
 	//So if the dot result is satisfactory, and the world YPos is above water level, and the view space depth value is above vegetation falloff point...... we make quads.
-	if(dotResult >= 0.92f && Input[0].YPosDepthAndRand.x > 5.5f && Input[0].YPosDepthAndRand.y < vegetationFalloff)
+	if(dotResult >= 0.95f && Input[0].YPosDepthAndRand.x > 5.5f && viewDepth <= lowestLODDistance)
 	{
-		//Make up to three quads.
-		MakeQuad(Input[1], Input[2], Input[0], TriStream);
-		MakeQuad(Input[2], Input[0], Input[1], TriStream);
-		MakeQuad(Input[0], Input[1], Input[2], TriStream);
+		//Make up to six quads.
+		MakeQuad(Input[1], Input[2], lowestLODDistance, TriStream);
+		MakeQuad(Input[2], Input[0], lowestLODDistance, TriStream);
+
+		//SUPER ELEGANT LOD
+		if(viewDepth <= mediumLODDistance)
+		{
+			MakeQuad(Input[0], Input[1], mediumLODDistance, TriStream);
+			MakeQuad(Input[0], Input[2], mediumLODDistance, TriStream);
+
+			if(viewDepth <= highestLODDistance)
+			{
+				MakeQuad(Input[1], Input[0], highestLODDistance, TriStream);
+				MakeQuad(Input[2], Input[1], highestLODDistance, TriStream);
+			}
+		}
 	}
 }

@@ -12,7 +12,7 @@ struct PixelShaderInput
 	float4 Position : SV_POSITION;
 	float4 Normal :	TEXCOORD0;
 	float4 TexCoord : TEXCOORD1;
-	//float Opacity : OPACITY;
+	float Opacity : OPACITY;
 };
 
 struct PixelShaderOutput
@@ -39,6 +39,16 @@ float2 Encode(float3 n)
 	return float2(n.xy/p + 0.5f);
 }
 
+//Essentially the ease curve will accentuate a value towards the extremes; 
+//if it's a low value, it'll become lower, if it's a high value it'll become higher.
+//If it's avg it won't move very much.
+float PerlinEaseCurve(float value)
+{
+	//Algorithmically speaking: 3p² - 2p³
+	return	(3.0f * (value*value) - (2.0f * (value*value*value)));
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Pixel Shader
 ////////////////////////////////////////////////////////////////////////////////
@@ -46,7 +56,10 @@ PixelShaderOutput GrassPS(PixelShaderInput input)
 {
 	PixelShaderOutput output;
 
-	output.Color = shaderTexture.Sample(linearSampler, input.TexCoord.xyz);// * input.Opacity;
+	output.Color = shaderTexture.Sample(linearSampler, input.TexCoord.xyz);
+
+	//Scale transparency with our opacity that is itself based on view distance. We do this to fade in new grass quads to counteract "popping".
+	output.Color.w *= saturate(PerlinEaseCurve(input.Opacity));
 	
 	//Viewspace depth is saved in the .w channel.
 	output.Depth = input.TexCoord.w;
