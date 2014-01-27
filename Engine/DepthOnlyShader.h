@@ -5,10 +5,9 @@
 #include <d3dx11async.h>
 #include <fstream>
 #include <atlcomcli.h>
-#include "SettingsManager.h"
-#include <libconfig.h++>
+#include "SettingsDependent.h"
 
-class DepthOnlyShader
+class DepthOnlyShader : public SettingsDependent
 {
 private:
 

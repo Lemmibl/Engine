@@ -6,10 +6,9 @@
 #include <fstream>
 #include "StructsAndEnums.h"
 #include <atlcomcli.h>
-#include "SettingsManager.h"
-#include <libconfig.h++>
+#include "SettingsDependent.h"
 
-class DRDirLight
+class DRDirLight : SettingsDependent
 {
 private:
 	struct PixelMatrixBuffer

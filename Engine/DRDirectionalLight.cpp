@@ -4,7 +4,7 @@
 #include "DRDirectionalLight.h"
 #include "SettingsManager.h"
 
-DRDirLight::DRDirLight()
+DRDirLight::DRDirLight() : SettingsDependent()
 {
 	//vertexShader = 0;
 	//pixelShader = 0;
@@ -34,11 +34,8 @@ bool DRDirLight::Initialize(ID3D11Device* device, HWND hwnd)
 {
 	bool result;
 
-	//Attach load function to the event that might happen
-	SettingsManager& settings = SettingsManager::GetInstance();
-	settings.GetEvent()->Add(*this, &DRDirLight::OnSettingsReload);
-
-	cameraFarClip = 400.0f;
+	//Load settings from file
+	InitializeSettings(this);
 
 	// Initialize the vertex and pixel shaders.
 	result = InitializeShader(device, hwnd, L"../Engine/Shaders/DRDirectionalLight.vsh", L"../Engine/Shaders/DRDirectionalLight.psh");

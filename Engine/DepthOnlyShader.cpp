@@ -3,7 +3,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "DepthOnlyShader.h"
 
-DepthOnlyShader::DepthOnlyShader()
+DepthOnlyShader::DepthOnlyShader() : SettingsDependent()
 {
 }
 
@@ -17,12 +17,7 @@ bool DepthOnlyShader::Initialize(ID3D11Device* device, HWND hwnd)
 {
 	bool result;
 
-	//Get settings manager instance and add our function to reload event
-	SettingsManager& settings = SettingsManager::GetInstance();
-	settings.GetEvent()->Add(*this, &DepthOnlyShader::OnSettingsReload);
-
-	//Perhaps slightly hacky, but it saves on rewriting code.
-	OnSettingsReload(&settings.GetConfig());
+	InitializeSettings(this);
 
 	// Initialize the vertex and pixel shaders.
 	result = InitializeShader(device, hwnd, L"../Engine/Shaders/DepthOnlyShader.vsh", L"../Engine/Shaders/DepthOnlyShader.psh");

@@ -4,7 +4,7 @@
 #include "Engine.h"
 
 Engine::Engine()
-: timer(), screenManager()
+: SettingsDependent(), screenManager()
 {
 }
 
@@ -19,52 +19,14 @@ bool Engine::Initialize()
 	// Initialize values.
 	screenWidth = 0;
 	screenHeight = 0;
-	float shadowMapWidth = 1024;
-	float shadowMapHeight = 1024;
 
 	// load in the windows api.
 	InitializeWindows(screenWidth, screenHeight);
 
-	// Create the input object.  This object will be used to handle reading the keyboard input from the user.
-	input = std::make_shared<InputClass>();
-	if(!input)
-	{
-		return false;
-	}
-
-	// Initialize the input object.
-	result = input->Initialize(hinstance, hwnd, screenWidth, screenHeight);
-	if(!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the inputmanager. Look in engine.", L"Error", MB_OK);
-		return false;
-	}
-
-	//Create shared pointer containing a d3dmanager
-	d3D = std::make_shared<D3DManager>();
-	if(!d3D)
-	{
-		return false;
-	}
-
-	// Initialize the Direct3D object.
-	result = d3D->Initialize(hwnd, VSYNC_ENABLED, FULL_SCREEN, SCREEN_NEAR, SCREEN_FAR, 
-		screenWidth, screenHeight, (UINT)shadowMapWidth, (UINT)shadowMapHeight);
-	if(!result)
-	{
-		MessageBox(hwnd, L"Could not initialize Direct3D. Look in engine.", L"Error", MB_OK);
-		return false;
-	}
-
-	// Initialize the timer object.
-	result = timer.Initialize();
-	if(!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the Timer object.", L"Error", MB_OK);
-		return false;
-	}
+	//Load settings from file
+	InitializeSettings(this);
 	
-	result = screenManager.InitializeStates(hwnd, input, d3D);
+	result = screenManager.Initialize(hwnd, hinstance, screenWidth, screenHeight, VSYNC_ENABLED, FULL_SCREEN);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the Screen Manager.", L"Error", MB_OK);
@@ -108,8 +70,9 @@ void Engine::MainLoop()
 				done = true;
 			}
 		}
+
 		// Check if the user pressed escape and wants to quit.
-		if(input->IsEscapePressed() == true)
+		if(screenManager.Quit() == true)
 		{
 			done = true;
 		}
@@ -122,16 +85,11 @@ bool Engine::Update()
 {
 	bool result;
 
-	timer.Update();
-
-	// Do the input frame processing.
-	result = input->Update(hwnd);
+	result = screenManager.UpdateActiveScreen();
 	if(!result)
 	{
 		return false;
 	}
-
-	screenManager.UpdateActiveScreen(timer.GetFrameTimeSeconds());
 
 	return true;
 }
@@ -197,6 +155,7 @@ void Engine::InitializeWindows(int& screenWidth, int& screenHeight)
 	else
 	{
 		// If windowed then set it to this resolution.
+		// TODO: Load these values from settings file
 		screenWidth  = 1024;
 		screenHeight = 768;
 

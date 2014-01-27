@@ -407,6 +407,9 @@
     <ClInclude Include="TreeClass.h">
       <Filter>Procedural generation\LSystem</Filter>
     </ClInclude>
+    <ClInclude Include="SettingsDependent.h">
+      <Filter>General Code\Systems</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\GeometryShaderGrass.gsh">

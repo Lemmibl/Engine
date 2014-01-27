@@ -7,10 +7,9 @@
 #include <d3dx11async.h>
 #include <fstream>
 #include <atlcomcli.h>
-#include "SettingsManager.h"
-#include <libconfig.h++>
+#include "SettingsDependent.h"
 
-class DRWaterClass
+class DRWaterClass : SettingsDependent
 {
 
 private:
@@ -42,7 +41,6 @@ private:
 
 public:
 	DRWaterClass();
-	DRWaterClass(const DRWaterClass&);
 	~DRWaterClass();
 
 	bool Initialize(ID3D11Device*, HWND);

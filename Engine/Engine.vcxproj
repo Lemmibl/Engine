@@ -116,6 +116,7 @@
     <ClInclude Include="SchladetschEvents.h" />
     <ClInclude Include="SentenceManager.h" />
     <ClInclude Include="MarchingCubeChunk.h" />
+    <ClInclude Include="SettingsDependent.h" />
     <ClInclude Include="SettingsManager.h" />
     <ClInclude Include="ShadowManager.h" />
     <ClInclude Include="TerrainManager.h" />
@@ -228,10 +229,10 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Engine\libconfig;C:\Program Files %28x86%29\Visual Leak Detector\include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include;C:\Program Files\Microsoft DirectX SDK %28June 2010%29\Include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Engine\libconfig;C:\Program Files %28x86%29\Visual Leak Detector\lib\Win32;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Lib\x86;$(LibraryPath)</LibraryPath>
-    <SourcePath>C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Engine\libconfig;$(SourcePath)</SourcePath>
-    <ReferencePath>C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Engine\libconfig;$(ReferencePath)</ReferencePath>
+    <IncludePath>C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\CEGUI\include;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Engine\libconfig;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\CEGUI\lib;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\CEGUI\bin;C:\Program Files %28x86%29\Visual Leak Detector\include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\BulletBuild\src;C:\Program Files\Microsoft DirectX SDK %28June 2010%29\Include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\CEGUI\lib;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\CEGUI\bin;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Engine\libconfig;C:\Program Files %28x86%29\Visual Leak Detector\lib\Win32;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Lib\x86;$(LibraryPath)</LibraryPath>
+    <SourcePath>C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\BulletBuild\src;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\CEGUI\lib;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\CEGUI\bin;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Engine\libconfig;$(SourcePath)</SourcePath>
+    <ReferencePath>C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\CEGUI\bin;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\CEGUI\lib;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Engine\libconfig;$(ReferencePath)</ReferencePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -248,7 +249,7 @@
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <AdditionalIncludeDirectories>C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Engine\libconfig;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Debug;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\bullet-2.82-r2704\bullet-2.82-r2704\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\CEGUI\lib;..\CEGUI\bin;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Engine\libconfig;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Debug;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\bullet-2.82-r2704\bullet-2.82-r2704\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalUsingDirectories>
       </AdditionalUsingDirectories>
@@ -262,8 +263,8 @@
       <StackReserveSize>
       </StackReserveSize>
       <LargeAddressAware>true</LargeAddressAware>
-      <AdditionalLibraryDirectories>C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\libconfig;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\BulletBuild\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>LinearMath_Debug.lib;BulletDynamics_Debug.lib;BulletCollision_Debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\CEGUI\lib;..\CEGUI\bin;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\libconfig;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\BulletBuild\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>LinearMath_Debug.lib;BulletDynamics_Debug.lib;BulletCollision_Debug.lib;CEGUIBase-0_d.lib;CEGUICoreWindowRendererSet_d.lib;CEGUIDirect3D11Renderer-0_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
       <AdditionalManifestDependencies>

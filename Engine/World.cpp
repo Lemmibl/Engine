@@ -1,7 +1,7 @@
 #include "World.h"
 
 GameWorld::GameWorld()
-	:	frustum(), renderableBundle(), frustumAABB(XMFLOAT2(-1, -1), XMFLOAT2(1, 1)), weatherSystem()
+	:	SettingsDependent(), frustum(), renderableBundle(), frustumAABB(XMFLOAT2(-1, -1), XMFLOAT2(1, 1)), weatherSystem()
 {
 }
 
@@ -22,12 +22,8 @@ void GameWorld::Initialize( std::shared_ptr<D3DManager> extD3DManager, std::shar
 	inputManager = extInput;
 	d3D = extD3DManager;
 
-	//Attach load function to the event that might happen
-	SettingsManager& settingsManager = SettingsManager::GetInstance();
-	settingsManager.GetEvent()->Add(*this, &GameWorld::OnSettingsReload);
-
-	//Load settings
-	OnSettingsReload(&settingsManager.GetConfig());
+	//Load settings from file
+	InitializeSettings(this);
 
 	InitializeCollision();
 	InitializeCamera();

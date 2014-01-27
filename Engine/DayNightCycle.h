@@ -2,10 +2,9 @@
 #include "SkySphere.h"
 #include <math.h>
 #include "StructsAndEnums.h"
-#include "SettingsManager.h"
-#include <libconfig.h++>
+#include "SettingsDependent.h"
 
-class DayNightCycle
+class DayNightCycle : public SettingsDependent
 {
 private:
 	//Struct containing all of the variables that make up a stage of the day in the day/night system
@@ -23,7 +22,6 @@ private:
 
 public:
 	DayNightCycle();
-	DayNightCycle(const DayNightCycle&);
 	~DayNightCycle();
 
 	bool Initialize(StageOfDay startStage);

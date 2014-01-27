@@ -5,11 +5,9 @@
 #include <d3dx11async.h>
 #include <fstream>
 #include <atlcomcli.h>
-#include "SettingsManager.h"
-#include <libconfig.h++>
+#include "SettingsDependent.h"
 
-
-class MCGBufferTerrainShader
+class MCGBufferTerrainShader : SettingsDependent
 {
 
 private:
@@ -30,7 +28,6 @@ private:
 
 public:
 	MCGBufferTerrainShader();
-	MCGBufferTerrainShader(const MCGBufferTerrainShader&);
 	~MCGBufferTerrainShader();
 
 	bool Initialize(ID3D11Device*, HWND);

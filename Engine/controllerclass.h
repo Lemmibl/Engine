@@ -6,12 +6,9 @@
 #include <xnamath.h>
 #include <memory>
 #include <btBulletDynamicsCommon.h>
-#include  "SettingsManager.h"
-#include <libconfig.h++>
+#include "SettingsDependent.h"
 
-using namespace libconfig;
-
-class ControllerClass
+class ControllerClass : public SettingsDependent
 {
 public:
 	ControllerClass(std::shared_ptr<btDynamicsWorld> dynamicsWorld, std::shared_ptr<InputClass> extInput, float turnspeed);

@@ -5,11 +5,9 @@
 #include <d3dx11async.h>
 #include <fstream>
 #include <atlcomcli.h>
-#include "SettingsManager.h"
-#include <libconfig.h++>
+#include "SettingsDependent.h"
 
-
-class DRCompose
+class DRCompose : public SettingsDependent
 {
 private:
 	struct VertexMatrixBuffer
@@ -42,7 +40,6 @@ private:
 
 public:
 	DRCompose();
-	DRCompose(const DRCompose&);
 	~DRCompose();
 
 	bool Initialize(ID3D11Device*, HWND);

@@ -35,11 +35,14 @@ static const XMFLOAT3 stepSize(2.0f, 2.0f, 2.0f);
 static const XMFLOAT3 stepCount(25.0f, 25.0f, 25.0f);
 
 TerrainManager::TerrainManager(ID3D11Device* device, ID3D11DeviceContext* deviceContext, std::shared_ptr<btDiscreteDynamicsWorld> collisionWorld, HWND hwnd, XMFLOAT3 cameraPosition)
-	:	marchingCubes((int)stepCount.x, (int)stepCount.y, (int)stepCount.z)
+	:	SettingsDependent(), marchingCubes((int)stepCount.x, (int)stepCount.y, (int)stepCount.z)
 {
+	//Load settings from file
+	InitializeSettings(this);
+
 	timePassed = 0.0f;
 	timeThreshold = 10.0f;
-	rangeThreshold = 1000.0f;
+	rangeThreshold = 800.0f;
 
 	map = std::make_shared<std::unordered_map<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>, int_pair_hash>>();
 	collisionHandler = collisionWorld;
@@ -54,7 +57,7 @@ TerrainManager::TerrainManager(ID3D11Device* device, ID3D11DeviceContext* device
 	stepScaling = (stepSize.x*(stepCount.x-3)) / 5000;
 
 	//I give no shits if this throws a warning, it helps me remember which terraintypes there are and their names.
-	TerrainTypes::Type terrainType = TerrainTypes::Cave;//(TerrainNoiseSeeder::TerrainTypes)(1 + rand()%8); //
+	TerrainTypes::Type terrainType = TerrainTypes::Hills;//(TerrainNoiseSeeder::TerrainTypes)(1 + rand()%8); //
 
 	terrainNoiser.Initialize((int)stepCount.x, (int)stepCount.y, (int)stepCount.z, &noise, terrainType);
 

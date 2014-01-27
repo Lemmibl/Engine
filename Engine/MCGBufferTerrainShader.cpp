@@ -1,6 +1,6 @@
 #include "MCGBufferTerrainShader.h"
 
-MCGBufferTerrainShader::MCGBufferTerrainShader()
+MCGBufferTerrainShader::MCGBufferTerrainShader() : SettingsDependent()
 {
 	//vertexShader = 0;
 	//pixelShader = 0;
@@ -8,11 +8,6 @@ MCGBufferTerrainShader::MCGBufferTerrainShader()
 	//matrixBuffer = 0;
 	//colorTypeBuffer = 0;
 	//sampler = 0;
-}
-
-
-MCGBufferTerrainShader::MCGBufferTerrainShader(const MCGBufferTerrainShader& other)
-{
 }
 
 
@@ -24,12 +19,7 @@ bool MCGBufferTerrainShader::Initialize(ID3D11Device* device, HWND hwnd)
 {
 	bool result;
 
-	//Get settings manager instance and add our function to reload event
-	SettingsManager& settings = SettingsManager::GetInstance();
-	settings.GetEvent()->Add(*this, &MCGBufferTerrainShader::OnSettingsReload);
-
-	//Perhaps slightly hacky, but it saves on rewriting code.
-	OnSettingsReload(&settings.GetConfig());
+	InitializeSettings(this);
 
 	// Initialize the vertex and pixel shaders.
 	result = InitializeShader(device, hwnd, L"../Engine/Shaders/MCGBufferTerrainShader.vsh", L"../Engine/Shaders/MCGBufferTerrainShader.psh");

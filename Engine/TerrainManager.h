@@ -12,10 +12,9 @@
 #include "marchingCubesClass.h"
 #include "d3dmanager.h"
 #include <math.h>
-#include "SettingsManager.h"
-#include <libconfig.h++>
+#include "SettingsDependent.h"
 
-class TerrainManager
+class TerrainManager : SettingsDependent
 {
 private:
 

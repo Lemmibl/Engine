@@ -204,7 +204,8 @@ bool D3DManager::Initialize(HWND hwnd, bool vsync, bool fullscreen, float screen
 	featureLevel = D3D_FEATURE_LEVEL_11_0;
 
 	// Create the swap chain, Direct3D device, and Direct3D device context.
-	result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, NULL, &featureLevel, 1, 
+	//Using D3D11_CREATE_DEVICE_BGRA_SUPPORT flag because of CEGUI. -> http://cegui.org.uk/forum/viewtopic.php?f=1&t=5490
+	result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, D3D11_CREATE_DEVICE_BGRA_SUPPORT, &featureLevel, 1, 
 		D3D11_SDK_VERSION, &swapChainDesc, &swapChain.p, &device.p, NULL, &deviceContext.p);
 	if(FAILED(result))
 	{

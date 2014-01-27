@@ -2,8 +2,9 @@
 #include <windows.h>
 #include <xnamath.h>
 #include <random>
+#include "SettingsDependent.h"
 
-class WeatherSystem
+class WeatherSystem : public SettingsDependent
 {
 public:
 	WeatherSystem();
@@ -12,6 +13,7 @@ public:
 	void Update(float deltaTime);
 
 	XMFLOAT3* GetWindDirection() { return &windDirection; }
+	void OnSettingsReload(Config* cfg);
 
 private:
 	inline float JustALerpFunction(float a, float b, float t)

@@ -6,7 +6,7 @@
 #include <d3dcompiler.h>
 
 
-DRCompose::DRCompose()
+DRCompose::DRCompose() : SettingsDependent()
 {
 	//vertexShader = 0;
 	//pixelShader = 0;
@@ -30,11 +30,6 @@ DRCompose::DRCompose()
 }
 
 
-DRCompose::DRCompose(const DRCompose& other)
-{
-}
-
-
 DRCompose::~DRCompose()
 {
 }
@@ -44,12 +39,8 @@ bool DRCompose::Initialize(ID3D11Device* device, HWND hwnd)
 {
 	bool result;
 
-	//Get settings manager instance and add our function to reload event
-	SettingsManager& settings = SettingsManager::GetInstance();
-	settings.GetEvent()->Add(*this, (&DRCompose::OnSettingsReload));
-
-	//Perhaps slightly hacky, but it saves on rewriting code.
-	OnSettingsReload(&settings.GetConfig());
+	//Load settings from file
+	InitializeSettings(this);
 
 	// Initialize the vertex and pixel shaders.
 	result = InitializeShader(device, hwnd, L"../Engine/Shaders/DRCompose.vsh", L"../Engine/Shaders/DRCompose.hlsl");

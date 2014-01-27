@@ -12,12 +12,11 @@
 #include "Lemmi2DAABB.h"
 #include "MeshHandler.h"
 #include "WeatherSystem.h"
-#include "SettingsManager.h"
-#include <libconfig.h++>
+#include "SettingsDependent.h"
 
 //using namespace libconfig;
 
-class GameWorld
+class GameWorld : SettingsDependent
 {
 public:
 	GameWorld();

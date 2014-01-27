@@ -1,11 +1,6 @@
 #include "DRWaterClass.h"
 
-DRWaterClass::DRWaterClass()
-{
-}
-
-
-DRWaterClass::DRWaterClass(const DRWaterClass& other)
+DRWaterClass::DRWaterClass() : SettingsDependent()
 {
 }
 
@@ -18,12 +13,8 @@ bool DRWaterClass::Initialize(ID3D11Device* device, HWND hwnd)
 {
 	bool result;
 
-	//Get settings manager instance and add our function to reload event
-	SettingsManager& settings = SettingsManager::GetInstance();
-	settings.GetEvent()->Add(*this, &DRWaterClass::OnSettingsReload);
-
-	//Perhaps slightly hacky, but it saves on rewriting code.
-	OnSettingsReload(&settings.GetConfig());
+	//Load settings from file
+	InitializeSettings(this);
 
 	// Initialize the vertex and pixel shaders.
 	result = InitializeShader(device, hwnd, L"../Engine/Shaders/WaterShader.vsh", L"../Engine/Shaders/WaterShader.gsh", L"../Engine/Shaders/WaterShader.psh");
@@ -426,11 +417,11 @@ void DRWaterClass::OnSettingsReload(Config* cfg)
 {
 	bufferNeedsUpdating = true;
 
-	variables.positionSamplingOffset	= 0.2;
-	variables.heightScaling				= 0.3;
-	variables.timeScaling				= 0.2;
-	waterColorStartOffset				= 0.2;
-	waterColorMultiplier				= 0.8;
+	variables.positionSamplingOffset	= 0.2f;
+	variables.heightScaling				= 0.3f;
+	variables.timeScaling				= 0.2f;
+	waterColorStartOffset				= 0.2f;
+	waterColorMultiplier				= 0.8f;
 
 	Setting& settings = cfg->getRoot()["shaders"]["waterShader"];
 

@@ -56,8 +56,9 @@ XMVECTOR ControllerClass::MatrixDownVector(const XMFLOAT4X4* matrix)
 
 //http://gamedev.stackexchange.com/questions/53723/first-person-camera-with-bullet-physics
 
-ControllerClass::ControllerClass(std::shared_ptr<btDynamicsWorld> world, std::shared_ptr<InputClass> input, float turnspeed)
-:	inputManager(input),
+ControllerClass::ControllerClass(std::shared_ptr<btDynamicsWorld> world, std::shared_ptr<InputClass> input, float turnspeed) 
+: SettingsDependent(),
+	inputManager(input),
 	rotationSpeed(turnspeed),
 	prevMousePos(input->GetMousePos()),
 	frameTime(0.0f),
@@ -67,13 +68,8 @@ ControllerClass::ControllerClass(std::shared_ptr<btDynamicsWorld> world, std::sh
 {
 	SetCursorPos(0, 0);
 	dynamicsWorld = world;
-
-
-	//Get settings manager instance and add our function to reload event
-	SettingsManager& settings = SettingsManager::GetInstance();
-	settings.GetEvent()->Add(*this, (&ControllerClass::OnSettingsReload));
-
-	OnSettingsReload(&settings.GetConfig());
+	
+	InitializeSettings(this);
 }
 
 ControllerClass::~ControllerClass()
@@ -89,12 +85,12 @@ void ControllerClass::Update(float frameTime, XMFLOAT4X4* cameraMatrix)
 
 		if(noclip == true)
 		{
-			//If we have collision flag 2, we should collide with nothing
+			//Change camera's rigid body collision flag to a value that isn't used anywhere else; in effect turning on "no clip"-mode
 			rigidBody->setCollisionFlags(1<<2);
 		}
 		else
 		{
-			//0 should be default for everything else
+			//0 should be the default collision flag for everything unless specified otherwise
 			rigidBody->setCollisionFlags(0);
 		}
 	}

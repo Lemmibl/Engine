@@ -5,12 +5,7 @@ XMFLOAT4 DayNightCycle::GetAmbientLightColor()
 	return currentAmbienceColor;
 }
 
-DayNightCycle::DayNightCycle()
-{
-
-}
-
-DayNightCycle::DayNightCycle( const DayNightCycle& )
+DayNightCycle::DayNightCycle() : SettingsDependent()
 {
 
 }
@@ -41,12 +36,7 @@ bool DayNightCycle::Initialize(StageOfDay startStage )
 		previousFrameStageOfDay = NIGHT; //Because if start stage is dawn (stage 0), previous stage was night
 	}
 
-	//Get settings manager instance and add our function to reload event
-	SettingsManager& settings = SettingsManager::GetInstance();
-	settings.GetEvent()->Add(*this, &DayNightCycle::OnSettingsReload);
-
-	//Perhaps slightly hacky, but it saves on rewriting code.
-	OnSettingsReload(&settings.GetConfig());
+	InitializeSettings(this);
 
 	previousStageStruct = stagesOfDay[previousFrameStageOfDay];
 	elapsedTime = 0.0f;

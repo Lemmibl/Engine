@@ -38,9 +38,9 @@ void WaterShaderGS(triangle VSOutput input[3], inout TriangleStream<PSInput> Tri
 	PSInput output[3];
 	float scaledDeltaTime = (DeltaTime.x * timeScaling);
 
-	output[0].TexCoord.xy = ((input[0].Position.xz*positionSamplingOffset)+(windDirection.xz * scaledDeltaTime));
-	output[1].TexCoord.xy = ((input[1].Position.xz*positionSamplingOffset)+(windDirection.xz * scaledDeltaTime));
-	output[2].TexCoord.xy = ((input[2].Position.xz*positionSamplingOffset)+(windDirection.xz * scaledDeltaTime));
+	output[0].TexCoord.xy = ((input[0].Position.xz*positionSamplingOffset)+(normalize(windDirection.xz) * scaledDeltaTime));
+	output[1].TexCoord.xy = ((input[1].Position.xz*positionSamplingOffset)+(normalize(windDirection.xz) * scaledDeltaTime));
+	output[2].TexCoord.xy = ((input[2].Position.xz*positionSamplingOffset)+(normalize(windDirection.xz) * scaledDeltaTime));
 
 	output[0].TexCoord.z = heightScaling * noiseTexture.SampleLevel(linearSampler, output[0].TexCoord.xy, 0);
 	output[1].TexCoord.z = heightScaling * noiseTexture.SampleLevel(linearSampler, output[1].TexCoord.xy, 0);

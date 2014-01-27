@@ -21,10 +21,10 @@
 #include "textclass.h"
 #include "renderToTextureClass.h"
 #include "DayNightCycle.h"
+#include "SettingsDependent.h"
 
 //Managers
 #include "d3dmanager.h"
-#include "SettingsManager.h"
 #include "TerrainManager.h"
 #include "TextureAndMaterialHandler.h"
 #include "VegetationManager.h"
@@ -56,7 +56,7 @@
 #include "DRWaterClass.h"
 #include "DRGBuffer.h"
 
-class GameRenderer
+class GameRenderer : public SettingsDependent
 {
 public:
 
@@ -76,7 +76,6 @@ public:
 
 public:
 	GameRenderer();
-	GameRenderer(const GameRenderer&);
 	~GameRenderer();
 
 	bool Initialize(HWND hwnd, std::shared_ptr<CameraClass> camera, std::shared_ptr<InputClass> inputManager, std::shared_ptr<D3DManager> d3D, 
@@ -88,7 +87,7 @@ public:
 	bool InitializeModels(HWND hwnd);
 	void InitializeRenderingSpecifics();
 
-	void OnSettingsReload(Config* cfg);
+	virtual void OnSettingsReload(Config* cfg);
 	void Shutdown();
 
 	bool Update(HWND hwnd, int fps, int cpuPercentage, float millisecondDeltaTime, float secondDeltaTime, XMFLOAT3* windDirection);

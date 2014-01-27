@@ -6,10 +6,9 @@
 #include "cpumeter.h"
 #include "World.h"
 #include "GameRenderer.h"
-#include "SettingsManager.h"
-#include <libconfig.h++>
+#include "SettingsDependent.h"
 
-class GameplayScreen: public GenericScreen
+class GameplayScreen: public GenericScreen, SettingsDependent
 {
 public:
 	GameplayScreen();

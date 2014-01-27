@@ -5,10 +5,9 @@
 #include <d3dx11async.h>
 #include <fstream>
 #include <atlcomcli.h>
-#include "SettingsManager.h"
-#include <libconfig.h++>
+#include "SettingsDependent.h"
 
-class GeometryShaderGrass
+class GeometryShaderGrass : SettingsDependent
 {
 
 private:
@@ -40,7 +39,6 @@ private:
 
 public:
 	GeometryShaderGrass();
-	GeometryShaderGrass(const GeometryShaderGrass&);
 	~GeometryShaderGrass();
 
 	bool Initialize(ID3D11Device*, HWND);

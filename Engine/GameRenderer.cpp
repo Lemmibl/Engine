@@ -1,7 +1,7 @@
 #include "GameRenderer.h"
 
-GameRenderer::GameRenderer()
-: noise()
+GameRenderer::GameRenderer() : SettingsDependent(),
+noise()
 {
 	xPos = yPos = 0.0f;
 	timeOfDay = 0.0f;
@@ -12,11 +12,9 @@ GameRenderer::GameRenderer()
 	returning = false;
 	toggleOtherPointLights = false;
 	drawWireFrame = false;
-}
 
-
-GameRenderer::GameRenderer(const GameRenderer& other)
-{
+	//Load settings
+	InitializeSettings(this);
 }
 
 
@@ -46,14 +44,6 @@ std::shared_ptr<D3DManager> d3D, UINT screenWidth, UINT screenHeight, UINT shado
 	fogMinimum = 1.0f;
 	
 	srand((unsigned int)time(NULL));
-
-	//Get settings manager instance and add our function to reload event
-	SettingsManager& settings = SettingsManager::GetInstance();
-	settings.GetEvent()->Add(*this, (&GameRenderer::OnSettingsReload));
-
-	//Perhaps slightly hacky, but it saves on rewriting code.
-	OnSettingsReload(&settings.GetConfig());
-
 
 	XMStoreFloat4x4(&baseViewMatrix, camera->GetView());
 
@@ -316,10 +306,10 @@ bool GameRenderer::Update( HWND hwnd, int fps, int cpuPercentage, float millisec
 	textureOffsetDeltaTime += secondDeltaTime;
 	windDir = *windDirection;
 
-	//Reset every 100 seconds.
-	if(textureOffsetDeltaTime >= 100.0f)
+	//Reset every once in a while.
+	if(textureOffsetDeltaTime >= 30.0f)
 	{
-		textureOffsetDeltaTime = 0.0f;
+		textureOffsetDeltaTime = -textureOffsetDeltaTime;
 	}
 
 	if(inputManager->WasKeyPressed(DIK_E))
@@ -598,8 +588,9 @@ bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 		return false;
 	}
 
-	// Present the rendered scene to the screen.
-	d3D->PresentFrame();
+	//This function has for the moment been moved to screenManager
+	//// Present the rendered scene to the screen.
+	//d3D->PresentFrame();
 
 	return true;
 }

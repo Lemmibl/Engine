@@ -9,8 +9,6 @@
 const bool SHOW_CURSOR = true;
 const bool FULL_SCREEN = false;
 const bool VSYNC_ENABLED = false;
-const float SCREEN_FAR = 400.0f;
-const float SCREEN_NEAR = 2.0f;
 
 //Enable if you want to check for memory leaks.
 //#include <vld.h>
@@ -19,13 +17,10 @@ const float SCREEN_NEAR = 2.0f;
 #include <memory>
 #include <xnamath.h>
 
-#include "inputclass.h"
-#include "timerclass.h"
-#include "SettingsManager.h"
-#include <libconfig.h++>
+#include "SettingsDependent.h"
 #include "ScreenManager.h"
 
-class Engine
+class Engine : SettingsDependent
 {
 public:
 	Engine();
@@ -47,10 +42,6 @@ private:
 	LPCWSTR applicationName;
 	HINSTANCE hinstance;
 	HWND hwnd;
-
-	std::shared_ptr<D3DManager> d3D;
-	std::shared_ptr<InputClass> input;
-	TimerClass timer;
 
 	ScreenManager screenManager;
 

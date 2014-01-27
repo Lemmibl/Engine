@@ -1,7 +1,7 @@
 #include "GameplayScreen.h"
 
 GameplayScreen::GameplayScreen() 
-: GenericScreen(), world(), worldRenderer(), fpsMeter(), cpuMeter()
+: GenericScreen(), SettingsDependent(), world(), worldRenderer(), fpsMeter(), cpuMeter()
 {
 	shadowMapWidth = 1024;
 	shadowMapHeight = 1024;
@@ -28,12 +28,8 @@ bool GameplayScreen::Initialize(HWND extHwnd, std::shared_ptr<InputClass> extInp
 	d3D = extD3D;
 	hwnd = extHwnd;
 
-	//Get settings manager instance and add our function to reload event
-	SettingsManager& settings = SettingsManager::GetInstance();
-	settings.GetEvent()->Add(*this, (&GameplayScreen::OnSettingsReload));
-
-	//Load settings relevant to this class
-	OnSettingsReload(&settings.GetConfig());
+	//Load settings from file
+	InitializeSettings(this);
 
 	//Initialize world
 	world.Initialize(d3D, input);
