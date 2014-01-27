@@ -56,6 +56,12 @@ PixelShaderOutput GrassPS(PixelShaderInput input)
 {
 	PixelShaderOutput output;
 
+	//TODO:  Do something like this? Scale transparency with texCoord
+	/* 
+	//compute distance from center
+	float distance = color.a > 0.3f?length(TexCoord - 0.5f):1.0f;
+	*/
+
 	output.Color = shaderTexture.Sample(linearSampler, input.TexCoord.xyz);
 
 	//Scale transparency with our opacity that is itself based on view distance. We do this to fade in new grass quads to counteract "popping".

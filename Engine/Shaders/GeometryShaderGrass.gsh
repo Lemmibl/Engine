@@ -36,7 +36,7 @@ struct PS_INPUT
 };
 
 //static const float vegetationScale = 2.2f;
-static const float4 UpNormal = float4(0.0f, 1.0f, 0.0f, 1.0f);
+static const float4 UpNormal = normalize(float4(0.0f, 1.0f, 0.0f, 0.0f));
 
 //TODO: Add all of these to the constant buffer to make them tweakable in normal code 
 //Just a temporary wind direction
@@ -69,7 +69,7 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, float distanceHeightScaling, inout Tri
 		PS_INPUT output[4];
 
 		//In the future, this ID will be loaded from a lookup table
-		int textureID = round(v1.YPosDepthAndRand.z * 13);
+		int textureID = round(v1.YPosDepthAndRand.z * 11);
 
 		//Taking [0, 1] rand values and changing them to a span that can go negative ([-1, 1]).
 		float2 rand = (2.0f * float2(v1.YPosDepthAndRand.z, v2.YPosDepthAndRand.z) - 0.5f);
@@ -77,19 +77,21 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, float distanceHeightScaling, inout Tri
 		//Scale how much of the grass should be drawn. This is done to smoothly fade in distant grass.
 		float opacity = (1.0f - (v1.YPosDepthAndRand.y / distanceHeightScaling));
 
-		//Scale height of the quad with opacity times vegetation scale plus a small random value.
-		//I make it abs just to make sure it's positive.
-		float height = abs((vegetationScale+(rand.x*1.5f)));
-
 		float4 pos1, pos2;
- 
+
 		//Create a random position for the quad
-		pos1 = v1.Position + float4(rand.x*0.7f, 0.0f, rand.y*0.7f, 0.0f); //Add a tiny offset to make placement of grass seem more random.
+		pos1.xyz = v1.Position.xyz;// + float4(rand.x*0.2f, 0.0f, rand.y*0.2f, 0.0f); //Add a tiny offset to make placement of grass seem more random.
 
 		//Second position will be a certain distance away from pos1, scaled by height. This is to always make the quads look uniform as opposed to sometimes being squished/stretched.
-		pos2 = pos1 + (height * normalize(pos1 - (v2.Position+float4(rand.y, 0.0f, rand.x, 0.0f))));
-
+		pos2.xyz = pos1.xyz + ((v2.Position.xyz - v1.Position.xyz)); //height * normalize
 		pos1.w = pos2.w = 1.0f;
+
+		float vertexDistance = length(v2.Position.xyz - v1.Position.xyz);
+
+		//Scale height of the quad with opacity times vegetation scale plus a small random value.
+		//Clamp it between 1.0f and distance between our vertices
+		float height = clamp( (vegetationScale+(rand.x*1.5f)), 1.0f, vertexDistance);
+
 
 		//This is the normal that we use to offset the upper vertices of the quad, as to angle it slightly. 
 		//Height is of course used to control how high the quad will be.
@@ -153,7 +155,7 @@ void GrassGS(triangle VS_OUTPUT Input[3], inout TriangleStream<PS_INPUT> TriStre
 	float highestLODDistance = vegetationFalloff*0.15f;
 
 	//So if the dot result is satisfactory, and the world YPos is above water level, and the view space depth value is above vegetation falloff point...... we make quads.
-	if(dotResult >= 0.95f && Input[0].YPosDepthAndRand.x > 5.5f && viewDepth <= lowestLODDistance)
+	if(dotResult >= 0.9f && Input[0].YPosDepthAndRand.x > 5.5f && viewDepth <= lowestLODDistance)
 	{
 		//Make up to six quads.
 		MakeQuad(Input[1], Input[2], lowestLODDistance, TriStream);

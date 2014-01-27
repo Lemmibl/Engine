@@ -41,6 +41,7 @@ VS_OUTPUT GrassVS(VertexShaderInput input)
 	//Don't transform. We transform in geometry shader.
 	output.Position	= pos;
 	output.Normal = normalize(mul(float4(input.Normal.xyz, 1.0f), World));
+	output.Normal.w = 0.0f;
 
 	//World Y pos. Will be used for determining texture lookup table index later.
 	output.YPosDepthAndRand.x = mul(pos, World).y;
