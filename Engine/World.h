@@ -22,16 +22,20 @@ public:
 	GameWorld();
 	~GameWorld();
 
+	void CleanUp();
+
 	void Initialize(std::shared_ptr<D3DManager> extD3DManager, std::shared_ptr<InputClass> extInput);
 
 	void Update(float deltaTimeSeconds, float deltaTimeMilliseconds);
 	void OnSettingsReload(Config* cfg);
 
+	void ResetCamera();
+	void InitializeTerrain();
+
+
 	GameRenderer::RenderableBundle* GetRenderableBundle() {  return &renderableBundle; };
 	std::shared_ptr<CameraClass> GetCamera() { return camera; }
 	XMFLOAT3* GetWindDirection() { return weatherSystem.GetWindDirection(); }
-
-	void InitializeTerrain();
 
 private:
 	void InitializeCollision();

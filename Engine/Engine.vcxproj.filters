@@ -1,9 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="controllerclass.cpp">
-      <Filter>General Code\Utility</Filter>
-    </ClCompile>
     <ClCompile Include="cpumeter.cpp">
       <Filter>General Code\Utility</Filter>
     </ClCompile>
@@ -28,9 +25,6 @@
     <ClCompile Include="timerclass.cpp">
       <Filter>General Code\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="cameraclass.cpp">
-      <Filter>General Code</Filter>
-    </ClCompile>
     <ClCompile Include="texturearray.cpp">
       <Filter>Rendering\Rendering utility</Filter>
     </ClCompile>
@@ -50,13 +44,13 @@
       <Filter>Rendering\Rendering utility</Filter>
     </ClCompile>
     <ClCompile Include="marchingCubesClass.cpp">
-      <Filter>Procedural generation\MC</Filter>
+      <Filter>Terrain and procedural generation\MC</Filter>
     </ClCompile>
     <ClCompile Include="LSystemBranch.cpp">
-      <Filter>Procedural generation\LSystem</Filter>
+      <Filter>Terrain and procedural generation\LSystem</Filter>
     </ClCompile>
     <ClCompile Include="LSystemClass.cpp">
-      <Filter>Procedural generation\LSystem</Filter>
+      <Filter>Terrain and procedural generation\LSystem</Filter>
     </ClCompile>
     <ClCompile Include="GaussianBlur.cpp">
       <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
@@ -80,7 +74,7 @@
       <Filter>Rendering\Objects</Filter>
     </ClCompile>
     <ClCompile Include="TerrainManager.cpp">
-      <Filter>Procedural generation</Filter>
+      <Filter>Terrain and procedural generation</Filter>
     </ClCompile>
     <ClCompile Include="IndexedMesh.cpp">
       <Filter>Rendering\Objects</Filter>
@@ -98,7 +92,7 @@
       <Filter>Rendering\Shader wrappers\Vegetation shader wrappers</Filter>
     </ClCompile>
     <ClCompile Include="NoiseClass.cpp">
-      <Filter>Procedural generation\Noise</Filter>
+      <Filter>Terrain and procedural generation\Noise</Filter>
     </ClCompile>
     <ClCompile Include="DRPointLight.cpp">
       <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
@@ -124,12 +118,6 @@
     <ClCompile Include="LerpInstance.cpp">
       <Filter>General Code\Utility\Mathstuff</Filter>
     </ClCompile>
-    <ClCompile Include="DayNightCycle.cpp">
-      <Filter>General Code\Systems</Filter>
-    </ClCompile>
-    <ClCompile Include="WeatherSystem.cpp">
-      <Filter>General Code\Systems</Filter>
-    </ClCompile>
     <ClCompile Include="LemmiQuadtree.h">
       <Filter>Collision</Filter>
     </ClCompile>
@@ -146,7 +134,7 @@
       <Filter>Rendering\Managers</Filter>
     </ClCompile>
     <ClCompile Include="TerrainNoiseSeeder.cpp">
-      <Filter>Procedural generation\MC</Filter>
+      <Filter>Terrain and procedural generation\MC</Filter>
     </ClCompile>
     <ClCompile Include="SentenceManager.cpp">
       <Filter>Rendering\Managers</Filter>
@@ -154,20 +142,10 @@
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MarchingCubeChunk.cpp">
-      <Filter>Procedural generation\MC</Filter>
-    </ClCompile>
-    <ClCompile Include="GenericScreen.cpp">
-      <Filter>Screens</Filter>
-    </ClCompile>
-    <ClCompile Include="GameplayScreen.cpp">
-      <Filter>Screens</Filter>
-    </ClCompile>
-    <ClCompile Include="GameRenderer.cpp" />
-    <ClCompile Include="World.cpp">
-      <Filter>General Code</Filter>
+      <Filter>Terrain and procedural generation\MC</Filter>
     </ClCompile>
     <ClCompile Include="SettingsManager.cpp">
-      <Filter>General Code\Systems</Filter>
+      <Filter>Settings</Filter>
     </ClCompile>
     <ClCompile Include="StructsAndEnums.cpp">
       <Filter>General Code\Utility</Filter>
@@ -176,7 +154,7 @@
       <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClCompile>
     <ClCompile Include="ScreenManager.cpp">
-      <Filter>Screens</Filter>
+      <Filter>State machines and menus</Filter>
     </ClCompile>
     <ClCompile Include="d3dmanager.cpp">
       <Filter>Rendering\D3D Wrappers</Filter>
@@ -194,14 +172,41 @@
       <Filter>Rendering\D3D Wrappers</Filter>
     </ClCompile>
     <ClCompile Include="TreeClass.cpp">
-      <Filter>Procedural generation\LSystem</Filter>
+      <Filter>Terrain and procedural generation\LSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="FullScreenShaderInterface.cpp">
+      <Filter>Rendering\Shader wrappers</Filter>
+    </ClCompile>
+    <ClCompile Include="GameplayScreen.cpp">
+      <Filter>State machines and menus\Screens</Filter>
+    </ClCompile>
+    <ClCompile Include="GenericScreen.cpp">
+      <Filter>State machines and menus\Screens</Filter>
+    </ClCompile>
+    <ClCompile Include="MainMenuScreen.cpp">
+      <Filter>State machines and menus\Screens</Filter>
+    </ClCompile>
+    <ClCompile Include="World.cpp">
+      <Filter>Gameplay... ish</Filter>
+    </ClCompile>
+    <ClCompile Include="cameraclass.cpp">
+      <Filter>Gameplay... ish</Filter>
+    </ClCompile>
+    <ClCompile Include="DayNightCycle.cpp">
+      <Filter>Gameplay... ish</Filter>
+    </ClCompile>
+    <ClCompile Include="WeatherSystem.cpp">
+      <Filter>Gameplay... ish</Filter>
+    </ClCompile>
+    <ClCompile Include="controllerclass.cpp">
+      <Filter>Gameplay... ish</Filter>
+    </ClCompile>
+    <ClCompile Include="GameRenderer.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cpumeter.h">
-      <Filter>General Code\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="controllerclass.h">
       <Filter>General Code\Utility</Filter>
     </ClInclude>
     <ClInclude Include="DepthOnlyShader.h">
@@ -225,9 +230,6 @@
     <ClInclude Include="timerclass.h">
       <Filter>General Code\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="cameraclass.h">
-      <Filter>General Code</Filter>
-    </ClInclude>
     <ClInclude Include="texturetriarray.h">
       <Filter>Rendering\Rendering utility</Filter>
     </ClInclude>
@@ -250,16 +252,16 @@
       <Filter>Rendering\Rendering utility</Filter>
     </ClInclude>
     <ClInclude Include="metaballsClass.h">
-      <Filter>Procedural generation\MC</Filter>
+      <Filter>Terrain and procedural generation\MC</Filter>
     </ClInclude>
     <ClInclude Include="marchingCubesClass.h">
-      <Filter>Procedural generation\MC</Filter>
+      <Filter>Terrain and procedural generation\MC</Filter>
     </ClInclude>
     <ClInclude Include="LSystemClass.h">
-      <Filter>Procedural generation\LSystem</Filter>
+      <Filter>Terrain and procedural generation\LSystem</Filter>
     </ClInclude>
     <ClInclude Include="LSystemBranch.h">
-      <Filter>Procedural generation\LSystem</Filter>
+      <Filter>Terrain and procedural generation\LSystem</Filter>
     </ClInclude>
     <ClInclude Include="GaussianBlur.h">
       <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
@@ -286,10 +288,10 @@
       <Filter>Rendering\Objects</Filter>
     </ClInclude>
     <ClInclude Include="customStructs.h">
-      <Filter>Procedural generation\MC</Filter>
+      <Filter>Terrain and procedural generation\MC</Filter>
     </ClInclude>
     <ClInclude Include="TerrainManager.h">
-      <Filter>Procedural generation</Filter>
+      <Filter>Terrain and procedural generation</Filter>
     </ClInclude>
     <ClInclude Include="RenderableInterface.h">
       <Filter>Rendering\Objects</Filter>
@@ -310,7 +312,7 @@
       <Filter>Rendering\Shader wrappers\Vegetation shader wrappers</Filter>
     </ClInclude>
     <ClInclude Include="NoiseClass.h">
-      <Filter>Procedural generation\Noise</Filter>
+      <Filter>Terrain and procedural generation\Noise</Filter>
     </ClInclude>
     <ClInclude Include="DRPointLight.h">
       <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
@@ -336,12 +338,6 @@
     <ClInclude Include="LerpInstance.h">
       <Filter>General Code\Utility\Mathstuff</Filter>
     </ClInclude>
-    <ClInclude Include="DayNightCycle.h">
-      <Filter>General Code\Systems</Filter>
-    </ClInclude>
-    <ClInclude Include="WeatherSystem.h">
-      <Filter>General Code\Systems</Filter>
-    </ClInclude>
     <ClInclude Include="Lemmi2DAABB.h">
       <Filter>Collision</Filter>
     </ClInclude>
@@ -358,27 +354,17 @@
       <Filter>General Code\Utility\Events</Filter>
     </ClInclude>
     <ClInclude Include="TerrainNoiseSeeder.h">
-      <Filter>Procedural generation\MC</Filter>
+      <Filter>Terrain and procedural generation\MC</Filter>
     </ClInclude>
     <ClInclude Include="SentenceManager.h">
       <Filter>Rendering\Managers</Filter>
     </ClInclude>
     <ClInclude Include="Engine.h" />
     <ClInclude Include="MarchingCubeChunk.h">
-      <Filter>Procedural generation\MC</Filter>
-    </ClInclude>
-    <ClInclude Include="GenericScreen.h">
-      <Filter>Screens</Filter>
-    </ClInclude>
-    <ClInclude Include="GameplayScreen.h">
-      <Filter>Screens</Filter>
-    </ClInclude>
-    <ClInclude Include="GameRenderer.h" />
-    <ClInclude Include="World.h">
-      <Filter>General Code</Filter>
+      <Filter>Terrain and procedural generation\MC</Filter>
     </ClInclude>
     <ClInclude Include="SettingsManager.h">
-      <Filter>General Code\Systems</Filter>
+      <Filter>Settings</Filter>
     </ClInclude>
     <ClInclude Include="StructsAndEnums.h">
       <Filter>General Code\Utility</Filter>
@@ -387,7 +373,7 @@
       <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClInclude>
     <ClInclude Include="ScreenManager.h">
-      <Filter>Screens</Filter>
+      <Filter>State machines and menus</Filter>
     </ClInclude>
     <ClInclude Include="d3dmanager.h">
       <Filter>Rendering\D3D Wrappers</Filter>
@@ -405,10 +391,43 @@
       <Filter>Rendering\D3D Wrappers</Filter>
     </ClInclude>
     <ClInclude Include="TreeClass.h">
-      <Filter>Procedural generation\LSystem</Filter>
+      <Filter>Terrain and procedural generation\LSystem</Filter>
     </ClInclude>
     <ClInclude Include="SettingsDependent.h">
-      <Filter>General Code\Systems</Filter>
+      <Filter>Settings</Filter>
+    </ClInclude>
+    <ClInclude Include="FullScreenShaderInterface.h">
+      <Filter>Rendering\Shader wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="GenericScreen.h">
+      <Filter>State machines and menus\Screens</Filter>
+    </ClInclude>
+    <ClInclude Include="GameplayScreen.h">
+      <Filter>State machines and menus\Screens</Filter>
+    </ClInclude>
+    <ClInclude Include="MainMenuScreen.h">
+      <Filter>State machines and menus\Screens</Filter>
+    </ClInclude>
+    <ClInclude Include="World.h">
+      <Filter>Gameplay... ish</Filter>
+    </ClInclude>
+    <ClInclude Include="cameraclass.h">
+      <Filter>Gameplay... ish</Filter>
+    </ClInclude>
+    <ClInclude Include="DayNightCycle.h">
+      <Filter>Gameplay... ish</Filter>
+    </ClInclude>
+    <ClInclude Include="WeatherSystem.h">
+      <Filter>Gameplay... ish</Filter>
+    </ClInclude>
+    <ClInclude Include="controllerclass.h">
+      <Filter>Gameplay... ish</Filter>
+    </ClInclude>
+    <ClInclude Include="GameRenderer.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="GameStates.h">
+      <Filter>State machines and menus</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -520,14 +539,17 @@
     <None Include="credits.txt">
       <Filter>Text files</Filter>
     </None>
-    <None Include="settings.cfg">
-      <Filter>Text files</Filter>
-    </None>
     <None Include="shader-error.txt">
       <Filter>Text files</Filter>
     </None>
     <None Include="..\TODO.txt">
       <Filter>Text files</Filter>
+    </None>
+    <None Include="FullscreenQuadVertexShader.vsh">
+      <Filter>Rendering\Shaders\General shaders</Filter>
+    </None>
+    <None Include="settings.cfg">
+      <Filter>Settings</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -543,9 +565,6 @@
     <Filter Include="Rendering\Shaders\Shadow shaders">
       <UniqueIdentifier>{f3909b06-c348-46c2-8a2b-0dbe726ecaa4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Procedural generation">
-      <UniqueIdentifier>{6176e1c8-062b-4bea-bebc-18cdf3238207}</UniqueIdentifier>
-    </Filter>
     <Filter Include="General Code">
       <UniqueIdentifier>{733ec30b-99a1-4609-a125-079f619223e3}</UniqueIdentifier>
     </Filter>
@@ -555,17 +574,8 @@
     <Filter Include="Rendering\Rendering utility">
       <UniqueIdentifier>{33fc996b-8b8b-41b1-b4cd-4d51729dcf3a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Procedural generation\Noise">
-      <UniqueIdentifier>{4c131b98-83f6-4745-8390-4b7d567fe47d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Procedural generation\MC">
-      <UniqueIdentifier>{12a28744-5ce8-4b0e-8813-557be086ce68}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Rendering\Shaders\Post processing">
       <UniqueIdentifier>{3ab2fc9c-1038-40dc-843a-659e9cad2ad3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Procedural generation\LSystem">
-      <UniqueIdentifier>{d7a6d75b-5b8d-4413-9b4b-adcd086ff366}</UniqueIdentifier>
     </Filter>
     <Filter Include="Rendering\Managers">
       <UniqueIdentifier>{0caad27d-4c85-41f6-8346-251466473ad0}</UniqueIdentifier>
@@ -581,9 +591,6 @@
     </Filter>
     <Filter Include="General Code\Utility\Mathstuff">
       <UniqueIdentifier>{88b84ffe-a0e6-4f5f-a7aa-1c2677ef42cd}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="General Code\Systems">
-      <UniqueIdentifier>{1edc4557-0856-49f0-a67a-b73e8296179e}</UniqueIdentifier>
     </Filter>
     <Filter Include="Collision">
       <UniqueIdentifier>{993b7344-c805-49d5-8782-654f6cdc2ca0}</UniqueIdentifier>
@@ -612,14 +619,35 @@
     <Filter Include="Libraries">
       <UniqueIdentifier>{b2691cb4-19c7-47c9-ba2b-269b5a01461a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Screens">
-      <UniqueIdentifier>{9f097deb-e971-4ca0-a54d-6bec5c6c750e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Text files">
       <UniqueIdentifier>{caed4d32-7871-44ed-ad58-066094b818a5}</UniqueIdentifier>
     </Filter>
     <Filter Include="Rendering\D3D Wrappers">
       <UniqueIdentifier>{f1f046a8-5ea8-4f97-b5a3-13648f2ef881}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="State machines and menus">
+      <UniqueIdentifier>{9f097deb-e971-4ca0-a54d-6bec5c6c750e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="State machines and menus\Screens">
+      <UniqueIdentifier>{9bc7429b-0661-4d16-9fa9-ccd8985ffdfa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gameplay... ish">
+      <UniqueIdentifier>{0cc6fb9c-2ecf-454c-8732-d0a15074a461}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Terrain and procedural generation">
+      <UniqueIdentifier>{6176e1c8-062b-4bea-bebc-18cdf3238207}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Terrain and procedural generation\Noise">
+      <UniqueIdentifier>{4c131b98-83f6-4745-8390-4b7d567fe47d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Terrain and procedural generation\MC">
+      <UniqueIdentifier>{12a28744-5ce8-4b0e-8813-557be086ce68}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Terrain and procedural generation\LSystem">
+      <UniqueIdentifier>{d7a6d75b-5b8d-4413-9b4b-adcd086ff366}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Settings">
+      <UniqueIdentifier>{1edc4557-0856-49f0-a67a-b73e8296179e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

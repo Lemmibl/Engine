@@ -21,12 +21,12 @@ bool Engine::Initialize()
 	screenHeight = 0;
 
 	// load in the windows api.
-	InitializeWindows(screenWidth, screenHeight);
+	InitializeWindows(screenWidth, screenHeight, windowCenterPosX, windowCenterPosY);
 
 	//Load settings from file
 	InitializeSettings(this);
 	
-	result = screenManager.Initialize(hwnd, hinstance, screenWidth, screenHeight, VSYNC_ENABLED, FULL_SCREEN);
+	result = screenManager.Initialize(hwnd, hinstance, screenWidth, screenHeight, windowCenterPosX, windowCenterPosY, VSYNC_ENABLED, FULL_SCREEN);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the Screen Manager.", L"Error", MB_OK);
@@ -46,6 +46,7 @@ void Engine::MainLoop()
 
 	//Loop until there is a quit message from the window or the user.
 	done = false;
+
 	while(!done)
 	{
 		//Handle the windows messages.
@@ -72,7 +73,7 @@ void Engine::MainLoop()
 		}
 
 		// Check if the user pressed escape and wants to quit.
-		if(screenManager.Quit() == true)
+		if(screenManager.Quitting() == true)
 		{
 			done = true;
 		}
@@ -99,11 +100,10 @@ LRESULT CALLBACK Engine::MessageHandler(HWND hwnd, UINT umsg, WPARAM wparam, LPA
 	return DefWindowProc(hwnd, umsg, wparam, lparam);
 }
 
-void Engine::InitializeWindows(int& screenWidth, int& screenHeight)
+void Engine::InitializeWindows(int& screenWidth, int& screenHeight, int& centerPosX, int& centerPosY)
 {
 	WNDCLASSEX windowClass;
 	DEVMODE devmodeScreenSettings;
-	int posX, posY;
 
 	// Get an external pointer to this object.
 	ApplicationHandle = this;
@@ -150,7 +150,7 @@ void Engine::InitializeWindows(int& screenWidth, int& screenHeight)
 		ChangeDisplaySettings(&devmodeScreenSettings, CDS_FULLSCREEN);
 
 		// Set the position of the window to the top left corner.
-		posX = posY = 0;
+		centerPosX = centerPosY = 0;
 	}
 	else
 	{
@@ -160,8 +160,8 @@ void Engine::InitializeWindows(int& screenWidth, int& screenHeight)
 		screenHeight = 768;
 
 		// Place the window in the middle of the screen.
-		posX = (GetSystemMetrics(SM_CXSCREEN) - screenWidth)  / 2;
-		posY = (GetSystemMetrics(SM_CYSCREEN) - screenHeight) / 2;
+		centerPosX = (GetSystemMetrics(SM_CXSCREEN) - screenWidth)  / 2;
+		centerPosY = (GetSystemMetrics(SM_CYSCREEN) - screenHeight) / 2;
 	}
 
 	// Create the window with the screen settings and get the handle to it.
@@ -170,8 +170,8 @@ void Engine::InitializeWindows(int& screenWidth, int& screenHeight)
 		applicationName, 
 		applicationName, 
 		WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_POPUP, // to remove window borders, change to this: WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP
-		posX, 
-		posY, 
+		centerPosX, 
+		centerPosY, 
 		screenWidth, 
 		screenHeight, 
 		NULL, 

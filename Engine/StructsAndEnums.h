@@ -26,7 +26,8 @@ enum StageOfDay
 	DAY,
 	DUSK,
 	EVENING, //Transition between dusk and night
-	NIGHT
+	NIGHT,
+	STAGEOFDAY_LIST_SIZE //Keep last
 };
 
 //IDs for different things. Potential TODO: Read these in from an XML or smth?
@@ -37,7 +38,8 @@ enum MaterialID
 	MATERIAL_SNOW,
 	MATERIAL_DIRT,
 	MATERIAL_GRASSQUADS,
-	MATERIAL_UNDERGROUND
+	MATERIAL_UNDERGROUND,
+	MATERIALID_LIST_SIZE //Keep last
 };
 
 enum TextureID
@@ -47,7 +49,8 @@ enum TextureID
 	TEXTURE_ROCK,
 	TEXTURE_SAND,
 	TEXTURE_SNOW,
-	TEXTURE_TILEDSTONE
+	TEXTURE_TILEDSTONE,
+	TEXTUREID_LIST_SIZE //Keep last
 };
 
 struct PointLight

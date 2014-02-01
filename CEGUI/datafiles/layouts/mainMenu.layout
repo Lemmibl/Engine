@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<GUILayout version="4" >
+    <Window type="TaharezLook/GroupBox" name="GroupBox" >
+        <Property name="Area" value="{{0,0},{0,0},{1.05098,0},{0.563021,498}}" />
+        <Property name="MaxSize" value="{{1.2,0},{1.2,0}}" />
+        <Property name="VerticalAlignment" value="Centre" />
+        <Property name="HorizontalAlignment" value="Centre" />
+        <Window type="TaharezLook/Button" name="Exit Game" >
+            <Property name="Area" value="{{0,0},{0,75},{0,150},{0,125}}" />
+            <Property name="Font" value="DejaVuSans-12" />
+            <Property name="Text" value="Exit Game" />
+            <Property name="AlwaysOnTop" value="True" />
+            <Property name="ClippedByParent" value="False" />
+            <Property name="HoverTextColour" value="tl:FFFFFF00 tr:FFFFFFFF bl:FFFFFFFF br:FFFFFFFF" />
+            <Property name="VerticalAlignment" value="Centre" />
+            <Property name="HorizontalAlignment" value="Centre" />
+            <Property name="AutoRenderingSurface" value="True" />
+        </Window>
+        <Window type="TaharezLook/Button" name="Start Game" >
+            <Property name="Area" value="{{0,0},{0,-75},{0,150},{0,-25}}" />
+            <Property name="Font" value="DejaVuSans-12" />
+            <Property name="Text" value="Start Game" />
+            <Property name="AlwaysOnTop" value="True" />
+            <Property name="DisabledImage" value="AlfiskoSkin/ButtonHoverFill2" />
+            <Property name="ClippedByParent" value="False" />
+            <Property name="HoverTextColour" value="tl:FFFFFF00 tr:FFFFFFFF bl:FFFFFFFF br:FFFFFFFF" />
+            <Property name="VerticalAlignment" value="Centre" />
+            <Property name="HorizontalAlignment" value="Centre" />
+            <Property name="AutoRenderingSurface" value="True" />
+        </Window>
+        <Window type="TaharezLook/Button" name="Options" >
+            <Property name="Area" value="{{0,0},{0,0},{0,150},{0,50}}" />
+            <Property name="Font" value="DejaVuSans-12" />
+            <Property name="Text" value="Options" />
+            <Property name="AlwaysOnTop" value="True" />
+            <Property name="ClippedByParent" value="False" />
+            <Property name="HoverTextColour" value="tl:FFFFFF00 tr:FFFFFFFF bl:FFFFFFFF br:FFFFFFFF" />
+            <Property name="VerticalAlignment" value="Centre" />
+            <Property name="HorizontalAlignment" value="Centre" />
+            <Property name="AutoRenderingSurface" value="True" />
+        </Window>
+        <Window type="TaharezLook/StaticImage" name="StaticImage" >
+            <Property name="Area" value="{{0.013507,0},{0.0565354,0},{0.956959,128},{1.03626,128}}" />
+            <Property name="MaxSize" value="{{1.5,0},{1.5,0}}" />
+        </Window>
+    </Window>
+</GUILayout>

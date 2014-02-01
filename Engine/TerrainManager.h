@@ -42,7 +42,6 @@ public:
 	//Returns a bool to indicate if we've actually had to change anything. If true, it has changed and we should fetch the new render data.
 	bool UpdateAgainstAABB(ID3D11Device* device, ID3D11DeviceContext* deviceContext, Lemmi2DAABB* aabb, float deltaTime);
 
-	void OnSettingsReload(Config* cfg);
 	void ResetTerrain();
 
 	VegetationManager* const GetVegetationManager() { return &vegetationManager; };
@@ -50,6 +49,7 @@ public:
 	std::vector<MarchingCubeChunk*>& GetActiveChunks() { return activeChunks; }
 	std::vector<RenderableInterface*>& GetActiveRenderables(){ return activeRenderables; }
 
+	void OnSettingsReload(Config* cfg);
 
 	void SetTerrainType(TerrainTypes::Type val) { terrainNoiser.SetTerrainType(val); }
 

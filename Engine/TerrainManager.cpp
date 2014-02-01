@@ -32,14 +32,13 @@ enum Direction
 };
 
 static const XMFLOAT3 stepSize(2.0f, 2.0f, 2.0f);
-static const XMFLOAT3 stepCount(25.0f, 25.0f, 25.0f);
 
-TerrainManager::TerrainManager(ID3D11Device* device, ID3D11DeviceContext* deviceContext, std::shared_ptr<btDiscreteDynamicsWorld> collisionWorld, HWND hwnd, XMFLOAT3 cameraPosition)
-	:	SettingsDependent(), marchingCubes((int)stepCount.x, (int)stepCount.y, (int)stepCount.z)
+//Needs to be kept at 28, 53, 103 etc, else your position slowly gets out of sync with the culling position. Need to look into this.
+static const XMFLOAT3 stepCount(28.0f, 28.0f, 28.0f);
+
+TerrainManager::TerrainManager(ID3D11Device* device, ID3D11DeviceContext* deviceContext, std::shared_ptr<btDiscreteDynamicsWorld> collisionWorld, HWND hwnd, XMFLOAT3 cameraPosition) 
+: marchingCubes((int)stepCount.x, (int)stepCount.y, (int)stepCount.z), SettingsDependent()
 {
-	//Load settings from file
-	InitializeSettings(this);
-
 	timePassed = 0.0f;
 	timeThreshold = 10.0f;
 	rangeThreshold = 800.0f;
@@ -57,7 +56,7 @@ TerrainManager::TerrainManager(ID3D11Device* device, ID3D11DeviceContext* device
 	stepScaling = (stepSize.x*(stepCount.x-3)) / 5000;
 
 	//I give no shits if this throws a warning, it helps me remember which terraintypes there are and their names.
-	TerrainTypes::Type terrainType = TerrainTypes::Hills;//(TerrainNoiseSeeder::TerrainTypes)(1 + rand()%8); //
+	TerrainTypes::Type terrainType = TerrainTypes::Plains;//(TerrainNoiseSeeder::TerrainTypes)(1 + rand()%8); //
 
 	terrainNoiser.Initialize((int)stepCount.x, (int)stepCount.y, (int)stepCount.z, &noise, terrainType);
 
@@ -85,6 +84,10 @@ TerrainManager::TerrainManager(ID3D11Device* device, ID3D11DeviceContext* device
 	//CreateChunk(device, deviceContext, startGridX-1, startGridZ+1);
 
 	//Update(device, deviceContext, cameraPosition, 0.0f);
+
+
+	//Load settings from file
+	//InitializeSettings(this);
 }
 
 TerrainManager::~TerrainManager()
@@ -536,7 +539,6 @@ void TerrainManager::Cleanup(float posX, float posZ)
 	}
 }
 
-void TerrainManager::OnSettingsReload( Config* cfg )
+void TerrainManager::OnSettingsReload(Config* cfg)
 {
-	//TODO: terraintype..
 }

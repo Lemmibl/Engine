@@ -14,7 +14,10 @@ GameplayScreen::~GameplayScreen()
 
 void GameplayScreen::Enter()
 {
-	active = true;
+	SetActive(true);
+
+	//Reset camera
+	world.ResetCamera();
 
 	//Reset terrain.
 	world.InitializeTerrain();
@@ -56,6 +59,12 @@ bool GameplayScreen::Update(float deltaTime)
 	fpsMeter.Update();
 	cpuMeter.Update();
 
+	if(input->WasKeyPressed(DIK_ESCAPE))
+	{
+		//If we press escape from gameplay screen, change state back to main menu screen
+		stateChangeEvent(GameStates::MainMenuScreen);
+	}
+
 	//Here. Do world update stuff here.
 	world.Update(deltaTime, deltaTimeMilliseconds);
 
@@ -81,7 +90,8 @@ bool GameplayScreen::Render(float deltaTime)
 
 void GameplayScreen::Exit()
 {
-	active = false;
+	world.CleanUp();
+	SetActive(false);
 }
 
 void GameplayScreen::OnSettingsReload( Config* cfg )

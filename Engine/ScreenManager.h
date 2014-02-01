@@ -1,4 +1,6 @@
 #pragma once
+#include <functional>
+#include "MainMenuScreen.h"
 #include "GameplayScreen.h"
 #include "SettingsDependent.h"
 #include "inputclass.h"
@@ -6,32 +8,33 @@
 #include <map>
 #include "CEGUI/CEGUI.h"
 #include "CEGUI/RendererModules/Direct3D11/Renderer.h"
-
+#include "GameStates.h"
 
 class ScreenManager : public SettingsDependent
 {
 public:
-enum GameStates
-{
-	MainMenuScreen = 0,
-	GameScreen,
-	LoadingScreen,
-	OptionsScreen
-};
-
-public:
 	ScreenManager();
 	~ScreenManager();
 
-	bool Initialize(HWND extHwnd, HINSTANCE hInst, int screenWidth, int screenHeight, bool vsynEnabled, bool fullScreen);
+	bool Initialize(HWND extHwnd, HINSTANCE hInst, int screenWidth, int screenHeight, int centerPosX, int centerPosY, bool vsyncEnabled, bool fullScreen);
+	void InitializeCEGUI();
+	void AddNewScreen(std::shared_ptr<GenericScreen> screen, GameStates::Type gameState);
 
-	GameStates GetCurrentState();
-	void ChangeState(GameStates state);
+	//Provides smooth transition out of current state and into new state
+	void ChangeState(GameStates::Type state);
+
 	bool UpdateActiveScreen();
-
-	bool Quit() { return input->WasKeyPressed(DIK_ESCAPE); }
+	bool UpdateInputs();
 
 	virtual void OnSettingsReload(Config* cfg);
+
+	CEGUI::utf32 KeycodeToUTF32(unsigned int scanCode);
+
+	//Returns true if escape was pressed this frame
+	bool Quitting() { return isQuitting; }
+	void Quit() { isQuitting = true; }
+
+	GameStates::Type GetCurrentState() { return currentState; }
 
 private:
 	HWND hwnd;
@@ -41,9 +44,11 @@ private:
 	std::shared_ptr<InputClass> input;
 	TimerClass timer;
 
-	GameStates previousState, currentState;
+	//TODO: Lambda system again... this time in debug mode to see what's happening
+	GameStates::Type previousState, currentState;
 	std::shared_ptr<GenericScreen> currentScreen;
 
-	std::map<GameStates, std::shared_ptr<GenericScreen>> stateToScreenDictionary;
+	std::map<GameStates::Type, std::shared_ptr<GenericScreen>> stateToScreenMap;
+	bool isQuitting;
 };
 

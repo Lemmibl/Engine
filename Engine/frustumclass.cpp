@@ -58,7 +58,7 @@ void FrustumClass::SetInternals( float aspectRatio, float FOV, float nearZ, floa
 	Wfar = Hfar * ratio 
 	*/
 
-	float tanVal = 2.0f * tan((ANG2RAD * FOV) / 2);
+	float tanVal = 2.0f * (float)tan((ANG2RAD * FOV) / 2);
 
 	// compute width and height of the near and far plane sections
 	farHeight = tanVal * farZ;

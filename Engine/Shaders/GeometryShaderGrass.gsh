@@ -80,7 +80,7 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, float distanceHeightScaling, inout Tri
 		float4 pos1, pos2;
 
 		//Create a random position for the quad
-		pos1.xyz = v1.Position.xyz;// + float4(rand.x*0.2f, 0.0f, rand.y*0.2f, 0.0f); //Add a tiny offset to make placement of grass seem more random.
+		pos1.xyz = v1.Position.xyz + float3(rand.x, 0.0f, rand.y); //Add a tiny offset to make placement of grass seem more random.
 
 		//Second position will be a certain distance away from pos1, scaled by height. This is to always make the quads look uniform as opposed to sometimes being squished/stretched.
 		pos2.xyz = pos1.xyz + ((v2.Position.xyz - v1.Position.xyz)); //height * normalize
@@ -100,9 +100,6 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, float distanceHeightScaling, inout Tri
 		//If the grass is close enough to the camera, add wind. Just pointless to add a bunch of wind to grass that is too far away to be seen properly.
 		if(v1.YPosDepthAndRand.y < (vegetationFalloff*0.4f))
 		{
-			//TODO: Replace this with an external windDirection in a constant buffer
-			//float4 WindDirection = normalize(float4(-0.7f+(rand.x*0.3f), 0.0f, -0.4f+(rand.y*0.3f), 0.0f));
-
 			//Add wind direction to our already randomized normal. This value will be 
 			randomizedNormal.xyz += (WindDirection * (forceScale * LoadWindPowerValue((v1.Position.xz*waveLength) + (traversalSpeed*DeltaTime))));
 

@@ -25,9 +25,11 @@
 #include <windows.h>
 #include <xnamath.h>
 #include <vector>
+#include "CEGUI/CEGUI.h"
 
 namespace Keybinds 
 {
+	//TODO: .... a large dictionary that maps string keys to these enums so that I can load keybinds from settings file
 	enum
 	{
 		FORWARD =	(unsigned int)DIK_W,
@@ -41,9 +43,9 @@ namespace Keybinds
 		SPRINT =	(unsigned int)DIK_LSHIFT,
 
 		LEFTKEY =	(unsigned int)DIK_LEFT,
-		RIGHTKEY =	(unsigned int) DIK_RIGHT,
+		RIGHTKEY =	(unsigned int)DIK_RIGHT,
 		UPKEY =		(unsigned int)DIK_UP,
-		DOWNKEY =	(unsigned int) DIK_DOWN
+		DOWNKEY =	(unsigned int)DIK_DOWN
 	};
 };
 
@@ -53,11 +55,44 @@ namespace Keybinds
 class InputClass
 {
 public:
+	enum KeyState
+	{
+		KeyDown,
+		KeyUp,
+		MouseClick,
+		Null //Not really used except for initialization
+	};
+
+	enum MouseState
+	{
+		DIMOUSE_LEFTBUTTON		= 0,
+		DIMOUSE_RIGHTBUTTON		= 1,
+		DIMOUSE_MIDDLEBUTTON	= 2,
+		DIMOUSE_4BUTTON			= 3,
+		DIMOUSE_5BUTTON			= 4,
+		DIMOUSE_6BUTTON			= 5,
+		DIMOUSE_7BUTTON			= 6,
+		DIMOUSE_8BUTTON			= 7,
+		MOUSESTATE_LIST_SIZE //Always keep last
+	};
+
+	//CEGUI enums
+	//enum MouseButton
+	//{
+	//	LeftButton,
+	//	RightButton,
+	//	MiddleButton,
+	//	X1Button,
+	//	X2Button,
+	//	MouseButtonCount,
+	//	NoButton
+	//};
+
+public:
 	InputClass();
-	InputClass(const InputClass&);
 	~InputClass();
 
-	bool Initialize(HINSTANCE, HWND hwnd, int, int);
+	bool Initialize(HINSTANCE, HWND hwnd, int screenStartPosX, int screenStartPosY, int screenWidth, int screenHeight);
 	void Shutdown();
 	bool Update(HWND hwnd);
 
@@ -71,6 +106,15 @@ public:
 
 	void GetMouseLocation(int&, int&);
 	XMFLOAT2 GetMousePos();
+	XMFLOAT2 GetMouseDelta();
+
+	//This is an array. You can find the active count through ActiveKeyboardStateCount()
+	std::pair<KeyState, unsigned char>* GetActiveKeyboardStates() { return activeKeyStates; }
+	unsigned int ActiveKeyboardStateCount() { return amountOfActiveKeyboardstates; }
+
+	//This is an array. You can find the active count through ActiveMouseStateCount()
+	std::pair<KeyState, CEGUI::MouseButton>* GetActiveMouseStates() { return activeMouseStates; }
+	unsigned int ActiveMouseStateCount() { return amountOfActiveMousestates; }
 
 private:
 	bool ReadKeyboard(HWND hwnd);
@@ -81,15 +125,21 @@ private:
 	IDirectInput8* directInput;
 	IDirectInputDevice8* keyboard;
 	IDirectInputDevice8* mouse;
-	DIMOUSESTATE mouseState;
+	DIMOUSESTATE2 currentMouseState, previousMouseState;
 
-	unsigned char keyStates[2][256];
+	//TODO: Mouse button... http://www.two-kings.de/tutorials/dinput/dinput03.html
+
+	unsigned char keyStates[256];
+	std::pair<KeyState, unsigned char> activeKeyStates[100];
+	std::pair<KeyState, CEGUI::MouseButton> activeMouseStates[10];
 	std::vector<unsigned char> currentKeyStates;
 	std::vector<unsigned char> previousKeyStates;
+
 	unsigned char lastChar;
+	int amountOfActiveKeyboardstates, amountOfActiveMousestates;
 
 	int screenWidth, screenHeight;
-	int mouseX, mouseY;
+	int mouseX, mouseY, prevMouseX, prevMouseY;
 };
 
 #endif

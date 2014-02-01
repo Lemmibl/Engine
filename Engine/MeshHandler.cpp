@@ -10,6 +10,8 @@ MeshHandler::~MeshHandler(void)
 {
 }
 
+//http://www.braynzarsoft.net/index.php?p=D3D11OBJMODEL TODO: Obj loader
+
 bool MeshHandler::LoadIndexedMeshFromFile(ID3D11Device* device, std::string filepath, IndexedMesh* outMesh )
 {
 	//////////////////////////////////////////////////////////////////////////

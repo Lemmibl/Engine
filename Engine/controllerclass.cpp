@@ -66,7 +66,6 @@ ControllerClass::ControllerClass(std::shared_ptr<btDynamicsWorld> world, std::sh
 	position(XMFLOAT3(0.0f, 0.0f, 0.0f)),
 	noclip(false)
 {
-	SetCursorPos(0, 0);
 	dynamicsWorld = world;
 	
 	InitializeSettings(this);
@@ -214,23 +213,23 @@ void ControllerClass::OnSettingsReload(Config* cfg)
 	const Setting& settings = cfg->getRoot()["camera"];
 
 	//Just initialize the variables to some value in case reading from settings file fails.
-	float positionX = 0.0f; 
-	float positionY = 50.0f;
-	float positionZ = 0.0f;
+	startPosition.x = 0.0f; 
+	startPosition.y = 50.0f;
+	startPosition.z = 0.0f;
 
-	float collisionRadius = 2.5f;
-	float mass = 1.0f;
+	collisionRadius = 2.5f;
+	mass = 1.0f;
 
-	float restitution = 0.0f;
-	float friction = 10.0f;
-	float anisotropicFriction = 2.0f;
+	restitution = 0.0f;
+	friction = 10.0f;
+	anisotropicFriction = 2.0f;
 
-	float linearDamping = 0.8f; 
-	float angularDamping = 5.0f;
+	linearDamping = 0.8f; 
+	angularDamping = 5.0f;
 
-	settings.lookupValue("positionX", positionX);
-	settings.lookupValue("positionY", positionY);
-	settings.lookupValue("positionZ", positionZ);
+	settings.lookupValue("positionX", startPosition.x);
+	settings.lookupValue("positionY", startPosition.y);
+	settings.lookupValue("positionZ", startPosition.z);
 
 	settings.lookupValue("turnSpeed", rotationSpeed);
 	settings.lookupValue("sprintModifier", sprintModifier);
@@ -247,7 +246,12 @@ void ControllerClass::OnSettingsReload(Config* cfg)
 	settings.lookupValue("lineardamping", linearDamping);
 	settings.lookupValue("angulardamping", angularDamping);
 
+	ResetBody();
+}
 
+void ControllerClass::ResetBody()
+{
+	//If rigid body already exists, remove old one to make room for new
 	if(rigidBody)
 	{
 		dynamicsWorld->removeRigidBody(rigidBody.get());
@@ -255,16 +259,16 @@ void ControllerClass::OnSettingsReload(Config* cfg)
 
 	//Set up all collision related objects
 	collisionShape = std::make_shared<btSphereShape>(collisionRadius);
-	 
+
 	btVector3 fallInertia(0, 0, 0);
 	collisionShape->calculateLocalInertia(mass, fallInertia);
 
-	//Don't change motionstate
+	//Don't change motionstate if it already exists
 	if(!motionState)
 	{
-		motionState = std::make_shared<btDefaultMotionState>(btTransform(btQuaternion(0,0,0,1), btVector3(positionX, positionY, positionZ))); //positionX, positionY, positionZ
+		motionState = std::make_shared<btDefaultMotionState>(btTransform(btQuaternion(0,0,0,1), btVector3(startPosition.x, startPosition.y, startPosition.z))); //positionX, positionY, positionZ
 	}
-	
+
 	btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(mass, motionState.get(), collisionShape.get(), fallInertia);
 
 	rigidBody = std::make_shared<btRigidBody>(rigidBodyCI);

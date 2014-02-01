@@ -29,7 +29,9 @@
     <ClCompile Include="fontshaderclass.cpp" />
     <ClCompile Include="fpsmeter.cpp" />
     <ClCompile Include="frustumclass.cpp" />
+    <ClCompile Include="FullScreenShaderInterface.cpp" />
     <ClCompile Include="GameplayScreen.cpp" />
+    <ClCompile Include="MainMenuScreen.cpp" />
     <ClCompile Include="RasterizerStateManager.cpp" />
     <ClCompile Include="ScreenManager.cpp" />
     <ClCompile Include="GaussianBlur.cpp" />
@@ -99,7 +101,10 @@
     <ClInclude Include="fpsmeter.h" />
     <ClInclude Include="frustumclass.h" />
     <ClInclude Include="DRGBuffer.h" />
+    <ClInclude Include="FullScreenShaderInterface.h" />
     <ClInclude Include="GameplayScreen.h" />
+    <ClInclude Include="GameStates.h" />
+    <ClInclude Include="MainMenuScreen.h" />
     <ClInclude Include="RasterizerStateManager.h" />
     <ClInclude Include="ScreenManager.h" />
     <ClInclude Include="GaussianBlur.h" />
@@ -155,6 +160,7 @@
   <ItemGroup>
     <None Include="..\TODO.txt" />
     <None Include="credits.txt" />
+    <None Include="FullscreenQuadVertexShader.vsh" />
     <None Include="libconfig\libconfig++_d.dll" />
     <None Include="libconfig\libconfig.h++" />
     <None Include="libconfig\libconfig_d.dll" />
@@ -236,8 +242,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <LibraryPath>C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\BulletBuild\lib\Release;$(LibraryPath)</LibraryPath>
-    <IncludePath>C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Engine\libconfig;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\BulletBuild\lib\Release;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\CEGUI\lib;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\CEGUI\bin;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\CEGUI\include;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\BulletBuild;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\BulletBuild\src;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Engine\libconfig;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -285,8 +291,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\BulletBuild\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>BulletDynamics.lib;BulletCollision.lib;LinearMath.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\CEGUI\bin;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\BulletBuild\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>BulletDynamics.lib;BulletCollision.lib;LinearMath.lib;CEGUIBase-0.lib;CEGUICoreWindowRendererSet.lib;CEGUIDirect3D11Renderer-0.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

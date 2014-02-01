@@ -391,6 +391,7 @@ bool GameRenderer::Update( HWND hwnd, int fps, int cpuPercentage, float millisec
 		}
 	}
 
+	//TODO: Wtf? Change these.. remove..?
 	if(inputManager->WasKeyPressed(DIK_3))
 	{
 		fogMinimum -= 0.1f;
@@ -444,8 +445,8 @@ void GameRenderer::InitializeRenderingSpecifics()
 	deviceContext = d3D->GetDeviceContext();
 	device = d3D->GetDevice();
 
-	shadowDepthStencil.p = d3D->GetShadowManager()->GetShadowmapDSV();
-	depthStencil.p = d3D->GetDepthStencilManager()->GetDepthStencilView();
+	shadowDepthStencil = d3D->GetShadowManager()->GetShadowmapDSV();
+	depthStencil = d3D->GetDepthStencilManager()->GetDepthStencilView();
 
 	//For shadow pre-gbuffer pass
 	shadowTarget[0] = shadowRT.RTView;
@@ -601,10 +602,16 @@ bool GameRenderer::RenderShadowmap(XMMATRIX* lightWorldViewProj, XMMATRIX* light
 	//Early depth pass for shadowmap
 	d3D->GetShadowManager()->SetShadowViewport();
 
-	deviceContext->OMSetRenderTargets(1, &shadowTarget[0].p, shadowDepthStencil);
-	deviceContext->ClearDepthStencilView(shadowDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	deviceContext->OMSetRenderTargets(1, &shadowTarget[0].p, shadowDepthStencil.p);
+	deviceContext->ClearDepthStencilView(shadowDepthStencil.p, D3D11_CLEAR_DEPTH, 1.0f, 0);
 	deviceContext->ClearRenderTargetView(shadowTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 	
+	// Turn off alpha blending after rendering the text->
+	d3D->GetBlendStateManager()->TurnOnDefaultBlendState();
+
+	// Turn the Z buffer back on now that all 2D rendering has completed.
+	d3D->GetDepthStencilManager()->SetDefaultDepthStencilView();
+
 	d3D->GetRasterizerStateManager()->SetNoCullRasterizer();
 
 	for(unsigned int i = 0; i < renderableBundle->terrainChunks.size(); i++)
@@ -626,9 +633,9 @@ bool GameRenderer::RenderTwoPassGaussianBlur(XMMATRIX* worldBaseViewOrthoProj )
 {
 	//Shadow map blur stage
 	//Change render target to prepare for ping-ponging
-	deviceContext->OMSetRenderTargets(1, &gaussianBlurPingPongRTView[0].p, shadowDepthStencil);
+	deviceContext->OMSetRenderTargets(1, &gaussianBlurPingPongRTView[0].p, shadowDepthStencil.p);
 	deviceContext->ClearRenderTargetView(gaussianBlurPingPongRTView[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 1.0f));
-	deviceContext->ClearDepthStencilView(shadowDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	deviceContext->ClearDepthStencilView(shadowDepthStencil.p, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	//Blur shadow map texture horizontally
 	if(!fullScreenQuad.Render(deviceContext, 0, 0))
@@ -642,8 +649,8 @@ bool GameRenderer::RenderTwoPassGaussianBlur(XMMATRIX* worldBaseViewOrthoProj )
 	}
 
 	//Change render target back to our shadow map to render the second blur and get the final result
-	deviceContext->OMSetRenderTargets(1, &shadowTarget[0].p, shadowDepthStencil);
-	deviceContext->ClearDepthStencilView(shadowDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	deviceContext->OMSetRenderTargets(1, &shadowTarget[0].p, shadowDepthStencil.p);
+	deviceContext->ClearDepthStencilView(shadowDepthStencil.p, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	//Blur shadow map texture vertically
 	if(!fullScreenQuad.Render(deviceContext, 0, 0))

@@ -35,7 +35,7 @@ public:
 
 private:
 	bool Update();
-	void InitializeWindows(int&, int&);
+	void InitializeWindows(int& screenWidth, int& screenHeight, int& centerPosX, int& centerPosY);
 	void ShutdownWindows();
 
 private:
@@ -45,7 +45,7 @@ private:
 
 	ScreenManager screenManager;
 
-	int screenWidth, screenHeight;
+	int screenWidth, screenHeight, windowCenterPosX, windowCenterPosY;
 };
 
 static LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);

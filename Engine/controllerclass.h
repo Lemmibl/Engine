@@ -21,6 +21,7 @@ public:
 	XMFLOAT3 GetPosition();
 	XMFLOAT3 GetRotation();
 
+	void ResetBody();
 	void OnSettingsReload(Config* cfg);
 
 private:
@@ -48,5 +49,17 @@ private:
 	std::shared_ptr<btRigidBody> rigidBody;
 	std::shared_ptr<btMotionState> motionState;
 	std::shared_ptr<btCollisionShape> collisionShape;
-	/*btActionInterface*/
+
+	//Some settings and stats
+	XMFLOAT3 startPosition; 
+
+	float collisionRadius;
+	float mass;
+
+	float restitution;
+	float friction;
+	float anisotropicFriction;
+
+	float linearDamping; 
+	float angularDamping;
 };

@@ -8,11 +8,8 @@ InputClass::InputClass()
 	directInput = 0;
 	keyboard = 0;
 	mouse = 0;
-}
-
-
-InputClass::InputClass(const InputClass& other)
-{
+	amountOfActiveKeyboardstates = 0;
+	amountOfActiveMousestates = 0;
 }
 
 
@@ -21,7 +18,7 @@ InputClass::~InputClass()
 }
 
 
-bool InputClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeight)
+bool InputClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenStartPosX, int screenStartPosY, int screenWidth, int screenHeight)
 {
 	HRESULT result;
 
@@ -32,8 +29,11 @@ bool InputClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidth, int
 	lastChar = NULL;
 
 	// Initialize the location of the mouse on the screen.
-	mouseX = 0;
-	mouseY = 0;
+	mouseX = (screenStartPosX + screenWidth/2);
+	mouseY = (screenStartPosY + screenHeight/2);
+
+	prevMouseX = mouseX;
+	prevMouseY = mouseY;
 
 	// Initialize the main direct input interface.
 	result = DirectInput8Create(hinstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&directInput, NULL);
@@ -78,14 +78,16 @@ bool InputClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidth, int
 	}
 
 	// Set the data format for the mouse using the pre-defined mouse data format.
-	result = mouse->SetDataFormat(&c_dfDIMouse);
+	result = mouse->SetDataFormat(&c_dfDIMouse2);
 	if(FAILED(result))
 	{
 		return false;
 	}
 
 	// Set the cooperative level of the mouse to share with other programs.
-	result = mouse->SetCooperativeLevel(hwnd, DISCL_NONEXCLUSIVE|DISCL_BACKGROUND);
+
+	//DISCL_FOREGROUND|DISCL_EXCLUSIVE
+	result = mouse->SetCooperativeLevel(hwnd, DISCL_NONEXCLUSIVE|DISCL_BACKGROUND );
 	if(FAILED(result))
 	{
 		return false;
@@ -98,8 +100,42 @@ bool InputClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidth, int
 		return false;
 	}
 
+	//Set mouse cursor position
+	SetCursorPos(mouseX, mouseY);
+
+	// Read the mouse device.
+	result = mouse->GetDeviceState(sizeof(DIMOUSESTATE2), (LPVOID)&currentMouseState);
+	if(FAILED(result))
+	{
+		// If the mouse lost focus or was not acquired then try to get control back.
+		if((result == DIERR_INPUTLOST) || (result == DIERR_NOTACQUIRED))
+		{
+			mouse->Acquire();
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	//Just to set some default values...
+	previousMouseState = currentMouseState;
+
 	currentKeyStates.resize(256);
 	previousKeyStates.resize(256);
+
+	//Just initialize to default (empty) values
+	for(int i = 0; i < 100; i++)
+	{
+		activeKeyStates[i] = std::make_pair<KeyState, unsigned char>(Null, 0);
+	}
+
+	//Just initialize to default (empty) values
+	for(int i = 0; i < 10; i++)
+	{
+		activeMouseStates[i] = std::make_pair<KeyState, CEGUI::MouseButton>(Null, CEGUI::MouseButton::NoButton);
+	}
+
 
 	return true;
 }
@@ -168,13 +204,42 @@ bool InputClass::ReadKeyboard(HWND hwnd)
 		if (FAILED(keyboard->Acquire())) return false;
 	}
 
+	//Reset for this frame
+	amountOfActiveKeyboardstates = 0;
+
 	//Swap contents
 	previousKeyStates.swap(currentKeyStates);
 
 	//Assign new values to currentKeyStates
-	if(FAILED(keyboard->GetDeviceState(256, currentKeyStates.data())))
+	if(FAILED(keyboard->GetDeviceState(256, keyStates)))
 	{
 		if (FAILED(keyboard->Acquire())) return false;
+	}
+
+	//Convert keystates to uint for use with CEGUI
+	//Also record any actual events
+	for(int i = 0; i < 256; i++)
+	{
+		currentKeyStates[i] = keyStates[i];
+
+		if(currentKeyStates[i] & 0x80)
+		{			
+			//If key is currently pressed down, add it as an active state
+			activeKeyStates[amountOfActiveKeyboardstates].first = KeyDown;
+			activeKeyStates[amountOfActiveKeyboardstates].second = currentKeyStates[i];
+
+			//Increment in case we get more active key states
+			amountOfActiveKeyboardstates++;
+		}
+		else if(!(currentKeyStates[i] & 0x80) && previousKeyStates[i] & 0x80)
+		{
+			//OK, so if you've reached this part, it means that the first if failed, meaning that the key isn't currently pressed down. But if previous key state WAS pressed down it means that the key was just released.
+			activeKeyStates[amountOfActiveKeyboardstates].first = KeyUp;
+			activeKeyStates[amountOfActiveKeyboardstates].second = currentKeyStates[i];
+
+			//Increment in case we get more active key states
+			amountOfActiveKeyboardstates++;
+		}
 	}
 
 	return true;
@@ -184,9 +249,14 @@ bool InputClass::ReadMouse()
 {
 	HRESULT result;
 
+	//Reset counter for this frame
+	amountOfActiveMousestates = 0;
+
+	//Save old mouse state
+	previousMouseState = currentMouseState;
 
 	// Read the mouse device.
-	result = mouse->GetDeviceState(sizeof(DIMOUSESTATE), (LPVOID)&mouseState);
+	result = mouse->GetDeviceState(sizeof(DIMOUSESTATE2), (LPVOID)&currentMouseState);
 	if(FAILED(result))
 	{
 		// If the mouse lost focus or was not acquired then try to get control back.
@@ -199,15 +269,58 @@ bool InputClass::ReadMouse()
 			return false;
 		}
 	}
-	
+
+	//Read first three inputs (m1, m2, m3)
+	for(unsigned int i = 0; i < 3; i++)
+	{
+		//Means it's true
+		if(currentMouseState.rgbButtons[i] & 0x80)
+		{
+			activeMouseStates[amountOfActiveMousestates].first = KeyDown;
+			
+			//Cast index to mouse button, because they conveniently line up correctly
+			activeMouseStates[amountOfActiveMousestates].second = static_cast<CEGUI::MouseButton>(i);
+
+			amountOfActiveMousestates++;
+		}
+		else if(!(currentMouseState.rgbButtons[i] & 0x80) && previousMouseState.rgbButtons[i] & 0x80)
+		{
+			activeMouseStates[amountOfActiveMousestates].first = KeyUp;
+
+			//Cast index to mouse button, because they conveniently line up correctly
+			activeMouseStates[amountOfActiveMousestates].second = static_cast<CEGUI::MouseButton>(i);
+
+			amountOfActiveMousestates++;
+		}
+		
+		//Mouse was clicked
+		// 
+		//if(previousMouseState.rgbButtons[i] & 0x80 && !(currentMouseState.rgbButtons[i] & 0x80))
+		//{
+		//	//If we've reached this point it means that the current mouse button is up, but the previous mouse button state was down, which means that they mouse button has been released
+
+		//	activeMouseStates[amountOfActiveMousestates].first = MouseClick;
+
+		//	//Cast index to mouse button, because they conveniently line up correctly
+		//	activeMouseStates[amountOfActiveMousestates].second = static_cast<CEGUI::MouseButton>(i);
+
+		//	amountOfActiveMousestates++;
+		//}
+
+	}
+
 	return true;
 }
 
 void InputClass::ProcessInput()
 {
+	//Save previous mouse positions
+	prevMouseX = mouseX;
+	prevMouseY = mouseY;
+
 	// Update the location of the mouse cursor based on the change of the mouse location during the frame.
-	mouseX += mouseState.lX;
-	mouseY += mouseState.lY;
+	mouseX += currentMouseState.lX;
+	mouseY += currentMouseState.lY;
 
 	return;
 }
@@ -270,4 +383,9 @@ UINT InputClass::WndProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		lastChar = static_cast<char>(wParam);
 
 	return uMsg;
+}
+
+XMFLOAT2 InputClass::GetMouseDelta()
+{
+	return XMFLOAT2((float)mouseX - prevMouseX, (float)mouseY - prevMouseY);
 }

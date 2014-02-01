@@ -29,14 +29,15 @@ namespace TerrainTypes
 	typedef int Type;
 	enum
 	{
-		SeaBottom = 1,
-		Plains = 2,
-		Hills = 3,
-		Terraces = 4,
-		DramaticHills = 5,
-		FlyingIslands = 6,
-		Alien = 7,
-		Fancy = 8,
-		Cave = 9
+		SeaBottom = 0,
+		Plains,
+		Hills,
+		Terraces,
+		DramaticHills,
+		FlyingIslands,
+		Alien,
+		Fancy,
+		Cave,
+		TERRAINTYPES_LIST_SIZE //Always keep last
 	};
 };

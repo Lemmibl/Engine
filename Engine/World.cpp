@@ -7,14 +7,7 @@ GameWorld::GameWorld()
 
 GameWorld::~GameWorld()
 {
-	//remove the rigidbodies from the dynamics world and delete them
-	for (int i = dynamicsWorld->getNumCollisionObjects()-1; i >= 0; i--)
-	{
-		btCollisionObject* obj = dynamicsWorld->getCollisionObjectArray()[i];
-		dynamicsWorld->removeCollisionObject( obj );
-
-		//delete obj; //I use smart ptrs for everything, so this should be unnecessary
-	}
+	CleanUp();
 }
 
 void GameWorld::Initialize( std::shared_ptr<D3DManager> extD3DManager, std::shared_ptr<InputClass> extInput)
@@ -63,13 +56,15 @@ void GameWorld::InitializeCollision()
 	frustum.SetInternals((float)(screenWidth / screenHeight), XM_PIDIV2, nearClip, farClip);
 }
 
+void GameWorld::ResetCamera()
+{
+	cameraController->ResetBody();
+}
+
 void GameWorld::InitializeTerrain()
 {
 	//Initialize terrain manager
 	terrainManager = std::make_shared<TerrainManager>(d3D->GetDevice(), d3D->GetDeviceContext(), dynamicsWorld, d3D->GetHwnd(), camera->GetPosition());
-
-	//Get the meshes from current terrain
-	renderableBundle.terrainChunks = terrainManager->GetActiveChunks();
 }
 
 void GameWorld::Update( float deltaTimeSeconds, float deltaTimeMilliseconds )
@@ -174,6 +169,18 @@ void GameWorld::OnSettingsReload( Config* cfg )
 	settings2.lookupValue("windowHeight", screenHeight);
 	settings2.lookupValue("farClip", farClip);
 	settings2.lookupValue("nearClip", nearClip);
+}
+
+void GameWorld::CleanUp()
+{
+	//remove the rigidbodies from the dynamics world and delete them
+	for (int i = dynamicsWorld->getNumCollisionObjects()-1; i >= 0; i--)
+	{
+		btCollisionObject* obj = dynamicsWorld->getCollisionObjectArray()[i];
+		dynamicsWorld->removeCollisionObject( obj );
+
+		//delete obj; //I use smart ptrs for everything, so this should be unnecessary
+	}
 }
 
 //TODO: camera body that collides with meshes

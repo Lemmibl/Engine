@@ -7,8 +7,10 @@
 #include "World.h"
 #include "GameRenderer.h"
 #include "SettingsDependent.h"
+#include "GameStates.h"
+#include "CEGUI/CEGUI.h"
 
-class GameplayScreen: public GenericScreen, SettingsDependent
+class GameplayScreen : public GenericScreen, SettingsDependent
 {
 public:
 	GameplayScreen();
@@ -22,11 +24,7 @@ public:
 
 	void OnSettingsReload(Config* cfg);
 
-
-
 private:
-	std::shared_ptr<ControllerClass> cameraController;
-	std::shared_ptr<CameraClass> camera;
 	std::shared_ptr<InputClass> input;
 	std::shared_ptr<D3DManager> d3D;
 
@@ -35,7 +33,6 @@ private:
 	GameWorld world;
 	GameRenderer worldRenderer;
 
-	float rotationalValue;
 	HWND hwnd;
 	float shadowMapWidth, shadowMapHeight, screenWidth, screenHeight, nearClip, farClip;
 };

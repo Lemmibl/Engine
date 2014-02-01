@@ -6,7 +6,7 @@ class SettingsDependent
 {
 	public:
 	template<class T>
-	void InitializeSettings(T* classPointer)
+	void InitializeSettings(T* const classPointer)
 	{
 		//Get settings manager instance and add our function to reload event
 		SettingsManager& settings = SettingsManager::GetInstance();
