@@ -61,6 +61,7 @@ public:
 	{
 		return terrainMode;
 	}
+	
 	//float GetHighestPositionOfCoordinate(vector<MarchingCubeVoxel>* marchingCubeVertices, int x, int z);
 
 private:

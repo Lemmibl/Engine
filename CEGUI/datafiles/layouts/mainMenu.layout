@@ -22,7 +22,7 @@
             <Property name="Font" value="DejaVuSans-12" />
             <Property name="Text" value="Start Game" />
             <Property name="AlwaysOnTop" value="True" />
-            <Property name="DisabledImage" value="AlfiskoSkin/ButtonHoverFill2" />
+            <Property name="DisabledImage" value="TaharezLook/ButtonHoverFill2" />
             <Property name="ClippedByParent" value="False" />
             <Property name="HoverTextColour" value="tl:FFFFFF00 tr:FFFFFFFF bl:FFFFFFFF br:FFFFFFFF" />
             <Property name="VerticalAlignment" value="Centre" />

@@ -1,4 +1,5 @@
 #pragma once
+#include "DebugOverlayHUD.h"
 #include "GenericScreen.h"
 #include "controllerclass.h"
 #include "cameraclass.h"
@@ -32,6 +33,9 @@ private:
 	CpuMeter cpuMeter;
 	GameWorld world;
 	GameRenderer worldRenderer;
+	DebugOverlayHUD debugHUD;
+
+	DebugWindowHandle floatHandle;
 
 	HWND hwnd;
 	float shadowMapWidth, shadowMapHeight, screenWidth, screenHeight, nearClip, farClip;

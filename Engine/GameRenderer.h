@@ -22,6 +22,7 @@
 #include "renderToTextureClass.h"
 #include "DayNightCycle.h"
 #include "SettingsDependent.h"
+#include "DebugOverlayHUD.h"
 
 //Managers
 #include "d3dmanager.h"
@@ -78,13 +79,14 @@ public:
 	GameRenderer();
 	~GameRenderer();
 
-	bool Initialize(HWND hwnd, std::shared_ptr<CameraClass> camera, std::shared_ptr<InputClass> inputManager, std::shared_ptr<D3DManager> d3D, 
+	bool Initialize(HWND hwnd, std::shared_ptr<CameraClass> camera, std::shared_ptr<InputClass> inputManager, std::shared_ptr<D3DManager> d3D, DebugOverlayHUD* debugHUD, 
 		UINT screenWidth, UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear);
 
 	bool InitializeShaders(HWND hwnd);
 	bool InitializeLights(HWND hwnd);
 	bool InitializeEverythingElse(HWND hwnd);
 	bool InitializeModels(HWND hwnd);
+	bool InitializeDebugText();
 	void InitializeRenderingSpecifics();
 
 	virtual void OnSettingsReload(Config* cfg);
@@ -109,6 +111,9 @@ private:
 	std::shared_ptr<CameraClass> camera;
 	std::shared_ptr<InputClass> inputManager;
 	std::shared_ptr<TextClass> text;
+
+	DebugOverlayHUD* debugHUD;
+	std::vector<DebugWindowHandle> debugWindowHandles;
 
 	DRPointLight pointLightShader;
 	std::vector<PointLight> pointLights;

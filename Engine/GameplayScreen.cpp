@@ -1,7 +1,7 @@
 #include "GameplayScreen.h"
 
 GameplayScreen::GameplayScreen() 
-: GenericScreen(), SettingsDependent(), world(), worldRenderer(), fpsMeter(), cpuMeter()
+: GenericScreen(), SettingsDependent(), world(), worldRenderer(), fpsMeter(), cpuMeter(), debugHUD()
 {
 	shadowMapWidth = 1024;
 	shadowMapHeight = 1024;
@@ -15,6 +15,8 @@ GameplayScreen::~GameplayScreen()
 void GameplayScreen::Enter()
 {
 	SetActive(true);
+
+	debugHUD.SetHUDVisibility(true);
 
 	//Reset camera
 	world.ResetCamera();
@@ -37,8 +39,10 @@ bool GameplayScreen::Initialize(HWND extHwnd, std::shared_ptr<InputClass> extInp
 	//Initialize world
 	world.Initialize(d3D, input);
 
+	debugHUD.Initialize(0.0f, 0.0f);
+
 	// Initialize the renderer.
-	result = worldRenderer.Initialize(hwnd, world.GetCamera(), input, d3D, (unsigned int)screenWidth, (unsigned int)screenHeight, 
+	result = worldRenderer.Initialize(hwnd, world.GetCamera(), input, d3D, &debugHUD, (unsigned int)screenWidth, (unsigned int)screenHeight, 
 		(unsigned int)shadowMapWidth, (unsigned int)shadowMapHeight, nearClip, farClip);
 	if(!result)
 	{
@@ -47,6 +51,8 @@ bool GameplayScreen::Initialize(HWND extHwnd, std::shared_ptr<InputClass> extInp
 
 	fpsMeter.Initialize();
 	cpuMeter.Initialize();
+
+	debugHUD.SetHUDVisibility(true);
 
 	return true;
 }
@@ -90,6 +96,8 @@ bool GameplayScreen::Render(float deltaTime)
 
 void GameplayScreen::Exit()
 {
+	debugHUD.SetHUDVisibility(false);
+
 	world.CleanUp();
 	SetActive(false);
 }

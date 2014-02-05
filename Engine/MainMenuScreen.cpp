@@ -17,6 +17,9 @@ void MainMenuScreen::Enter()
 	//Show mouse cursor
 	CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().setVisible(true);
 
+	//Set this base window as root.
+	CEGUI::System::getSingleton().getDefaultGUIContext().setRootWindow(rootWindow);
+
 	rootWindow->activate();
 	rootWindow->show();
 }

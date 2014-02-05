@@ -268,6 +268,11 @@ void ControllerClass::ResetBody()
 	{
 		motionState = std::make_shared<btDefaultMotionState>(btTransform(btQuaternion(0,0,0,1), btVector3(startPosition.x, startPosition.y, startPosition.z))); //positionX, positionY, positionZ
 	}
+	else
+	{
+		//If motionstate already exists, at least reset its' positionto start position.
+		motionState->setWorldTransform(btTransform(btQuaternion(0,0,0,1), btVector3(startPosition.x, startPosition.y, startPosition.z)));
+	}
 
 	btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(mass, motionState.get(), collisionShape.get(), fallInertia);
 

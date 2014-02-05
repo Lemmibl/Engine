@@ -1,7 +1,7 @@
 #include "GameRenderer.h"
 
 GameRenderer::GameRenderer() : SettingsDependent(),
-noise()
+	noise()
 {
 	xPos = yPos = 0.0f;
 	timeOfDay = 0.0f;
@@ -23,8 +23,8 @@ GameRenderer::~GameRenderer()
 }
 
 
-bool GameRenderer::Initialize(HWND hwnd, std::shared_ptr<CameraClass> camera, std::shared_ptr<InputClass> inputManager, 
-std::shared_ptr<D3DManager> d3D, UINT screenWidth, UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear)
+bool GameRenderer::Initialize(HWND hwnd, std::shared_ptr<CameraClass> camera, std::shared_ptr<InputClass> inputManager, std::shared_ptr<D3DManager> d3D, 
+	DebugOverlayHUD* extDebugHUD, UINT screenWidth, UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear)
 {
 	bool result;
 
@@ -38,11 +38,12 @@ std::shared_ptr<D3DManager> d3D, UINT screenWidth, UINT screenHeight, UINT shado
 	this->nearClip = screenNear;
 	this->d3D = d3D;
 	this->camera = camera;
+	debugHUD = extDebugHUD;
 
 	toggleSSAO = 0;
 	toggleColorMode = 1;
 	fogMinimum = 1.0f;
-	
+
 	srand((unsigned int)time(NULL));
 
 	XMStoreFloat4x4(&baseViewMatrix, camera->GetView());
@@ -72,6 +73,7 @@ std::shared_ptr<D3DManager> d3D, UINT screenWidth, UINT screenHeight, UINT shado
 	}
 
 	InitializeRenderingSpecifics();
+	InitializeDebugText();
 
 	return true;
 }
@@ -258,6 +260,46 @@ bool GameRenderer::InitializeModels( HWND hwnd )
 }
 
 
+bool GameRenderer::InitializeDebugText()
+{
+	debugHUD->AddNewWindowWithoutHandle("DeltaTime: ", &timer, DataTypeEnumMappings::Float);
+	//debugHUD->AddNewWindowWithoutHandle("FPS: ", &fps, DataTypeEnumMappings::Float);
+
+	debugHUD->AddNewWindowWithoutHandle("Directional light position: ", &dirLight.Position, DataTypeEnumMappings::Float3);
+	debugHUD->AddNewWindowWithoutHandle("Camera position: ", camera->GetPositionPtr(), DataTypeEnumMappings::Float3);
+	debugHUD->AddNewWindowWithoutHandle("Camera rotation: ", camera->GetRotationPtr(), DataTypeEnumMappings::Float3);
+
+
+	//result = text->SetFps(fps, d3D->GetDeviceContext());
+	//if(!result)
+	//{
+	//	return false;
+	//}
+
+	//result = text->SetCpu(cpuPercentage, d3D->GetDeviceContext());
+	//if(!result)
+	//{
+	//	return false;
+	//}
+
+	//XMFLOAT3 temp = camera->GetPosition();
+	//result = text->SetCameraPosition((int)temp.x, (int)temp.y, (int)temp.z, d3D->GetDeviceContext());
+	//if(!result)
+	//{
+	//	return false;
+	//}
+
+	//temp = camera->GetRotation();
+	//result = text->SetCameraRotation((int)temp.x, (int)temp.y, (int)temp.z, d3D->GetDeviceContext());
+	//if(!result)
+	//{
+	//	return false;
+	//}
+
+	return true;
+}
+
+
 bool GameRenderer::InitializeEverythingElse( HWND hwnd )
 {
 	bool result;
@@ -322,31 +364,36 @@ bool GameRenderer::Update( HWND hwnd, int fps, int cpuPercentage, float millisec
 		toggleDebugInfo = !toggleDebugInfo;
 	}
 
-	result = text->SetFps(fps, d3D->GetDeviceContext());
-	if(!result)
+	if(toggleDebugInfo)
 	{
-		return false;
+		debugHUD->Update();
 	}
 
-	result = text->SetCpu(cpuPercentage, d3D->GetDeviceContext());
-	if(!result)
-	{
-		return false;
-	}
+	//result = text->SetFps(fps, d3D->GetDeviceContext());
+	//if(!result)
+	//{
+	//	return false;
+	//}
 
-	XMFLOAT3 temp = camera->GetPosition();
-	result = text->SetCameraPosition((int)temp.x, (int)temp.y, (int)temp.z, d3D->GetDeviceContext());
-	if(!result)
-	{
-		return false;
-	}
+	//result = text->SetCpu(cpuPercentage, d3D->GetDeviceContext());
+	//if(!result)
+	//{
+	//	return false;
+	//}
 
-	temp = camera->GetRotation();
-	result = text->SetCameraRotation((int)temp.x, (int)temp.y, (int)temp.z, d3D->GetDeviceContext());
-	if(!result)
-	{
-		return false;
-	}
+	//XMFLOAT3 temp = camera->GetPosition();
+	//result = text->SetCameraPosition((int)temp.x, (int)temp.y, (int)temp.z, d3D->GetDeviceContext());
+	//if(!result)
+	//{
+	//	return false;
+	//}
+
+	//temp = camera->GetRotation();
+	//result = text->SetCameraRotation((int)temp.x, (int)temp.y, (int)temp.z, d3D->GetDeviceContext());
+	//if(!result)
+	//{
+	//	return false;
+	//}
 
 	//Move all point lights upward
 	if(inputManager->IsKeyPressed(DIK_R))
@@ -583,7 +630,7 @@ bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 	{
 		return false;
 	}
-	
+
 	if(!RenderGUI(&worldBaseViewOrthoProj))
 	{
 		return false;
@@ -605,7 +652,7 @@ bool GameRenderer::RenderShadowmap(XMMATRIX* lightWorldViewProj, XMMATRIX* light
 	deviceContext->OMSetRenderTargets(1, &shadowTarget[0].p, shadowDepthStencil.p);
 	deviceContext->ClearDepthStencilView(shadowDepthStencil.p, D3D11_CLEAR_DEPTH, 1.0f, 0);
 	deviceContext->ClearRenderTargetView(shadowTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
-	
+
 	// Turn off alpha blending after rendering the text->
 	d3D->GetBlendStateManager()->TurnOnDefaultBlendState();
 
@@ -698,7 +745,7 @@ bool GameRenderer::RenderGBuffer(XMMATRIX* viewMatrix, XMMATRIX* projectionMatri
 	d3D->GetBlendStateManager()->TurnOnDefaultBlendState();
 
 	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-	
+
 	//worldMatrix = (XMMatrixScaling(2.0f, 2.0f, 2.0f) * XMLoadFloat4x4((&renderableBundle->testSphere.world)));
 	//worldMatrix = XMMatrixTranspose(worldMatrix);
 	//view = XMMatrixTranspose(*viewMatrix);
@@ -723,7 +770,7 @@ bool GameRenderer::RenderGBuffer(XMMATRIX* viewMatrix, XMMATRIX* projectionMatri
 
 	for(unsigned int i = 0; i < vecSize; i++)
 	{	
-		 chunks[i]->GetTerrainMesh()->Render(deviceContext);
+		chunks[i]->GetTerrainMesh()->Render(deviceContext);
 
 		if(!mcubeShader.Render(d3D->GetDeviceContext(),  chunks[i]->GetTerrainMesh()->GetIndexCount(), &worldMatrix, &worldView, 
 			identityWorldViewProj, textureAndMaterialHandler.GetTerrainTextureArray(), textureAndMaterialHandler.GetMaterialLookupTexture(), toggleColorMode))
@@ -737,7 +784,7 @@ bool GameRenderer::RenderGBuffer(XMMATRIX* viewMatrix, XMMATRIX* projectionMatri
 
 	for(unsigned int i = 0; i < vecSize; i++)
 	{	
-		 chunks[i]->GetWaterMesh()->Render(deviceContext);
+		chunks[i]->GetWaterMesh()->Render(deviceContext);
 
 		if(!waterShader.Render(d3D->GetDeviceContext(),  chunks[i]->GetWaterMesh()->GetIndexCount(), &worldMatrix, &worldView, identityWorldViewProj, 
 			textureAndMaterialHandler.GetVegetationTextureArray(), textureAndMaterialHandler.GetWindTexture(), textureAndMaterialHandler.GetWindNormalMap(), 
@@ -834,7 +881,7 @@ bool GameRenderer::RenderDirectionalLight(XMMATRIX* viewMatrix, XMMATRIX* worldB
 
 	//Directional light stage
 	/*TODO: Create a directional light stencilstate that does a NOTEQUAL==0 stencil check.*/
-	
+
 	d3D->GetDepthStencilManager()->SetDepthDisabledStencilState();
 	d3D->GetRasterizerStateManager()->SetNoCullRasterizer();
 
@@ -1016,6 +1063,7 @@ void GameRenderer::OnSettingsReload(Config* cfg)
 	//gaussianBlurPingPongRT.Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R32G32_FLOAT); //Needs to be identical to shadowRT
 }
 
+#pragma region Hidden stuff.. for now
 
 //if(inputManager->WasKeyPressed(DIK_U))
 //{
@@ -1083,3 +1131,5 @@ void GameRenderer::OnSettingsReload(Config* cfg)
 //
 //	textureAndMaterialHandler.SaveTextureToFile(d3D->GetDeviceContext(), *textureAndMaterialHandler.GetTerrainTexture(), D3DX11_IFF_BMP, fileName);
 //}
+
+#pragma endregion

@@ -204,6 +204,9 @@
     <ClCompile Include="GameRenderer.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="DebugOverlayHUD.cpp">
+      <Filter>State machines and menus\Screens\HUDs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cpumeter.h">
@@ -429,6 +432,12 @@
     <ClInclude Include="GameStates.h">
       <Filter>State machines and menus</Filter>
     </ClInclude>
+    <ClInclude Include="DebugOverlayHUD.h">
+      <Filter>State machines and menus\Screens\HUDs</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugOverlayHUDHandle.h">
+      <Filter>State machines and menus\Screens\HUDs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\GeometryShaderGrass.gsh">
@@ -648,6 +657,9 @@
     </Filter>
     <Filter Include="Settings">
       <UniqueIdentifier>{1edc4557-0856-49f0-a67a-b73e8296179e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="State machines and menus\Screens\HUDs">
+      <UniqueIdentifier>{6b9176ed-9fa7-4076-a393-4121544e4ddb}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

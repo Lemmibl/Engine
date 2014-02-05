@@ -18,6 +18,7 @@
     <ClCompile Include="cpumeter.cpp" />
     <ClCompile Include="d3dmanager.cpp" />
     <ClCompile Include="DayNightCycle.cpp" />
+    <ClCompile Include="DebugOverlayHUD.cpp" />
     <ClCompile Include="debugwindowclass.cpp" />
     <ClCompile Include="DepthOnlyQuadShader.cpp" />
     <ClCompile Include="DepthOnlyShader.cpp" />
@@ -81,6 +82,7 @@
     <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DebugOverlayHUDHandle.h" />
     <ClInclude Include="bitmapclass.h" />
     <ClInclude Include="BlendStateManager.h" />
     <ClInclude Include="cameraclass.h" />
@@ -89,6 +91,7 @@
     <ClInclude Include="customStructs.h" />
     <ClInclude Include="d3dmanager.h" />
     <ClInclude Include="DayNightCycle.h" />
+    <ClInclude Include="DebugOverlayHUD.h" />
     <ClInclude Include="debugwindowclass.h" />
     <ClInclude Include="DepthOnlyQuadShader.h" />
     <ClInclude Include="DepthOnlyShader.h" />
