@@ -22,7 +22,7 @@ bool MeshHandler::Initialize( TextureAndMaterialHandler* textureAndMaterialHandl
 bool MeshHandler::LoadIndexedMeshFromOBJFile( ID3D11Device* device, std::wstring filepath, IndexedMesh* outMesh )
 {
 	////So if you read the mtl files, each mesh probably has its' own textures and materials. That's fine. Each mesh can have its' own material and texture array.
-	//HRESULT hr = 0;
+	//HRESULT hr;
 
 	//std::wifstream fileIn (filepath.c_str());	//Open file
 	//std::wstring meshMatLib;					//String to hold our obj material library filename
