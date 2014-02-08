@@ -1,7 +1,7 @@
 #pragma once
+#include "DODContainer.h"
 #include "CEGUI/CEGUI.h"
 #include "DebugOverlayHUDHandle.h"
-#include <queue>
 #include <Windows.h>
 #include <xnamath.h>
 
@@ -31,11 +31,15 @@ public:
 
 	template<class T> void UpdateWindowText(DebugWindowHandle handle, T* val);
 
+	unsigned short GetCount() { return widgets->GetActiveObjectCount(); }
+
 	void RemoveWindow(DebugWindowHandle handle);
 
 private:
+	//unsigned short GetNextWindowSlot() { unsigned short result = prioQueue.top(); prioQueue.pop(); return result; }
+
 	bool CreateDebugWindow(std::string identifier, DebugWindowHandle& outHandle);
-	void UpdateWidget(DebugWindowHandle& index, DataTypeEnumMappings::DataType dataType);
+	void UpdateWidget(DebugWindowHandle& index);
 
 	static const unsigned short MaxWidgetCount = 128;
 
@@ -43,8 +47,11 @@ private:
 
 	CEGUI::Window* rootWindow;
 
-	unsigned short currentActiveWidgets;
+	std::shared_ptr<DODContainer<WindowContainer>> widgets;
 
-	WindowContainer widgets[MaxWidgetCount];
-	std::priority_queue<unsigned short, std::vector<unsigned short>, std::greater<unsigned short>> prioQueue;
+	//unsigned short currentActiveWidgets;
+
+	//DebugWindowHandle internalHandles[MaxWidgetCount];
+	//WindowContainer widgets[MaxWidgetCount];
+	//std::priority_queue<unsigned short, std::vector<unsigned short>, std::greater<unsigned short>> prioQueue;
 };

@@ -116,19 +116,19 @@
       <Filter>Rendering\Shader wrappers\General shader wrappers</Filter>
     </ClCompile>
     <ClCompile Include="LerpInstance.cpp">
-      <Filter>General Code\Utility\Mathstuff</Filter>
+      <Filter>General Code\Mathstuff</Filter>
     </ClCompile>
     <ClCompile Include="LemmiQuadtree.h">
-      <Filter>Collision</Filter>
+      <Filter>Gameplay... ish\Collision</Filter>
     </ClCompile>
     <ClCompile Include="Lemmi3DAABB.h">
-      <Filter>Collision</Filter>
+      <Filter>Gameplay... ish\Collision</Filter>
     </ClCompile>
     <ClCompile Include="ParticleManager.cpp">
       <Filter>Rendering\Managers</Filter>
     </ClCompile>
     <ClCompile Include="frustumclass.cpp">
-      <Filter>Collision</Filter>
+      <Filter>Gameplay... ish\Collision</Filter>
     </ClCompile>
     <ClCompile Include="MeshHandler.cpp">
       <Filter>Rendering\Managers</Filter>
@@ -206,6 +206,15 @@
     </ClCompile>
     <ClCompile Include="DebugOverlayHUD.cpp">
       <Filter>State machines and menus\Screens\HUDs</Filter>
+    </ClCompile>
+    <ClCompile Include="OptionsScreen.cpp">
+      <Filter>State machines and menus\Screens</Filter>
+    </ClCompile>
+    <ClCompile Include="MultiMeshModel.cpp">
+      <Filter>Rendering\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="ProceduralTextureHandler.cpp">
+      <Filter>Rendering\Managers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -339,22 +348,22 @@
       <Filter>Rendering\Shader wrappers\General shader wrappers</Filter>
     </ClInclude>
     <ClInclude Include="LerpInstance.h">
-      <Filter>General Code\Utility\Mathstuff</Filter>
+      <Filter>General Code\Mathstuff</Filter>
     </ClInclude>
     <ClInclude Include="Lemmi2DAABB.h">
-      <Filter>Collision</Filter>
+      <Filter>Gameplay... ish\Collision</Filter>
     </ClInclude>
     <ClInclude Include="ParticleManager.h">
       <Filter>Rendering\Managers</Filter>
     </ClInclude>
     <ClInclude Include="frustumclass.h">
-      <Filter>Collision</Filter>
+      <Filter>Gameplay... ish\Collision</Filter>
     </ClInclude>
     <ClInclude Include="MeshHandler.h">
       <Filter>Rendering\Managers</Filter>
     </ClInclude>
     <ClInclude Include="SchladetschEvents.h">
-      <Filter>General Code\Utility\Events</Filter>
+      <Filter>General Code\Events</Filter>
     </ClInclude>
     <ClInclude Include="TerrainNoiseSeeder.h">
       <Filter>Terrain and procedural generation\MC</Filter>
@@ -437,6 +446,18 @@
     </ClInclude>
     <ClInclude Include="DebugOverlayHUDHandle.h">
       <Filter>State machines and menus\Screens\HUDs</Filter>
+    </ClInclude>
+    <ClInclude Include="OptionsScreen.h">
+      <Filter>State machines and menus\Screens</Filter>
+    </ClInclude>
+    <ClInclude Include="MultiMeshModel.h">
+      <Filter>Rendering\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="ProceduralTextureHandler.h">
+      <Filter>Rendering\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="DODContainer.h">
+      <Filter>General Code\Data classes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -536,15 +557,6 @@
     <None Include="Shaders\DRDirectionalLight.psh">
       <Filter>Rendering\Shaders\Deferred shaders</Filter>
     </None>
-    <None Include="libconfig\libconfig_d.dll">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="libconfig\libconfig++_d.dll">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="libconfig\libconfig.h++">
-      <Filter>Libraries</Filter>
-    </None>
     <None Include="credits.txt">
       <Filter>Text files</Filter>
     </None>
@@ -557,8 +569,23 @@
     <None Include="FullscreenQuadVertexShader.vsh">
       <Filter>Rendering\Shaders\General shaders</Filter>
     </None>
+    <None Include="libconfig\libconfig.dll">
+      <Filter>Libraries</Filter>
+    </None>
+    <None Include="libconfig\libconfig.h++">
+      <Filter>Libraries</Filter>
+    </None>
+    <None Include="libconfig\libconfig_d.dll">
+      <Filter>Libraries</Filter>
+    </None>
+    <None Include="libconfig\libconfig++.dll">
+      <Filter>Libraries</Filter>
+    </None>
+    <None Include="libconfig\libconfig++_d.dll">
+      <Filter>Libraries</Filter>
+    </None>
     <None Include="settings.cfg">
-      <Filter>Settings</Filter>
+      <Filter>Text files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -598,12 +625,6 @@
     <Filter Include="Rendering\Shaders\General shaders">
       <UniqueIdentifier>{928971b3-e5c7-4d2a-ba0f-751b722a5fbe}</UniqueIdentifier>
     </Filter>
-    <Filter Include="General Code\Utility\Mathstuff">
-      <UniqueIdentifier>{88b84ffe-a0e6-4f5f-a7aa-1c2677ef42cd}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Collision">
-      <UniqueIdentifier>{993b7344-c805-49d5-8782-654f6cdc2ca0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Rendering\Shader wrappers">
       <UniqueIdentifier>{0a8f4398-cd82-4870-8e40-771be4f98bda}</UniqueIdentifier>
     </Filter>
@@ -621,9 +642,6 @@
     </Filter>
     <Filter Include="Rendering\Shader wrappers\General shader wrappers">
       <UniqueIdentifier>{1c1f1a94-8188-47ac-a178-d6e4fd0a270f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="General Code\Utility\Events">
-      <UniqueIdentifier>{7f372fb0-8c39-4825-a979-b8a7dd3e2d25}</UniqueIdentifier>
     </Filter>
     <Filter Include="Libraries">
       <UniqueIdentifier>{b2691cb4-19c7-47c9-ba2b-269b5a01461a}</UniqueIdentifier>
@@ -661,17 +679,20 @@
     <Filter Include="State machines and menus\Screens\HUDs">
       <UniqueIdentifier>{6b9176ed-9fa7-4076-a393-4121544e4ddb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="General Code\Events">
+      <UniqueIdentifier>{7f372fb0-8c39-4825-a979-b8a7dd3e2d25}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="General Code\Mathstuff">
+      <UniqueIdentifier>{88b84ffe-a0e6-4f5f-a7aa-1c2677ef42cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Gameplay... ish\Collision">
+      <UniqueIdentifier>{993b7344-c805-49d5-8782-654f6cdc2ca0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="General Code\Data classes">
+      <UniqueIdentifier>{955202af-5fc4-4195-af2d-9ab3089e1523}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="..\BulletBuild\lib\Debug\BulletCollision_Debug.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="..\BulletBuild\lib\Debug\BulletDynamics_Debug.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="..\BulletBuild\lib\Debug\LinearMath_Debug.lib">
-      <Filter>Libraries</Filter>
-    </Library>
     <Library Include="libconfig\libconfig.lib">
       <Filter>Libraries</Filter>
     </Library>

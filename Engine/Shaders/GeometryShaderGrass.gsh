@@ -154,21 +154,29 @@ void GrassGS(triangle VS_OUTPUT Input[3], inout TriangleStream<PS_INPUT> TriStre
 	//So if the dot result is satisfactory, and the world YPos is above water level, and the view space depth value is above vegetation falloff point...... we make quads.
 	if(dotResult >= 0.9f && Input[0].YPosDepthAndRand.x > 5.5f && viewDepth <= lowestLODDistance)
 	{
-		//Make up to six quads.
-		MakeQuad(Input[1], Input[2], lowestLODDistance, TriStream);
-		MakeQuad(Input[2], Input[0], lowestLODDistance, TriStream);
-
-		//SUPER ELEGANT LOD
-		if(viewDepth <= mediumLODDistance)
+		if(viewDepth <= highestLODDistance)
 		{
+			//Make six quads.
+			MakeQuad(Input[1], Input[2], lowestLODDistance, TriStream);
+			MakeQuad(Input[2], Input[0], lowestLODDistance, TriStream);
 			MakeQuad(Input[0], Input[1], mediumLODDistance, TriStream);
 			MakeQuad(Input[0], Input[2], mediumLODDistance, TriStream);
-
-			if(viewDepth <= highestLODDistance)
-			{
-				MakeQuad(Input[1], Input[0], highestLODDistance, TriStream);
-				MakeQuad(Input[2], Input[1], highestLODDistance, TriStream);
-			}
+			MakeQuad(Input[1], Input[0], highestLODDistance, TriStream);
+			MakeQuad(Input[2], Input[1], highestLODDistance, TriStream);
+		}			
+		else if(viewDepth <= mediumLODDistance)
+		{
+			//Make four quads
+			MakeQuad(Input[0], Input[1], mediumLODDistance, TriStream);
+			MakeQuad(Input[0], Input[2], mediumLODDistance, TriStream);
+			MakeQuad(Input[1], Input[2], lowestLODDistance, TriStream);
+			MakeQuad(Input[2], Input[0], lowestLODDistance, TriStream);
+		}
+		else
+		{
+			//Make two quads
+			MakeQuad(Input[1], Input[2], lowestLODDistance, TriStream);
+			MakeQuad(Input[2], Input[0], lowestLODDistance, TriStream);
 		}
 	}
 }

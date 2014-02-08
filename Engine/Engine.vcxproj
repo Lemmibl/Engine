@@ -33,6 +33,9 @@
     <ClCompile Include="FullScreenShaderInterface.cpp" />
     <ClCompile Include="GameplayScreen.cpp" />
     <ClCompile Include="MainMenuScreen.cpp" />
+    <ClCompile Include="MultiMeshModel.cpp" />
+    <ClCompile Include="OptionsScreen.cpp" />
+    <ClCompile Include="ProceduralTextureHandler.cpp" />
     <ClCompile Include="RasterizerStateManager.cpp" />
     <ClCompile Include="ScreenManager.cpp" />
     <ClCompile Include="GaussianBlur.cpp" />
@@ -96,6 +99,7 @@
     <ClInclude Include="DepthOnlyQuadShader.h" />
     <ClInclude Include="DepthOnlyShader.h" />
     <ClInclude Include="DepthStencilManager.h" />
+    <ClInclude Include="DODContainer.h" />
     <ClInclude Include="DRDirectionalLight.h" />
     <ClInclude Include="DRCompose.h" />
     <ClInclude Include="DRWaterClass.h" />
@@ -108,6 +112,9 @@
     <ClInclude Include="GameplayScreen.h" />
     <ClInclude Include="GameStates.h" />
     <ClInclude Include="MainMenuScreen.h" />
+    <ClInclude Include="MultiMeshModel.h" />
+    <ClInclude Include="OptionsScreen.h" />
+    <ClInclude Include="ProceduralTextureHandler.h" />
     <ClInclude Include="RasterizerStateManager.h" />
     <ClInclude Include="ScreenManager.h" />
     <ClInclude Include="GaussianBlur.h" />
@@ -164,7 +171,9 @@
     <None Include="..\TODO.txt" />
     <None Include="credits.txt" />
     <None Include="FullscreenQuadVertexShader.vsh" />
+    <None Include="libconfig\libconfig++.dll" />
     <None Include="libconfig\libconfig++_d.dll" />
+    <None Include="libconfig\libconfig.dll" />
     <None Include="libconfig\libconfig.h++" />
     <None Include="libconfig\libconfig_d.dll" />
     <None Include="Shaders\DRCompose.hlsl" />
@@ -204,9 +213,6 @@
     <None Include="Shaders\WaterShader.vsh" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="..\BulletBuild\lib\Debug\BulletCollision_Debug.lib" />
-    <Library Include="..\BulletBuild\lib\Debug\BulletDynamics_Debug.lib" />
-    <Library Include="..\BulletBuild\lib\Debug\LinearMath_Debug.lib" />
     <Library Include="libconfig\libconfig++.lib" />
     <Library Include="libconfig\libconfig.lib" />
   </ItemGroup>
@@ -262,6 +268,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalUsingDirectories>
       </AdditionalUsingDirectories>
+      <DisableSpecificWarnings>4275; 4099</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

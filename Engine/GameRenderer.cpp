@@ -304,8 +304,6 @@ bool GameRenderer::InitializeEverythingElse( HWND hwnd )
 {
 	bool result;
 
-	text = std::make_shared<TextClass>(d3D->GetDevice(), d3D->GetDeviceContext(), hwnd, (int)screenWidth, (int)screenHeight);
-
 	result = textureAndMaterialHandler.Initialize(d3D->GetDevice(), d3D->GetDeviceContext(), &noise, &utility);
 	if(!result)
 	{
@@ -342,8 +340,6 @@ bool GameRenderer::InitializeEverythingElse( HWND hwnd )
 
 bool GameRenderer::Update( HWND hwnd, int fps, int cpuPercentage, float millisecondDeltaTime, float secondDeltaTime, XMFLOAT3* windDirection )
 {
-	bool result;
-
 	timer += secondDeltaTime;
 	textureOffsetDeltaTime += secondDeltaTime;
 	windDir = *windDirection;
@@ -362,38 +358,14 @@ bool GameRenderer::Update( HWND hwnd, int fps, int cpuPercentage, float millisec
 	if(inputManager->WasKeyPressed(DIK_Q))
 	{
 		toggleDebugInfo = !toggleDebugInfo;
+
+		debugHUD->SetHUDVisibility(toggleDebugInfo);
 	}
 
 	if(toggleDebugInfo)
 	{
 		debugHUD->Update();
 	}
-
-	//result = text->SetFps(fps, d3D->GetDeviceContext());
-	//if(!result)
-	//{
-	//	return false;
-	//}
-
-	//result = text->SetCpu(cpuPercentage, d3D->GetDeviceContext());
-	//if(!result)
-	//{
-	//	return false;
-	//}
-
-	//XMFLOAT3 temp = camera->GetPosition();
-	//result = text->SetCameraPosition((int)temp.x, (int)temp.y, (int)temp.z, d3D->GetDeviceContext());
-	//if(!result)
-	//{
-	//	return false;
-	//}
-
-	//temp = camera->GetRotation();
-	//result = text->SetCameraRotation((int)temp.x, (int)temp.y, (int)temp.z, d3D->GetDeviceContext());
-	//if(!result)
-	//{
-	//	return false;
-	//}
 
 	//Move all point lights upward
 	if(inputManager->IsKeyPressed(DIK_R))
@@ -1007,12 +979,6 @@ bool GameRenderer::RenderGUI(XMMATRIX* worldBaseViewOrthoProj )
 
 		if(!textureShader.Render(deviceContext, debugWindows[6].GetIndexCount(), 
 			worldBaseViewOrthoProj, *textureAndMaterialHandler.GetWindTexture()))
-		{
-			return false;
-		}
-
-		// Render the text user interface elements.
-		if(!text->Render(deviceContext, worldBaseViewOrthoProj))
 		{
 			return false;
 		}

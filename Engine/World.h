@@ -24,7 +24,7 @@ public:
 
 	void CleanUp();
 
-	void Initialize(std::shared_ptr<D3DManager> extD3DManager, std::shared_ptr<InputClass> extInput);
+	void Initialize(std::shared_ptr<D3DManager> extD3DManager, std::shared_ptr<InputClass> extInput, GameRenderer* gameRenderer);
 
 	void Update(float deltaTimeSeconds, float deltaTimeMilliseconds);
 	void OnSettingsReload(Config* cfg);
@@ -75,6 +75,7 @@ private:
 	std::shared_ptr<CameraClass> camera;
 	std::shared_ptr<InputClass> inputManager;
 	std::shared_ptr<D3DManager> d3D;
+	GameRenderer* renderer;
 };
 
 

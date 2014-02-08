@@ -14,13 +14,14 @@
 //http://cegui.org.uk/forum/viewtopic.php?f=10&t=5117 TODO: Fix.
 #pragma warning(disable: 4275)
 
+//http://stackoverflow.com/questions/4125827/supress-compiler-warnings-in-vs2010
 
 const bool SHOW_CURSOR = true;
 const bool FULL_SCREEN = false;
 const bool VSYNC_ENABLED = false;
 
 //Enable if you want to check for memory leaks.
-#include <vld.h>
+//#include <vld.h>
 
 #include <windows.h>
 #include <memory>

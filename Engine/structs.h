@@ -5,18 +5,14 @@
 #include <d3dx9math.h>
 #include <d3d11.h>
 
-<<<<<<< master:Engine/structs.h
-typedef D3DXVECTOR2 float2;
-typedef D3DXVECTOR3 float3;
-typedef D3DXVECTOR4 float4;
-
 struct MaterialStruct
 {
 	float Ka;
 	float Kd;
 	float Ks;
 	float a;
-=======
+}
+
 struct Grads
 {
 	int x;
@@ -60,7 +56,6 @@ enum TextureID
 	TEXTURE_SAND,
 	TEXTURE_SNOW,
 	TEXTURE_TILEDSTONE
->>>>>>> local:Engine/StructsAndEnums.h
 };
 
 struct PointLight

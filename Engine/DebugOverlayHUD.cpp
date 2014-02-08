@@ -1,7 +1,6 @@
 #include "DebugOverlayHUD.h"
 
 DebugOverlayHUD::DebugOverlayHUD()
-	: currentActiveWidgets(0)
 {
 }
 
@@ -26,6 +25,9 @@ void DebugOverlayHUD::SetHUDVisibility( bool visible )
 
 bool DebugOverlayHUD::Initialize( float startPosX, float startPosY )
 {
+	widgets = std::make_shared<DODContainer<WindowContainer>>(MaxWidgetCount);
+
+
 	CEGUI::WindowManager& winMgr = CEGUI::WindowManager::getSingleton();
 	rootWindow = winMgr.createWindow("DefaultWindow", "debugRoot");
 	rootWindow->setVisible(true);
@@ -35,45 +37,46 @@ bool DebugOverlayHUD::Initialize( float startPosX, float startPosY )
 
 	CEGUI::System::getSingleton().getDefaultGUIContext().setRootWindow(rootWindow);
 
-	//Populate prio queue with values 0 to 127, whilst ordering them properly.
-	for(unsigned short i = 0; i < MaxWidgetCount; i++)
-	{
-		prioQueue.push(i);
-	}
+	////Populate prio queue with values 0 to 127, whilst ordering them properly.
+	//for(unsigned short i = 0; i < MaxWidgetCount; i++)
+	//{
+	//	prioQueue.push(i);
+	//	internalHandles[i].id = i;
+	//}
 
 	return true;
 }
 
 bool DebugOverlayHUD::CreateDebugWindow(std::string identifier, DebugWindowHandle& outHandle)
 {
-	if(currentActiveWidgets < MaxWidgetCount)
-	{
-		outHandle.id = prioQueue.top();
-		prioQueue.pop();
-		currentActiveWidgets++;
+	unsigned short newHandle;
 
-		widgets[outHandle.id].identifierString = identifier;
+	//TODO
+	if(widgets->AddNewObject(newHandle))
+	{
+		outHandle.id = newHandle;
+
+		WindowContainer* widget = widgets->GetSpecificObject(newHandle);
+
+		widget->identifierString = identifier;
 
 		CEGUI::WindowManager& winMgr = CEGUI::WindowManager::getSingleton();
 
 		/* http://cegui.org.uk/forum/viewtopic.php?p=22795#p22795 */
 
-		widgets[outHandle.id].ceguiWindow = winMgr.createWindow("TaharezLook/Label", identifier);
-		rootWindow->addChild(widgets[outHandle.id].ceguiWindow);
+		widget->ceguiWindow = winMgr.createWindow("TaharezLook/Label", identifier);
+		rootWindow->addChild(widget->ceguiWindow);
 
-		widgets[outHandle.id].ceguiWindow->setPosition(CEGUI::UVector2(cegui_absdim(0), cegui_absdim(20*outHandle.id)));
-		widgets[outHandle.id].ceguiWindow->setRiseOnClickEnabled(false);
-		widgets[outHandle.id].ceguiWindow->setPixelAligned(true);
-		widgets[outHandle.id].ceguiWindow->setInheritsAlpha(true);
-		widgets[outHandle.id].ceguiWindow->setAlpha(1.0f);
-		widgets[outHandle.id].ceguiWindow->setProperty("HorzFormatting", "LeftAligned");
-		widgets[outHandle.id].ceguiWindow->setProperty("VertFormatting", "TopAligned");
-		widgets[outHandle.id].ceguiWindow->setWidth(CEGUI::UDim(5.0f, 0.0f));
-		widgets[outHandle.id].ceguiWindow->setHeight(CEGUI::UDim(5.0f, 0.0f));
-
-		//Potentially just call UpdateWindow instead after we've created the window
-		widgets[outHandle.id].ceguiWindow->setText("Test nr: " + std::to_string((long long)currentActiveWidgets));
-		widgets[outHandle.id].ceguiWindow->activate();
+		widget->ceguiWindow->setPosition(CEGUI::UVector2(cegui_absdim(0), cegui_absdim(20.0f*(float)outHandle.id)));
+		widget->ceguiWindow->setRiseOnClickEnabled(false);
+		widget->ceguiWindow->setPixelAligned(true);
+		widget->ceguiWindow->setInheritsAlpha(true);
+		widget->ceguiWindow->setAlpha(1.0f);
+		widget->ceguiWindow->setProperty("HorzFormatting", "LeftAligned");
+		widget->ceguiWindow->setProperty("VertFormatting", "TopAligned");
+		widget->ceguiWindow->setWidth(CEGUI::UDim(5.0f, 0.0f));
+		widget->ceguiWindow->setHeight(CEGUI::UDim(5.0f, 0.0f));
+		widget->ceguiWindow->activate();
 
 		//Success
 		return true;
@@ -90,52 +93,68 @@ bool DebugOverlayHUD::CreateDebugWindow(std::string identifier, DebugWindowHandl
 
 template<> void DebugOverlayHUD::UpdateWindowText(DebugWindowHandle handle, bool* val )
 {
+	WindowContainer* widget = widgets->GetSpecificObject(handle.id);
+
 	if(*val == true)
 	{
-		widgets[handle.id].ceguiWindow->setText(widgets[handle.id].identifierString + ": True");
+		widget->ceguiWindow->setText(widget->identifierString + ": True");
 	}
 	else
 	{
-		widgets[handle.id].ceguiWindow->setText(widgets[handle.id].identifierString + ": False");
+		widget->ceguiWindow->setText(widget->identifierString + ": False");
 	}
 }
 
 template<> void DebugOverlayHUD::UpdateWindowText(DebugWindowHandle handle, int* val )
 {
-	widgets[handle.id].ceguiWindow->setText(widgets[handle.id].identifierString + ": " + CEGUI::PropertyHelper<int>::toString(*val));
+	WindowContainer* widget = widgets->GetSpecificObject(handle.id);
+
+	widget->ceguiWindow->setText(widget->identifierString + ": " + CEGUI::PropertyHelper<int>::toString(*val));
 }
 
 template<> void DebugOverlayHUD::UpdateWindowText(DebugWindowHandle handle, unsigned int* val )
 {
-	widgets[handle.id].ceguiWindow->setText(widgets[handle.id].identifierString + ": " + CEGUI::PropertyHelper<unsigned int>::toString(*val));
+	WindowContainer* widget = widgets->GetSpecificObject(handle.id);
+
+	widget->ceguiWindow->setText(widget->identifierString + ": " + CEGUI::PropertyHelper<unsigned int>::toString(*val));
 }
 
 template<> void DebugOverlayHUD::UpdateWindowText(DebugWindowHandle handle, std::string* val )
 {
-	widgets[handle.id].ceguiWindow->setText(widgets[handle.id].identifierString + ": " + *val);
+	WindowContainer* widget = widgets->GetSpecificObject(handle.id);
+
+	widget->ceguiWindow->setText(widget->identifierString + ": " + *val);
 }
 
 template<> void DebugOverlayHUD::UpdateWindowText(DebugWindowHandle handle, float* val )
 {
-	widgets[handle.id].ceguiWindow->setText(widgets[handle.id].identifierString + ": " + CEGUI::PropertyHelper<float>::toString(*val));
+	WindowContainer* widget = widgets->GetSpecificObject(handle.id);
+
+	widget->ceguiWindow->setText(widget->identifierString + ": " + CEGUI::PropertyHelper<float>::toString(*val));
 }
 
 template<> void DebugOverlayHUD::UpdateWindowText(DebugWindowHandle handle, XMFLOAT2* val )
 {
-	widgets[handle.id].ceguiWindow->setText(widgets[handle.id].identifierString + " X: " + CEGUI::PropertyHelper<float>::toString((*val).x) + 
+	WindowContainer* widget = widgets->GetSpecificObject(handle.id);
+
+	widget->ceguiWindow->setText(widget->identifierString + " X: " + CEGUI::PropertyHelper<float>::toString((*val).x) + 
 		" Y: " + CEGUI::PropertyHelper<float>::toString((*val).y));
 }
 
 template<> void DebugOverlayHUD::UpdateWindowText(DebugWindowHandle handle, XMFLOAT3* val )
 {
-	widgets[handle.id].ceguiWindow->setText(widgets[handle.id].identifierString + " X: " + CEGUI::PropertyHelper<float>::toString((*val).x) +
-		" Y: " + CEGUI::PropertyHelper<float>::toString((*val).y) + " Z: " + CEGUI::PropertyHelper<float>::toString((*val).z));
+	WindowContainer* widget = widgets->GetSpecificObject(handle.id);
+
+	widget->ceguiWindow->setText(widget->identifierString + " X: " + CEGUI::PropertyHelper<float>::toString((*val).x) +	" Y: " + 
+		CEGUI::PropertyHelper<float>::toString((*val).y) + " Z: " + CEGUI::PropertyHelper<float>::toString((*val).z));
 }
 
 template<> void DebugOverlayHUD::UpdateWindowText(DebugWindowHandle handle, XMFLOAT4* val )
 {
-	widgets[handle.id].ceguiWindow->setText(widgets[handle.id].identifierString + " X: " + CEGUI::PropertyHelper<float>::toString((*val).x) + 
-		" Y: " + CEGUI::PropertyHelper<float>::toString((*val).y) + " Z: " + CEGUI::PropertyHelper<float>::toString((*val).z) + " W: " + CEGUI::PropertyHelper<float>::toString((*val).w));
+	WindowContainer* widget = widgets->GetSpecificObject(handle.id);
+
+	widget->ceguiWindow->setText(widget->identifierString + " X: " + CEGUI::PropertyHelper<float>::toString((*val).x) + " Y: " + 
+		CEGUI::PropertyHelper<float>::toString((*val).y) + " Z: " + CEGUI::PropertyHelper<float>::toString((*val).z) + " W: " + CEGUI::PropertyHelper<float>::toString((*val).w));
 }
 #pragma endregion
 
@@ -145,10 +164,12 @@ bool DebugOverlayHUD::AddNewWindow(std::string name, void* valueToBeMonitored, D
 	//If this call succeeded, we continue
 	if(CreateDebugWindow(name, outHandle))
 	{
-		widgets[outHandle.id].dataType = dataType;
-		widgets[outHandle.id].valuePointer = valueToBeMonitored;
+		auto widget = widgets->GetSpecificObject(outHandle.id);
 
-		UpdateWidget(outHandle, dataType);
+		widget->dataType = dataType;
+		widget->valuePointer = valueToBeMonitored;
+
+		UpdateWidget(outHandle);
 
 		return true;
 	}
@@ -163,10 +184,12 @@ bool DebugOverlayHUD::AddNewWindowWithoutHandle(std::string name, void* valueToB
 	//If this call succeeded, we continue
 	if(CreateDebugWindow(name, outHandle))
 	{
-		widgets[outHandle.id].dataType = dataType;
-		widgets[outHandle.id].valuePointer = valueToBeMonitored;
+		auto widget = widgets->GetSpecificObject(outHandle.id);
 
-		UpdateWidget(outHandle, dataType);
+		widget->dataType = dataType;
+		widget->valuePointer = valueToBeMonitored;
+
+		UpdateWidget(outHandle);
 
 		return true;
 	}
@@ -174,48 +197,51 @@ bool DebugOverlayHUD::AddNewWindowWithoutHandle(std::string name, void* valueToB
 	return false;
 }
 
-void DebugOverlayHUD::UpdateWidget(DebugWindowHandle& handle, DataTypeEnumMappings::DataType dataType )
+void DebugOverlayHUD::UpdateWidget(DebugWindowHandle& handle)
 {
-	switch(dataType)
+	auto widget = widgets->GetSpecificObject(handle.id);
+	widget->ceguiWindow->setPosition(CEGUI::UVector2(cegui_absdim(0), cegui_absdim(20*handle.id)));
+
+	switch(widget->dataType)
 	{
 	case DataTypeEnumMappings::Bool:
 		{	
-			UpdateWindowText(handle, (bool*)((widgets[handle.id].valuePointer)));
+			UpdateWindowText(handle,	static_cast<bool*>(widget->valuePointer));
 		} break;
 
 	case DataTypeEnumMappings::UInt32:
 		{
-			UpdateWindowText(handle, (unsigned int*)((widgets[handle.id].valuePointer)));
+			UpdateWindowText(handle,	static_cast<unsigned int*>(widget->valuePointer));
 		} break;
 
 	case DataTypeEnumMappings::Int32:
 		{
-			UpdateWindowText(handle, (int*)((widgets[handle.id].valuePointer)));
+			UpdateWindowText(handle,	static_cast<int*>(widget->valuePointer));
 		} break;
 
 	case DataTypeEnumMappings::String:
 		{
-			UpdateWindowText(handle, (std::string*)((widgets[handle.id].valuePointer)));
+			UpdateWindowText(handle,	static_cast<std::string*>(widget->valuePointer));
 		} break;
 
 	case DataTypeEnumMappings::Float:
 		{
-			UpdateWindowText(handle, (float*)((widgets[handle.id].valuePointer)));
+			UpdateWindowText(handle,	static_cast<float*>(widget->valuePointer));
 		} break;
 
 	case DataTypeEnumMappings::Float2:
 		{
-			UpdateWindowText(handle,  (XMFLOAT2*)((widgets[handle.id].valuePointer)));
+			UpdateWindowText(handle,	static_cast<XMFLOAT2*>(widget->valuePointer));
 		} break;
 
 	case DataTypeEnumMappings::Float3:
 		{
-			UpdateWindowText(handle,  (XMFLOAT3*)((widgets[handle.id].valuePointer)));
+			UpdateWindowText(handle,	static_cast<XMFLOAT3*>(widget->valuePointer));
 		} break;
 
 	case DataTypeEnumMappings::Float4:
 		{
-			UpdateWindowText(handle,  (XMFLOAT4*)((widgets[handle.id].valuePointer)));
+			UpdateWindowText(handle,	static_cast<XMFLOAT4*>(widget->valuePointer));
 		} break;
 	}
 }
@@ -226,11 +252,11 @@ bool DebugOverlayHUD::Update()
 	//Because casting from ushort to a struct only containing an ushort is iffy
 	DebugWindowHandle temp;
 
-	for(unsigned short i = 0; i < currentActiveWidgets; i++)
+	for(unsigned short i = 0; i < widgets->GetActiveObjectCount(); i++)
 	{
 		temp.id = i;
 
-		UpdateWidget(temp, widgets[i].dataType);
+		UpdateWidget(temp);
 	}
 
 	return true;
@@ -238,11 +264,11 @@ bool DebugOverlayHUD::Update()
 
 void DebugOverlayHUD::RemoveWindow(DebugWindowHandle handle)
 {
-	//Erase ID
-	//widgets[handle.id];
+	auto widget = widgets->GetSpecificObject(handle.id);
 
-	//TODO: Key container
+	widget->identifierString = "";
+	widget->valuePointer = nullptr;
 
-	//Insert this index to be reused
-	prioQueue.push(handle.id);
+	rootWindow->removeChild(widget->ceguiWindow);
+	widgets->RemoveObject(handle.id);
 }

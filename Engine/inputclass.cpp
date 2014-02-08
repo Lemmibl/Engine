@@ -133,7 +133,7 @@ bool InputClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenStartPosX,
 	//Just initialize to default (empty) values
 	for(int i = 0; i < 10; i++)
 	{
-		activeMouseStates[i] = std::make_pair<KeyState, CEGUI::MouseButton>(Null, CEGUI::MouseButton::NoButton);
+		activeMouseStates[i] = std::make_pair<KeyState, CEGUI::MouseButton>(Null, CEGUI::NoButton);
 	}
 
 

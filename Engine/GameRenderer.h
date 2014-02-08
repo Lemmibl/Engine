@@ -79,21 +79,25 @@ public:
 	GameRenderer();
 	~GameRenderer();
 
+	void Shutdown();
+
 	bool Initialize(HWND hwnd, std::shared_ptr<CameraClass> camera, std::shared_ptr<InputClass> inputManager, std::shared_ptr<D3DManager> d3D, DebugOverlayHUD* debugHUD, 
 		UINT screenWidth, UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear);
 
+	bool Update(HWND hwnd, int fps, int cpuPercentage, float millisecondDeltaTime, float secondDeltaTime, XMFLOAT3* windDirection);
+	bool Render(HWND hwnd, RenderableBundle* renderableBundle);
+
+	TextureAndMaterialHandler* GetTextureAndMaterialHandler() { return &textureAndMaterialHandler; }
+
+	virtual void OnSettingsReload(Config* cfg);
+
+private:
 	bool InitializeShaders(HWND hwnd);
 	bool InitializeLights(HWND hwnd);
 	bool InitializeEverythingElse(HWND hwnd);
 	bool InitializeModels(HWND hwnd);
 	bool InitializeDebugText();
 	void InitializeRenderingSpecifics();
-
-	virtual void OnSettingsReload(Config* cfg);
-	void Shutdown();
-
-	bool Update(HWND hwnd, int fps, int cpuPercentage, float millisecondDeltaTime, float secondDeltaTime, XMFLOAT3* windDirection);
-	bool Render(HWND hwnd, RenderableBundle* renderableBundle);
 
 	bool RenderShadowmap(XMMATRIX* lightWorldViewProj, XMMATRIX* lightWorldView, RenderableBundle* renderableBundle);
 	bool RenderTwoPassGaussianBlur(XMMATRIX* worldBaseViewOrthoProj);
@@ -110,7 +114,6 @@ private:
 	std::shared_ptr<D3DManager> d3D;
 	std::shared_ptr<CameraClass> camera;
 	std::shared_ptr<InputClass> inputManager;
-	std::shared_ptr<TextClass> text;
 
 	DebugOverlayHUD* debugHUD;
 	std::vector<DebugWindowHandle> debugWindowHandles;

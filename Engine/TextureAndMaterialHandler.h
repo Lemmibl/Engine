@@ -13,6 +13,29 @@
 
 class TextureAndMaterialHandler
 {
+public:
+	//TODO: xmfloat3 ambience, diffuse, specular ?
+	struct MaterialStruct
+	{
+		float Kambience;
+		float Kdiffuse;
+		float Kspecular;
+		float smoothness;
+		float shouldBeShadowed; //1 to allow shadowing, 0 to disable shadowing
+	};
+
+	struct OBJMaterialStruct
+	{
+		WCHAR modelFilepath[MAX_PATH];
+		WCHAR textureFilepath[MAX_PATH];
+
+		XMFLOAT3 Ambient;
+		XMFLOAT3 Diffuse;
+		XMFLOAT3 Specular;
+
+		float smoothness, alpha;
+	};
+
 private:
 	//We save the pixels in R8G8B8A8. This means that each pixel can have values 1-255.
 	struct PixelData
@@ -20,15 +43,7 @@ private:
 		UINT8 x, y, z, w;
 	};
 
-	struct MaterialStruct
-	{
-		float Kambience;
-		float Kdiffuse;
-		float Kspecular;
-		float smoothness;
-		float shouldBeShadowed; //Everything should be 1 except for grassquads, which should be 0
-	};
-
+	//Used for my failed procedurally generated texture prototype
 	struct MaterialColorSpectrumUINT8
 	{
 		UINT8 RedMin, RedMax;
@@ -132,7 +147,7 @@ private:
 private:
 	std::shared_ptr<NoiseClass> noise;
 	std::shared_ptr<Utility> utility;
-	
+
 	CComPtr<ID3D11ShaderResourceView> vegetationTextureArraySRV;
 	CComPtr<ID3D11ShaderResourceView> terrainTextureArraySRV;
 	CComPtr<ID3D11ShaderResourceView> materialTextureArraySRV;

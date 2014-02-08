@@ -5,6 +5,9 @@ GameplayScreen::GameplayScreen()
 {
 	shadowMapWidth = 1024;
 	shadowMapHeight = 1024;
+	cpuUsage = 0;
+	fps = 0;
+	temp = false;
 }
 
 
@@ -16,7 +19,7 @@ void GameplayScreen::Enter()
 {
 	SetActive(true);
 
-	debugHUD.SetHUDVisibility(true);
+	debugHUD.SetHUDVisibility(false);
 
 	//Reset camera
 	world.ResetCamera();
@@ -36,10 +39,10 @@ bool GameplayScreen::Initialize(HWND extHwnd, std::shared_ptr<InputClass> extInp
 	//Load settings from file
 	InitializeSettings(this);
 
-	//Initialize world
-	world.Initialize(d3D, input);
-
 	debugHUD.Initialize(0.0f, 0.0f);
+
+	//Initialize world
+	world.Initialize(d3D, input, &worldRenderer);
 
 	// Initialize the renderer.
 	result = worldRenderer.Initialize(hwnd, world.GetCamera(), input, d3D, &debugHUD, (unsigned int)screenWidth, (unsigned int)screenHeight, 
@@ -54,6 +57,15 @@ bool GameplayScreen::Initialize(HWND extHwnd, std::shared_ptr<InputClass> extInp
 
 	debugHUD.SetHUDVisibility(true);
 
+	debugHUD.AddNewWindow("FPS ", &fps, DataTypeEnumMappings::Int32, fpsDebugHandle);
+	debugHUD.AddNewWindow("CPU Usage % ", &cpuUsage, DataTypeEnumMappings::Int32, cpuDebugHandle);
+	debugHUD.AddNewWindowWithoutHandle("Wind direction ", world.GetWindDirection(), DataTypeEnumMappings::Float3);
+
+
+	counter = debugHUD.GetCount();
+	index = 0;
+
+
 	return true;
 }
 
@@ -63,7 +75,10 @@ bool GameplayScreen::Update(float deltaTime)
 	float deltaTimeMilliseconds = deltaTime*1000.0f;
 	
 	fpsMeter.Update();
+	fps = fpsMeter.GetFps();
+
 	cpuMeter.Update();
+	cpuUsage = cpuMeter.GetCpuPercentage();
 
 	if(input->WasKeyPressed(DIK_ESCAPE))
 	{
@@ -71,11 +86,33 @@ bool GameplayScreen::Update(float deltaTime)
 		stateChangeEvent(GameStates::MainMenuScreen);
 	}
 
+	if(input->WasKeyPressed(DIK_P))
+	{
+		counter++;
+		handles.push_back(DebugWindowHandle());
+
+		debugHUD.AddNewWindow(std::to_string((long long)counter), &handles[index], DataTypeEnumMappings::Int32, handles[index]);
+
+		index++;
+	}
+
+	if(input->WasKeyPressed(DIK_O))
+	{
+		if(index >= 1)
+		{
+			counter--;
+			index--;
+
+			debugHUD.RemoveWindow(handles[index]);
+		}
+	}
+
 	//Here. Do world update stuff here.
 	world.Update(deltaTime, deltaTimeMilliseconds);
 
+
 	// Do update renderer.
-	if(!worldRenderer.Update(hwnd, fpsMeter.GetFps(), cpuMeter.GetCpuPercentage(), deltaTimeMilliseconds, deltaTime, world.GetWindDirection()))
+	if(!worldRenderer.Update(hwnd, fps, cpuUsage, deltaTimeMilliseconds, deltaTime, world.GetWindDirection()))
 	{
 		return false;
 	}

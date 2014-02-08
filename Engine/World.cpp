@@ -1,7 +1,7 @@
 #include "World.h"
 
 GameWorld::GameWorld()
-	:	SettingsDependent(), frustum(), renderableBundle(), frustumAABB(XMFLOAT2(-1, -1), XMFLOAT2(1, 1)), weatherSystem()
+	:	SettingsDependent(), frustum(), renderableBundle(), frustumAABB(XMFLOAT2(-1, -1), XMFLOAT2(1, 1)), weatherSystem(), meshHandler()
 {
 }
 
@@ -10,13 +10,27 @@ GameWorld::~GameWorld()
 	CleanUp();
 }
 
-void GameWorld::Initialize( std::shared_ptr<D3DManager> extD3DManager, std::shared_ptr<InputClass> extInput)
+void GameWorld::CleanUp()
+{
+	auto objArray = dynamicsWorld->getCollisionObjectArray();
+
+	//remove the rigidbodies from the dynamics world and delete them
+	for (int i = dynamicsWorld->getNumCollisionObjects()-1; i >= 0; i--)
+	{
+		dynamicsWorld->removeCollisionObject(objArray[i]);
+	}
+}
+
+void GameWorld::Initialize( std::shared_ptr<D3DManager> extD3DManager, std::shared_ptr<InputClass> extInput, GameRenderer* gameRenderer)
 {
 	inputManager = extInput;
 	d3D = extD3DManager;
+	renderer = gameRenderer;
 
 	//Load settings from file
 	InitializeSettings(this);
+
+	meshHandler.Initialize(gameRenderer->GetTextureAndMaterialHandler());
 
 	InitializeCollision();
 	InitializeCamera();
@@ -169,18 +183,6 @@ void GameWorld::OnSettingsReload( Config* cfg )
 	settings2.lookupValue("windowHeight", screenHeight);
 	settings2.lookupValue("farClip", farClip);
 	settings2.lookupValue("nearClip", nearClip);
-}
-
-void GameWorld::CleanUp()
-{
-	//remove the rigidbodies from the dynamics world and delete them
-	for (int i = dynamicsWorld->getNumCollisionObjects()-1; i >= 0; i--)
-	{
-		btCollisionObject* obj = dynamicsWorld->getCollisionObjectArray()[i];
-		dynamicsWorld->removeCollisionObject( obj );
-
-		//delete obj; //I use smart ptrs for everything, so this should be unnecessary
-	}
 }
 
 //TODO: camera body that collides with meshes

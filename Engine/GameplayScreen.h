@@ -35,9 +35,17 @@ private:
 	GameRenderer worldRenderer;
 	DebugOverlayHUD debugHUD;
 
-	DebugWindowHandle floatHandle;
+	std::vector<DebugWindowHandle> handles;
+	unsigned int counter, index;
+
+	DebugWindowHandle fpsDebugHandle;
+	DebugWindowHandle cpuDebugHandle;
 
 	HWND hwnd;
+	int cpuUsage, fps;
 	float shadowMapWidth, shadowMapHeight, screenWidth, screenHeight, nearClip, farClip;
+	bool temp;
+
+
 };
 
