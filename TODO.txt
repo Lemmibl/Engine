@@ -3,6 +3,8 @@
 /*						TODO AND THINGS OF THAT SORT							*/
 /********************************************************************************/
 
+* BUG: Point light doesn't recieve new camera position properly.. Possibly need to multiply camera with World?
+
 * .obj loading
 
 * Ability to load in obj models from tree[d]
@@ -11,14 +13,11 @@
 	This will means that you can load in all the models you want in mesh loader, and mesh loader can then insert all the new materials into the texMat handler.
 	texMat handler will return a handle whenever you insert a material, and you can append this handle to a model so that you can load everything related at rendertime.
 
+* Do some form of sorting based on material for all obj models
+
 * Separate handler for procedural texture generation
 
 * Spotlight shader
-
-* Gradient mapping?
-	-> So you use one 0.0 to 1.0 "height" map to control what color should be rendered where
-	-> Then you keep a second, 1px high, bunch of px wide to map the colors. Then you use the 0.0 to 1.0 value to sample into the gradient map.
-	-> http://technical-eden.blogspot.se/2012/01/gradient-mapping-awesome-way-to-get.html
 
 * RTW shadowmapping < Cuz it's fuckin' awesome.
 

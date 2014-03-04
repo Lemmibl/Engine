@@ -30,11 +30,22 @@ private:
 	{
 		float vegetationScale;
 		float vegetationFalloff;
+
 		float forceScale;
 		float waveLength;
+
 		float traversalSpeed;
 		float farClip;
-		XMFLOAT2 padding;
+
+		float minimumHeightLevel;
+		float maximumHeightLevel;
+
+		float positionalRandomDeviance;
+		float angularRandomDeviance;
+
+		float acceptableSlopeAngle;
+
+		float padding;
 	};
 
 public:

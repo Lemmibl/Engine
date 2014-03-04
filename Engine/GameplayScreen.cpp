@@ -1,8 +1,12 @@
 #include "GameplayScreen.h"
 
-GameplayScreen::GameplayScreen() 
+GameplayScreen::GameplayScreen(HWND extHwnd, std::shared_ptr<InputClass> extInput, std::shared_ptr<D3DManager> extD3D) 
 : GenericScreen(), SettingsDependent(), world(), worldRenderer(), fpsMeter(), cpuMeter(), debugHUD()
 {
+	input = extInput;
+	d3D = extD3D;
+	hwnd = extHwnd;
+
 	shadowMapWidth = 1024;
 	shadowMapHeight = 1024;
 	cpuUsage = 0;
@@ -19,6 +23,12 @@ void GameplayScreen::Enter()
 {
 	SetActive(true);
 
+	if(!HasBeenInitialized())
+	{
+		Initialize();
+		SetInitializedState(true);
+	}
+
 	debugHUD.SetHUDVisibility(false);
 
 	//Reset camera
@@ -28,13 +38,9 @@ void GameplayScreen::Enter()
 	world.InitializeTerrain();
 }
 
-bool GameplayScreen::Initialize(HWND extHwnd, std::shared_ptr<InputClass> extInput, std::shared_ptr<D3DManager> extD3D)
+bool GameplayScreen::Initialize()
 {
 	bool result;
-
-	input = extInput;
-	d3D = extD3D;
-	hwnd = extHwnd;
 
 	//Load settings from file
 	InitializeSettings(this);
@@ -45,7 +51,7 @@ bool GameplayScreen::Initialize(HWND extHwnd, std::shared_ptr<InputClass> extInp
 	world.Initialize(d3D, input, &worldRenderer);
 
 	// Initialize the renderer.
-	result = worldRenderer.Initialize(hwnd, world.GetCamera(), input, d3D, &debugHUD, (unsigned int)screenWidth, (unsigned int)screenHeight, 
+	result = worldRenderer.Initialize(hwnd, world.GetCamera(), input, d3D, world.GetMeshHandler(), &debugHUD, (unsigned int)screenWidth, (unsigned int)screenHeight, 
 		(unsigned int)shadowMapWidth, (unsigned int)shadowMapHeight, nearClip, farClip);
 	if(!result)
 	{
@@ -60,11 +66,6 @@ bool GameplayScreen::Initialize(HWND extHwnd, std::shared_ptr<InputClass> extInp
 	debugHUD.AddNewWindow("FPS ", &fps, DataTypeEnumMappings::Int32, fpsDebugHandle);
 	debugHUD.AddNewWindow("CPU Usage % ", &cpuUsage, DataTypeEnumMappings::Int32, cpuDebugHandle);
 	debugHUD.AddNewWindowWithoutHandle("Wind direction ", world.GetWindDirection(), DataTypeEnumMappings::Float3);
-
-
-	counter = debugHUD.GetCount();
-	index = 0;
-
 
 	return true;
 }
@@ -84,27 +85,6 @@ bool GameplayScreen::Update(float deltaTime)
 	{
 		//If we press escape from gameplay screen, change state back to main menu screen
 		stateChangeEvent(GameStates::MainMenuScreen);
-	}
-
-	if(input->WasKeyPressed(DIK_P))
-	{
-		counter++;
-		handles.push_back(DebugWindowHandle());
-
-		debugHUD.AddNewWindow(std::to_string((long long)counter), &handles[index], DataTypeEnumMappings::Int32, handles[index]);
-
-		index++;
-	}
-
-	if(input->WasKeyPressed(DIK_O))
-	{
-		if(index >= 1)
-		{
-			counter--;
-			index--;
-
-			debugHUD.RemoveWindow(handles[index]);
-		}
 	}
 
 	//Here. Do world update stuff here.

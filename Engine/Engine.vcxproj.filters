@@ -133,9 +133,6 @@
     <ClCompile Include="MeshHandler.cpp">
       <Filter>Rendering\Managers</Filter>
     </ClCompile>
-    <ClCompile Include="TerrainNoiseSeeder.cpp">
-      <Filter>Terrain and procedural generation\MC</Filter>
-    </ClCompile>
     <ClCompile Include="SentenceManager.cpp">
       <Filter>Rendering\Managers</Filter>
     </ClCompile>
@@ -215,6 +212,18 @@
     </ClCompile>
     <ClCompile Include="ProceduralTextureHandler.cpp">
       <Filter>Rendering\Managers</Filter>
+    </ClCompile>
+    <ClCompile Include="LoadingScreen.cpp">
+      <Filter>State machines and menus\Screens</Filter>
+    </ClCompile>
+    <ClCompile Include="OBJModel.cpp">
+      <Filter>Rendering\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="DRObjModelShader.cpp">
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainNoiseSeeder.cpp">
+      <Filter>Terrain and procedural generation</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -365,9 +374,6 @@
     <ClInclude Include="SchladetschEvents.h">
       <Filter>General Code\Events</Filter>
     </ClInclude>
-    <ClInclude Include="TerrainNoiseSeeder.h">
-      <Filter>Terrain and procedural generation\MC</Filter>
-    </ClInclude>
     <ClInclude Include="SentenceManager.h">
       <Filter>Rendering\Managers</Filter>
     </ClInclude>
@@ -458,6 +464,18 @@
     </ClInclude>
     <ClInclude Include="DODContainer.h">
       <Filter>General Code\Data classes</Filter>
+    </ClInclude>
+    <ClInclude Include="LoadingScreen.h">
+      <Filter>State machines and menus\Screens</Filter>
+    </ClInclude>
+    <ClInclude Include="OBJModel.h">
+      <Filter>Rendering\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="DRObjModelShader.h">
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainNoiseSeeder.h">
+      <Filter>Terrain and procedural generation</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -586,6 +604,12 @@
     </None>
     <None Include="settings.cfg">
       <Filter>Text files</Filter>
+    </None>
+    <None Include="OBJGbuffer.vsh">
+      <Filter>Rendering\Shaders\Deferred shaders</Filter>
+    </None>
+    <None Include="Shaders\OBJGbuffer.psh">
+      <Filter>Rendering\Shaders\Deferred shaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

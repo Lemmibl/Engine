@@ -11,6 +11,7 @@ cbuffer TimeBuffer
 	float timeScaling				: packoffset(c4.w);
 	float farClip					: packoffset(c5.x);
 	float3 windDirection			: packoffset(c5.y);
+	float waterHeight				: packoffset(c6.x);
 }
 
 struct VSOutput
@@ -45,6 +46,10 @@ void WaterShaderGS(triangle VSOutput input[3], inout TriangleStream<PSInput> Tri
 	output[0].TexCoord.z = heightScaling * noiseTexture.SampleLevel(linearSampler, output[0].TexCoord.xy, 0);
 	output[1].TexCoord.z = heightScaling * noiseTexture.SampleLevel(linearSampler, output[1].TexCoord.xy, 0);
 	output[2].TexCoord.z = heightScaling * noiseTexture.SampleLevel(linearSampler, output[2].TexCoord.xy, 0);
+
+	input[0].Position.y = waterHeight;
+	input[1].Position.y = waterHeight;
+	input[2].Position.y = waterHeight;
 
 	float4 pos1 = input[0].Position + (UpNormal * output[0].TexCoord.z);
 	float4 pos2 = input[1].Position + (UpNormal * output[1].TexCoord.z);

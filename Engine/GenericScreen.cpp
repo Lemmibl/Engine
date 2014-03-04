@@ -1,7 +1,7 @@
 #include "GenericScreen.h"
 
 GenericScreen::GenericScreen()
-: active(false)
+: active(false), isInitialized(false)
 {
 }
 

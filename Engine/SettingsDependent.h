@@ -5,6 +5,8 @@
 class SettingsDependent
 {
 	public:
+	virtual ~SettingsDependent(){};
+
 	template<class T>
 	void InitializeSettings(T* const classPointer)
 	{

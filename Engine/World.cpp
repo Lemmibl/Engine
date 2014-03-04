@@ -1,7 +1,7 @@
 #include "World.h"
 
 GameWorld::GameWorld()
-	:	SettingsDependent(), frustum(), renderableBundle(), frustumAABB(XMFLOAT2(-1, -1), XMFLOAT2(1, 1)), weatherSystem(), meshHandler()
+:	SettingsDependent(), frustum(), renderableBundle(), frustumAABB(XMFLOAT2(-1, -1), XMFLOAT2(1, 1)), weatherSystem(), meshHandler(), terrainManager()
 {
 }
 
@@ -32,9 +32,25 @@ void GameWorld::Initialize( std::shared_ptr<D3DManager> extD3DManager, std::shar
 
 	meshHandler.Initialize(gameRenderer->GetTextureAndMaterialHandler());
 
+	InitializeMiscRenderables();
 	InitializeCollision();
 	InitializeCamera();
 	InitializeTerrain();
+}
+
+void GameWorld::InitializeMiscRenderables()
+{
+	std::wstring objFilepath = L"../Engine/data/Models/";
+	std::wstring treeModelFilepath = objFilepath + L"tree2.obj";
+
+	OBJModel tempModelPtr;
+
+	//If load succeeds
+	if(meshHandler.LoadModelFromOBJFile(d3D->GetDevice(), treeModelFilepath, &tempModelPtr))
+	{
+		//Add model by value into renderable bundle... Should just be temporary
+		renderableBundle.objModels.push_back(tempModelPtr);
+	}
 }
 
 void GameWorld::InitializeCamera()
@@ -78,7 +94,7 @@ void GameWorld::ResetCamera()
 void GameWorld::InitializeTerrain()
 {
 	//Initialize terrain manager
-	terrainManager = std::make_shared<TerrainManager>(d3D->GetDevice(), d3D->GetDeviceContext(), dynamicsWorld, d3D->GetHwnd(), camera->GetPosition());
+	terrainManager.Initialize(d3D->GetDevice(), d3D->GetDeviceContext(), dynamicsWorld, d3D->GetHwnd(), camera->GetPosition());
 }
 
 void GameWorld::Update( float deltaTimeSeconds, float deltaTimeMilliseconds )
@@ -105,52 +121,52 @@ void GameWorld::HandleInput()
 
 	if(inputManager->WasKeyPressed(DIK_N))
 	{
-		terrainManager->ResetTerrain();
+		terrainManager.ResetTerrain();
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD1) || inputManager->WasKeyPressed(DIK_F1))
 	{
-		terrainManager->SetTerrainType(TerrainTypes::SeaBottom);
+		terrainManager.SetTerrainType(TerrainTypes::SeaBottom);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD2) || inputManager->WasKeyPressed(DIK_F2))
 	{
-		terrainManager->SetTerrainType(TerrainTypes::Plains);
+		terrainManager.SetTerrainType(TerrainTypes::Plains);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD3) || inputManager->WasKeyPressed(DIK_F3))
 	{
-		terrainManager->SetTerrainType(TerrainTypes::Hills);
+		terrainManager.SetTerrainType(TerrainTypes::Hills);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD4) || inputManager->WasKeyPressed(DIK_F4))
 	{
-		terrainManager->SetTerrainType(TerrainTypes::Terraces);
+		terrainManager.SetTerrainType(TerrainTypes::Terraces);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD5) || inputManager->WasKeyPressed(DIK_F5))
 	{
-		terrainManager->SetTerrainType(TerrainTypes::DramaticHills);
+		terrainManager.SetTerrainType(TerrainTypes::DramaticHills);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD6) || inputManager->WasKeyPressed(DIK_F6))
 	{
-		terrainManager->SetTerrainType(TerrainTypes::FlyingIslands);
+		terrainManager.SetTerrainType(TerrainTypes::FlyingIslands);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD7) || inputManager->WasKeyPressed(DIK_F7))
 	{
-		terrainManager->SetTerrainType(TerrainTypes::Alien);
+		terrainManager.SetTerrainType(TerrainTypes::Alien);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD8) || inputManager->WasKeyPressed(DIK_F8))
 	{
-		terrainManager->SetTerrainType(TerrainTypes::Fancy);
+		terrainManager.SetTerrainType(TerrainTypes::Fancy);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD9) || inputManager->WasKeyPressed(DIK_F9))
 	{
-		terrainManager->SetTerrainType(TerrainTypes::Cave);
+		terrainManager.SetTerrainType(TerrainTypes::Cave);
 	}
 }
 
@@ -159,10 +175,10 @@ void GameWorld::UpdateVisibility(float deltaTime)
 	frustum.ConstructFrustum(camera->GetFarClip(), &camera->GetProj(), &camera->GetView());
 	frustum.CalculateFrustumExtents(&frustumAABB, XMLoadFloat3(&camera->GetPosition()), camera->ForwardVector(), camera->UpVector());
 
-	if(terrainManager->UpdateAgainstAABB(d3D->GetDevice(), d3D->GetDeviceContext(), &frustumAABB, deltaTime))
+	if(terrainManager.UpdateAgainstAABB(d3D->GetDevice(), d3D->GetDeviceContext(), &frustumAABB, deltaTime))
 	{
 		renderableBundle.terrainChunks.clear();
-		renderableBundle.terrainChunks = terrainManager->GetActiveChunks();
+		renderableBundle.terrainChunks = terrainManager.GetActiveChunks();
 	}
 }
 

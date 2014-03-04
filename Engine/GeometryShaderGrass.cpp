@@ -389,7 +389,11 @@ bool GeometryShaderGrass::SetShaderParameters( ID3D11DeviceContext* deviceContex
 		dataPtr2->vegetationFalloff	= values.vegetationFalloff;
 		dataPtr2->vegetationScale	= values.vegetationScale;
 		dataPtr2->waveLength		= values.waveLength;
-
+		dataPtr2->minimumHeightLevel = values.minimumHeightLevel;
+		dataPtr2->maximumHeightLevel = values.maximumHeightLevel;
+		dataPtr2->positionalRandomDeviance = values.positionalRandomDeviance;
+		dataPtr2->angularRandomDeviance = values.angularRandomDeviance;
+		dataPtr2->acceptableSlopeAngle = values.acceptableSlopeAngle;
 
 		// Unlock the matrix constant buffer.
 		deviceContext->Unmap(variableBuffer.p, 0);
@@ -450,14 +454,22 @@ void GeometryShaderGrass::OnSettingsReload( Config* cfg )
 	values.forceScale			= 0.75f;
 	values.waveLength			= 0.05f;
 	values.traversalSpeed		= 0.1f;
+	values.minimumHeightLevel	= 0.0f;
+	values.maximumHeightLevel	= 100.0f;
 
 	Setting& settings = cfg->getRoot()["shaders"]["grassShader"];
 
-	settings.lookupValue("vegetationScale",		values.vegetationScale	);
-	settings.lookupValue("vegetationFalloff",	values.vegetationFalloff);
-	settings.lookupValue("forceScale",			values.forceScale);
-	settings.lookupValue("waveLength",			values.waveLength);
-	settings.lookupValue("traversalSpeed",		values.traversalSpeed);
+	settings.lookupValue("vegetationScale",				values.vegetationScale	);
+	settings.lookupValue("vegetationFalloff",			values.vegetationFalloff);
+	settings.lookupValue("forceScale",					values.forceScale);
+	settings.lookupValue("waveLength",					values.waveLength);
+	settings.lookupValue("traversalSpeed",				values.traversalSpeed);
+	settings.lookupValue("grassMinimumHeightLevel",		values.minimumHeightLevel);
+	settings.lookupValue("grassMaximumHeightLevel",		values.maximumHeightLevel);
+	
+	settings.lookupValue("positionalRandomDeviance",	values.positionalRandomDeviance);
+	settings.lookupValue("angularRandomDeviance",		values.angularRandomDeviance);
+	settings.lookupValue("acceptableSlopeScale",		values.acceptableSlopeAngle);
 
 	const Setting& settings2 = cfg->getRoot()["rendering"];
 

@@ -17,12 +17,17 @@ public:
 
 	Schladetsch::Events::Event<GameStates::Type>* GetStateChangeEvent() { return &stateChangeEvent; }
 	const bool IsActive() const { return active; }
+	const bool HasBeenInitialized() const { return isInitialized; }
 
 protected:
+	void SetInitializedState(bool val) { isInitialized = val; }
 	void SetActive(bool val) { active = val; }
 	Schladetsch::Events::Event<GameStates::Type> stateChangeEvent;
 
 private:
 	bool active;
+
+	//Bool to trigger initialization first time it's entered.
+	bool isInitialized;
 };
 

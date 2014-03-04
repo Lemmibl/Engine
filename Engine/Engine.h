@@ -6,13 +6,15 @@
 #define WIN32_LEAN_AND_MEAN
 #define BT_NO_SIMD_OPERATOR_OVERLOADS //Needed to fix clash between bullet libraries and xnamath. https://code.google.com/p/bullet/issues/detail?id=710
 
+//Warning removal has been changed to project settings
+
 //Bullet library linking error warnings.
 //http://stackoverflow.com/questions/13444816/bullet-physics-linking-error-in-visual-studio TODO: Fix.
-#pragma warning(disable: 4099)
+//#pragma warning(disable: 4099)
 
 //CEGUI library std::exception exporting warnings.
 //http://cegui.org.uk/forum/viewtopic.php?f=10&t=5117 TODO: Fix.
-#pragma warning(disable: 4275)
+//#pragma warning(disable: 4275)
 
 //http://stackoverflow.com/questions/4125827/supress-compiler-warnings-in-vs2010
 
@@ -21,7 +23,7 @@ const bool FULL_SCREEN = false;
 const bool VSYNC_ENABLED = false;
 
 //Enable if you want to check for memory leaks.
-//#include <vld.h>
+#include <vld.h>
 
 #include <windows.h>
 #include <memory>

@@ -283,15 +283,49 @@ void TerrainNoiseSeeder::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass*
 		return density;
 	};
 
+	NoiseFunction flatTerrainNoise = 
+		[](IndexingValue& index, const XMFLOAT3& position, NoiseClass* noise) -> float
+	{
+		float density;
+		unsigned int idx = index.x + (index.y*index.sizeY) + (index.z * index.sizeY * index.sizeZ);
+
+		if(position.y <= 15.0f)
+		{
+			density = 5000.0f;
+		}
+		else
+		{
+			density = -5000.0f;
+		}
+
+		if(density < -2)
+		{
+			density = -2;
+		}
+		else if (density > 2)
+		{
+			density = 2;
+		}
+
+		if(index.y == 1)
+		{
+			density += 1000000.0f;
+		}
+
+		return density;
+	};
+
 	functionMap.insert(std::make_pair<TerrainTypes::Type, NoiseFunction>(TerrainTypes::SeaBottom, seabottomNoise));
 	functionMap.insert(std::make_pair<TerrainTypes::Type, NoiseFunction>(TerrainTypes::Plains, plainsNoise));
 	functionMap.insert(std::make_pair<TerrainTypes::Type, NoiseFunction>(TerrainTypes::Hills, hillsNoise));
 	functionMap.insert(std::make_pair<TerrainTypes::Type, NoiseFunction>(TerrainTypes::Terraces, terraceNoise));
 	functionMap.insert(std::make_pair<TerrainTypes::Type, NoiseFunction>(TerrainTypes::DramaticHills, dramaticHillsNoise));
+
 	functionMap.insert(std::make_pair<TerrainTypes::Type, NoiseFunction>(TerrainTypes::FlyingIslands, flyingIslandsNoise));
 	functionMap.insert(std::make_pair<TerrainTypes::Type, NoiseFunction>(TerrainTypes::Alien, alienNoise));
 	functionMap.insert(std::make_pair<TerrainTypes::Type, NoiseFunction>(TerrainTypes::Fancy, fancyNoise));
 	functionMap.insert(std::make_pair<TerrainTypes::Type, NoiseFunction>(TerrainTypes::Cave, caveNoise));
+	functionMap.insert(std::make_pair<TerrainTypes::Type, NoiseFunction>(TerrainTypes::Flat, flatTerrainNoise));
 }
 
 void TerrainNoiseSeeder::MCHeightMap()
@@ -383,7 +417,7 @@ void TerrainNoiseSeeder::Noise3D(unsigned int startX, unsigned int startY, unsig
 	}
 
 	//Calculate normals for each point in terrain voxel field. 
-	//This needs to be done in a second loop because we need all the values to be noised before we do normal creation.
+	//** This needs to be done in a second loop because we need all the values to be noised before we do normal creation. **
 	for(index.y = startY; index.y < (endY-1); ++index.y)
 	{
 		for (index.z = startZ; index.z < (endZ-1); ++index.z)

@@ -29,7 +29,7 @@ VertexShaderOutput LightVertexShader(VertexShaderInput input)
 	output.ViewPosition = mul(input.Position, WorldView);
 	
 	float3 worldPosition = mul(input.Position, World);
-	output.ViewRay = (worldPosition.xyz - CameraPosition.xyz);
+	output.ViewRay = normalize(worldPosition.xyz - CameraPosition);
 
 	return output;
 }

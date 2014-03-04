@@ -10,6 +10,7 @@
 #include "StructsAndEnums.h"
 #include <random>
 #include <atlbase.h> // Contains the declaration of CComPtr.
+#include "DODContainer.h"
 
 class TextureAndMaterialHandler
 {
@@ -26,14 +27,19 @@ public:
 
 	struct OBJMaterialStruct
 	{
-		WCHAR modelFilepath[MAX_PATH];
-		WCHAR textureFilepath[MAX_PATH];
+		//Just an identifier to help in assigning the right material to the right mesh when loading obj files.
+		WCHAR name[MAX_PATH];
 
 		XMFLOAT3 Ambient;
 		XMFLOAT3 Diffuse;
 		XMFLOAT3 Specular;
 
 		float smoothness, alpha;
+		bool transparent;
+
+		//Used for cross referencing and linking the gbuffer stage and post processing stage together 
+		// by saving the material ID in a render target during gbuffer stage then reading it during postprocess
+		unsigned short materialID;
 	};
 
 private:
@@ -57,6 +63,15 @@ public:
 
 
 public:
+	unsigned short AddOBJMaterial(OBJMaterialStruct mat);
+	OBJMaterialStruct& GetMaterial(unsigned short handle) { return modelMaterials[handle]; }
+
+	unsigned short AddNewtexture(ID3D11Device* device, std::wstring textureFilepath);
+	ID3D11ShaderResourceView** GetTexture(unsigned short handle) { return &modelTextures[handle].p; }
+
+	bool GetTextureHandle(std::wstring textureFilepath, unsigned short& handle);
+
+
 	ID3D11ShaderResourceView** GetVegetationTextureArray()	{ return &vegetationTextureArraySRV.p;	};
 	ID3D11ShaderResourceView** GetTerrainTextureArray()		{ return &terrainTextureArraySRV.p;		};
 	ID3D11ShaderResourceView** GetMaterialTextureArray()	{ return &materialTextureArraySRV.p;	};
@@ -98,6 +113,9 @@ public:
 	void SaveTextureToFile(ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView* texture, D3DX11_IMAGE_FILE_FORMAT format, LPCSTR fileName);
 
 private:
+	bool CheckForDuplicateTextures(std::wstring filepath, unsigned short& outHandle);
+	bool CheckForDuplicateMaterials(unsigned int hash, unsigned short& outHandle);
+	unsigned int GenerateMaterialHash(OBJMaterialStruct& material);
 
 	HRESULT Create2DSSAORandomTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv);
 	HRESULT CreateRandom2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv);
@@ -156,6 +174,8 @@ private:
 	CComPtr<ID3D11ShaderResourceView> noiseSRV;
 	CComPtr<ID3D11ShaderResourceView> ssaoRandomTextureSRV;
 
+	DODContainer<CComPtr<ID3D11ShaderResourceView>> modelTextures;
+	DODContainer<OBJMaterialStruct> modelMaterials;
 
 	CComPtr<ID3D11ShaderResourceView> windTextureSRV;
 	CComPtr<ID3D11ShaderResourceView> windNormalMapSRV;
@@ -166,4 +186,9 @@ private:
 	MaterialColorSpectrumUINT8 dirtColor;
 	MaterialColorSpectrumUINT8 grassColor;
 
+	//These pairings are used to see if we're trying to load a texture that has already been loaded! For more information, check out CheckForDuplicateTextures()
+	std::vector<std::pair<std::wstring, unsigned short>> textureNameAndKeyPairings;
+
+	//A hash to see if material is identical
+	std::vector<std::pair<unsigned int, unsigned short>> materialHashAndKeyPairings;
 };

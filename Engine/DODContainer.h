@@ -1,46 +1,96 @@
+//Credits where credits are due; this class is very much based upon the "ID lookup table" data structure by bitsquid:
+//http://bitsquid.blogspot.se/2011/09/managing-decoupling-part-4-id-lookup.html
+
 #pragma once
-#include <queue>
-#include <climits>
 
 template<typename T>
 class DODContainer
 {
+
+/************************************************************************/
+/*						Various definitions                             */
+/************************************************************************/
+
+private:
+	static const unsigned short UShortMax = 65535;
+
+private:
+	struct ContainerStruct
+	{
+		unsigned short id;
+		T data;
+	};
+
+	struct Index
+	{
+		unsigned short id;
+		unsigned short index;
+		unsigned short next;
+	};
+
 public:
 
+	/************************************************************************/
+	/*                    Constructors and destructors                      */
+	/************************************************************************/
 	DODContainer(unsigned short size)
-	: currentActiveObjects(0), maxObjects(size)
 	{
-		objectArray = new T[maxObjects];
-		internalHandles = new unsigned short[maxObjects];
+		currentActiveObjects = 0;
 
-		for(unsigned short i = 0; i < maxObjects; i++)
+		maxObjects = (size < UShortMax) ? size : UShortMax-1;
+
+		objectArray = new ContainerStruct[maxObjects];
+		internalHandleArray = new Index[maxObjects];
+
+		for(unsigned short i = 0; i < maxObjects; ++i)
 		{
-			prioQueue.push(i);
-			internalHandles[i] = i;
+			internalHandleArray[i].id = i;
+			internalHandleArray[i].next = i+1;
+			internalHandleArray[i].index = UShortMax; //Just a dummy value...
 		}
+
+		freelist_dequeue = 0;
+		freelist_enqueue = maxObjects-1;
 	}
 
 	~DODContainer()
 	{
-		delete [] objectArray;
-		delete [] internalHandles;
-
-		objectArray = 0;
-		internalHandles = 0;
+		delete[] objectArray;
+		delete[] internalHandleArray;
 	}
 
-	const T& operator[](int i) const { return internalHandles[i]; }
-	T& operator[](int i)			{ return internalHandles[i]; }
+	/************************************************************************/
+	/*                              Operators                               */
+	/************************************************************************/
+	const T&	operator[](int i)	const		{ return objectArray[i].data; }
+	T&			operator[](int i)				{ return objectArray[i].data; }
+
+	/************************************************************************/
+	/*                          Other functions                             */
+	/************************************************************************/
+	unsigned short GetActiveObjectCount() 
+	{ 
+		return currentActiveObjects; 
+	}
+
+	T* GetSpecificObject(unsigned short handle) 
+	{ 
+		return &objectArray[internalHandleArray[handle].index].data; 
+	}
 
 	bool AddNewObject(unsigned short& outHandle)
 	{
 		if(currentActiveObjects < maxObjects)
 		{
-			//Get next free externalHandle
-			unsigned short nextSlot = GetNextOpenSlot();
+			Index& idx = internalHandleArray[freelist_dequeue];
+			freelist_dequeue = idx.next;
 
-			internalHandles[nextSlot] = currentActiveObjects++;
-			outHandle = internalHandles[nextSlot];
+			idx.index = currentActiveObjects++;
+			
+			ContainerStruct& object = objectArray[idx.index];
+			object.id = idx.id;
+
+			outHandle = object.id;
 
 			return true;
 		}
@@ -48,44 +98,30 @@ public:
 		return false;
 	}
 
+	//http://bitsquid.blogspot.se/2011/09/managing-decoupling-part-4-id-lookup.html
 	void RemoveObject(unsigned short externalHandle)
 	{
-		//We remove a sentence. This is how we do that:
-		// 1) Swap furthest out sentence with the one we should delete. 
-		// 2) Update indices to reflect this.
-		// 3) Reduce activeSentences by one. 
-		// 4) Re-add the ID to the prio queue so that it can be reused.
+		Index& idx = internalHandleArray[externalHandle];
 
-		unsigned short idx = internalHandles[externalHandle];
+		ContainerStruct& object = objectArray[idx.index];
+		object = objectArray[--currentActiveObjects];
+		internalHandleArray[object.id].index = idx.index;
 
-		//Get reference to the sentence we're going to remove.
-		T& container = objectArray[idx];
-
-		//Swap sentence with furthest out active sentence.
-		container = objectArray[currentActiveObjects-1];
-
-		internalHandles[currentActiveObjects-1] = idx;
-
-		//Decrement active sentences, essentially invalidating the swapped sentence. It's still technically there, just that we're not going to read or access it.
-		currentActiveObjects--;
-
-		//Add the ID back to the priority queue to let the allocator know that this ID slot is available.
-		prioQueue.push(externalHandle);
+		idx.index = UShortMax;
+		internalHandleArray[freelist_enqueue].next = externalHandle;
+		freelist_enqueue = externalHandle;
 	}
 
-	unsigned short GetActiveObjectCount() { return currentActiveObjects; }
-
-	T* GetSpecificObject(unsigned short handle) { return &objectArray[handle]; }
-	T* GetObjectArray() { return objectArray; }
-
 private:
-	unsigned short GetNextOpenSlot() { unsigned short result = prioQueue.top(); prioQueue.pop(); return result; }
 
-	std::priority_queue<unsigned short, std::vector<unsigned short>, std::greater<unsigned short>> prioQueue;
-	unsigned short* internalHandles;
+	/************************************************************************/
+	/*							Variables                                   */
+	/************************************************************************/
 
 	unsigned short maxObjects;
 	unsigned short currentActiveObjects;
+	unsigned short freelist_enqueue, freelist_dequeue;
 
-	T* objectArray;
+	Index* internalHandleArray;
+	ContainerStruct* objectArray;
 };

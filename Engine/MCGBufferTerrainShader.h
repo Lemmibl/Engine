@@ -7,7 +7,7 @@
 #include <atlcomcli.h>
 #include "SettingsDependent.h"
 
-class MCGBufferTerrainShader : SettingsDependent
+class MCGBufferTerrainShader : public SettingsDependent
 {
 
 private:

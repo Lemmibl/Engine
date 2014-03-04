@@ -12,6 +12,10 @@ OptionsScreen::~OptionsScreen()
 
 void OptionsScreen::Enter()
 {
+	if(!HasBeenInitialized())
+	{
+		SetInitializedState(true);
+	}
 }
 
 void OptionsScreen::Exit()

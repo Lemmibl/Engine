@@ -1,9 +1,10 @@
 #include "ScreenManager.h"
 
-ScreenManager::ScreenManager() : SettingsDependent(), timer(), stateToScreenMap()
+ScreenManager::ScreenManager() : SettingsDependent(), timer(), stateToScreenMap(), loadingScreen()
 {
 	InitializeSettings(this);
 	isQuitting = false;
+	showCursor = true;
 }
 
 
@@ -60,22 +61,24 @@ bool ScreenManager::Initialize(HWND extHwnd, HINSTANCE hInst,int screenWidth, in
 
 	InitializeCEGUI();
 
-	std::shared_ptr<GameplayScreen> gameplayScreen = std::make_shared<GameplayScreen>();
-	result = gameplayScreen->Initialize(hwnd, input, d3D);
-	if(!result)
-	{
-		return false;
-	}
+	loadingScreen.Initialize();
+
+	std::shared_ptr<GameplayScreen> gameplayScreen = std::make_shared<GameplayScreen>(hwnd, input, d3D);
+	//result = gameplayScreen->Initialize();
+	//if(!result)
+	//{
+	//	return false;
+	//}
 
 	AddNewScreen(gameplayScreen, GameStates::GameScreen);
 
 
-	std::shared_ptr<MainMenuScreen> mainMenuScreen = std::make_shared<MainMenuScreen>();
-	result = mainMenuScreen->Initialize(input);
-	if(!result)
-	{
-		return false;
-	}
+	std::shared_ptr<MainMenuScreen> mainMenuScreen = std::make_shared<MainMenuScreen>(input);
+	//result = mainMenuScreen->Initialize();
+	//if(!result)
+	//{
+	//	return false;
+	//}
 
 	AddNewScreen(mainMenuScreen, GameStates::MainMenuScreen);
 
@@ -188,6 +191,9 @@ void ScreenManager::ChangeState(GameStates::Type newState)
 				//Change current screen to the new screen related to new state
 				currentScreen = screen->second;
 
+				//Render "Loading..." screen once before entering the current screen, so will be what is displayed during loading/entering
+				DrawLoadingScreen();
+
 				//Call enter
 				currentScreen->Enter();
 			}
@@ -235,7 +241,17 @@ bool ScreenManager::UpdateActiveScreen()
 	return true;
 }
 
-//WIP...
+void ScreenManager::DrawLoadingScreen()
+{
+	//Just do a quick pass to render loading screen text
+	d3D->BeginScene(0.0f, 0.0f, 0.0f, 0.0f);
+	loadingScreen.Render(0.0f);
+	d3D->PresentFrame();
+
+	//Then clear the text (hide it), so that when we've finished loading, it won't show up
+	loadingScreen.Clear();
+}
+
 bool ScreenManager::UpdateInputs()
 {
 	unsigned int keyPressCount, mouseClickCount;
@@ -285,6 +301,30 @@ bool ScreenManager::UpdateInputs()
 
 				//case InputClass::MouseClick:
 				//	CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonClick(mouseArray[i].second);
+			}
+
+			if(mouseArray[i].second == CEGUI::MouseButton::RightButton)
+			{
+				//If right click was pressed then toggle the drawing of the mouse cursor.
+				if(mouseArray[i].first == InputClass::KeyUp)
+				{
+					showCursor = !showCursor;
+
+					//Retarded hack to toggle hiding and showing of mouse cursor.
+					//Apparently the showCursor uses some sort of internal reference  counter, where each false decrements it with 1 and every true increments it with one.
+					//If the program started with cursor showing, it'll be set to +1. You need to be -1 or lower for it to hide........ So Every toggle needs to change it with 2.
+					//http://us.generation-nt.com/answer/showcursor-false-should-hide-cursor-help-10591742.html
+					if(showCursor)
+					{
+						ShowCursor(TRUE);
+						ShowCursor(TRUE);
+					}
+					else
+					{
+						ShowCursor(FALSE);
+						ShowCursor(FALSE);
+					}
+				}
 			}
 		}
 	}

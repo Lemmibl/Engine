@@ -12,6 +12,7 @@
 #include "IndexedMesh.h"
 #include "TextureAndMaterialHandler.h"
 #include "DODContainer.h"
+#include "OBJModel.h"
 
 class MeshHandler
 {
@@ -39,20 +40,31 @@ public:
 	bool Initialize(TextureAndMaterialHandler* textureAndMaterialHandler);
 
 	//Returns true on success
-	bool LoadIndexedMeshFromOBJFile(ID3D11Device* device, std::wstring filepath, IndexedMesh* outMesh);
+	bool LoadModelFromOBJFile(ID3D11Device* device, std::wstring filepath, OBJModel* outModel);
 
 	//Returns true on success
 	bool LoadIndexedMeshFromTXTFile(ID3D11Device* device, std::wstring filepath, IndexedMesh* outMesh);
 
-	private:
+	IndexedMesh* GetMesh(unsigned short handle) { return meshes.GetSpecificObject(handle); }
+
+private:
+	bool LoadOBJGeometry(ID3D11Device* device, std::wstring filepath, OBJModel* outModel);
+	bool LoadOBJMaterials(ID3D11Device* device, std::wstring filepath, OBJModel* outModel);
+
+	bool CheckForDuplicates(std::wstring filepath, OBJModel& potentialReturnHandle);
+
+private:
 	DODContainer<IndexedMesh> meshes;
-	DODContainer<TextureAndMaterialHandler::OBJMaterialStruct> materials;
 	TextureAndMaterialHandler* texAndMatHandler;
-	std::vector<int> meshSubsetIndexStart;
-	std::vector<int> meshSubsetTexture;
+	std::wstring meshMatLib; //String to hold our obj material library filename
 
-	std::vector<ID3D11ShaderResourceView*> meshSRV;
 	std::vector<std::wstring> textureNameArray;
+	std::vector<std::wstring> meshMaterials;
 
+	//Pairings to check for duplicates whenever we add an object.
+	//If there is a duplicate (filepath is identical) then we just return the handle to that object instead of loading in exactly the same model.
+	std::vector<std::pair<std::wstring, OBJModel>> filePathAndModelPairings;
+
+	std::vector<std::pair<std::wstring, unsigned short>> matNameAndHandlePairings;
 };
 

@@ -1,6 +1,7 @@
 #include "TextureAndMaterialHandler.h"
 
 TextureAndMaterialHandler::TextureAndMaterialHandler()
+	: modelTextures(64), modelMaterials(32)
 {
 }
 
@@ -41,7 +42,7 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	//terrainFilenames.push_back(L"../Engine/data/randomDirt.dds");//4
 	terrainFilenames.push_back(L"../Engine/data/snow.dds");
 	terrainFilenames.push_back(L"../Engine/data/stone.dds");
-	
+
 
 	//If this SRV has been initialized before, release it first.
 	if(terrainTextureArraySRV != 0)
@@ -62,13 +63,26 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	vegetationFilenames.push_back(	L"../Engine/data/CGTextures/Vegetation/Plants03.dds");
 	vegetationFilenames.push_back(	L"../Engine/data/CGTextures/Vegetation/Plants04.dds");
 	vegetationFilenames.push_back(	L"../Engine/data/CGTextures/Vegetation/Plants08.dds");
+
 	vegetationFilenames.push_back(	L"../Engine/data/CGTextures/Vegetation/Plants05.dds");
 	vegetationFilenames.push_back(	L"../Engine/data/CGTextures/Vegetation/Plants06.dds");
 	vegetationFilenames.push_back(	L"../Engine/data/CGTextures/Vegetation/Plants07.dds");
 	vegetationFilenames.push_back(	L"../Engine/data/CGTextures/Vegetation/Plants08.dds");
 	vegetationFilenames.push_back(	L"../Engine/data/CGTextures/Vegetation/Plants08.dds");
-	vegetationFilenames.push_back(	L"../Engine/data/CGTextures/Vegetation/Plants08.dds");
 
+	vegetationFilenames.push_back(	L"../Engine/data/CGTextures/Vegetation/Plants08.dds");
+	vegetationFilenames.push_back(	L"../Engine/data/CGTextures/Vegetation/Plants09.dds");
+	vegetationFilenames.push_back(	L"../Engine/data/CGTextures/Vegetation/Plants10.dds");
+	vegetationFilenames.push_back(	L"../Engine/data/CGTextures/Vegetation/Plants11.dds");
+	vegetationFilenames.push_back(	L"../Engine/data/CGTextures/Vegetation/Plants12.dds");
+
+	vegetationFilenames.push_back(	L"../Engine/data/CGTextures/Vegetation/Plants13.dds");
+	vegetationFilenames.push_back(	L"../Engine/data/CGTextures/Vegetation/Plants14.dds");
+	vegetationFilenames.push_back(	L"../Engine/data/CGTextures/Vegetation/Plants15.dds");
+	vegetationFilenames.push_back(	L"../Engine/data/CGTextures/Vegetation/Plants16.dds");
+	vegetationFilenames.push_back(	L"../Engine/data/CGTextures/Vegetation/Plants17.dds");
+
+	vegetationFilenames.push_back(	L"../Engine/data/CGTextures/Vegetation/Plants08.dds");
 
 	//If this SRV has been initialized before, release it first.
 	if(vegetationTextureArraySRV != 0)
@@ -88,53 +102,60 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	//The lower the smoothness the wider/more spread out the specular is.
 	//Meaning the higher the smoothness is the more focused and intense the specular is.
 	MaterialStruct grass;
-	grass.Kambience = 0.2f;
+	grass.Kambience = 0.6f;
 	grass.Kdiffuse = 1.0f;
 	grass.Kspecular = 0.01f;
-	grass.smoothness = 1.0f;
+	grass.smoothness = 0.1f;
 	grass.shouldBeShadowed = 10.0f;
 
 	MaterialStruct rock;
-	rock.Kambience = 0.2f;
+	rock.Kambience = 0.6f;
 	rock.Kdiffuse = 0.8f;
 	rock.Kspecular = 0.6f;
-	rock.smoothness = 1.0f;
+	rock.smoothness = 0.2f;
 	rock.shouldBeShadowed = 10.0f;
 
 	MaterialStruct snow;
 	snow.Kambience = 1.0f;
 	snow.Kdiffuse = 1.0f;
 	snow.Kspecular = 1.0f;
-	snow.smoothness = 1.0f;
+	snow.smoothness = 0.2f;
 	snow.shouldBeShadowed = 10.0f;
 
 	MaterialStruct dirt;
-	dirt.Kambience = 0.2f;
+	dirt.Kambience = 0.6f;
 	dirt.Kdiffuse = 0.9f;
 	dirt.Kspecular = 0.1f;
 	dirt.smoothness = 2.0f;
 	dirt.shouldBeShadowed = 10.0f;
 
 	MaterialStruct grassQuads;
-	grassQuads.Kambience = 0.25f;
+	grassQuads.Kambience = 0.8f;
 	grassQuads.Kdiffuse = 1.2f;
-	grassQuads.Kspecular = 0.01f;
+	grassQuads.Kspecular = 0.0f;
 	grassQuads.smoothness = 1.0f;
 	grassQuads.shouldBeShadowed = 10.0f;
 
 	MaterialStruct underGround;
-	underGround.Kambience = 0.5f;
+	underGround.Kambience = 0.2f;
 	underGround.Kdiffuse = 0.5f;
 	underGround.Kspecular = 0.2f;
 	underGround.smoothness = 8.0f;
 	underGround.shouldBeShadowed = 10.0f;
 
 	MaterialStruct water;
-	water.Kambience = 0.2f;
+	water.Kambience = 0.6f;
 	water.Kdiffuse = 1.0f;
 	water.Kspecular = 2.0f;
 	water.smoothness = 256.0f;
 	water.shouldBeShadowed = 10.0f;
+
+	MaterialStruct trees;
+	trees.Kambience = 0.8f;
+	trees.Kdiffuse = 1.2f;
+	trees.Kspecular = 0.0f;
+	trees.smoothness = 0.2f;
+	trees.shouldBeShadowed = 10.0f;
 
 	materials.push_back(grass);
 	materials.push_back(rock);
@@ -143,6 +164,7 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	materials.push_back(grassQuads);
 	materials.push_back(underGround);
 	materials.push_back(water);
+	materials.push_back(trees);
 
 	//If this SRV has been initialized before, release it first.
 	if(materialTextureArraySRV)
@@ -1011,24 +1033,24 @@ void TextureAndMaterialHandler::RebuildTexture( ID3D11Device* device, ID3D11Devi
 
 	switch(textureID)
 	{
-		case TEXTURE_DIRT:
+	case TEXTURE_DIRT:
 		CreateMaterialTexture(device, deviceContext, width, height, &terrainTextureSRV.p, dirtColor, startPosX, startPosY);
 		break;
 
-		case TEXTURE_GRASS:
+	case TEXTURE_GRASS:
 		CreateMaterialTexture(device, deviceContext, width, height, &terrainTextureSRV.p, grassColor,  startPosX, startPosY);
 		break;
 
-		case TEXTURE_ROCK:
+	case TEXTURE_ROCK:
 		break;
 
-		case TEXTURE_SNOW:
+	case TEXTURE_SNOW:
 		break;
 
-		case TEXTURE_SAND:
+	case TEXTURE_SAND:
 		break;
 
-		default:
+	default:
 		break;
 		//Meh.
 	}
@@ -1176,7 +1198,7 @@ HRESULT TextureAndMaterialHandler::Create2DNormalMapFromHeightmap( ID3D11Device*
 	{
 		return hResult;
 	}
-	
+
 	hResult = D3DX11ComputeNormalMap(deviceContext, windNoiseTexture.p, NULL, D3DX_CHANNEL_RED, 30.0f, tempTex.p);
 	if(FAILED(hResult))
 	{
@@ -1208,4 +1230,134 @@ void TextureAndMaterialHandler::SetupWindtextures(ID3D11Device* device, ID3D11De
 {
 	CreateSeamlessSimplex2DTexture(device, deviceContext, &windTextureSRV.p, startPosX, startPosY, textureWidth, textureHeight, noiseScale);
 	Create2DNormalMapFromHeightmap(device, deviceContext, &windNormalMapSRV.p, textureWidth, textureHeight);
+}
+
+unsigned short TextureAndMaterialHandler::AddOBJMaterial( OBJMaterialStruct mat )
+{ 
+	unsigned short newHandle = 0; 
+	unsigned int hash = GenerateMaterialHash(mat);
+
+	//If there ISNT a duplicate material
+	if(!CheckForDuplicateMaterials(hash, newHandle))
+	{
+		if(modelMaterials.AddNewObject(newHandle))
+		{
+			modelMaterials[newHandle] = mat;
+
+			//So if EVERYTHING went through, add the hash and related handle so that we can check for duplicates of this material in the future
+			materialHashAndKeyPairings.push_back(std::make_pair<unsigned int, unsigned short>(hash, newHandle));
+		} 
+	}
+
+	return newHandle; 
+};
+
+unsigned short TextureAndMaterialHandler::AddNewtexture(ID3D11Device* device, std::wstring textureFilepath )
+{
+	unsigned short newHandle = 0;
+
+	//If there ISNT a duplicate texture
+	if(!CheckForDuplicateTextures(textureFilepath, newHandle))
+	{
+		//We allocate a new slot in our modelTextures container
+		if(modelTextures.AddNewObject(newHandle))
+		{
+			HRESULT result;
+
+			if(modelTextures[newHandle] != 0)
+			{
+				modelTextures[newHandle].Release();
+			}
+
+			result = D3DX11CreateShaderResourceViewFromFile(device, textureFilepath.c_str(),
+				NULL, NULL, &modelTextures[newHandle].p, NULL );
+
+			if(FAILED(result))
+			{
+				std::wstring message;
+				message += L"Could not load texture file: ";
+				message += textureFilepath.c_str();
+
+				MessageBox(0, message.c_str(), L"Error", MB_OK);
+			}
+			else
+			{
+				//So if EVERYTHING went through, add the filepath and related handle so that we can check for duplicates of this texture in the future
+				textureNameAndKeyPairings.push_back(std::make_pair<std::wstring, unsigned short>(textureFilepath, newHandle));
+			}
+		} 
+	}
+
+	return newHandle; 
+}
+
+//Returns true if there's a duplicate found. This means that the outHandle will be assigned a value.
+bool TextureAndMaterialHandler::CheckForDuplicateTextures(std::wstring filepath, unsigned short& outHandle)
+{
+
+	for(unsigned int i = 0; i < textureNameAndKeyPairings.size(); i++)
+	{
+		auto& pair = textureNameAndKeyPairings[i];
+
+		//If this is true, it means we've been trying to add a duplicate texture
+		if(filepath == pair.first)
+		{
+			//So don't add a duplicate texture, instead just return the handle to the identical texture that is already loaded in
+			outHandle = pair.second;
+
+			//Break loop
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool TextureAndMaterialHandler::CheckForDuplicateMaterials(unsigned int hash, unsigned short& outHandle )
+{
+	for(unsigned int i = 0; i < materialHashAndKeyPairings.size(); i++)
+	{
+		auto& pair = materialHashAndKeyPairings[i];
+
+		//If this is true, it means we've been trying to add a duplicate material
+		if(hash == pair.first)
+		{
+			//So don't add a duplicate texture, instead just return the handle to the identical texture that is already loaded in
+			outHandle = pair.second;
+
+			//Break loop
+			return true;
+		}
+	}
+
+	return false;
+}
+
+//Worst hash function in the universe, because I'm a fucking retard. Should work for my needs, though.
+unsigned int TextureAndMaterialHandler::GenerateMaterialHash( OBJMaterialStruct& material )
+{
+	float hash = 0;
+
+	hash += material.Ambient.x*10.0f;
+	hash += material.Ambient.y*20.0f;
+	hash += material.Ambient.z*30.0f;
+
+	hash += material.Diffuse.x*140.0f;
+	hash += material.Diffuse.y*250.0f;
+	hash += material.Diffuse.z*360.0f;
+
+	hash += material.Specular.x*250.0f;
+	hash += material.Specular.y*290.0f;
+	hash += material.Specular.z*210.0f;
+
+	hash += material.alpha * 500.0f;
+	hash += material.smoothness * 5000.0f;
+	hash += (material.transparent ? 10000.0f : 100000.0f);
+
+	return (unsigned int)hash;
+}
+
+bool TextureAndMaterialHandler::GetTextureHandle( std::wstring textureFilepath, unsigned short& handle )
+{
+	return CheckForDuplicateTextures(textureFilepath, handle);
 }

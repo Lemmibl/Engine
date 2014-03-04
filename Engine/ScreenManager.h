@@ -9,6 +9,7 @@
 #include "CEGUI/CEGUI.h"
 #include "CEGUI/RendererModules/Direct3D11/Renderer.h"
 #include "GameStates.h"
+#include "LoadingScreen.h"
 
 class ScreenManager : public SettingsDependent
 {
@@ -37,6 +38,8 @@ public:
 	GameStates::Type GetCurrentState() { return currentState; }
 
 private:
+	void DrawLoadingScreen();
+
 	HWND hwnd;
 	float nearClip, farClip, shadowMapWidth, shadowMapHeight;
 
@@ -49,6 +52,8 @@ private:
 	std::shared_ptr<GenericScreen> currentScreen;
 
 	std::map<GameStates::Type, std::shared_ptr<GenericScreen>> stateToScreenMap;
-	bool isQuitting;
+	LoadingScreen loadingScreen;
+
+	bool isQuitting, showCursor;
 };
 

@@ -26,14 +26,17 @@
     <ClCompile Include="DRDirectionalLight.cpp" />
     <ClCompile Include="DRCompose.cpp" />
     <ClCompile Include="DRGBuffer.cpp" />
+    <ClCompile Include="DRObjModelShader.cpp" />
     <ClCompile Include="DRWaterClass.cpp" />
     <ClCompile Include="fontshaderclass.cpp" />
     <ClCompile Include="fpsmeter.cpp" />
     <ClCompile Include="frustumclass.cpp" />
     <ClCompile Include="FullScreenShaderInterface.cpp" />
     <ClCompile Include="GameplayScreen.cpp" />
+    <ClCompile Include="LoadingScreen.cpp" />
     <ClCompile Include="MainMenuScreen.cpp" />
     <ClCompile Include="MultiMeshModel.cpp" />
+    <ClCompile Include="OBJModel.cpp" />
     <ClCompile Include="OptionsScreen.cpp" />
     <ClCompile Include="ProceduralTextureHandler.cpp" />
     <ClCompile Include="RasterizerStateManager.cpp" />
@@ -102,6 +105,7 @@
     <ClInclude Include="DODContainer.h" />
     <ClInclude Include="DRDirectionalLight.h" />
     <ClInclude Include="DRCompose.h" />
+    <ClInclude Include="DRObjModelShader.h" />
     <ClInclude Include="DRWaterClass.h" />
     <ClInclude Include="fontclass.h" />
     <ClInclude Include="fontshaderclass.h" />
@@ -111,8 +115,10 @@
     <ClInclude Include="FullScreenShaderInterface.h" />
     <ClInclude Include="GameplayScreen.h" />
     <ClInclude Include="GameStates.h" />
+    <ClInclude Include="LoadingScreen.h" />
     <ClInclude Include="MainMenuScreen.h" />
     <ClInclude Include="MultiMeshModel.h" />
+    <ClInclude Include="OBJModel.h" />
     <ClInclude Include="OptionsScreen.h" />
     <ClInclude Include="ProceduralTextureHandler.h" />
     <ClInclude Include="RasterizerStateManager.h" />
@@ -176,6 +182,7 @@
     <None Include="libconfig\libconfig.dll" />
     <None Include="libconfig\libconfig.h++" />
     <None Include="libconfig\libconfig_d.dll" />
+    <None Include="OBJGbuffer.vsh" />
     <None Include="Shaders\DRCompose.hlsl" />
     <None Include="Shaders\DepthOnlyQuadShader.psh" />
     <None Include="Shaders\DepthOnlyQuadShader.vsh" />
@@ -201,6 +208,7 @@
     <None Include="Shaders\MCGBufferTerrainShader.vsh" />
     <None Include="settings.cfg" />
     <None Include="shader-error.txt" />
+    <None Include="Shaders\OBJGbuffer.psh" />
     <None Include="Shaders\skysphere.psh" />
     <None Include="Shaders\skysphere.vsh" />
     <None Include="Shaders\standard.vsh" />
@@ -263,7 +271,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <MinimalRebuild>true</MinimalRebuild>
-      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <AdditionalIncludeDirectories>..\CEGUI\lib;..\CEGUI\bin;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Engine\libconfig;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Debug;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\bullet-2.82-r2704\bullet-2.82-r2704\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalUsingDirectories>
@@ -273,7 +281,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <Profile>false</Profile>
+      <Profile>true</Profile>
       <HeapReserveSize>
       </HeapReserveSize>
       <StackReserveSize>

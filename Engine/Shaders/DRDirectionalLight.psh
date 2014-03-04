@@ -226,7 +226,7 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target0
 
 
 	//If we aren't in shadow and surface angle is satisfactory, calculate specular
-	if(NdL >= 0.0f && shadowMultiplier == 1.0f)
+	if(NdL >= 0.0f && shadowMultiplier >= 1.0f)
 	{
 		//Reflection vector
 		float3 reflectionVector = normalize(reflect(lightVector, normal));
@@ -246,7 +246,7 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target0
 	//This results in the quads looking really ass and they start flickering when the light moves and shit. Bad.
 	//if(recieveShadows)
 	//{
-	return LightIntensity*float4((ambienceCoefficient * AmbientColor.rgb) + (finalDiffuseProduct * shadowMultiplier), (finalSpecularProduct * shadowMultiplier));
+	return float4((ambienceCoefficient * AmbientColor.rgb) + (finalDiffuseProduct * shadowMultiplier), (finalSpecularProduct * shadowMultiplier)) * LightIntensity;
 	//}
 	//else //Don't shade if it shouldn't recieve any shadows. This also includes the empty space where nothing exists, seeing as we clear the normal rendertarget alpha channel to 0.0f in gbuffer stage.
 	//{

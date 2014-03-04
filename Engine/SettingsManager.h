@@ -40,8 +40,9 @@ class SettingsManager
 		{
 			// The only instance
 			// Guaranteed to be lazy initialized
-			// Guaranteed that it will be destroyed correctly
+			// Guaranteed that it will be destroyed correctly when the program is ended.
 			static SettingsManager instance;
+
 			return instance;
 		}
 

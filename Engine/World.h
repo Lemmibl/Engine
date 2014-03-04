@@ -16,7 +16,7 @@
 
 //using namespace libconfig;
 
-class GameWorld : SettingsDependent
+class GameWorld : public SettingsDependent
 {
 public:
 	GameWorld();
@@ -32,12 +32,14 @@ public:
 	void ResetCamera();
 	void InitializeTerrain();
 
+	MeshHandler* GetMeshHandler() { return &meshHandler; }
 
 	GameRenderer::RenderableBundle* GetRenderableBundle() {  return &renderableBundle; };
 	std::shared_ptr<CameraClass> GetCamera() { return camera; }
 	XMFLOAT3* GetWindDirection() { return weatherSystem.GetWindDirection(); }
 
 private:
+	void InitializeMiscRenderables();
 	void InitializeCollision();
 	void InitializeCamera();
 	void HandleInput();
@@ -62,7 +64,7 @@ private:
 	Lemmi2DAABB frustumAABB;
 
 	//Terrain related objects
-	std::shared_ptr<TerrainManager> terrainManager;
+	TerrainManager terrainManager;
 	WeatherSystem weatherSystem;
 
 	//Rendering

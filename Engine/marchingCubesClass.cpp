@@ -4,11 +4,11 @@
 
 #include <stdio.h>
 
-/* Both tables are from Paul Borke's "Polygonising a scalar field"
+/* Both tables are from Paul Bourke's "Polygonising a scalar field"
 
 http://astronomy.swin.edu.au/~pbourke/modelling/polygonise/ 
 
-but the tables are from Cory Gene Bloyd.
+but the tables are originally from Cory Gene Bloyd...?????
 */
 
 //Contains all combinations of points inside or outside of a cube
@@ -493,6 +493,8 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 					//ANY triangle in this mesh is below waterlevel, we want to create water.
 					float yPos = verts[tritableLookupValue].position.y;
 
+					//TODO: Save lowest yPos of the chunk in the chunk. Each chunk will then do a if(currentWaterLevel > lowestYPosForThisChunk){ DrawThisWaterMesh(); } 
+					//.. Also.... Maybe reuse the same mesh for every chunk? Instancing? GeomShader should still work just fine
 					if(yPos < waterLevel)	
 					{			
 						createWater = true;
@@ -586,7 +588,7 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 			vertices.resize((stepsX) * (stepsZ));
 
 			// Read the image data into the height map.
-			for(float z=0; z < stepsZ; z++)
+			for(float z = 0; z < stepsZ; z++)
 			{
 				for(float x = 0; x < stepsX; x++)
 				{

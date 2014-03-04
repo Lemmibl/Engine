@@ -24,7 +24,7 @@ GameRenderer::~GameRenderer()
 
 
 bool GameRenderer::Initialize(HWND hwnd, std::shared_ptr<CameraClass> camera, std::shared_ptr<InputClass> inputManager, std::shared_ptr<D3DManager> d3D, 
-	DebugOverlayHUD* extDebugHUD, UINT screenWidth, UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear)
+	MeshHandler* extMeshHandler, DebugOverlayHUD* extDebugHUD, UINT screenWidth, UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear)
 {
 	bool result;
 
@@ -39,6 +39,7 @@ bool GameRenderer::Initialize(HWND hwnd, std::shared_ptr<CameraClass> camera, st
 	this->d3D = d3D;
 	this->camera = camera;
 	debugHUD = extDebugHUD;
+	meshHandler = extMeshHandler;
 
 	toggleSSAO = 0;
 	toggleColorMode = 1;
@@ -159,6 +160,13 @@ bool GameRenderer::InitializeShaders( HWND hwnd )
 		return false;
 	}
 
+	result = objModelShader.Initialize(d3D->GetDevice(), hwnd);
+	if(!result)
+	{
+		MessageBox(NULL, L"OBJ Model shader couldn't be initialized.", L"Error", MB_OK);
+		return false;
+	}
+
 	return true;
 }
 
@@ -256,6 +264,18 @@ bool GameRenderer::InitializeModels( HWND hwnd )
 		return false;
 	}
 
+	numtrees = 50;
+
+	for(int i = 0; i < numtrees; i++)
+	{
+		XMFLOAT4X4 temp;
+
+		//Order of operations should be Scaling * Rotation * Translation
+		XMStoreFloat4x4(&temp, (XMMatrixRotationRollPitchYaw(0.0f, utility.RandomFloat()*360.0f, 0.0f) * XMMatrixTranslation(utility.RandomFloat()*100.0f, 15.0f, utility.RandomFloat()*100.0f)));
+
+		treeMatrices.push_back(temp);
+	}
+
 	return true;
 }
 
@@ -263,38 +283,13 @@ bool GameRenderer::InitializeModels( HWND hwnd )
 bool GameRenderer::InitializeDebugText()
 {
 	debugHUD->AddNewWindowWithoutHandle("DeltaTime: ", &timer, DataTypeEnumMappings::Float);
-	//debugHUD->AddNewWindowWithoutHandle("FPS: ", &fps, DataTypeEnumMappings::Float);
 
 	debugHUD->AddNewWindowWithoutHandle("Directional light position: ", &dirLight.Position, DataTypeEnumMappings::Float3);
-	debugHUD->AddNewWindowWithoutHandle("Camera position: ", camera->GetPositionPtr(), DataTypeEnumMappings::Float3);
-	debugHUD->AddNewWindowWithoutHandle("Camera rotation: ", camera->GetRotationPtr(), DataTypeEnumMappings::Float3);
+	debugHUD->AddNewWindowWithoutHandle("Camera position: ", camera->GetPositionPtr(),		DataTypeEnumMappings::Float3);
+	debugHUD->AddNewWindowWithoutHandle("Camera rotation: ", camera->GetRotationPtr(),		DataTypeEnumMappings::Float3);
 
-
-	//result = text->SetFps(fps, d3D->GetDeviceContext());
-	//if(!result)
-	//{
-	//	return false;
-	//}
-
-	//result = text->SetCpu(cpuPercentage, d3D->GetDeviceContext());
-	//if(!result)
-	//{
-	//	return false;
-	//}
-
-	//XMFLOAT3 temp = camera->GetPosition();
-	//result = text->SetCameraPosition((int)temp.x, (int)temp.y, (int)temp.z, d3D->GetDeviceContext());
-	//if(!result)
-	//{
-	//	return false;
-	//}
-
-	//temp = camera->GetRotation();
-	//result = text->SetCameraRotation((int)temp.x, (int)temp.y, (int)temp.z, d3D->GetDeviceContext());
-	//if(!result)
-	//{
-	//	return false;
-	//}
+	debugHUD->AddNewWindowWithoutHandle("Point lights are turned on: ", &toggleOtherPointLights,		DataTypeEnumMappings::Bool);
+	debugHUD->AddNewWindowWithoutHandle("Point light #1: ", &pointLights[0].Position.y,		DataTypeEnumMappings::Float);
 
 	return true;
 }
@@ -333,6 +328,69 @@ bool GameRenderer::InitializeEverythingElse( HWND hwnd )
 	lightRT.Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
 	shadowRT.Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R32G32_FLOAT);
 	gaussianBlurPingPongRT.Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R32G32_FLOAT); //Needs to be identical to shadowRT
+
+	//TODO:
+	/*
+
+	for(int i = 0; i < 3; i++)
+	{
+	if(!debugWindows[i].Render(deviceContext, 200+200*i, 0))
+	{
+	return false;
+	}
+
+	if(!textureShader.Render(deviceContext, debugWindows[i].GetIndexCount(), 
+	worldBaseViewOrthoProj, gbufferTextures[i]))
+	{
+	return false;
+	}
+	}
+
+	if(!debugWindows[4].Render(deviceContext, 800, 0))
+	{
+	return false;
+	}
+
+	if(!textureShader.Render(deviceContext, debugWindows[4].GetIndexCount(), 
+	worldBaseViewOrthoProj, shadowRT.SRView))
+	{
+	return false;
+	}
+
+	if(!debugWindows[3].Render(deviceContext, 200, 200))
+	{
+	return false;
+	}
+
+	if(!textureShader.Render(deviceContext, debugWindows[3].GetIndexCount(), 
+	worldBaseViewOrthoProj, lightRT.SRView))
+	{
+	return false;
+	}
+
+	if(!debugWindows[5].Render(deviceContext, 400, 200))
+	{
+	return false;
+	}
+
+	if(!textureShader.Render(deviceContext, debugWindows[5].GetIndexCount(), 
+	worldBaseViewOrthoProj, *textureAndMaterialHandler.GetWindNormalMap()))
+	{
+	return false;
+	}
+
+	if(!debugWindows[6].Render(deviceContext, 600, 200))
+	{
+	return false;
+	}
+
+	if(!textureShader.Render(deviceContext, debugWindows[6].GetIndexCount(), 
+	worldBaseViewOrthoProj, *textureAndMaterialHandler.GetWindTexture()))
+	{
+	return false;
+	}
+
+	*/
 
 	return true;
 }
@@ -588,7 +646,7 @@ bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 		return false;
 	}
 
-	if(!RenderPointLight(&viewMatrix, &invertedView, &viewProjection))
+	if(!RenderPointLight(&viewMatrix, &invertedView, &invertedProjection, &viewProjection))
 	{
 		return false;
 	}
@@ -645,7 +703,6 @@ bool GameRenderer::RenderShadowmap(XMMATRIX* lightWorldViewProj, XMMATRIX* light
 
 	return true;
 }
-
 
 //TODO: change this function to just take two generic render targets and a depth stencil, as to make it possible to blur anything
 bool GameRenderer::RenderTwoPassGaussianBlur(XMMATRIX* worldBaseViewOrthoProj )
@@ -781,6 +838,57 @@ bool GameRenderer::RenderGBuffer(XMMATRIX* viewMatrix, XMMATRIX* projectionMatri
 		}
 	}
 
+	//This is where we'll render trees.
+	auto& objModels = renderableBundle->objModels;
+	vecSize = renderableBundle->objModels.size();
+
+	//Should be temporary ...
+	bool textureNeedsUpdate = true;
+	bool materialNeedsUpdate = true;
+
+	XMMATRIX tempView = XMMatrixTranspose(*viewMatrix);
+	XMMATRIX tempProj = XMMatrixTranspose(*projectionMatrix);
+
+	for(unsigned int i = 0; i < vecSize; i++)
+	{
+		auto& model = renderableBundle->objModels[i];
+		IndexedMesh* tempMesh = meshHandler->GetMesh(model.GetMeshHandle());
+
+		//Retarded little hack to see viability of rendering many trees
+		for(int k = 0; k < numtrees; k++)
+		{
+			worldMatrix = XMMatrixTranspose(XMLoadFloat4x4(&treeMatrices[k]));
+
+			for(int j = 0; j < model.GetSubsetCount()-1; j++)
+			{
+				//See if we need to update texture
+				auto tex = textureAndMaterialHandler.GetTexture(model.GetTextureHandles().at(j));
+
+				if(textureNeedsUpdate)
+				{
+					objModelShader.SetNewTexture(deviceContext, tex, 1);
+				}
+
+				//See if we need to update material
+				auto mat = textureAndMaterialHandler.GetMaterial(model.GetMaterialHandles().at(j));
+
+				if(materialNeedsUpdate)
+				{
+					objModelShader.SetNewMaterial(deviceContext, mat);
+				}
+
+				objModelShader.UpdateMatrixBuffer(deviceContext, &worldMatrix, &tempView, &tempProj);
+
+				tempMesh->Render(deviceContext);
+
+				//This will always work, because when we load in the model we add one last set of index subsets that contains the entire count (the end of the indices, essentially).
+				int indexCount = model.GetSubSetIndices()[j+1] - model.GetSubSetIndices()[j];
+
+				objModelShader.RenderShader(deviceContext, indexCount, model.GetSubSetIndices()[j]);
+			}
+		}
+	}
+
 	d3D->GetBlendStateManager()->TurnOnDefaultBlendState();
 	d3D->GetRasterizerStateManager()->SetBackFaceCullingRasterizer();
 
@@ -788,7 +896,7 @@ bool GameRenderer::RenderGBuffer(XMMATRIX* viewMatrix, XMMATRIX* projectionMatri
 }
 
 
-bool GameRenderer::RenderPointLight(XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* viewProjection )
+bool GameRenderer::RenderPointLight(XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* invertedProjection, XMMATRIX* viewProjection )
 {
 	XMMATRIX world, worldView, worldViewProj;
 
@@ -829,7 +937,7 @@ bool GameRenderer::RenderPointLight(XMMATRIX* view, XMMATRIX* invertedView, XMMA
 			sphereModel.Render(deviceContext);
 
 			if(!pointLightShader.Render(deviceContext, sphereModel.GetIndexCount(), &worldViewProj, &worldView, &world, invertedView, 
-				&pointLights[i], &gbufferTextures[0].p, textureAndMaterialHandler.GetMaterialTextureArray(), camPos))
+				invertedProjection, &pointLights[i], &gbufferTextures[0].p, textureAndMaterialHandler.GetMaterialTextureArray(), camPos))
 			{
 				return false;
 			}
@@ -1002,6 +1110,8 @@ void GameRenderer::Shutdown()
 void GameRenderer::OnSettingsReload(Config* cfg)
 {
 	const Setting& settings = cfg->getRoot()["rendering"];
+
+	//let's NOT do this. take all of this from d3dManager, which in turns gets it from engine where it is decided on startup
 
 	settings.lookupValue("windowWidth", screenWidth);
 	settings.lookupValue("windowHeight", screenHeight);

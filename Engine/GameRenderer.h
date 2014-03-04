@@ -29,6 +29,7 @@
 #include "TerrainManager.h"
 #include "TextureAndMaterialHandler.h"
 #include "VegetationManager.h"
+#include "MeshHandler.h"
 
 //Objects
 #include "modelclass.h"
@@ -56,6 +57,8 @@
 #include "GeometryShaderGrass.h"
 #include "DRWaterClass.h"
 #include "DRGBuffer.h"
+#include "OBJModel.h"
+#include "DRObjModelShader.h"
 
 class GameRenderer : public SettingsDependent
 {
@@ -70,7 +73,9 @@ public:
 	struct RenderableBundle
 	{
 		std::vector<IndexedMesh> indexedMeshes;
-		std::vector<IndexedInstancedMesh> indexedInstancedMeshes;
+		//std::vector<IndexedInstancedMesh> indexedInstancedMeshes;
+		std::vector<OBJModel> objModels;
+
 		std::vector<MarchingCubeChunk*> terrainChunks;
 		TestSphere testSphere; //temp.
 	};
@@ -81,7 +86,7 @@ public:
 
 	void Shutdown();
 
-	bool Initialize(HWND hwnd, std::shared_ptr<CameraClass> camera, std::shared_ptr<InputClass> inputManager, std::shared_ptr<D3DManager> d3D, DebugOverlayHUD* debugHUD, 
+	bool Initialize(HWND hwnd, std::shared_ptr<CameraClass> camera, std::shared_ptr<InputClass> inputManager, std::shared_ptr<D3DManager> d3D, MeshHandler* meshHandler, DebugOverlayHUD* debugHUD, 
 		UINT screenWidth, UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear);
 
 	bool Update(HWND hwnd, int fps, int cpuPercentage, float millisecondDeltaTime, float secondDeltaTime, XMFLOAT3* windDirection);
@@ -102,8 +107,12 @@ private:
 	bool RenderShadowmap(XMMATRIX* lightWorldViewProj, XMMATRIX* lightWorldView, RenderableBundle* renderableBundle);
 	bool RenderTwoPassGaussianBlur(XMMATRIX* worldBaseViewOrthoProj);
 	bool RenderGBuffer(XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, XMMATRIX* identityWorldViewProj, RenderableBundle* renderableBundle);
+
+	//bool RenderTerrain();
+	//bool RenderVegetation();
+
 	bool RenderDirectionalLight(XMMATRIX* viewMatrix, XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* lightView, XMMATRIX* lightProj, XMMATRIX* invertedProjection);
-	bool RenderPointLight(XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* viewProjection);
+	bool RenderPointLight(XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* invertedProjection, XMMATRIX* viewProjection);
 	bool RenderComposedScene(XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* worldView, XMMATRIX* view, XMMATRIX* invertedProjection, XMMATRIX* invertedViewProjection);
 	bool RenderGUI(XMMATRIX* worldBaseViewOrthoProj);
 
@@ -114,6 +123,10 @@ private:
 	std::shared_ptr<D3DManager> d3D;
 	std::shared_ptr<CameraClass> camera;
 	std::shared_ptr<InputClass> inputManager;
+	MeshHandler* meshHandler;
+
+	std::vector<XMFLOAT4X4> treeMatrices;
+	int numtrees;
 
 	DebugOverlayHUD* debugHUD;
 	std::vector<DebugWindowHandle> debugWindowHandles;
@@ -129,6 +142,7 @@ private:
 	GeometryShaderGrass geometryShaderGrass;
 	DRWaterClass waterShader;
 	MCGBufferTerrainShader mcubeShader;
+	DRObjModelShader objModelShader;
 
 	DRDirLight dirLightShader;
 	DirLight dirLight;

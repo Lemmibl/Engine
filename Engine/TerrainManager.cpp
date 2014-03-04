@@ -36,9 +36,21 @@ static const XMFLOAT3 stepSize(2.0f, 2.0f, 2.0f);
 //Needs to be kept at 28, 53, 103 etc, else your position slowly gets out of sync with the culling position. Need to look into this.
 static const XMFLOAT3 stepCount(28.0f, 28.0f, 28.0f);
 
-TerrainManager::TerrainManager(ID3D11Device* device, ID3D11DeviceContext* deviceContext, std::shared_ptr<btDiscreteDynamicsWorld> collisionWorld, HWND hwnd, XMFLOAT3 cameraPosition) 
-: marchingCubes((int)stepCount.x, (int)stepCount.y, (int)stepCount.z), SettingsDependent()
+TerrainManager::TerrainManager() 
+: SettingsDependent(), marchingCubes((int)stepCount.x, (int)stepCount.y, (int)stepCount.z)
 {
+}
+
+TerrainManager::~TerrainManager()
+{
+}
+
+
+bool TerrainManager::Initialize( ID3D11Device* device, ID3D11DeviceContext* deviceContext, std::shared_ptr<btDiscreteDynamicsWorld> collisionWorld, HWND hwnd, XMFLOAT3 cameraPosition )
+{
+	//Load settings from file
+	InitializeSettings(this);
+
 	timePassed = 0.0f;
 	timeThreshold = 10.0f;
 	rangeThreshold = 800.0f;
@@ -56,43 +68,15 @@ TerrainManager::TerrainManager(ID3D11Device* device, ID3D11DeviceContext* device
 	stepScaling = (stepSize.x*(stepCount.x-3)) / 5000;
 
 	//I give no shits if this throws a warning, it helps me remember which terraintypes there are and their names.
-	TerrainTypes::Type terrainType = TerrainTypes::Plains;//(TerrainNoiseSeeder::TerrainTypes)(1 + rand()%8); //
+	//terrainType = TerrainTypes::Plains;//(TerrainNoiseSeeder::TerrainTypes)(1 + rand()%8); //
 
 	terrainNoiser.Initialize((int)stepCount.x, (int)stepCount.y, (int)stepCount.z, &noise, terrainType);
 
 	vegetationManager.Initialize(device, hwnd);
 
-	//float randVal = (float)RoundToNearest(RandomFloat()*100.0f);
-
-	////Define starting point for chunk generation
-	//int startGridX, startGridZ;
-
-	//startGridX = RoundToNearest(cameraPosition.x*stepScaling);
-	//startGridZ = RoundToNearest(cameraPosition.z*stepScaling);
-
-	////Create 9 chunks around the starting point
-	//CreateChunk(device, deviceContext, startGridX, startGridZ-1);
-	//CreateChunk(device, deviceContext, startGridX, startGridZ+0);
-	//CreateChunk(device, deviceContext, startGridX, startGridZ+1);
-
-	//CreateChunk(device, deviceContext, startGridX+1, startGridZ-1);
-	//CreateChunk(device, deviceContext, startGridX+1, startGridZ+0);
-	//CreateChunk(device, deviceContext, startGridX+1, startGridZ+1);
-
-	//CreateChunk(device, deviceContext, startGridX-1, startGridZ-1);
-	//CreateChunk(device, deviceContext, startGridX-1, startGridZ+0);
-	//CreateChunk(device, deviceContext, startGridX-1, startGridZ+1);
-
-	//Update(device, deviceContext, cameraPosition, 0.0f);
-
-
-	//Load settings from file
-	//InitializeSettings(this);
+	return true;
 }
 
-TerrainManager::~TerrainManager()
-{
-}
 
 bool TerrainManager::Update(ID3D11Device* device, ID3D11DeviceContext* deviceContext, XMFLOAT3 currentCameraPosition, float deltaTime)
 {
@@ -541,4 +525,10 @@ void TerrainManager::Cleanup(float posX, float posZ)
 
 void TerrainManager::OnSettingsReload(Config* cfg)
 {
+	int type;
+
+	const Setting& settings = cfg->getRoot()["terrain"];
+	settings.lookupValue("startingTerrainType", type);
+
+	terrainType = (TerrainTypes::Type)type;
 }

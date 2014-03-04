@@ -24,6 +24,8 @@ public:
 	bool Render(ID3D11DeviceContext*, int, int);
 
 	int GetIndexCount();
+	void SetTextureToRender(ID3D11ShaderResourceView* texture) { textureToRender = texture; }
+	ID3D11ShaderResourceView* GetTexture() { return textureToRender; }
 
 private:
 	bool InitializeBuffers(ID3D11Device*);
@@ -34,6 +36,7 @@ private:
 private:
 	CComPtr<ID3D11Buffer> vertexBuffer;
 	CComPtr<ID3D11Buffer> indexBuffer;
+	ID3D11ShaderResourceView* textureToRender;
 	int vertexCount, indexCount;
 	int screenWidth, screenHeight;
 	int bitmapWidth, bitmapHeight;

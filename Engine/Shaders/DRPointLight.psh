@@ -10,6 +10,7 @@ cbuffer LightBufferType
 cbuffer PixelMatrixBufferType
 {
 	float4x4 InvertedView;
+	float4x4 InvertedProjection;
 }
 
 struct VertexShaderOutput
@@ -79,6 +80,13 @@ float3 ReconstructWorldPositionFromDepth(float3 viewRay, float depth)
 	return CameraPosition.xyz + (viewRay * (depth*400.0f));
 }
 
+float3 DepthToPosition(float depth, float farClip, float4 ScreenPosition)
+{
+	float3 viewPosition = mul(ScreenPosition, InvertedProjection).xyz;
+	float3 viewRay = float3(viewPosition.xy * (farClip / viewPosition.z), farClip);
+	return viewRay * depth;
+}
+
 static const float cutoff = 2.0f;
 
 ///////////////////////////////////////////////////
@@ -118,10 +126,10 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	float depth = textures[2].Sample(pointSampler, texCoord);
 	float3 normal = normalize(DecodeNormal(normalData.xy));
 	
-	float4 position = mul(float4(ReconstructViewPositionFromDepth(input.ViewPosition.xyz, depth), 1.0f), InvertedView);//float4(ReconstructWorldPositionFromDepth(viewRay, depth), 1.0f); //ReconstructPositionFromDepth(depth, input.ScreenPosition.xy);
+	float4 position = float4(ReconstructWorldPositionFromDepth(input.ViewRay, depth), 1.0f);//mul(float4(ReconstructViewPositionFromDepth(input.ViewPosition.xyz, depth), 1.0f), InvertedView);//float4(ReconstructWorldPositionFromDepth(viewRay, depth), 1.0f); //ReconstructPositionFromDepth(depth, input.ScreenPosition.xy);
 
 	//surface-to-light vector
-	float3 lightVector = (position-LightPosition);
+	float3 lightVector = (position - LightPosition);
 
 	float d = length(lightVector);
 	float denom = ((d*d) / LightColor.w);
@@ -149,32 +157,8 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	float3 directionToCamera = normalize(CameraPosition - position);
 
 	//compute specular light. Phong.
-	float specularLight = pow( saturate( dot(reflectionVector, directionToCamera)), surfaceSmoothness);
+	float specularLight = pow(saturate(dot(reflectionVector, directionToCamera)), surfaceSmoothness);
 
 	//scale final value with attenuation, take into calculation the current material of this pixel
-	return attenuation*half4(diffuseCoefficient*diffuseLight, specularCoefficient*specularLight);
+	return half4((diffuseCoefficient*diffuseLight), (specularCoefficient*specularLight)) * attenuation;
 }
-
-/*
-vec3 DirectIllumination(vec3 P, vec3 N, vec3 lightCentre, float lightRadius, vec3 lightColour, float cutoff)
-{
-	float r = lightRadius;
-	vec3 L = lightCentre - P;
-	float distance = length(L);
-	float d = max(distance - r, 0);
-	L /= distance;
-	
-	// calculate basic attenuation
-	float denom = d/r + 1;
-	float attenuation = 1 / (denom*denom);
-	
-	// scale and bias attenuation such that:
-	//   attenuation == 0 at extent of max influence
-	//   attenuation == 1 when d == 0
-	attenuation = (attenuation - cutoff) / (1 - cutoff);
-	attenuation = max(attenuation, 0);
-	
-	float dot = max(dot(L, N), 0);
-	return lightColour * dot * attenuation;
-}
-*/

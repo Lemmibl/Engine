@@ -11,14 +11,14 @@
 #include "GameStates.h"
 #include "CEGUI/CEGUI.h"
 
-class GameplayScreen : public GenericScreen, SettingsDependent
+class GameplayScreen : public GenericScreen, public SettingsDependent
 {
 public:
-	GameplayScreen();
+	GameplayScreen(HWND extHwnd, std::shared_ptr<InputClass> extInput, std::shared_ptr<D3DManager> extD3D);
 	~GameplayScreen();
 
 	virtual void Enter();
-	bool Initialize(HWND extHwnd, std::shared_ptr<InputClass> extInput, std::shared_ptr<D3DManager> extD3D);
+	bool Initialize();
 	virtual bool Update(float deltaTime);
 	virtual bool Render(float deltaTime);
 	virtual void Exit();
@@ -35,9 +35,6 @@ private:
 	GameRenderer worldRenderer;
 	DebugOverlayHUD debugHUD;
 
-	std::vector<DebugWindowHandle> handles;
-	unsigned int counter, index;
-
 	DebugWindowHandle fpsDebugHandle;
 	DebugWindowHandle cpuDebugHandle;
 
@@ -45,7 +42,5 @@ private:
 	int cpuUsage, fps;
 	float shadowMapWidth, shadowMapHeight, screenWidth, screenHeight, nearClip, farClip;
 	bool temp;
-
-
 };
 

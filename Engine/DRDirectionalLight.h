@@ -8,7 +8,7 @@
 #include <atlcomcli.h>
 #include "SettingsDependent.h"
 
-class DRDirLight : SettingsDependent
+class DRDirLight : public SettingsDependent
 {
 private:
 	struct PixelMatrixBuffer

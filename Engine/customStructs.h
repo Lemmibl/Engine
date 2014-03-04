@@ -38,6 +38,7 @@ namespace TerrainTypes
 		Alien,
 		Fancy,
 		Cave,
+		Flat,
 		TERRAINTYPES_LIST_SIZE //Always keep last
 	};
 };

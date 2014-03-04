@@ -339,8 +339,9 @@ bool DRWaterClass::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMA
 	dataPtr2->farClip 					= variables.farClip;
 	dataPtr2->heightScaling				= variables.heightScaling;
 	dataPtr2->positionSamplingOffset	= variables.positionSamplingOffset;
-	dataPtr2->windDirection				= *windDirection;
+	dataPtr2->windDirection				= XMFLOAT3(-0.2f, 0.0f, 0.8f); //*windDirection
 	dataPtr2->timeScaling				= variables.timeScaling;
+	dataPtr2->waterHeight				= variables.waterHeight;
 
 	// Unlock the matrix constant buffer.
 	deviceContext->Unmap(variableBuffer, 0);
@@ -430,6 +431,7 @@ void DRWaterClass::OnSettingsReload(Config* cfg)
 	settings.lookupValue("timeScaling",				variables.timeScaling				);
 	settings.lookupValue("waterColorStartOffset",	waterColorStartOffset				);
 	settings.lookupValue("waterColorMultiplier",	waterColorMultiplier				);
+	settings.lookupValue("waterLevels",				variables.waterHeight);
 
 	const Setting& settings2 = cfg->getRoot()["rendering"];
 

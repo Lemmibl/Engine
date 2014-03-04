@@ -7,7 +7,7 @@
 #include <atlcomcli.h>
 #include "SettingsDependent.h"
 
-class DRGBuffer : SettingsDependent
+class DRGBuffer : public SettingsDependent
 {
 
 private:

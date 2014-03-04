@@ -33,8 +33,10 @@ private:
 	};
 
 public:
-	TerrainManager(ID3D11Device* device, ID3D11DeviceContext* deviceContext, std::shared_ptr<btDiscreteDynamicsWorld> collisionWorld, HWND hwnd,  XMFLOAT3 cameraPosition);
+	TerrainManager();
 	~TerrainManager();
+
+	bool Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, std::shared_ptr<btDiscreteDynamicsWorld> collisionWorld, HWND hwnd,  XMFLOAT3 cameraPosition);
 
 	//Returns a bool to indicate if we've actually had to change anything. If true, it has changed and we should fetch the new data.
 	bool Update(ID3D11Device* device, ID3D11DeviceContext* deviceContext, XMFLOAT3 currentCameraPosition, float deltaTime);
@@ -91,7 +93,7 @@ private:
 	unsigned int vegetationCount;
 	float stepScaling;
 	float timePassed, timeThreshold, rangeThreshold;
-
+	TerrainTypes::Type terrainType;
 
 	std::shared_ptr<std::unordered_map<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>, int_pair_hash>> map;
 	std::vector<MarchingCubeChunk*> activeChunks;

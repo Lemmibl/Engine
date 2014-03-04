@@ -78,7 +78,7 @@ ControllerClass::~ControllerClass()
 void ControllerClass::Update(float frameTime, XMFLOAT4X4* cameraMatrix)
 {
 	//Toggle noclip if E was pressed
-	if(inputManager->WasKeyPressed(DIK_R))
+	if(inputManager->WasKeyPressed(DIK_T))
 	{
 		noclip = !noclip;
 

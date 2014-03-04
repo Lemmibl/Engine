@@ -15,6 +15,14 @@ private:
 		std::string identifierString; //The name of the window that is written before the actual value. Examples: "Position: " or "Amount of triangles rendered this frame: "
 		void* valuePointer; //Pointer to value that this window will render
 		DataTypeEnumMappings::DataType dataType; //What actual type the void pointer is pointing to
+
+		~WindowContainer()
+		{
+			ceguiWindow = nullptr;
+			identifierString = "deleted";
+			valuePointer = nullptr;
+			dataType = 0;
+		}
 	};
 
 public:
@@ -29,29 +37,22 @@ public:
 	bool AddNewWindow(std::string name, void* valueToBeMonitored, DataTypeEnumMappings::DataType dataType, DebugWindowHandle& outHandle);
 	bool AddNewWindowWithoutHandle(std::string name, void* valueToBeMonitored, DataTypeEnumMappings::DataType dataType);
 
-	template<class T> void UpdateWindowText(DebugWindowHandle handle, T* val);
-
 	unsigned short GetCount() { return widgets->GetActiveObjectCount(); }
 
 	void RemoveWindow(DebugWindowHandle handle);
 
 private:
-	//unsigned short GetNextWindowSlot() { unsigned short result = prioQueue.top(); prioQueue.pop(); return result; }
 
+	template<class T> void UpdateWindowText(WindowContainer* widget, T* val);
 	bool CreateDebugWindow(std::string identifier, DebugWindowHandle& outHandle);
-	void UpdateWidget(DebugWindowHandle& index);
+	void UpdateWidget(WindowContainer* widget, unsigned short index);
 
 	static const unsigned short MaxWidgetCount = 128;
+	unsigned long long totalWindowsCount;
 
 	//http://cegui.org.uk/wiki/Sample_code_for_all_Widgets
 
 	CEGUI::Window* rootWindow;
 
 	std::shared_ptr<DODContainer<WindowContainer>> widgets;
-
-	//unsigned short currentActiveWidgets;
-
-	//DebugWindowHandle internalHandles[MaxWidgetCount];
-	//WindowContainer widgets[MaxWidgetCount];
-	//std::priority_queue<unsigned short, std::vector<unsigned short>, std::greater<unsigned short>> prioQueue;
 };

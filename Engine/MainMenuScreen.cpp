@@ -1,9 +1,10 @@
 #include "MainMenuScreen.h"
 
-MainMenuScreen::MainMenuScreen()
+MainMenuScreen::MainMenuScreen(std::shared_ptr<InputClass> extInput)
 : GenericScreen()
 {
 	rootWindow = nullptr;
+	input = extInput;
 }
 
 MainMenuScreen::~MainMenuScreen()
@@ -13,6 +14,12 @@ MainMenuScreen::~MainMenuScreen()
 void MainMenuScreen::Enter()
 {
 	SetActive(true);
+
+	if(!HasBeenInitialized())
+	{
+		Initialize();
+		SetInitializedState(true);
+	}
 
 	//Show mouse cursor
 	CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().setVisible(true);
@@ -35,10 +42,8 @@ void MainMenuScreen::Exit()
 	rootWindow->hide();
 }
 
-bool MainMenuScreen::Initialize(std::shared_ptr<InputClass> extInput)
+bool MainMenuScreen::Initialize()
 {
-	input = extInput;
-
 	//Load the layout for this menu
 	rootWindow = CEGUI::WindowManager::getSingleton().loadLayoutFromFile("mainMenu.layout");
 	CEGUI::System::getSingleton().getDefaultGUIContext().setRootWindow(rootWindow);

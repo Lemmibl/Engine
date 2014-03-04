@@ -6,13 +6,13 @@
 class MainMenuScreen : public GenericScreen
 {
 public:
-	MainMenuScreen();
+	MainMenuScreen(std::shared_ptr<InputClass> input);
 	~MainMenuScreen();
 
 	virtual void Enter();
 	virtual void Exit();
 
-	bool Initialize(std::shared_ptr<InputClass> input);
+	bool Initialize();
 
 	bool Update(float deltaTime);
 	bool Render(float deltaTime);

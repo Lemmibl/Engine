@@ -51,12 +51,12 @@ void DRPointLight::Shutdown()
 }
 
 bool DRPointLight::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldViewProjection, XMMATRIX* worldView, XMMATRIX* world, XMMATRIX* invertedView, 
-	PointLight* pointLight, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** materialArray, XMFLOAT3 cameraPosition)
+	XMMATRIX* invertedProjection, PointLight* pointLight, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** materialArray, XMFLOAT3 cameraPosition)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldViewProjection, worldView, world, invertedView, pointLight, textureArray, materialArray, cameraPosition);
+	result = SetShaderParameters(deviceContext, worldViewProjection, worldView, world, invertedView, invertedProjection, pointLight, textureArray, materialArray, cameraPosition);
 	if(!result)
 	{
 		return false;
@@ -329,7 +329,7 @@ void DRPointLight::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd,
 }
 
 bool DRPointLight::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* WorldViewProjection, XMMATRIX* worldView, XMMATRIX* world, XMMATRIX* invertedView, 
-	PointLight* pointLight, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** materialArray, XMFLOAT3 cameraPosition)
+	XMMATRIX* invertedProjection, PointLight* pointLight, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** materialArray, XMFLOAT3 cameraPosition)
 {		
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -402,6 +402,7 @@ bool DRPointLight::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMAT
 
 	// Copy matrix to buffer
 	dataPtr3->InvertedView = *invertedView;
+	dataPtr3->InvertedProjection = *invertedProjection;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(pixelMatrixBuffer, 0);

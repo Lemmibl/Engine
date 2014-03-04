@@ -11,13 +11,17 @@ cbuffer MatrixBuffer
 
 cbuffer VariableBuffer
 {
-	float vegetationScale	: packoffset(c0.x);
-	float vegetationFalloff : packoffset(c0.y);
-	float forceScale		: packoffset(c0.z);
-	float waveLength		: packoffset(c0.w);
-	float traversalSpeed	: packoffset(c1.x);
-	float farClip			: packoffset(c1.y);
-	//TODO: Possible windDirection
+	float vegetationScale			: packoffset(c0.x);
+	float vegetationFalloff			: packoffset(c0.y);
+	float forceScale				: packoffset(c0.z);
+	float waveLength				: packoffset(c0.w);
+	float traversalSpeed			: packoffset(c1.x);
+	float farClip					: packoffset(c1.y);
+	float minimumHeight				: packoffset(c1.z);
+	float maximumHeight				: packoffset(c1.w);
+	float positionalRandomDeviance	: packoffset(c2.x);
+	float angularRandomDeviance		: packoffset(c2.y);
+	float acceptableSlopeAngle		: packoffset(c2.z);
 };
 
 struct VS_OUTPUT
@@ -38,20 +42,8 @@ struct PS_INPUT
 //static const float vegetationScale = 2.2f;
 static const float4 UpNormal = normalize(float4(0.0f, 1.0f, 0.0f, 0.0f));
 
-//TODO: Add all of these to the constant buffer to make them tweakable in normal code 
-//Just a temporary wind direction
-//static const float vegetationFalloff = 200.0f;
-//static const float forceScale = 0.75f;
-//static const float waveLength = 0.05f;
-//static const float traversalSpeed = 0.1f;
-
-//TODO: waveLength = forceScale / traversalSpeed ? Other way around? forceScale * traversalSpeed?
-
-//http://www.braynzarsoft.net/index.php?p=D3D11BILLBOARDS
-//http://upvoid.com/devblog/2013/02/prototype-grass/
-
 //TODO: Sample level........ yeah..
-float LoadWindPowerValue(float2 coords)
+float LoadWindForce(float2 coords)
 {
 	return windTexture.SampleLevel(linearSampler, coords, 0);
 }
@@ -69,7 +61,14 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, float distanceHeightScaling, inout Tri
 		PS_INPUT output[4];
 
 		//In the future, this ID will be loaded from a lookup table
-		int textureID = round(v1.YPosDepthAndRand.z * 11);
+		int textureID = round(v1.YPosDepthAndRand.z * 30);
+
+		if(textureID >= 20)
+		{
+			textureID = 20;
+		}
+
+		//int textureID = round(v1.YPosDepthAndRand.z * 21);
 
 		//Taking [0, 1] rand values and changing them to a span that can go negative ([-1, 1]).
 		float2 rand = (2.0f * float2(v1.YPosDepthAndRand.z, v2.YPosDepthAndRand.z) - 0.5f);
@@ -80,28 +79,28 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, float distanceHeightScaling, inout Tri
 		float4 pos1, pos2;
 
 		//Create a random position for the quad
-		pos1.xyz = v1.Position.xyz + float3(rand.x, 0.0f, rand.y); //Add a tiny offset to make placement of grass seem more random.
+		pos1.xyz = v1.Position.xyz + float3(rand.x*positionalRandomDeviance, 0.0f, rand.y*positionalRandomDeviance); //Add a tiny offset to make placement of grass seem more random.
 
 		//Second position will be a certain distance away from pos1, scaled by height. This is to always make the quads look uniform as opposed to sometimes being squished/stretched.
 		pos2.xyz = pos1.xyz + ((v2.Position.xyz - v1.Position.xyz)); //height * normalize
 		pos1.w = pos2.w = 1.0f;
 
+		//Distance between the two bases. Needed so that I can scale the height properly. The height of the quad is clamped by the width.
 		float vertexDistance = length(v2.Position.xyz - v1.Position.xyz);
 
 		//Scale height of the quad with opacity times vegetation scale plus a small random value.
 		//Clamp it between 1.0f and distance between our vertices
 		float height = clamp( (vegetationScale+(rand.x*1.5f)), 1.0f, vertexDistance);
 
-
 		//This is the normal that we use to offset the upper vertices of the quad, as to angle it slightly. 
 		//Height is of course used to control how high the quad will be.
-		float4 randomizedNormal = float4(rand.x*0.3f, height, rand.y*0.3f, 0.0f);
+		float4 randomizedNormal = float4(rand.x*angularRandomDeviance, height, rand.y*angularRandomDeviance, 0.0f);
 
 		//If the grass is close enough to the camera, add wind. Just pointless to add a bunch of wind to grass that is too far away to be seen properly.
 		if(v1.YPosDepthAndRand.y < (vegetationFalloff*0.4f))
 		{
-			//Add wind direction to our already randomized normal. This value will be 
-			randomizedNormal.xyz += (WindDirection * (forceScale * LoadWindPowerValue((v1.Position.xz*waveLength) + (traversalSpeed*DeltaTime))));
+			//Add wind direction to our already randomized normal. This value will be used to offset the two upper vertices of the quad.
+			randomizedNormal.xyz += (WindDirection * (forceScale * LoadWindForce((v1.Position.xz*waveLength) + (traversalSpeed*DeltaTime))));
 
 			randomizedNormal.w = 0.0f;
 		}
@@ -152,7 +151,7 @@ void GrassGS(triangle VS_OUTPUT Input[3], inout TriangleStream<PS_INPUT> TriStre
 	float highestLODDistance = vegetationFalloff*0.15f;
 
 	//So if the dot result is satisfactory, and the world YPos is above water level, and the view space depth value is above vegetation falloff point...... we make quads.
-	if(dotResult >= 0.9f && Input[0].YPosDepthAndRand.x > 5.5f && viewDepth <= lowestLODDistance)
+	if(dotResult >= acceptableSlopeAngle && Input[0].YPosDepthAndRand.x > minimumHeight && viewDepth <= lowestLODDistance)
 	{
 		if(viewDepth <= highestLODDistance)
 		{
