@@ -151,9 +151,9 @@ bool TextureAndMaterialHandler::Initialize(ID3D11Device* device, ID3D11DeviceCon
 	water.shouldBeShadowed = 10.0f;
 
 	MaterialStruct trees;
-	trees.Kambience = 0.8f;
+	trees.Kambience = 0.9f;
 	trees.Kdiffuse = 1.2f;
-	trees.Kspecular = 0.0f;
+	trees.Kspecular = 0.01f;
 	trees.smoothness = 0.2f;
 	trees.shouldBeShadowed = 10.0f;
 

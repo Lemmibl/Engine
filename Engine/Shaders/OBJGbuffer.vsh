@@ -34,7 +34,7 @@ VertexShaderOutput OBJGbufferVertex(VertexShaderInput input)
 	output.TexCoord		= input.TexCoord;
 
 	//Pass along surface normal
-	output.Normal		= normalize(input.Normal);
+	output.Normal		= normalize(mul(input.Normal, World));
 
 	//Get view depth
 	output.ViewDepth	= viewPosition.z;

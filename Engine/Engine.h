@@ -23,7 +23,7 @@ const bool FULL_SCREEN = false;
 const bool VSYNC_ENABLED = false;
 
 //Enable if you want to check for memory leaks.
-#include <vld.h>
+//#include <vld.h>
 
 #include <windows.h>
 #include <memory>

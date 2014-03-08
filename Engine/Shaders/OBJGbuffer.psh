@@ -2,28 +2,15 @@ struct VertexShaderOutput
 {
 	float4 Position : SV_POSITION;
 	float3 Normal	: NORMAL;
-	float2 TexCoord : TEXCOORD0;
-	float ViewDepth : TEXCOORD1;
+	float3 TexCoord : TEXCOORD0; //Viewdepth in .z
 };
 
 struct PixelShaderOutput
 {
-	float4 Color : SV_TARGET0; //R8G8B8A8
-	float4 Normal : SV_TARGET1; //R8G8B8A8
-	float Depth : SV_TARGET2; //R32
+	float4 Color	: SV_TARGET0; //R8G8B8A8
+	float4 Normal	: SV_TARGET1; //R8G8B8A8
+	float Depth		: SV_TARGET2; //R32
 };
-
-/*
-		int materialID;
-		float farClip;
-		XMFLOAT2 padding;
-
-		XMFLOAT3 Ambient;
-		float padding2;
-
-		XMFLOAT3 Diffuse;
-		float padding3;
-*/
 
 cbuffer PixelShaderBuffer
 {
@@ -40,8 +27,8 @@ cbuffer PixelShaderBuffer
 //Normal Encoding Function
 float2 Encode(float3 n)
 {
-	float p = sqrt(n.z*8.0f+8.0f);
-	return float2(n.xy/p + 0.5f);
+	float p = sqrt(n.z*8.0 + 8.0);
+	return float2(n.xy/p + 0.5);
 }
 
 //When it gets read in other shaders it gets multiplied back to 255.
@@ -58,20 +45,17 @@ PixelShaderOutput OBJGbufferPixel(VertexShaderOutput input)
 	PixelShaderOutput output;
 
 	//TODO: find a use for ambient color....
-	output.Color = shaderTexture.Sample(textureSampler, input.TexCoord);
+	output.Color = shaderTexture.Sample(textureSampler, input.TexCoord.xy);
 	
-	//Maybe?
-	//output.Color.w = alpha;
-
 	//Compress normal into .xy channel
 	output.Normal.xy = Encode(normalize(input.Normal));
 
 	//Save material IDs in the zw channel.
 	//materialID < This'll be added later when I have the systems set up for it to work
-	output.Normal.zw = EncodeMaterialID(6.0f);
+	output.Normal.zw = EncodeMaterialID(7.0f);
 
 	//Store depth linearly.
-	output.Depth = (input.ViewDepth / farClip); 
+	output.Depth = (input.TexCoord.z / farClip); 
 
 	return output;
 }

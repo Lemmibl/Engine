@@ -226,6 +226,7 @@ bool MeshHandler::LoadOBJGeometry(ID3D11Device* device, std::wstring filepath, O
 	textureNameArray.clear();
 	meshMaterials.clear();
 
+
 	std::wifstream fileStream(filepath.c_str());	//Open file
 
 	//Vertex definition indices
@@ -237,6 +238,8 @@ bool MeshHandler::LoadOBJGeometry(ID3D11Device* device, std::wstring filepath, O
 	//Make sure we have a default if no tex coords or normals are defined
 	bool hasTexCoord = false;
 	bool hasNorm = false;
+	bool computeNormals = false;
+	bool isRHCoordSys = true;
 
 	//Temp variables to store into vectors
 	std::wstring meshMaterialsTemp;
@@ -245,7 +248,7 @@ bool MeshHandler::LoadOBJGeometry(ID3D11Device* device, std::wstring filepath, O
 	int vertTCIndexTemp = 0;
 
 	//Arrays to store our model's information
-	std::vector<DWORD> indices;
+	std::vector<unsigned int> indices;
 	std::vector<XMFLOAT3> vertPos;
 	std::vector<XMFLOAT3> vertNorm;
 	std::vector<XMFLOAT2> vertTexCoord;
@@ -259,7 +262,7 @@ bool MeshHandler::LoadOBJGeometry(ID3D11Device* device, std::wstring filepath, O
 	int subsetCount = 0;
 	XMFLOAT3 tempFloat3;
 	XMFLOAT2 tempFloat2;
-	
+
 	//First start...
 	subsetIndexStart.push_back(0);
 
@@ -287,22 +290,30 @@ bool MeshHandler::LoadOBJGeometry(ID3D11Device* device, std::wstring filepath, O
 				{
 					fileStream >> tempFloat3.x >> tempFloat3.y >> tempFloat3.z;	//Store the next three types
 
-					//if(isRHCoordSys)	//If model is from a RH Coord System
-					tempFloat3.z *= -1.0f;
-					vertPos.push_back(tempFloat3);	//Invert the Z axis
-					//else
-					//	vertPos.push_back(XMFLOAT3( vx, vy, vz));
+					if(isRHCoordSys)	//If model is from a RH Coord System
+					{
+						tempFloat3.z *= -1.0f;
+						vertPos.push_back(tempFloat3);	//Invert the Z axis
+					}
+					else
+					{
+						vertPos.push_back(tempFloat3);
+					}
 				}
 				if(checkChar == 't')	//vt - vert tex coords
 				{			
 
 					fileStream >> tempFloat2.x >> tempFloat2.y;		//Store next two types
 
-					//if(isRHCoordSys)	//If model is from an RH Coord System
-					tempFloat2.y = 1.0f - tempFloat2.y;
-					vertTexCoord.push_back(tempFloat2);	//Reverse the "v" axis
-					//else
-					//	vertTexCoord.push_back(XMFLOAT2(vtcu, vtcv));	
+					if(isRHCoordSys)	//If model is from an RH Coord System
+					{
+						tempFloat2.y = 1.0f - tempFloat2.y;
+						vertTexCoord.push_back(tempFloat2);	//Reverse the "v" axis
+					}
+					else
+					{
+						vertTexCoord.push_back(tempFloat2);	
+					}
 
 					hasTexCoord = true;	//We know the model uses texture coords
 				}
@@ -312,11 +323,15 @@ bool MeshHandler::LoadOBJGeometry(ID3D11Device* device, std::wstring filepath, O
 				{
 					fileStream >> tempFloat3.x >> tempFloat3.y >> tempFloat3.z;	//Store next three types
 
-					//if(isRHCoordSys)	//If model is from an RH Coord System
-					tempFloat3.z *= -1.0f;
-					vertNorm.push_back(tempFloat3);	//Invert the Z axis
-					//else
-					//	vertNorm.push_back(XMFLOAT3( vnx, vny, vnz ));	
+					if(isRHCoordSys)	//If model is from an RH Coord System
+					{
+						tempFloat3.z *= -1.0f;
+						vertNorm.push_back(tempFloat3);	//Invert the Z axis
+					}
+					else
+					{
+						vertNorm.push_back(tempFloat3);	
+					}
 
 					hasNorm = true;	//We know the model defines normals
 				}
@@ -344,9 +359,9 @@ bool MeshHandler::LoadOBJGeometry(ID3D11Device* device, std::wstring filepath, O
 					checkChar = fileStream.get();
 					while(checkChar != '\n')
 					{
-						face += checkChar;			//Add the char to our face string
+						face += checkChar;				//Add the char to our face string
 						checkChar = fileStream.get();	//Get the next Character
-						if(checkChar == ' ')		//If its a space...
+						if(checkChar == ' ')			//If its a space...
 						{
 							triangleCount++;		//Increase our triangle count
 						}
@@ -707,92 +722,88 @@ bool MeshHandler::LoadOBJGeometry(ID3D11Device* device, std::wstring filepath, O
 		vertices.push_back(tempVert);
 	}
 
-	//Add one last subset index start that we can use when calculating how big a mesh subset is, index wise.
-	//This is necessary because we calculate the index span by doing something like this:
-	// int indexSize = subsetIndexStart[i+1] - subsetIndexStart[i];
-	//outModel->InsertSubsetIndexStart(indices.size());
 
 #pragma region Compute Normals
-	////////////////////////Compute Normals///////////////////////////
-	////If computeNormals was set to true then we will create our own
-	////normals, if it was set to false we will use the obj files normals
-	//if(computeNormals)
-	//{
-	//	std::vector<XMFLOAT3> tempNormal;
+	//////////////////////Compute Normals///////////////////////////
+	//If computeNormals was set to true then we will create our own
+	//normals, if it was set to false we will use the obj files normals
+	if(computeNormals)
+	{
+		std::vector<XMFLOAT3> tempNormal;
 
-	//	//normalized and unnormalized normals
-	//	XMFLOAT3 unnormalized = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		//normalized and unnormalized normals
+		XMFLOAT3 unnormalized = XMFLOAT3(0.0f, 0.0f, 0.0f);
 
-	//	//Used to get vectors (sides) from the position of the verts
-	//	float vecX, vecY, vecZ;
+		//Used to get vectors (sides) from the position of the verts
+		float vecX, vecY, vecZ;
 
-	//	//Two edges of our triangle
-	//	XMVECTOR edge1 = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
-	//	XMVECTOR edge2 = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+		//Two edges of our triangle
+		XMVECTOR edge1 = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+		XMVECTOR edge2 = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
 
-	//	//Compute face normals
-	//	for(int i = 0; i < meshTriangles; ++i)
-	//	{
-	//		//Get the vector describing one edge of our triangle (edge 0,2)
-	//		vecX = vertices[indices[(i*3)]].pos.x - vertices[indices[(i*3)+2]].pos.x;
-	//		vecY = vertices[indices[(i*3)]].pos.y - vertices[indices[(i*3)+2]].pos.y;
-	//		vecZ = vertices[indices[(i*3)]].pos.z - vertices[indices[(i*3)+2]].pos.z;		
-	//		edge1 = XMVectorSet(vecX, vecY, vecZ, 0.0f);	//Create our first edge
+		//Compute face normals
+		for(int i = 0; i < meshTriangles; ++i)
+		{
+			//Get the vector describing one edge of our triangle (edge 0,2)
+			vecX = vertices[indices[(i*3)]].position.x - vertices[indices[(i*3)+2]].position.x;
+			vecY = vertices[indices[(i*3)]].position.y - vertices[indices[(i*3)+2]].position.y;
+			vecZ = vertices[indices[(i*3)]].position.z - vertices[indices[(i*3)+2]].position.z;		
+			edge1 = XMVectorSet(vecX, vecY, vecZ, 0.0f);	//Create our first edge
 
-	//		//Get the vector describing another edge of our triangle (edge 2,1)
-	//		vecX = vertices[indices[(i*3)+2]].pos.x - vertices[indices[(i*3)+1]].pos.x;
-	//		vecY = vertices[indices[(i*3)+2]].pos.y - vertices[indices[(i*3)+1]].pos.y;
-	//		vecZ = vertices[indices[(i*3)+2]].pos.z - vertices[indices[(i*3)+1]].pos.z;		
-	//		edge2 = XMVectorSet(vecX, vecY, vecZ, 0.0f);	//Create our second edge
+			//Get the vector describing another edge of our triangle (edge 2,1)
+			vecX = vertices[indices[(i*3)+2]].position.x - vertices[indices[(i*3)+1]].position.x;
+			vecY = vertices[indices[(i*3)+2]].position.y - vertices[indices[(i*3)+1]].position.y;
+			vecZ = vertices[indices[(i*3)+2]].position.z - vertices[indices[(i*3)+1]].position.z;		
+			edge2 = XMVectorSet(vecX, vecY, vecZ, 0.0f);	//Create our second edge
 
-	//		//Cross multiply the two edge vectors to get the un-normalized face normal
-	//		XMStoreFloat3(&unnormalized, XMVector3Cross(edge1, edge2));
-	//		tempNormal.push_back(unnormalized);			//Save unormalized normal (for normal averaging)
-	//	}
+			//Cross multiply the two edge vectors to get the un-normalized face normal
+			XMStoreFloat3(&unnormalized, XMVector3Cross(edge1, edge2));
+			tempNormal.push_back(unnormalized);			//Save unormalized normal (for normal averaging)
+		}
 
-	//	//Compute vertex normals (normal Averaging)
-	//	XMVECTOR normalSum = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
-	//	int facesUsing = 0;
-	//	float tX;
-	//	float tY;
-	//	float tZ;
+		//Compute vertex normals (normal Averaging)
+		XMVECTOR normalSum = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+		int facesUsing = 0;
+		float tX;
+		float tY;
+		float tZ;
 
-	//	//Go through each vertex
-	//	for(int i = 0; i < totalVerts; ++i)
-	//	{
-	//		//Check which triangles use this vertex
-	//		for(int j = 0; j < meshTriangles; ++j)
-	//		{
-	//			if(	indices[j*3]		== i ||
-	//				indices[(j*3)+1]	== i ||
-	//				indices[(j*3)+2]	== i)
-	//			{
-	//				tX = XMVectorGetX(normalSum) + tempNormal[j].x;
-	//				tY = XMVectorGetY(normalSum) + tempNormal[j].y;
-	//				tZ = XMVectorGetZ(normalSum) + tempNormal[j].z;
+		//Go through each vertex
+		for(int i = 0; i < totalVerts; ++i)
+		{
+			//Check which triangles use this vertex
+			for(int j = 0; j < meshTriangles; ++j)
+			{
+				if(	indices[j*3]		== i ||
+					indices[(j*3)+1]	== i ||
+					indices[(j*3)+2]	== i)
+				{
+					tX = XMVectorGetX(normalSum) + tempNormal[j].x;
+					tY = XMVectorGetY(normalSum) + tempNormal[j].y;
+					tZ = XMVectorGetZ(normalSum) + tempNormal[j].z;
 
-	//				normalSum = XMVectorSet(tX, tY, tZ, 0.0f);	//If a face is using the vertex, add the unormalized face normal to the normalSum
-	//				facesUsing++;
-	//			}
-	//		}
+					normalSum = XMVectorSet(tX, tY, tZ, 0.0f);	//If a face is using the vertex, add the unormalized face normal to the normalSum
+					facesUsing++;
+				}
+			}
 
-	//		//Get the actual normal by dividing the normalSum by the number of faces sharing the vertex
-	//		normalSum = normalSum / facesUsing;
+			//Get the actual normal by dividing the normalSum by the number of faces sharing the vertex
+			normalSum = normalSum / facesUsing;
 
-	//		//Normalize the normalSum vector
-	//		normalSum = XMVector3Normalize(normalSum);
+			//Normalize the normalSum vector
+			normalSum = XMVector3Normalize(normalSum);
 
-	//		//Store the normal in our current vertex
-	//		vertices[i].normal.x = XMVectorGetX(normalSum);
-	//		vertices[i].normal.y = XMVectorGetY(normalSum);
-	//		vertices[i].normal.z = XMVectorGetZ(normalSum);
+			//Store the normal in our current vertex
+			vertices[i].normal.x = XMVectorGetX(normalSum);
+			vertices[i].normal.y = XMVectorGetY(normalSum);
+			vertices[i].normal.z = XMVectorGetZ(normalSum);
 
-	//		//Clear normalSum and facesUsing for next vertex
-	//		normalSum = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
-	//		facesUsing = 0;
+			//Clear normalSum and facesUsing for next vertex
+			normalSum = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+			facesUsing = 0;
 
-	//	}
-	//}
+		}
+	}
 #pragma endregion
 
 	unsigned short handle;
@@ -811,7 +822,7 @@ bool MeshHandler::LoadOBJGeometry(ID3D11Device* device, std::wstring filepath, O
 	ZeroMemory( &indexBufferDesc, sizeof(indexBufferDesc) );
 
 	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	indexBufferDesc.ByteWidth = sizeof(DWORD) * meshTriangles * 3;
+	indexBufferDesc.ByteWidth = sizeof(unsigned int) * meshTriangles * 3;
 	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	indexBufferDesc.CPUAccessFlags = 0;
 	indexBufferDesc.MiscFlags = 0;
@@ -1099,4 +1110,95 @@ bool MeshHandler::LoadOBJMaterials( ID3D11Device* device, std::wstring filepath,
 	}
 
 	return true;
+}
+
+unsigned int MeshHandler::AddVertex( unsigned int hash, VertexType vertex )
+{
+	// If this vertex doesn't already exist in the Vertices list, create a new entry.
+	// Add the index of the vertex to the Indices list.
+	bool bFoundInList = false;
+	unsigned int index = 0;
+
+	//// Since it's very slow to check every element in the vertex list, a hashtable stores
+	//// vertex indices according to the vertex position's index as reported by the OBJ file
+	//if( ( UINT )m_VertexCache.GetSize() > hash )
+	//{
+	//	CacheEntry* pEntry = m_VertexCache.GetAt( hash );
+	//	while( pEntry != NULL )
+	//	{
+	//		VERTEX* pCacheVertex = m_Vertices.GetData() + pEntry->index;
+
+	//		// If this vertex is identical to the vertex already in the list, simply
+	//		// point the index buffer to the existing vertex
+	//		if( 0 == memcmp( pVertex, pCacheVertex, sizeof( VERTEX ) ) )
+	//		{
+	//			bFoundInList = true;
+	//			index = pEntry->index;
+	//			break;
+	//		}
+
+	//		pEntry = pEntry->pNext;
+	//	}
+	//}
+
+	//// Vertex was not found in the list. Create a new entry, both within the Vertices list
+	//// and also within the hashtable cache
+	//if( !bFoundInList )
+	//{
+	//	// Add to the Vertices list
+	//	index = m_Vertices.GetSize();
+	//	m_Vertices.Add( *pVertex );
+
+	//	// Add this to the hashtable
+	//	CacheEntry* pNewEntry = new CacheEntry;
+	//	if( pNewEntry == NULL )
+	//		return (unsigned int)-1;
+
+	//	pNewEntry->index = index;
+	//	pNewEntry->pNext = NULL;
+
+	//	// Grow the cache if needed
+	//	while( ( UINT )m_VertexCache.GetSize() <= hash )
+	//	{
+	//		m_VertexCache.Add( NULL );
+	//	}
+
+	//	// Add to the end of the linked list
+	//	CacheEntry* pCurEntry = m_VertexCache.GetAt( hash );
+	//	if( pCurEntry == NULL )
+	//	{
+	//		// This is the head element
+	//		m_VertexCache.SetAt( hash, pNewEntry );
+	//	}
+	//	else
+	//	{
+	//		// Find the tail
+	//		while( pCurEntry->pNext != NULL )
+	//		{
+	//			pCurEntry = pCurEntry->pNext;
+	//		}
+
+	//		pCurEntry->pNext = pNewEntry;
+	//	}
+	//}
+
+	return index;
+}
+
+void MeshHandler::DeleteCache()
+{
+	// Iterate through all the elements in the cache and subsequent linked lists
+	for( int i = 0; i < vertexCache.size(); i++ )
+	{
+		CacheEntry* entry = vertexCache.at(i);
+		while( entry != NULL )
+		{
+			CacheEntry* next = entry->next;
+			delete entry;
+
+			entry = next;
+		}
+	}
+
+	vertexCache.clear();
 }

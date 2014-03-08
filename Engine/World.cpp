@@ -41,7 +41,7 @@ void GameWorld::Initialize( std::shared_ptr<D3DManager> extD3DManager, std::shar
 void GameWorld::InitializeMiscRenderables()
 {
 	std::wstring objFilepath = L"../Engine/data/Models/";
-	std::wstring treeModelFilepath = objFilepath + L"tree2.obj";
+	std::wstring treeModelFilepath = objFilepath + L"secondtree.obj";
 
 	OBJModel tempModelPtr;
 

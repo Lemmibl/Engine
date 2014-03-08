@@ -271,7 +271,7 @@ bool GameRenderer::InitializeModels( HWND hwnd )
 		XMFLOAT4X4 temp;
 
 		//Order of operations should be Scaling * Rotation * Translation
-		XMStoreFloat4x4(&temp, (XMMatrixRotationRollPitchYaw(0.0f, utility.RandomFloat()*360.0f, 0.0f) * XMMatrixTranslation(utility.RandomFloat()*100.0f, 15.0f, utility.RandomFloat()*100.0f)));
+		XMStoreFloat4x4(&temp, (XMMatrixRotationY(utility.RandomFloat()*360.0f) * XMMatrixTranslation(utility.RandomFloat()*100.0f, 15.0f, utility.RandomFloat()*100.0f)));
 
 		treeMatrices.push_back(temp);
 	}
@@ -448,6 +448,14 @@ bool GameRenderer::Update( HWND hwnd, int fps, int cpuPercentage, float millisec
 			pointLights[i].Position.y -= millisecondDeltaTime*0.01f;
 
 			XMStoreFloat4x4(&pointLights[i].World, (tempScale*XMMatrixTranslation(pointLights[i].Position.x, pointLights[i].Position.y, pointLights[i].Position.z)));
+		}
+	}
+
+	if(inputManager->IsKeyPressed(DIK_Y))
+	{
+		for(int i = 0; i < numtrees; i++)
+		{
+			XMStoreFloat4x4(&treeMatrices[i], XMMatrixRotationRollPitchYaw(0.0f, secondDeltaTime, 0.0f) * XMLoadFloat4x4(&treeMatrices[i]));
 		}
 	}
 
@@ -849,42 +857,41 @@ bool GameRenderer::RenderGBuffer(XMMATRIX* viewMatrix, XMMATRIX* projectionMatri
 	XMMATRIX tempView = XMMatrixTranspose(*viewMatrix);
 	XMMATRIX tempProj = XMMatrixTranspose(*projectionMatrix);
 
-	for(unsigned int i = 0; i < vecSize; i++)
+	for(unsigned int i = 0; i < vecSize; ++i)
 	{
 		auto& model = renderableBundle->objModels[i];
 		IndexedMesh* tempMesh = meshHandler->GetMesh(model.GetMeshHandle());
 
 		//Retarded little hack to see viability of rendering many trees
-		for(int k = 0; k < numtrees; k++)
+		for(int k = 0; k < numtrees; ++k)
 		{
-			worldMatrix = XMMatrixTranspose(XMLoadFloat4x4(&treeMatrices[k]));
+			worldMatrix = XMMatrixTranspose(XMLoadFloat4x4(&(treeMatrices.at(k))));
+			objModelShader.UpdateMatrixBuffer(deviceContext, &worldMatrix, &tempView, &tempProj);
 
-			for(int j = 0; j < model.GetSubsetCount()-1; j++)
+			for(int j = 0; j < model.GetSubsetCount()-1; ++j)
 			{
 				//See if we need to update texture
 				auto tex = textureAndMaterialHandler.GetTexture(model.GetTextureHandles().at(j));
+
+				//See if we need to update material
+				auto mat = textureAndMaterialHandler.GetMaterial(model.GetMaterialHandles().at(j));
 
 				if(textureNeedsUpdate)
 				{
 					objModelShader.SetNewTexture(deviceContext, tex, 1);
 				}
 
-				//See if we need to update material
-				auto mat = textureAndMaterialHandler.GetMaterial(model.GetMaterialHandles().at(j));
-
 				if(materialNeedsUpdate)
 				{
 					objModelShader.SetNewMaterial(deviceContext, mat);
 				}
 
-				objModelShader.UpdateMatrixBuffer(deviceContext, &worldMatrix, &tempView, &tempProj);
-
 				tempMesh->Render(deviceContext);
 
 				//This will always work, because when we load in the model we add one last set of index subsets that contains the entire count (the end of the indices, essentially).
-				int indexCount = model.GetSubSetIndices()[j+1] - model.GetSubSetIndices()[j];
+				int indexCount = model.GetSubSetIndices().at(j+1) - model.GetSubSetIndices().at(j);
 
-				objModelShader.RenderShader(deviceContext, indexCount, model.GetSubSetIndices()[j]);
+				objModelShader.RenderShader(deviceContext, indexCount, model.GetSubSetIndices().at(j));
 			}
 		}
 	}

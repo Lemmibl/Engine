@@ -8,16 +8,15 @@ cbuffer MatrixBuffer
 struct VertexShaderInput
 {
 	float3 Position : POSITION;
-	float2 TexCoord : TEXCOORD0;
-	float3 Normal : NORMAL;
+	float2 TexCoord : TEXCOORD;
+	float3 Normal	: NORMAL;
 };
 
 struct VertexShaderOutput
 {
 	float4 Position : SV_POSITION;
-	float3 Normal : NORMAL;
-	float2 TexCoord : TEXCOORD0;
-	float ViewDepth : TEXCOORD1;
+	float3 Normal	: NORMAL;
+	float3 TexCoord : TEXCOORD0; //Viewdepth in .z
 };
 
 VertexShaderOutput OBJGbufferVertex(VertexShaderInput input)
@@ -25,19 +24,24 @@ VertexShaderOutput OBJGbufferVertex(VertexShaderInput input)
 	VertexShaderOutput output;
 
 	//Calculate view position so that we can extract view depth
-	float4 viewPosition =	mul(float4(input.Position, 1.0f), mul(World, View));
+	float4 viewPosition = mul(mul(float4(input.Position, 1.0f), World), View);
 
 	//Calculate world view projection
 	output.Position = mul(viewPosition, Projection);
 
 	//Pass along texture coordinates
-	output.TexCoord		= input.TexCoord;
+	output.TexCoord.xy = input.TexCoord;
+
+	/*
+	es, in fact the normal should be multiplied by the inverse-transpose of the modelview matrix, but if you check the math, 
+	the inverse-transpose of an orthogonal matrix (which is usually true for modelview matrices) is actually the matrix itself.
+	*/
 
 	//Pass along surface normal
-	output.Normal		= input.Normal;
+	output.Normal = normalize(mul(input.Normal, (float3x3)World));
 
-	//Get view depth
-	output.ViewDepth	= viewPosition.z;
+	//Save view depth
+	output.TexCoord.z = viewPosition.z;
 
 	return output;
 }

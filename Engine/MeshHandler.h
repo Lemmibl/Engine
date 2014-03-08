@@ -33,6 +33,12 @@ private:
 		XMFLOAT3 normal;
 	};
 
+	struct CacheEntry
+	{
+		unsigned int index;
+		CacheEntry* next;
+	};
+
 public:
 	MeshHandler();
 	~MeshHandler();
@@ -50,6 +56,8 @@ public:
 private:
 	bool LoadOBJGeometry(ID3D11Device* device, std::wstring filepath, OBJModel* outModel);
 	bool LoadOBJMaterials(ID3D11Device* device, std::wstring filepath, OBJModel* outModel);
+	unsigned int AddVertex(unsigned int hash, VertexType vertex);
+	void DeleteCache();
 
 	bool CheckForDuplicates(std::wstring filepath, OBJModel& potentialReturnHandle);
 
@@ -58,6 +66,7 @@ private:
 	TextureAndMaterialHandler* texAndMatHandler;
 	std::wstring meshMatLib; //String to hold our obj material library filename
 
+	std::vector<CacheEntry*> vertexCache;
 	std::vector<std::wstring> textureNameArray;
 	std::vector<std::wstring> meshMaterials;
 

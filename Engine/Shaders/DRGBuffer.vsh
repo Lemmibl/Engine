@@ -34,7 +34,7 @@ VertexShaderOutput GBufferVertexShader(VertexShaderInput input)
 	output.Position = mul(viewPosition, Projection);
 
 	output.TexCoord = input.TexCoord;
-	output.WorldNormal = mul(float4(input.Normal, 1.0f), World);
+	output.WorldNormal = mul(input.Normal, (float3x3)World);
 	output.ViewDepth = viewPosition.z;
 
 	return output;

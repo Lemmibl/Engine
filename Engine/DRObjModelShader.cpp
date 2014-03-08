@@ -50,7 +50,7 @@ bool DRObjModelShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 		// If the shader failed to compile it should have written something to the error message.
 		if(errorMessage)
 		{
-			OutputShaderErrorMessage(errorMessage, hwnd, vsFilename);
+			OutputShaderErrorMessage(errorMessage.p, hwnd, vsFilename);
 		}
 		// If there was  nothing in the error message then it simply could not find the shader file itself.
 		else
@@ -69,7 +69,7 @@ bool DRObjModelShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 		// If the shader failed to compile it should have written something to the error message.
 		if(errorMessage)
 		{
-			OutputShaderErrorMessage(errorMessage, hwnd, psFilename);
+			OutputShaderErrorMessage(errorMessage.p, hwnd, psFilename);
 		}
 		// If there was  nothing in the error message then it simply could not find the file itself.
 		else
@@ -290,21 +290,9 @@ bool DRObjModelShader::SetNewMaterial( ID3D11DeviceContext* deviceContext, Textu
 	// Get a pointer to the data in the constant buffer.
 	dataPtr = (VariableBuffer*)mappedResource.pData;
 
-	/*
-	int materialID;
-	float farClip;
-	XMFLOAT2 padding;
-
-	XMFLOAT3 Ambient;
-	float padding2;
-
-	XMFLOAT3 Diffuse;
-	float padding3;
-	*/
-
 	// Copy the lighting variables into the constant buffer.
-	dataPtr->farClip		= variableContainer.farClip;
 	dataPtr->materialID		= material.materialID;
+	dataPtr->farClip		= variableContainer.farClip;
 	dataPtr->alpha			= material.alpha;
 
 	// Unlock the constant buffer.
