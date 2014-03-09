@@ -26,21 +26,16 @@ VertexShaderOutput OBJGbufferVertex(VertexShaderInput input)
 	//Calculate view position so that we can extract view depth
 	float4 viewPosition = mul(mul(float4(input.Position, 1.0f), World), View);
 
-	//Calculate world view projection
+	//Transform viewposition by projection to turn it into the "final space"
 	output.Position = mul(viewPosition, Projection);
 
 	//Pass along texture coordinates
 	output.TexCoord.xy = input.TexCoord;
 
-	/*
-	es, in fact the normal should be multiplied by the inverse-transpose of the modelview matrix, but if you check the math, 
-	the inverse-transpose of an orthogonal matrix (which is usually true for modelview matrices) is actually the matrix itself.
-	*/
-
-	//Pass along surface normal
+	//Pass along surface normal, transformed by world matrix
 	output.Normal = normalize(mul(input.Normal, (float3x3)World));
 
-	//Save view depth
+	//Save view depth in texcoord z channel
 	output.TexCoord.z = viewPosition.z;
 
 	return output;

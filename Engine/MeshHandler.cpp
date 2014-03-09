@@ -238,7 +238,7 @@ bool MeshHandler::LoadOBJGeometry(ID3D11Device* device, std::wstring filepath, O
 	//Make sure we have a default if no tex coords or normals are defined
 	bool hasTexCoord = false;
 	bool hasNorm = false;
-	bool computeNormals = false;
+	bool computeNormals = true;
 	bool isRHCoordSys = true;
 
 	//Temp variables to store into vectors

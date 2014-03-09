@@ -17,18 +17,18 @@ cbuffer PixelShaderBuffer
 	float materialID	: packoffset(c0.x);
 	float farClip		: packoffset(c0.y);
 	float alpha			: packoffset(c0.z);
+	float PADDING		: packoffset(c0.w);
 }
 
-	//float4 ambientColor : packoffset(c1.x);
-	//float4 diffuseColor : packoffset(c2.x);
-
+//float4 ambientColor : packoffset(c1.x);
+//float4 diffuseColor : packoffset(c2.x);
 
 //http://aras-p.info/texts/CompactNormalStorage.html#method04spheremap
 //Normal Encoding Function
 float2 Encode(float3 n)
 {
-	float p = sqrt(n.z*8.0 + 8.0);
-	return float2(n.xy/p + 0.5);
+	float p = sqrt(n.z*8.0f + 8.0f);
+	return float2(n.xy/p + 0.5f);
 }
 
 //When it gets read in other shaders it gets multiplied back to 255.
