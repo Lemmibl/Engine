@@ -17,10 +17,12 @@ public:
 	MarchingCubeChunk(XMFLOAT3 startPosition, XMFLOAT3 endPosition, XMFLOAT3 stepSize, XMFLOAT3 stepCount);
 	~MarchingCubeChunk();
 
+	bool IsReadyToBeRendered() { return isReady; }
+	void FlagAsReady() { isReady = true; }
+
 	IndexedMesh* GetTerrainMesh() { return &terrainMesh; }
 	IndexedMesh* GetWaterMesh() { return &waterMesh; }
 
-	std::vector<MarchingCubeVoxel>* GetVoxelField() { return &voxels; }
 	std::vector<unsigned int>* GetIndices() { return &indices; }
 
 	XMFLOAT3 GetPosition() const { return centerPosition; }
@@ -54,7 +56,6 @@ public:
 
 private:
 	//voxels is sizeX*sizeY*sizeZ big
-	std::vector<MarchingCubeVoxel> voxels;
 	std::vector<unsigned int> indices;
 
 	//Our mesh that we'll be rendering. Contains all vertex/index data.
@@ -63,6 +64,9 @@ private:
 
 	//Should be self explanatory. Defines the bounds of this chunk; where it starts and where it ends.
 	XMFLOAT3 startPosition, centerPosition, extents;
+
+	//Is this chunk fully loaded and ready to be rendered?
+	bool isReady;
 
 	// How long each step will be between startPosition and endPosition.
 	float stepSizeX;

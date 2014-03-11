@@ -341,7 +341,7 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 		waterLevel = 5.0f;
 	}
 
-	void MarchingCubesClass::CalculateMesh(ID3D11Device* device, MarchingCubeChunk* chunk, btTriangleMesh* triMesh)
+	void MarchingCubesClass::CalculateMesh(ID3D11Device* device, MarchingCubeChunk* chunk, std::vector<MarchingCubeVoxel>* voxels, btTriangleMesh* triMesh)
 	{
 		// Stores the points from a simple cube 
 		MarchingCubeVoxel verts[12];
@@ -368,7 +368,7 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 					index = indexX + (indexY*sizeY) + (indexZ * sizeY * sizeZ);
 
 					//Extract a cube from the voxel field of the chunk
-					ExtractCube(cube, chunk->GetVoxelField(), sizeX, sizeY, sizeZ);
+					ExtractCube(cube, voxels, sizeX, sizeY, sizeZ);
 
 					// Out of the 256 potential edge cases, which should we use?
 					CalculateLookupValue(&lookup, index, cube);

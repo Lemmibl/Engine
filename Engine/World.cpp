@@ -1,7 +1,7 @@
 #include "World.h"
 
 GameWorld::GameWorld()
-:	SettingsDependent(), frustum(), renderableBundle(), frustumAABB(XMFLOAT2(-1, -1), XMFLOAT2(1, 1)), weatherSystem(), meshHandler(), terrainManager()
+	:	SettingsDependent(), frustum(), renderableBundle(), frustumAABB(XMFLOAT2(-1, -1), XMFLOAT2(1, 1)), weatherSystem(), meshHandler(), terrainManager()
 {
 }
 
@@ -12,12 +12,15 @@ GameWorld::~GameWorld()
 
 void GameWorld::CleanUp()
 {
-	auto objArray = dynamicsWorld->getCollisionObjectArray();
-
-	//remove the rigidbodies from the dynamics world and delete them
-	for (int i = dynamicsWorld->getNumCollisionObjects()-1; i >= 0; i--)
+	if(dynamicsWorld)
 	{
-		dynamicsWorld->removeCollisionObject(objArray[i]);
+		auto objArray = dynamicsWorld->getCollisionObjectArray();
+
+		//remove the rigidbodies from the dynamics world and delete them
+		for (int i = dynamicsWorld->getNumCollisionObjects()-1; i >= 0; i--)
+		{
+			dynamicsWorld->removeCollisionObject(objArray[i]);
+		}
 	}
 }
 
@@ -32,7 +35,7 @@ void GameWorld::Initialize( std::shared_ptr<D3DManager> extD3DManager, std::shar
 
 	meshHandler.Initialize(gameRenderer->GetTextureAndMaterialHandler());
 
-	InitializeMiscRenderables();
+	//InitializeMiscRenderables();
 	InitializeCollision();
 	InitializeCamera();
 	InitializeTerrain();

@@ -14,8 +14,6 @@
 #include "WeatherSystem.h"
 #include "SettingsDependent.h"
 
-//using namespace libconfig;
-
 class GameWorld : public SettingsDependent
 {
 public:

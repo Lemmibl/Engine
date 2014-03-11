@@ -328,6 +328,100 @@ void TerrainNoiseSeeder::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass*
 	functionMap.insert(std::make_pair<TerrainTypes::Type, NoiseFunction>(TerrainTypes::Flat, flatTerrainNoise));
 }
 
+void TerrainNoiseSeeder::Noise3D(unsigned int startX, unsigned int startY, unsigned int startZ, unsigned int endX, unsigned int endY, unsigned int endZ )
+{
+	unsigned int idx;
+
+	//Initialize index to some default values.
+	IndexingValue index(0, 0, 0, sizeX, sizeY, sizeZ);
+
+	//Select which noise function to use depending on what terrain type we currently have selected.
+	NoiseFunction noiseFunction = functionMap[terrainMode];
+
+	//Get a local reference to out voxel field with a shorter name for added readability
+	std::vector<MarchingCubeVoxel>& verts = (*marchingCubeVertices);
+
+	for(index.y = startY; index.y < (endY-1); ++index.y)
+	{
+		for (index.z = startZ; index.z < (endZ-1); ++index.z)
+		{
+			for (index.x = startX; index.x < (endX-1); ++index.x)
+			{
+				//Index value into the vertex voxel field
+				idx = index.x + (index.y*index.sizeY) + (index.z * index.sizeY * index.sizeZ);
+
+				//Extract density value from selected noise function
+				verts[idx].density = noiseFunction(index, verts[idx].position, noise);
+
+				//Decide if the vertex is considered inside
+				verts[idx].inside = (verts[idx].density >= densityToBeInside) ? true : false;
+			}
+		}
+	}
+
+	//Calculate normals for each point in terrain voxel field. 
+	//** This needs to be done in a second loop because we need all the values to be noised before we do normal creation. **
+	for(index.y = startY; index.y < (endY-1); ++index.y)
+	{
+		for (index.z = startZ; index.z < (endZ-1); ++index.z)
+		{
+			for (index.x = startX; index.x < (endX-1); ++index.x)
+			{
+				//Index value into the vertex voxel field
+				idx = index.x + (index.y*index.sizeY) + (index.z * index.sizeY * index.sizeZ);
+
+				verts[idx].normal.x = (verts[idx - 1							].density	-	verts[idx+1								].density)	* XFactor;
+				verts[idx].normal.y = (verts[idx - index.sizeY					].density	-	verts[idx + index.sizeY					].density)	* YFactor;
+				verts[idx].normal.z = (verts[idx - (index.sizeY * index.sizeZ)	].density	-	verts[idx + (index.sizeY * index.sizeZ)	].density)	* ZFactor;
+
+				//Normalize results.
+				float vectorLength = sqrt((verts[idx].normal.x*verts[idx].normal.x) + (verts[idx].normal.y*verts[idx].normal.y) + (verts[idx].normal.z*verts[idx].normal.z));
+
+				verts[idx].normal.x = verts[idx].normal.x/vectorLength;
+				verts[idx].normal.y = verts[idx].normal.y/vectorLength;
+				verts[idx].normal.z = verts[idx].normal.z/vectorLength;
+
+				//CreateNormal(verts, index, idx);
+			}
+		}
+	}
+}
+
+float TerrainNoiseSeeder::GetHighestPositionOfCoordinate(int x, int z, const MarchingCubeChunk* chunk)
+{
+	int idx;
+	float j = 0.0f;
+	int i = 0;
+
+	//OR stepSize? can't remember
+	int sizeY = chunk->GetStepCountY();
+	int sizeZ = chunk->GetStepCountZ();
+
+	int idxPreCalc = x + z * sizeY * sizeZ;
+
+	//So what this function does is that it takes a point in our voxel field, then it starts from the absolute highest point in the field, 
+	// and goes downward until it hits a point with a density that is high enough to be considered solid.
+	for (i = sizeY; i > 0; i--)
+	{
+		idx = i*sizeY + idxPreCalc;
+
+		//When we find our first solid voxel, we break, because we've found the right point
+		if((*marchingCubeVertices)[idx].inside)
+		{
+			break;
+		} 
+	}
+
+	//Now we want the point below it
+	int idx2 = idx+sizeY;
+
+	//Calculate an average
+	j = ((*marchingCubeVertices)[idx].density + (*marchingCubeVertices)[idx2].density)*0.5f;
+
+	//Then we add some fuckin' magic numbers because we're BAD BOYS who don't PLAY BY THE RULES
+	return (i + 0.5f + j);
+}
+
 void TerrainNoiseSeeder::MCHeightMap()
 {
 	//float* worldArray = new float[worldArraySize];
@@ -382,88 +476,4 @@ void TerrainNoiseSeeder::MCHeightMap()
 	//{
 	//	delete worldArray;
 	//}
-}
-
-
-void TerrainNoiseSeeder::Noise3D(unsigned int startX, unsigned int startY, unsigned int startZ, unsigned int endX, unsigned int endY, unsigned int endZ )
-{
-	unsigned int idx;
-
-	//Initialize index to some default values.
-	IndexingValue index(0, 0, 0, sizeX, sizeY, sizeZ);
-
-	//Select which noise function to use depending on what terrain type we currently have selected.
-	NoiseFunction& noiseFunction = functionMap[terrainMode];
-
-	//Get a local reference to out voxel field with a shorter name for added readability
-	std::vector<MarchingCubeVoxel>& verts = (*marchingCubeVertices);
-
-	for(index.y = startY; index.y < (endY-1); ++index.y)
-	{
-		for (index.z = startZ; index.z < (endZ-1); ++index.z)
-		{
-			for (index.x = startX; index.x < (endX-1); ++index.x)
-			{
-				//Index value into the vertex voxel field
-				idx = index.x + (index.y*index.sizeY) + (index.z * index.sizeY * index.sizeZ);
-
-				//Extract density value from selected noise function
-				verts[idx].density = noiseFunction(index, verts[idx].position, noise);
-
-				//Decide if the vertex is considered inside
-				verts[idx].inside = (verts[idx].density >= densityToBeInside) ? true : false;
-			}
-		}
-	}
-
-	//Calculate normals for each point in terrain voxel field. 
-	//** This needs to be done in a second loop because we need all the values to be noised before we do normal creation. **
-	for(index.y = startY; index.y < (endY-1); ++index.y)
-	{
-		for (index.z = startZ; index.z < (endZ-1); ++index.z)
-		{
-			for (index.x = startX; index.x < (endX-1); ++index.x)
-			{
-				//Index value into the vertex voxel field
-				idx = index.x + (index.y*index.sizeY) + (index.z * index.sizeY * index.sizeZ);
-
-				CreateNormal(verts, index, idx);
-			}
-		}
-	}
-}
-
-float TerrainNoiseSeeder::GetHighestPositionOfCoordinate(int x, int z, const MarchingCubeChunk* chunk)
-{
-	int idx;
-	float j = 0.0f;
-	int i = 0;
-
-	//OR stepSize? can't remember
-	int sizeY = chunk->GetStepCountY();
-	int sizeZ = chunk->GetStepCountZ();
-
-	int idxPreCalc = x + z * sizeY * sizeZ;
-
-	//So what this function does is that it takes a point in our voxel field, then it starts from the absolute highest point in the field, 
-	// and goes downward until it hits a point with a density that is high enough to be considered solid.
-	for (i = sizeY; i > 0; i--)
-	{
-		idx = i*sizeY + idxPreCalc;
-
-		//When we find our first solid voxel, we break, because we've found the right point
-		if((*marchingCubeVertices)[idx].inside)
-		{
-			break;
-		} 
-	}
-
-	//Now we want the point below it
-	int idx2 = idx+sizeY;
-
-	//Calculate an average
-	j = ((*marchingCubeVertices)[idx].density + (*marchingCubeVertices)[idx2].density)*0.5f;
-
-	//Then we add some fuckin' magic numbers because we're BAD BOYS who don't PLAY BY THE RULES
-	return (i + 0.5f + j);
 }

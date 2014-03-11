@@ -23,7 +23,7 @@ public:
 	~MarchingCubesClass();
 
 	//Converts a voxel field to a mesh
-	void CalculateMesh(ID3D11Device* device, MarchingCubeChunk* chunk, btTriangleMesh* triMesh);
+	void CalculateMesh(ID3D11Device* device, MarchingCubeChunk* chunk, std::vector<MarchingCubeVoxel>* voxels, btTriangleMesh* triMesh);
 
 private:
 	//Extract a cube from the .. voxel field...

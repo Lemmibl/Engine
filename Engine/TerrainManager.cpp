@@ -45,6 +45,25 @@ TerrainManager::~TerrainManager()
 {
 }
 
+void TerrainManager::ResetTerrain()
+{
+	for(auto it = chunkMap->begin(); it != chunkMap->end(); it++)
+	{
+		collisionHandler->removeRigidBody(it->second->GetRigidBody());
+	}
+
+	chunkMap->clear();
+	activeRenderables.clear();
+	activeChunks.clear();
+
+	timePassed = 0.0f;
+	lastUsedKey = std::make_pair<int, int>(99, -99);
+	lastMin = std::make_pair<int, int>(-99, -99);
+	lastMax = std::make_pair<int, int>(99, 99);
+
+	noise.ReseedRandom();
+}
+
 
 bool TerrainManager::Initialize( ID3D11Device* device, ID3D11DeviceContext* deviceContext, std::shared_ptr<btDiscreteDynamicsWorld> collisionWorld, HWND hwnd, XMFLOAT3 cameraPosition )
 {
@@ -55,7 +74,7 @@ bool TerrainManager::Initialize( ID3D11Device* device, ID3D11DeviceContext* devi
 	timeThreshold = 10.0f;
 	rangeThreshold = 800.0f;
 
-	map = std::make_shared<std::unordered_map<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>, int_pair_hash>>();
+	chunkMap = std::make_shared<std::unordered_map<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>, int_pair_hash>>();
 	collisionHandler = collisionWorld;
 
 	noise.ReseedRandom();
@@ -136,35 +155,16 @@ bool TerrainManager::Update(ID3D11Device* device, ID3D11DeviceContext* deviceCon
 	return false;
 }
 
-void TerrainManager::ResetTerrain()
-{
-	for(auto it = map->begin(); it != map->end(); it++)
-	{
-		collisionHandler->removeRigidBody(it->second->GetRigidBody());
-	}
-
-	map->clear();
-	activeRenderables.clear();
-	activeChunks.clear();
-
-	timePassed = 0.0f;
-	lastUsedKey = std::make_pair<int, int>(99, -99);
-	lastMin = std::make_pair<int, int>(-99, -99);
-	lastMax = std::make_pair<int, int>(99, 99);
-
-	noise.ReseedRandom();
-}
-
 void TerrainManager::CreateChunk(ID3D11Device* device, ID3D11DeviceContext* deviceContext, int startPosX, int startPosZ)
 {
 	//Make a key out of the values
 	std::pair<int,int> key(startPosX, startPosZ);
 
 	//See if the key that we're using already exists
-	std::unordered_map<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>>::const_iterator mappedChunk = map->find(key);
+	std::unordered_map<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>>::const_iterator mappedChunk = chunkMap->find(key);
 
 	//If they key doesn't exist, we go about creating the chunk
-	if(mappedChunk == map->end())
+	if(mappedChunk == chunkMap->end())
 	{
 		float actualPosX, actualPosZ;
 
@@ -179,12 +179,41 @@ void TerrainManager::CreateChunk(ID3D11Device* device, ID3D11DeviceContext* devi
 			stepCount
 		);
 
+		std::vector<MarchingCubeVoxel> voxels;
+
+		unsigned int index = 0;
+		voxels.resize((stepCount.x+1) * (stepCount.y+1) * (stepCount.z+1));
+
+
+		// Set default values for each voxel in the field
+		for(unsigned int z = 0; z <= stepCount.z+1; ++z)
+		{
+			for(unsigned int y = 0; y <= stepCount.y+1; ++y)
+			{
+				for(unsigned int x = 0; x <= stepCount.x+1; ++x)
+				{
+					//Calculate index for this voxel
+					index = x + (y*stepCount.y) + (z * stepCount.y * stepCount.z);
+
+					//Set default values for this voxel
+					voxels[index].position.x = actualPosX	+ stepSize.x * x;
+					voxels[index].position.y = 0			+ stepSize.y * y;
+					voxels[index].position.z = actualPosZ	+ stepSize.z * z;
+					voxels[index].density = 0.0f;
+					voxels[index].inside = false;
+					voxels[index].normal.x = 0.5f;
+					voxels[index].normal.y = 0.5f;
+					voxels[index].normal.z = 0.5f;
+				}
+			}
+		}
+
 		//Noise the chunk
-		terrainNoiser.SetCurrentVoxelField(newChunk->GetVoxelField());
+		terrainNoiser.SetCurrentVoxelField(&voxels);
 		terrainNoiser.Noise3D(1, 1, 1, (int)stepCount.x, (int)stepCount.y, (int)stepCount.z);
 
 		//Create the mesh for the chunk with marching cubes algorithm
-		marchingCubes.CalculateMesh(device, newChunk.get(), newChunk->GetTriMesh());
+		marchingCubes.CalculateMesh(device, newChunk.get(), &voxels, newChunk->GetTriMesh());
 
 		//Setup collision shape with the triMesh that was created inside marching cubes class
 		std::shared_ptr<btBvhTriangleMeshShape> triMeshShape = std::make_shared<btBvhTriangleMeshShape>(newChunk->GetTriMesh(), true);
@@ -212,12 +241,54 @@ void TerrainManager::CreateChunk(ID3D11Device* device, ID3D11DeviceContext* devi
 		newChunk->GetIndices()->clear();
 		newChunk->GetIndices()->swap(*(newChunk->GetIndices()));
 
-		newChunk->GetVoxelField()->clear();
-		newChunk->GetVoxelField()->swap(*(newChunk->GetVoxelField()));
+		newChunk->FlagAsReady();
 
 		//Create a new slot with key and insert the new chunk.
-		map->emplace(std::make_pair<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>>(key, newChunk));
+		chunkMap->emplace(std::make_pair<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>>(key, newChunk));
+
+
+		//TODO: ... A "CreateMeshesForChunk" function
+		//Essentially, we use the off-thread to noise, marching cube and all that, then when t hat is done, we add the chunk to a queue
+		// this queue will be consumed in the createmeshesforchunk function on the main thread. after that it gets added to the map properly..
 	}
+}
+
+//The reason I implement this function in this way is that if we would do a "if(map->find(key)) { return map[key] }"
+//We'd have a potential worst case of.... well, going through the whole hash table twice because 
+//first it looks for the key with find(), then it does it again through the [] operator. I assume.
+bool TerrainManager::GetChunk(int x, int z, MarchingCubeChunk** outChunk)
+{
+	//Make a key out of the values
+	std::pair<int,int> key(x, z);
+
+	//We use map->find(), which returns an iterator to the value we're looking for IF it exists. 
+	// If it doesn't exist, we get an iterator that points to map->end()
+	//http://www.cplusplus.com/reference/unordered_map/unordered_map/end/
+	std::unordered_map<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>>::const_iterator mappedChunk = chunkMap->find(key);
+
+	//If the object DOES exist at this key and it's the right object we've retrieved
+	if(mappedChunk != chunkMap->end())
+	{
+		if(!mappedChunk->second->IsReadyToBeRendered())
+		{
+			return false;
+		}
+
+		//Temporary sanity check. Not sure if this can actually happen yet, but if it does happen, we want it to happen loudly.
+		if(mappedChunk->first != key)
+		{
+			MessageBox(NULL , L"TerrainManager::GetChunk has somehow retrieved the wrong chunk from the hash table. Look into that.", L"Error", MB_OK);
+
+			return false;
+		}
+
+		//We return the pointer that the iterator points to.
+		*outChunk = mappedChunk->second.get();
+
+		return true;
+	}
+
+	return false;
 }
 
 void TerrainManager::MergeWithNeighbourChunks( MarchingCubeChunk* chunk, int idX, int idZ )
@@ -254,38 +325,6 @@ void TerrainManager::MergeWithNeighbourChunks( MarchingCubeChunk* chunk, int idX
 	//}
 }
 
-//The reason I implement this function in this way is that if we would do a "if(map->find(key)) { return map[key] }"
-//We'd have a potential worst case of.... well, going through the whole hash table twice because 
-//first it looks for the key with find(), then it does it again through the [] operator. I assume.
-bool TerrainManager::GetChunk(int x, int z, MarchingCubeChunk** outChunk)
-{
-	//Make a key out of the values
-	std::pair<int,int> key(x, z);
-
-	//We use map->find(), which returns an iterator to the value we're looking for IF it exists. 
-	// If it doesn't exist, we get an iterator that points to map->end()
-	//http://www.cplusplus.com/reference/unordered_map/unordered_map/end/
-	std::unordered_map<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>>::const_iterator mappedChunk = map->find(key);
-
-	//If the object DOES exist at this key and it's the right object we've retrieved
-	if(mappedChunk != map->end())
-	{
-		//Temporary sanity check. Not sure if this can actually happen yet, but if it does happen, we want it to happen loudly.
-		if(mappedChunk->first != key)
-		{
-			MessageBox(NULL , L"TerrainManager::GetChunk has somehow retrieved the wrong chunk from the hash table. Look into that.", L"Error", MB_OK);
-
-			return false;
-		}
-
-		//We return the pointer that the iterator points to.
-		*outChunk = mappedChunk->second.get();
-
-		return true;
-	}
-
-	return false;
-}
 
 //Still keeping this function around in case we'll be placing trees/bushes in the future
 void TerrainManager::GenerateVegetation( ID3D11Device* device, bool UpdateInstanceBuffer, MarchingCubeChunk* chunk)
@@ -505,7 +544,7 @@ bool TerrainManager::UpdateAgainstAABB( ID3D11Device* device, ID3D11DeviceContex
 void TerrainManager::Cleanup(float posX, float posZ)
 {
 	//Iterate through entirety of map
-	for(auto it = map->begin(); it != map->end();)
+	for(auto it = chunkMap->begin(); it != chunkMap->end();)
 	{
 		const XMFLOAT3& position = it->second->GetPosition();
 
@@ -513,7 +552,7 @@ void TerrainManager::Cleanup(float posX, float posZ)
 		if(abs(position.x - posX) >= rangeThreshold || abs(position.z - posZ) >= rangeThreshold)
 		{
 			collisionHandler->removeRigidBody(it->second->GetRigidBody());
-			it = map->erase(it);
+			it = chunkMap->erase(it);
 		}
 		else
 		{
@@ -531,4 +570,39 @@ void TerrainManager::OnSettingsReload(Config* cfg)
 	settings.lookupValue("startingTerrainType", type);
 
 	terrainType = (TerrainTypes::Type)type;
+}
+
+void TerrainManager::CreateChunkMeshes(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
+{
+	//If the work queue is > 0, pop next chunk
+	//Create the meshes for it and add them to relevant systems
+	//Flag it as ready
+	
+	//Step through productionQueue
+
+	unsigned int size = toBeMeshedQueue.size();
+	
+	for(int i = 0; i < size; i++)
+	{
+		std::unordered_map<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>>::const_iterator tempChunk = chunkMap->find(toBeMeshedQueue.back()); 
+		toBeMeshedQueue.pop();
+
+		//Chunk is here VVVV
+		//tempChunk->second
+
+		//Make chunk mesh
+		//Make make water mesh
+		//Add meshes to collision world
+		//Flag chunk as ready
+	}
+}
+
+void TerrainManager::QueueChunkForCreation( int startPosX, int startPosZ )
+{
+	//threadManager.AddJob(CreateChunk(device, deviceContext, startPosX, startPosZ));
+}
+
+void TerrainManager::UpdateJobThread()
+{
+
 }

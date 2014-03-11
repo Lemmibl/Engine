@@ -24,6 +24,7 @@ class Lemmi2DAABB
 	XMFLOAT2 MinPoint() const { return minPoint; }
 	XMFLOAT2 MaxPoint() const { return maxPoint; }
 
+	void Resize(float xAxis, float yAxis) { xSize = xAxis; ySize = yAxis; }
 
 	bool Intersects(const Lemmi2DAABB& otherAABB)
 	{
@@ -49,7 +50,7 @@ class Lemmi2DAABB
 		otherMinPoint = otherAABB.MinPoint();
 		otherMaxPoint = otherAABB.MaxPoint();
 
-		if( otherMinPoint.x >= minPoint.x 
+		if(		otherMinPoint.x >= minPoint.x 
 			&&	otherMinPoint.y >= minPoint.y 
 			&&	otherMaxPoint.x <= maxPoint.x 
 			&&	otherMaxPoint.y <= maxPoint.y)
@@ -122,6 +123,17 @@ class Lemmi2DAABB
 		minPoint.y = y;
 		maxPoint.x = x+xSize;
 		maxPoint.y = y+ySize;
+	}
+
+	void MoveCentered(float x, float y)
+	{
+		centerPosition.x = x;
+		centerPosition.y = y;
+
+		minPoint.x = x-(xSize/2);
+		minPoint.y = y-(ySize/2);
+		maxPoint.x = x+(xSize/2);
+		maxPoint.y = y+(ySize/2);
 	}
 
 	private:
