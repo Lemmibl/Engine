@@ -36,23 +36,153 @@ static const XMFLOAT3 stepSize(2.0f, 2.0f, 2.0f);
 //Needs to be kept at 28, 53, 103 etc, else your position slowly gets out of sync with the culling position. Need to look into this.
 static const XMFLOAT3 stepCount(28.0f, 28.0f, 28.0f);
 
+volatile static bool IsRunning = true;
+
+//Entry point for each thread
+void JobThreadEntryPoint(void* terrainManagerPointer)
+{
+	TerrainManager* terrainManager = (TerrainManager*)terrainManagerPointer;
+
+	std::pair<int,int> chunkKey;
+
+	while(IsRunning)
+	{
+		//If the work queue is > 0, pop next chunk
+		//Create the meshes for it and add them to relevant systems
+		//Flag it as ready
+
+		if(terrainManager->GetPreProductionQueue()->Try_pop(chunkKey))
+		{
+
+			float actualPosX, actualPosZ;
+
+			//Calculate start position
+			actualPosX = ((float)chunkKey.first * (stepSize.x*(stepCount.x-3.0f)));
+			actualPosZ = ((float)chunkKey.second * (stepSize.x*(stepCount.x-3.0f)));
+
+			//Create shared ptr to chunk
+			std::shared_ptr<MarchingCubeChunk> chunk = std::make_shared<MarchingCubeChunk>
+				(
+				XMFLOAT3(actualPosX, 0, actualPosZ), 
+				XMFLOAT3(actualPosX + stepSize.x*stepCount.x, 0 + stepSize.y*stepCount.y, actualPosZ + stepSize.z*stepCount.z), 
+				stepSize, 
+				stepCount
+				);
+
+			chunk->SetKey(chunkKey.first, chunkKey.second);
+
+			std::vector<MarchingCubeVoxel> voxels;
+			voxels.resize(((unsigned int)stepCount.x+1) * ((unsigned int)stepCount.y+1) * ((unsigned int)stepCount.z+1));
+
+			// Set default values for each voxel in the field
+			for(unsigned int z = 0; z <= stepCount.z+1; ++z)
+			{
+				for(unsigned int y = 0; y <= stepCount.y+1; ++y)
+				{
+					for(unsigned int x = 0; x <= stepCount.x+1; ++x)
+					{
+						//Calculate index for this voxel
+						unsigned int index = x + (y*(unsigned int)stepCount.y) + (z * (unsigned int)stepCount.y * (unsigned int)stepCount.z);
+
+						//Set default values for this voxel
+						voxels[index].position.x = actualPosX	+ stepSize.x * x;
+						voxels[index].position.y = 0.0f			+ stepSize.y * y;
+						voxels[index].position.z = actualPosZ	+ stepSize.z * z;
+						voxels[index].density = 0.0f;
+						voxels[index].inside = false;
+						voxels[index].normal.x = 0.5f;
+						voxels[index].normal.y = 0.5f;
+						voxels[index].normal.z = 0.5f;
+					}
+				}
+			}
+
+			//Noise the voxel field
+			terrainManager->GetTerrainNoiser().Noise3D(1, 1, 1, (int)stepCount.x, (int)stepCount.y, (int)stepCount.z, &voxels);
+
+			//Create the mesh for the chunk with marching cubes algorithm
+			terrainManager->GetMarchingCubesClass().CalculateMesh(terrainManager->GetDevice(), chunk, &voxels);
+
+			if(terrainManager->DXMultiThreading())
+			{
+				terrainManager->CreateWaterMesh(terrainManager->GetDevice(), chunk);
+				terrainManager->CreateMesh(terrainManager->GetDevice(), chunk);
+			}
+
+			//Setup collision shape with the triMesh that was created inside marching cubes class
+			std::shared_ptr<btBvhTriangleMeshShape> triMeshShape = std::make_shared<btBvhTriangleMeshShape>(chunk->GetTriMesh(), true);
+
+			//Assign it to this chunk
+			chunk->SetCollisionShape(triMeshShape);
+
+			//Set up some rigid body stuff
+			btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, NULL, chunk->GetCollisionShape().get(), btVector3(0,0,0));
+			std::shared_ptr<btRigidBody> rigidBody = std::make_shared<btRigidBody>(groundRigidBodyCI);
+			rigidBody->setFriction(1);
+			rigidBody->setRollingFriction(1);
+			rigidBody->setRestitution(0.5f);
+
+			//Assign it to this chunk
+			chunk->SetRigidBody(rigidBody);
+
+			terrainManager->GetPostProductionQueue()->Push(chunk);
+		}
+	}
+}
+
 TerrainManager::TerrainManager() 
-: SettingsDependent(), marchingCubes((int)stepCount.x, (int)stepCount.y, (int)stepCount.z)
+	: SettingsDependent(), marchingCubes((int)stepCount.x, (int)stepCount.y, (int)stepCount.z)
 {
 }
 
 TerrainManager::~TerrainManager()
 {
+	Shutdown();
+}
+
+void TerrainManager::Shutdown()
+{
+	preProductionQueue.Clear();
+	preProductionQueue.Shutdown();
+
+	IsRunning = false;
+
+	for(unsigned int i = 0; i < workThreads.size(); i++)
+	{
+		if(workThreads[i]->joinable())
+		{
+			workThreads[i]->join();
+		}
+
+		delete workThreads[i];
+	}
+
+	workThreads.clear();
+
+	for(auto it = GetMap()->begin(); it != GetMap()->end(); it++)
+	{
+		//Check against the bool flag first to see if we're trying to delete an object that isn't finished yet.
+		if(it->second.first)
+		{
+			collisionHandler->removeRigidBody(it->second.second->GetRigidBody().get());
+			delete it->second.second->GetRigidBody()->getMotionState();
+		}
+	}
 }
 
 void TerrainManager::ResetTerrain()
 {
-	for(auto it = chunkMap->begin(); it != chunkMap->end(); it++)
+	for(auto it = GetMap()->begin(); it != GetMap()->end(); it++)
 	{
-		collisionHandler->removeRigidBody(it->second->GetRigidBody());
+		//Check against the bool flag first to see if we're trying to delete an object that isn't finished yet.
+		if(it->second.first)
+		{
+			collisionHandler->removeRigidBody(it->second.second->GetRigidBody().get());
+			delete it->second.second->GetRigidBody()->getMotionState();
+		}
 	}
 
-	chunkMap->clear();
+	GetMap()->clear();
 	activeRenderables.clear();
 	activeChunks.clear();
 
@@ -64,17 +194,18 @@ void TerrainManager::ResetTerrain()
 	noise.ReseedRandom();
 }
 
-
-bool TerrainManager::Initialize( ID3D11Device* device, ID3D11DeviceContext* deviceContext, std::shared_ptr<btDiscreteDynamicsWorld> collisionWorld, HWND hwnd, XMFLOAT3 cameraPosition )
+bool TerrainManager::Initialize( ID3D11Device* device, std::shared_ptr<btDiscreteDynamicsWorld> collisionWorld, HWND hwnd, XMFLOAT3 cameraPosition )
 {
 	//Load settings from file
 	InitializeSettings(this);
+
+	this->device = device;
 
 	timePassed = 0.0f;
 	timeThreshold = 10.0f;
 	rangeThreshold = 800.0f;
 
-	chunkMap = std::make_shared<std::unordered_map<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>, int_pair_hash>>();
+	chunkMap = std::make_shared<std::unordered_map<std::pair<int,int>, std::pair<bool, std::shared_ptr<MarchingCubeChunk>>, int_pair_hash>>();
 	collisionHandler = collisionWorld;
 
 	noise.ReseedRandom();
@@ -93,78 +224,39 @@ bool TerrainManager::Initialize( ID3D11Device* device, ID3D11DeviceContext* devi
 
 	vegetationManager.Initialize(device, hwnd);
 
+	D3D11_FEATURE_DATA_THREADING threadingFeatures;
+	multiThreadedMeshCreationEnabled = true;
+
+	if(!FAILED(device->CheckFeatureSupport(D3D11_FEATURE_THREADING, &threadingFeatures, sizeof(D3D11_FEATURE_DATA_THREADING))))
+	{
+		//BOOL to bool casting...
+		multiThreadedMeshCreationEnabled = (threadingFeatures.DriverConcurrentCreates != 0);
+	}
+
+	//Initialize it first...
+	numThreads = thread::hardware_concurrency();
+
+	if(numThreads > 1)
+	{
+		for(int i = 0; i < 4; i++)
+		{
+			workThreads.push_back(new thread(&JobThreadEntryPoint, ((void *)this)));
+		}
+	}
+
 	return true;
 }
 
-
-bool TerrainManager::Update(ID3D11Device* device, ID3D11DeviceContext* deviceContext, XMFLOAT3 currentCameraPosition, float deltaTime)
-{
-	std::pair<int,int> key(RoundToNearest((currentCameraPosition.x)*stepScaling), RoundToNearest((currentCameraPosition.z)*stepScaling));
-	std::pair<int,int> neighbourKey;
-
-	timePassed += deltaTime;
-
-	if(key != lastUsedKey)
-	{
-		//////////////////////////////////////////////////////////////////////////
-		/*
-		*	Update active chunks and active renderables.
-		*/
-		//////////////////////////////////////////////////////////////////////////
-
-		//Temp chunk to hold pointer from each GetChunk call.
-		MarchingCubeChunk* tempChunk;
-
-		//Clear active chunks
-		activeChunks.clear();
-		activeRenderables.clear();
-
-		//Add all new relevant chunks
-		for(int i=0; i < 9; i++)
-		{
-			bool result;
-			neighbourKey = AddPairs(key, edgePairs[i]);
-
-			//Fetch chunk from the right grid slot
-			result = GetChunk(neighbourKey.first, neighbourKey.second, &tempChunk);
-
-			//If this chunk is valid
-			if(result == true)
-			{
-				//Add ptr to active chunk std::vector
-				activeChunks.push_back(tempChunk);
-				activeRenderables.push_back(tempChunk->GetTerrainMesh());
-
-				////Add this chunk's instances to the temporary std::vector
-				//tempVec.insert(tempVec.end(), tempChunk->GetVegetationInstances()->cbegin(), tempChunk->GetVegetationInstances()->cend());
-			}
-			else
-			{
-				CreateChunk(device, deviceContext, neighbourKey.first, neighbourKey.second);
-			}
-		}
-
-		//Send temporary std::vector to be built into a vegetation instance buffer
-		//vegetationManager.BuildInstanceBuffer(device, &tempVec);
-
-		lastUsedKey = key;
-
-		return true;
-	}
-
-	return false;
-}
-
-void TerrainManager::CreateChunk(ID3D11Device* device, ID3D11DeviceContext* deviceContext, int startPosX, int startPosZ)
+void TerrainManager::CreateChunk(ID3D11Device* device, int startPosX, int startPosZ, bool canCreateMesh)
 {
 	//Make a key out of the values
 	std::pair<int,int> key(startPosX, startPosZ);
 
 	//See if the key that we're using already exists
-	std::unordered_map<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>>::const_iterator mappedChunk = chunkMap->find(key);
+	auto mappedChunk = GetMap()->find(key);
 
 	//If they key doesn't exist, we go about creating the chunk
-	if(mappedChunk == chunkMap->end())
+	if(mappedChunk == GetMap()->end())
 	{
 		float actualPosX, actualPosZ;
 
@@ -172,17 +264,17 @@ void TerrainManager::CreateChunk(ID3D11Device* device, ID3D11DeviceContext* devi
 		actualPosZ = (float)(startPosZ * (stepSize.x*(stepCount.x-3)));
 
 		std::shared_ptr<MarchingCubeChunk> newChunk = std::make_shared<MarchingCubeChunk>
-		(
+			(
 			XMFLOAT3(actualPosX, 0, actualPosZ), 
 			XMFLOAT3(actualPosX + stepSize.x*stepCount.x, 0 + stepSize.y*stepCount.y, actualPosZ + stepSize.z*stepCount.z), 
 			stepSize, 
 			stepCount
-		);
+			);
 
 		std::vector<MarchingCubeVoxel> voxels;
 
 		unsigned int index = 0;
-		voxels.resize((stepCount.x+1) * (stepCount.y+1) * (stepCount.z+1));
+		voxels.resize((unsigned int)(stepCount.x+1) * (unsigned int)(stepCount.y+1) * (unsigned int)(stepCount.z+1));
 
 
 		// Set default values for each voxel in the field
@@ -193,7 +285,7 @@ void TerrainManager::CreateChunk(ID3D11Device* device, ID3D11DeviceContext* devi
 				for(unsigned int x = 0; x <= stepCount.x+1; ++x)
 				{
 					//Calculate index for this voxel
-					index = x + (y*stepCount.y) + (z * stepCount.y * stepCount.z);
+					index = x + (y*(unsigned int)stepCount.y) + (z * (unsigned int)stepCount.y * (unsigned int)stepCount.z);
 
 					//Set default values for this voxel
 					voxels[index].position.x = actualPosX	+ stepSize.x * x;
@@ -208,12 +300,17 @@ void TerrainManager::CreateChunk(ID3D11Device* device, ID3D11DeviceContext* devi
 			}
 		}
 
-		//Noise the chunk
-		terrainNoiser.SetCurrentVoxelField(&voxels);
-		terrainNoiser.Noise3D(1, 1, 1, (int)stepCount.x, (int)stepCount.y, (int)stepCount.z);
+		//Noise the voxel field
+		terrainNoiser.Noise3D(1, 1, 1, (int)stepCount.x, (int)stepCount.y, (int)stepCount.z, &voxels);
 
 		//Create the mesh for the chunk with marching cubes algorithm
-		marchingCubes.CalculateMesh(device, newChunk.get(), &voxels, newChunk->GetTriMesh());
+		marchingCubes.CalculateMesh(device, newChunk, &voxels);
+
+		if(canCreateMesh)
+		{
+			CreateMesh(device, newChunk);
+			CreateWaterMesh(device, newChunk);
+		}
 
 		//Setup collision shape with the triMesh that was created inside marching cubes class
 		std::shared_ptr<btBvhTriangleMeshShape> triMeshShape = std::make_shared<btBvhTriangleMeshShape>(newChunk->GetTriMesh(), true);
@@ -222,7 +319,7 @@ void TerrainManager::CreateChunk(ID3D11Device* device, ID3D11DeviceContext* devi
 		newChunk->SetCollisionShape(triMeshShape);
 
 		//Set up some rigid body stuff
-		btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, NULL, newChunk->GetCollisionShape(), btVector3(0,0,0));
+		btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, NULL, newChunk->GetCollisionShape().get(), btVector3(0,0,0));
 		std::shared_ptr<btRigidBody> rigidBody = std::make_shared<btRigidBody>(groundRigidBodyCI);
 		rigidBody->setFriction(1);
 		rigidBody->setRollingFriction(1);
@@ -232,24 +329,20 @@ void TerrainManager::CreateChunk(ID3D11Device* device, ID3D11DeviceContext* devi
 		newChunk->SetRigidBody(rigidBody);
 
 		//Add it to the world
-		collisionHandler->addRigidBody(newChunk->GetRigidBody());
+		collisionHandler->addRigidBody(newChunk->GetRigidBody().get());
 
 		//...Generate and place vegetation based on data from the chunk.
 		//GenerateVegetation(device, false, newChunk.get());
 
 		//Clean up and remove the HUGE index and vertex std::vectors because they are no longer needed.
 		newChunk->GetIndices()->clear();
-		newChunk->GetIndices()->swap(*(newChunk->GetIndices()));
+		newChunk->GetIndices()->shrink_to_fit();
 
-		newChunk->FlagAsReady();
+		newChunk->GetVertices()->clear();
+		newChunk->GetVertices()->shrink_to_fit();
 
 		//Create a new slot with key and insert the new chunk.
-		chunkMap->emplace(std::make_pair<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>>(key, newChunk));
-
-
-		//TODO: ... A "CreateMeshesForChunk" function
-		//Essentially, we use the off-thread to noise, marching cube and all that, then when t hat is done, we add the chunk to a queue
-		// this queue will be consumed in the createmeshesforchunk function on the main thread. after that it gets added to the map properly..
+		GetMap()->emplace(std::make_pair<std::pair<int,int>, std::pair<bool, std::shared_ptr<MarchingCubeChunk>>>(key, std::make_pair<bool, std::shared_ptr<MarchingCubeChunk>>(true, newChunk)));
 	}
 }
 
@@ -264,12 +357,13 @@ bool TerrainManager::GetChunk(int x, int z, MarchingCubeChunk** outChunk)
 	//We use map->find(), which returns an iterator to the value we're looking for IF it exists. 
 	// If it doesn't exist, we get an iterator that points to map->end()
 	//http://www.cplusplus.com/reference/unordered_map/unordered_map/end/
-	std::unordered_map<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>>::const_iterator mappedChunk = chunkMap->find(key);
+	auto mappedChunk = chunkMap->find(key);
 
-	//If the object DOES exist at this key and it's the right object we've retrieved
+	//If the object DOES exist at this key and it's the right object we've retrieved...
 	if(mappedChunk != chunkMap->end())
 	{
-		if(!mappedChunk->second->IsReadyToBeRendered())
+		//If it isn't ready to be rendered (it's in production), then we break early and return false
+		if(!mappedChunk->second.first)
 		{
 			return false;
 		}
@@ -282,154 +376,20 @@ bool TerrainManager::GetChunk(int x, int z, MarchingCubeChunk** outChunk)
 			return false;
 		}
 
-		//We return the pointer that the iterator points to.
-		*outChunk = mappedChunk->second.get();
+		//We've passed all checks and return the pointer that the iterator points to.
+		*outChunk = mappedChunk->second.second.get();
 
 		return true;
 	}
 
+	//There was no chunk located at that key
 	return false;
 }
 
-void TerrainManager::MergeWithNeighbourChunks( MarchingCubeChunk* chunk, int idX, int idZ )
+bool TerrainManager::UpdateAgainstAABB(Lemmi2DAABB* aabb, float deltaTime)
 {
-	//std::unordered_map<std::pair<int,int>, MarchingCubeChunk*>::const_iterator neighBourchunk = map->find(AddPairs(key, edgePairs[NORTH]));
+	ChunkFinalizing(device);
 
-	//if(neighBourchunk != map->end())
-	//{
-	//	int index1, index2;
-
-	//	//These is the two different Z indexes for the two different chunks we'll be merging between
-	//	int z1, z2;
-
-	//	//In this case, we want northern chunk's southern edge values 
-	//	//transported into this chunk's northern edge values
-
-	//	//Since north is Z+1
-	//	z1 = 60; //Our max value
-	//	z2 = 0; //The min value for the northern chunk
-
-	//	for(int x = 0; x < stepCount.x; ++x)
-	//	{
-	//		for(int y = 0; y < stepCount.y; ++y)
-	//		{
-	//			index1 = x + y*stepCount.y + z1 * stepCount.y * stepCount.z;
-	//			index2 = x + y*stepCount.y + z2 * stepCount.y * stepCount.z;
-
-	//			vector<MarchingCubeVoxel>* newChunkVoxels = newChunk.GetVoxelField();
-	//			vector<MarchingCubeVoxel>* neighbourVoxels = neighBourchunk->second->GetVoxelField();
-
-	//			newChunkVoxels[index1] = neighbourVoxels[index2];
-	//		}
-	//	}
-	//}
-}
-
-
-//Still keeping this function around in case we'll be placing trees/bushes in the future
-void TerrainManager::GenerateVegetation( ID3D11Device* device, bool UpdateInstanceBuffer, MarchingCubeChunk* chunk)
-{
-	//VegetationManager::InstanceType temp;
-	//float x, z, y, startPosX, startPosZ, randValue;
-	//int textureID = -1;
-
-	//startPosX = chunk->GetStartPosX();
-	//startPosZ = chunk->GetStartPosZ();
-
-	//vector<VegetationManager::InstanceType>* tempVector = chunk->GetVegetationInstances();
-
-
-	//mcTerrain.SetCurrentVoxelField(chunk->GetVoxelField());
-
-	//for(unsigned int j = 0; j < vegetationCount; j++)
-	//{
-	//	textureID = -1;
-
-	//	x = (2.0f + (RandomFloat() * stepCount.x-2.0f));
-	//	z = (2.0f + (RandomFloat() * stepCount.z-2.0f));
-
-	//	//Extract highest Y at this point
-	//	y = mcTerrain.GetHighestPositionOfCoordinate((int)x, (int)z);//(*activeChunks)[i]->GetVoxelField(), 
-
-	//	randValue = (RandomFloat()*360.0f);
-
-	//	//No vegetation below Y:20
-	//	if(y >= 20.0f)
-	//	{
-	//		if(y >= 45.0)
-	//		{
-	//			//But the grass should be sparse, so there is
-	//			//high chance that we won't actually add this to the instance list.
-	//			if(randValue > 300.0f)
-	//			{
-	//				textureID = 0;
-	//			}
-	//		}
-	//		else
-	//		{
-	//			if(randValue <= 10.0f)
-	//			{
-	//				textureID = 2; //Some kind of leaf branch that I've turned into a plant quad.
-	//			}
-	//			else if(randValue <= 355.0f) //By far biggest chance that we get normal grass
-	//			{
-	//				textureID = 1; //Normal grass.
-	//			}
-	//			else if(randValue <= 358.0f) //If 97-98
-	//			{
-	//				textureID = 4; //Bush.
-	//			}
-	//			else //If 99-100.
-	//			{
-	//				textureID = 3; //Flowers.
-	//			}
-	//		}
-
-	//		if(textureID != -1)
-	//		{
-	//			//Place texture ID in .w channel
-	//			temp.position = XMFLOAT4(startPosX+x, y, startPosZ+z, (float)textureID);
-
-	//			//Assign it a random value. This value is used to rotate the instance slightly, as to make all instances look differently.
-	//			temp.randomValue = randValue;
-
-	//			//Insert the instance
-	//			tempVector->push_back(temp);
-	//		}
-	//	}
-	//}
-
-	//if(tempVector->size() == 0)
-	//{
-	//	temp.position = XMFLOAT4(10.0f, 0.0f, 10.0f, (float)1.0f);
-	//	temp.randomValue = 0.0f;
-
-	//	tempVector->push_back(temp);
-	//}
-}
-
-std::vector<RenderableInterface*>* TerrainManager::GetTerrainRenderables(int x, int z)
-{
-	//Make a key out of the values
-	std::pair<int,int> key(x, z);
-
-	//The usual, see if we haven't already used this key recently, or if the std::vector is empty.
-	//If either of those things are true, we empty the activeRenderables std::vector and insert new, relevant renderables.
-	if(key != lastUsedKey || activeRenderables.size() == 0)
-	{
-		activeRenderables.clear();
-
-		for(auto it = activeChunks.begin(); it != activeChunks.end(); ++it)
-		{
-			activeRenderables.push_back((*it)->GetTerrainMesh());
-		}
-	}
-
-	return &activeRenderables;
-}
-
-bool TerrainManager::UpdateAgainstAABB( ID3D11Device* device, ID3D11DeviceContext* deviceContext, Lemmi2DAABB* aabb, float deltaTime)
-{
 	std::pair<int,int> neighbourKey;
 
 	timePassed += deltaTime;
@@ -518,15 +478,17 @@ bool TerrainManager::UpdateAgainstAABB( ID3D11Device* device, ID3D11DeviceContex
 				}
 				else
 				{
+					QueueChunkForCreation(neighbourKey.first, neighbourKey.second);
+
 					//... create chunk
-					CreateChunk(device, deviceContext, neighbourKey.first, neighbourKey.second);
+					//CreateChunk(device, neighbourKey.first, neighbourKey.second, multiThreadedMeshCreationEnabled);
 
-					//Fetch it
-					result = GetChunk(neighbourKey.first, neighbourKey.second, &tempChunk);
+					////Fetch it
+					//result = GetChunk(neighbourKey.first, neighbourKey.second, &tempChunk);
 
-					//Add ptr to active chunk std::vector
-					activeChunks.push_back(tempChunk);
-					activeRenderables.push_back(tempChunk->GetTerrainMesh());
+					////Add ptr to active chunk std::vector
+					//activeChunks.push_back(tempChunk);
+					//activeRenderables.push_back(tempChunk->GetTerrainMesh());
 				}
 			}
 		}
@@ -543,16 +505,29 @@ bool TerrainManager::UpdateAgainstAABB( ID3D11Device* device, ID3D11DeviceContex
 
 void TerrainManager::Cleanup(float posX, float posZ)
 {
+	lock_guard<fast_mutex> guard(mutexObject);
+
 	//Iterate through entirety of map
 	for(auto it = chunkMap->begin(); it != chunkMap->end();)
 	{
-		const XMFLOAT3& position = it->second->GetPosition();
-
-		//If chunk is too far away from position (camera), remove it
-		if(abs(position.x - posX) >= rangeThreshold || abs(position.z - posZ) >= rangeThreshold)
+		//We only do checks if the chunk has actually been created
+		if(it->second.first)
 		{
-			collisionHandler->removeRigidBody(it->second->GetRigidBody());
-			it = chunkMap->erase(it);
+			const XMFLOAT3& position = it->second.second->GetPosition();
+
+			//If chunk is too far away from position (camera), remove it
+			if(abs(position.x - posX) >= rangeThreshold || abs(position.z - posZ) >= rangeThreshold)
+			{
+				collisionHandler->removeRigidBody(it->second.second->GetRigidBody().get());
+				delete it->second.second->GetRigidBody()->getMotionState();
+
+				it = chunkMap->erase(it);
+			}
+			else
+			{
+				//If we've erased an item we don't want to increment
+				++it;
+			}
 		}
 		else
 		{
@@ -572,37 +547,425 @@ void TerrainManager::OnSettingsReload(Config* cfg)
 	terrainType = (TerrainTypes::Type)type;
 }
 
-void TerrainManager::CreateChunkMeshes(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
+void TerrainManager::QueueChunkForCreation( int startPosX, int startPosZ)
 {
-	//If the work queue is > 0, pop next chunk
-	//Create the meshes for it and add them to relevant systems
-	//Flag it as ready
-	
-	//Step through productionQueue
+	std::pair<int,int> key(startPosX, startPosZ);
 
-	unsigned int size = toBeMeshedQueue.size();
-	
-	for(int i = 0; i < size; i++)
+	//See if the key that we're using already exists
+	unsigned int count = GetMap()->count(key);
+
+	//If the key doesn't exist, we go about creating the chunk
+	if(count == 0)
 	{
-		std::unordered_map<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>>::const_iterator tempChunk = chunkMap->find(toBeMeshedQueue.back()); 
-		toBeMeshedQueue.pop();
+		if(numThreads <= 1)
+		{
+			CreateChunk(device, startPosX, startPosZ, true);
+		}
+		else
+		{
 
-		//Chunk is here VVVV
-		//tempChunk->second
+			//Insert the key and newly created chunk
+			GetMap()->emplace(std::make_pair<std::pair<int,int>, std::pair<bool, std::shared_ptr<MarchingCubeChunk>>>(key, std::make_pair<bool, std::shared_ptr<MarchingCubeChunk>>(false, nullptr)));
 
-		//Make chunk mesh
-		//Make make water mesh
-		//Add meshes to collision world
-		//Flag chunk as ready
+			//Push key into production line to tell the work threads to begin noising and creating this chunk properly
+			preProductionQueue.Push(key);
+		}
 	}
 }
 
-void TerrainManager::QueueChunkForCreation( int startPosX, int startPosZ )
+void TerrainManager::ChunkFinalizing(ID3D11Device* device)
 {
-	//threadManager.AddJob(CreateChunk(device, deviceContext, startPosX, startPosZ));
+	std::pair<bool, std::shared_ptr<MarchingCubeChunk>> key;
+	bool result;
+
+	result = postProductionQueue.Try_pop(key.second);
+
+	if(result)
+	{
+		//If we can't create the meshes in the work threads due to driver limitations, then we do it in the main thread...
+		if(!DXMultiThreading())
+		{
+			CreateMesh(device, key.second);
+			CreateWaterMesh(device, key.second);
+		}
+
+		//Clear index vector, then shrink to 0 (free up memory)
+		key.second->GetIndices()->clear();
+		key.second->GetIndices()->shrink_to_fit();
+
+		//Clear vertex vector, then shrink to 0 (free up memory)
+		key.second->GetVertices()->clear();
+		key.second->GetVertices()->shrink_to_fit();
+
+		//Add it to the world
+		collisionHandler->addRigidBody(key.second->GetRigidBody().get());
+
+		//Replace chump value
+		(*chunkMap)[key.second->GetKey()].second = key.second;
+
+		//Flag bool as true, this means it's ready to use...
+		(*chunkMap)[key.second->GetKey()].first = true;
+	}
 }
 
-void TerrainManager::UpdateJobThread()
+void TerrainManager::CreateMesh(ID3D11Device* devicePtr, std::shared_ptr<MarchingCubeChunk> chunk)
 {
+	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
+	D3D11_SUBRESOURCE_DATA vertexData, indexData;
+	HRESULT result;
 
+	//Just ptrs cuz too lazy to rename everything
+	auto indices = chunk->GetIndices();
+	auto vertices = chunk->GetVertices();
+
+	chunk->GetTerrainMesh()->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	chunk->GetTerrainMesh()->SetVertexCount(vertices->size());
+	chunk->GetTerrainMesh()->SetIndexCount(indices->size());
+	chunk->GetTerrainMesh()->SetVertexStride(sizeof(MarchingCubeVectors));
+
+	// Set up the description of the static vertex buffer.
+	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	vertexBufferDesc.ByteWidth = sizeof(MarchingCubeVectors) * vertices->size();
+	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vertexBufferDesc.CPUAccessFlags = 0;
+	vertexBufferDesc.MiscFlags = 0;
+	vertexBufferDesc.StructureByteStride = 0;
+
+	// Give the sub resource texture a pointer to the vertex data.
+	vertexData.pSysMem = vertices->data();
+	vertexData.SysMemPitch = 0;
+	vertexData.SysMemSlicePitch = 0;
+
+	// Now create the vertex buffer.
+	result = devicePtr->CreateBuffer(&vertexBufferDesc, &vertexData, chunk->GetTerrainMesh()->GetVertexBufferPP());
+
+	// Set up the description of the static index buffer.
+	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	indexBufferDesc.ByteWidth = sizeof(unsigned int) * indices->size();
+	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	indexBufferDesc.CPUAccessFlags = 0;
+	indexBufferDesc.MiscFlags = 0;
+	indexBufferDesc.StructureByteStride = 0;
+
+	// Give the sub resource texture a pointer to the index data.
+	indexData.pSysMem = indices->data();
+	indexData.SysMemPitch = 0;
+	indexData.SysMemSlicePitch = 0;
+
+	// Create the index buffer.
+	result = devicePtr->CreateBuffer(&indexBufferDesc, &indexData, chunk->GetTerrainMesh()->GetIndexBufferPP());
 }
+
+void TerrainManager::CreateWaterMesh(ID3D11Device* devicePtr, std::shared_ptr<MarchingCubeChunk> chunk)
+{
+	if(chunk->GetWaterLevel() > 0)
+	{
+
+		D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
+		D3D11_SUBRESOURCE_DATA vertexData, indexData;
+		HRESULT result;
+
+		XMFLOAT2 minPos;
+		unsigned int index = 0;
+
+		//We measure the positions of each vertex that is below Y:2.
+		//And keep track of each minimum and maximum value, so that when we've processed the entire mesh of this chunk, 
+		// we know the MinXY and MaxXY values for when we want to create the water mesh!
+		minPos.x = chunk->GetStartPosX();
+		minPos.y = chunk->GetStartPosZ();
+
+		auto waterMesh = chunk->GetWaterMesh();
+
+		waterMesh->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+		//Okay, so. I have already decided that the spacing will be 1.0f between each vertex.
+		unsigned int stepsX = (unsigned int)((chunk->GetStepCountX())*chunk->GetStepSizeX());
+		unsigned int stepsZ = (unsigned int)((chunk->GetStepCountZ())*chunk->GetStepSizeZ());
+
+		std::vector<XMFLOAT3> vertices;
+		std::vector<unsigned int> indices;
+
+		//Rather shitty tutorial with wrong algorithms in some places, but I managed to piece it together anyway.
+		//http://www.uniqsoft.co.uk/directx/html/tut3/tut3.htm
+
+		// Create the structure to hold the height map data.
+		vertices.resize((stepsX) * (stepsZ));
+
+		// Read the image data into the height map.
+		for(float z = 0; z < stepsZ; z++)
+		{
+			for(float x = 0; x < stepsX; x++)
+			{
+				index = (int)(x + (z * stepsX));
+
+				//Offset each position with a magic number to make sure there are no seams between the different water meshes.
+				vertices[index].x = (minPos.x + x); //0.0475f -(x*0.115f)
+				vertices[index].y = chunk->GetWaterLevel();
+				vertices[index].z = (minPos.y + z); //0.00908 -(z*0.115f)
+			}
+		}
+
+
+		//TODO: this index buffer is the same for every mesh. Maybe create once and copy it.
+		int indexOffset = 0;
+		indices.resize(((stepsX * 2) + 2) * (stepsZ - 1));
+
+		for(unsigned int z = 0; z < stepsZ-1; z++ )
+		{
+			for(unsigned int x = 0; x < stepsX; x++ )
+			{
+				index = x + ( z * stepsX );
+				indices[indexOffset] = index;
+
+				indexOffset++;
+				index = x +( (z+1) * stepsX );
+
+				indices[indexOffset] = index;
+				indexOffset++;
+			}
+
+			//Place in copy of previous one
+			indices[indexOffset] = index;
+			indexOffset++;
+
+			//Place in first one for next row
+			index = 0 + ( (z+1) * stepsX );
+			indices[indexOffset] = index;
+			indexOffset++;
+		}
+
+		waterMesh->SetVertexCount(vertices.size());
+		waterMesh->SetIndexCount(indices.size());
+		waterMesh->SetVertexStride(sizeof(XMFLOAT3));
+
+		// Set up the description of the static vertex buffer.
+		vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+		vertexBufferDesc.ByteWidth = sizeof(XMFLOAT3) * vertices.size();
+		vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		vertexBufferDesc.CPUAccessFlags = 0;
+		vertexBufferDesc.MiscFlags = 0;
+		vertexBufferDesc.StructureByteStride = 0;
+
+		// Give the sub resource texture a pointer to the vertex data.
+		vertexData.pSysMem = vertices.data();
+		vertexData.SysMemPitch = 0;
+		vertexData.SysMemSlicePitch = 0;
+
+		// Now create the vertex buffer.
+		result = devicePtr->CreateBuffer(&vertexBufferDesc, &vertexData, waterMesh->GetVertexBufferPP());
+
+		// Set up the description of the static index buffer.
+		indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+		indexBufferDesc.ByteWidth = sizeof(unsigned int) * indices.size();
+		indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+		indexBufferDesc.CPUAccessFlags = 0;
+		indexBufferDesc.MiscFlags = 0;
+		indexBufferDesc.StructureByteStride = 0;
+
+		// Give the sub resource texture a pointer to the index data.
+		indexData.pSysMem = indices.data();
+		indexData.SysMemPitch = 0;
+		indexData.SysMemSlicePitch = 0;
+
+		// Create the index buffer.
+		result = devicePtr->CreateBuffer(&indexBufferDesc, &indexData, waterMesh->GetIndexBufferPP());
+	}
+}
+
+#pragma region Shit that Im not currently using but dont want to delete in case it becomes relevant again later
+void TerrainManager::MergeWithNeighbourChunks( MarchingCubeChunk* chunk, int idX, int idZ )
+{
+	//std::unordered_map<std::pair<int,int>, MarchingCubeChunk*>::const_iterator neighBourchunk = map->find(AddPairs(key, edgePairs[NORTH]));
+
+	//if(neighBourchunk != map->end())
+	//{
+	//	int index1, index2;
+
+	//	//These is the two different Z indexes for the two different chunks we'll be merging between
+	//	int z1, z2;
+
+	//	//In this case, we want northern chunk's southern edge values 
+	//	//transported into this chunk's northern edge values
+
+	//	//Since north is Z+1
+	//	z1 = 60; //Our max value
+	//	z2 = 0; //The min value for the northern chunk
+
+	//	for(int x = 0; x < stepCount.x; ++x)
+	//	{
+	//		for(int y = 0; y < stepCount.y; ++y)
+	//		{
+	//			index1 = x + y*stepCount.y + z1 * stepCount.y * stepCount.z;
+	//			index2 = x + y*stepCount.y + z2 * stepCount.y * stepCount.z;
+
+	//			vector<MarchingCubeVoxel>* newChunkVoxels = newChunk.GetVoxelField();
+	//			vector<MarchingCubeVoxel>* neighbourVoxels = neighBourchunk->second->GetVoxelField();
+
+	//			newChunkVoxels[index1] = neighbourVoxels[index2];
+	//		}
+	//	}
+	//}
+}
+
+
+std::vector<RenderableInterface*>* TerrainManager::GetTerrainRenderables(int x, int z)
+{
+	//Make a key out of the values
+	std::pair<int,int> key(x, z);
+
+	//The usual, see if we haven't already used this key recently, or if the std::vector is empty.
+	//If either of those things are true, we empty the activeRenderables std::vector and insert new, relevant renderables.
+	if(key != lastUsedKey || activeRenderables.size() == 0)
+	{
+		activeRenderables.clear();
+
+		for(auto it = activeChunks.begin(); it != activeChunks.end(); ++it)
+		{
+			activeRenderables.push_back((*it)->GetTerrainMesh());
+		}
+	}
+
+	return &activeRenderables;
+}
+
+//bool TerrainManager::Update(ID3D11Device* device, XMFLOAT3 currentCameraPosition, float deltaTime)
+//{
+//	std::pair<int,int> key(RoundToNearest((currentCameraPosition.x)*stepScaling), RoundToNearest((currentCameraPosition.z)*stepScaling));
+//	std::pair<int,int> neighbourKey;
+//
+//	timePassed += deltaTime;
+//
+//	if(key != lastUsedKey)
+//	{
+//		//////////////////////////////////////////////////////////////////////////
+//		/*
+//		*	Update active chunks and active renderables.
+//		*/
+//		//////////////////////////////////////////////////////////////////////////
+//
+//		//Temp chunk to hold pointer from each GetChunk call.
+//		MarchingCubeChunk* tempChunk;
+//
+//		//Clear active chunks
+//		activeChunks.clear();
+//		activeRenderables.clear();
+//
+//		//Add all new relevant chunks
+//		for(int i=0; i < 9; i++)
+//		{
+//			bool result;
+//			neighbourKey = AddPairs(key, edgePairs[i]);
+//
+//			//Fetch chunk from the right grid slot
+//			result = GetChunk(neighbourKey.first, neighbourKey.second, &tempChunk);
+//
+//			//If this chunk is valid
+//			if(result == true)
+//			{
+//				//Add ptr to active chunk std::vector
+//				activeChunks.push_back(tempChunk);
+//				activeRenderables.push_back(tempChunk->GetTerrainMesh());
+//
+//				////Add this chunk's instances to the temporary std::vector
+//				//tempVec.insert(tempVec.end(), tempChunk->GetVegetationInstances()->cbegin(), tempChunk->GetVegetationInstances()->cend());
+//			}
+//			else
+//			{
+//				CreateChunk(device, neighbourKey.first, neighbourKey.second);
+//			}
+//		}
+//
+//		//Send temporary std::vector to be built into a vegetation instance buffer
+//		//vegetationManager.BuildInstanceBuffer(device, &tempVec);
+//
+//		lastUsedKey = key;
+//
+//		return true;
+//	}
+//
+//	return false;
+//}
+
+//Still keeping this function around in case we'll be placing trees/bushes in the future
+void TerrainManager::GenerateVegetation( ID3D11Device* device, bool UpdateInstanceBuffer, MarchingCubeChunk* chunk)
+{
+	//VegetationManager::InstanceType temp;
+	//float x, z, y, startPosX, startPosZ, randValue;
+	//int textureID = -1;
+
+	//startPosX = chunk->GetStartPosX();
+	//startPosZ = chunk->GetStartPosZ();
+
+	//vector<VegetationManager::InstanceType>* tempVector = chunk->GetVegetationInstances();
+
+
+	//mcTerrain.SetCurrentVoxelField(chunk->GetVoxelField());
+
+	//for(unsigned int j = 0; j < vegetationCount; j++)
+	//{
+	//	textureID = -1;
+
+	//	x = (2.0f + (RandomFloat() * stepCount.x-2.0f));
+	//	z = (2.0f + (RandomFloat() * stepCount.z-2.0f));
+
+	//	//Extract highest Y at this point
+	//	y = mcTerrain.GetHighestPositionOfCoordinate((int)x, (int)z);//(*activeChunks)[i]->GetVoxelField(), 
+
+	//	randValue = (RandomFloat()*360.0f);
+
+	//	//No vegetation below Y:20
+	//	if(y >= 20.0f)
+	//	{
+	//		if(y >= 45.0)
+	//		{
+	//			//But the grass should be sparse, so there is
+	//			//high chance that we won't actually add this to the instance list.
+	//			if(randValue > 300.0f)
+	//			{
+	//				textureID = 0;
+	//			}
+	//		}
+	//		else
+	//		{
+	//			if(randValue <= 10.0f)
+	//			{
+	//				textureID = 2; //Some kind of leaf branch that I've turned into a plant quad.
+	//			}
+	//			else if(randValue <= 355.0f) //By far biggest chance that we get normal grass
+	//			{
+	//				textureID = 1; //Normal grass.
+	//			}
+	//			else if(randValue <= 358.0f) //If 97-98
+	//			{
+	//				textureID = 4; //Bush.
+	//			}
+	//			else //If 99-100.
+	//			{
+	//				textureID = 3; //Flowers.
+	//			}
+	//		}
+
+	//		if(textureID != -1)
+	//		{
+	//			//Place texture ID in .w channel
+	//			temp.position = XMFLOAT4(startPosX+x, y, startPosZ+z, (float)textureID);
+
+	//			//Assign it a random value. This value is used to rotate the instance slightly, as to make all instances look differently.
+	//			temp.randomValue = randValue;
+
+	//			//Insert the instance
+	//			tempVector->push_back(temp);
+	//		}
+	//	}
+	//}
+
+	//if(tempVector->size() == 0)
+	//{
+	//	temp.position = XMFLOAT4(10.0f, 0.0f, 10.0f, (float)1.0f);
+	//	temp.randomValue = 0.0f;
+
+	//	tempVector->push_back(temp);
+	//}
+}
+#pragma endregion

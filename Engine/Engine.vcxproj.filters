@@ -222,8 +222,14 @@
     <ClCompile Include="DRObjModelShader.cpp">
       <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClCompile>
+    <ClCompile Include="..\Tinythread\tinythread.cpp">
+      <Filter>Libraries\Tinythread</Filter>
+    </ClCompile>
     <ClCompile Include="TerrainNoiseSeeder.cpp">
-      <Filter>Terrain and procedural generation</Filter>
+      <Filter>Terrain and procedural generation\Noise</Filter>
+    </ClCompile>
+    <ClCompile Include="ChunkFactory.cpp">
+      <Filter>Terrain and procedural generation\Chunk Creation</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -474,8 +480,20 @@
     <ClInclude Include="DRObjModelShader.h">
       <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClInclude>
+    <ClInclude Include="..\Tinythread\fast_mutex.h">
+      <Filter>Libraries\Tinythread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Tinythread\tinythread.h">
+      <Filter>Libraries\Tinythread</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadsafeQueue.h">
+      <Filter>General Code\Data classes</Filter>
+    </ClInclude>
     <ClInclude Include="TerrainNoiseSeeder.h">
-      <Filter>Terrain and procedural generation</Filter>
+      <Filter>Terrain and procedural generation\Noise</Filter>
+    </ClInclude>
+    <ClInclude Include="ChunkFactory.h">
+      <Filter>Terrain and procedural generation\Chunk Creation</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -587,21 +605,6 @@
     <None Include="FullscreenQuadVertexShader.vsh">
       <Filter>Rendering\Shaders\General shaders</Filter>
     </None>
-    <None Include="libconfig\libconfig.dll">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="libconfig\libconfig.h++">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="libconfig\libconfig_d.dll">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="libconfig\libconfig++.dll">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="libconfig\libconfig++_d.dll">
-      <Filter>Libraries</Filter>
-    </None>
     <None Include="settings.cfg">
       <Filter>Text files</Filter>
     </None>
@@ -610,6 +613,21 @@
     </None>
     <None Include="Shaders\OBJGbuffer.psh">
       <Filter>Rendering\Shaders\Deferred shaders</Filter>
+    </None>
+    <None Include="libconfig\libconfig++.dll">
+      <Filter>Libraries\Libconfig</Filter>
+    </None>
+    <None Include="libconfig\libconfig++_d.dll">
+      <Filter>Libraries\Libconfig</Filter>
+    </None>
+    <None Include="libconfig\libconfig.dll">
+      <Filter>Libraries\Libconfig</Filter>
+    </None>
+    <None Include="libconfig\libconfig.h++">
+      <Filter>Libraries\Libconfig</Filter>
+    </None>
+    <None Include="libconfig\libconfig_d.dll">
+      <Filter>Libraries\Libconfig</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -667,9 +685,6 @@
     <Filter Include="Rendering\Shader wrappers\General shader wrappers">
       <UniqueIdentifier>{1c1f1a94-8188-47ac-a178-d6e4fd0a270f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Libraries">
-      <UniqueIdentifier>{b2691cb4-19c7-47c9-ba2b-269b5a01461a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Text files">
       <UniqueIdentifier>{caed4d32-7871-44ed-ad58-066094b818a5}</UniqueIdentifier>
     </Filter>
@@ -715,13 +730,25 @@
     <Filter Include="General Code\Data classes">
       <UniqueIdentifier>{955202af-5fc4-4195-af2d-9ab3089e1523}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Libraries">
+      <UniqueIdentifier>{b2691cb4-19c7-47c9-ba2b-269b5a01461a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libraries\Tinythread">
+      <UniqueIdentifier>{d6dd0404-b07f-4bd0-8ed8-7600bfcdc15b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libraries\Libconfig">
+      <UniqueIdentifier>{16c9de94-ad7d-4ca3-b322-4222b7152371}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Terrain and procedural generation\Chunk Creation">
+      <UniqueIdentifier>{f49b9e6b-4a1e-4562-bb93-eacc1859a033}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="libconfig\libconfig.lib">
-      <Filter>Libraries</Filter>
-    </Library>
     <Library Include="libconfig\libconfig++.lib">
-      <Filter>Libraries</Filter>
+      <Filter>Libraries\Libconfig</Filter>
+    </Library>
+    <Library Include="libconfig\libconfig.lib">
+      <Filter>Libraries\Libconfig</Filter>
     </Library>
   </ItemGroup>
 </Project>

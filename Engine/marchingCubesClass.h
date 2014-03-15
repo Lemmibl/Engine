@@ -23,18 +23,18 @@ public:
 	~MarchingCubesClass();
 
 	//Converts a voxel field to a mesh
-	void CalculateMesh(ID3D11Device* device, MarchingCubeChunk* chunk, std::vector<MarchingCubeVoxel>* voxels, btTriangleMesh* triMesh);
+	void CalculateMesh(ID3D11Device* device, std::shared_ptr<MarchingCubeChunk> chunk, std::vector<MarchingCubeVoxel>* voxels);
 
 private:
 	//Extract a cube from the .. voxel field...
-	void ExtractCube(MarchingCubeVoxel** cube, std::vector<MarchingCubeVoxel>* vertices, unsigned int sizeX, unsigned int sizeY, unsigned int sizeZ);
+	void ExtractCube(MarchingCubeVoxel** cube, std::vector<MarchingCubeVoxel>* vertices, unsigned int sizeX, unsigned int sizeY, unsigned int sizeZ, unsigned int index);
 
 	//Calculate the lookup value we'll be using to index into the fields
-	void CalculateLookupValue(unsigned int* lookup, unsigned int index, MarchingCubeVoxel** cube);
+	void CalculateLookupValue(unsigned int* lookup, MarchingCubeVoxel** cube);
 
 	//Triangulate the cube that was extracted before, with the help of our lookup value
-	void ProcessCube(btTriangleMesh* triMesh, unsigned int lookupValue, MarchingCubeVoxel* verts, MarchingCubeVoxel** cube, std::vector<unsigned int>* indices, std::vector<MarchingCubeVectors>* vertices, 
-		unsigned int& indexCounter, unsigned int& vertexCounter, unsigned int sizeX,  unsigned int sizeY, unsigned int sizeZ);
+	void ProcessCube(unsigned int lookupValue, unsigned int& vertexCounter, MarchingCubeVoxel* verts, MarchingCubeVoxel** cube, std::shared_ptr<MarchingCubeChunk> chunk, 
+		unsigned int sizeX, unsigned int sizeY, unsigned int sizeZ, unsigned int indexX, unsigned int indexY, unsigned int indexZ);
 
 	//Create vertex and index buffers from the data that we've created
 	void CreateMesh(ID3D11Device* device, IndexedMesh* mesh, std::vector<unsigned int>* indices, std::vector<MarchingCubeVectors>* vertices, unsigned int indexCount, unsigned int vertexCount);
@@ -43,12 +43,12 @@ private:
 	void CreateWaterMesh(ID3D11Device* device, MarchingCubeChunk* chunk, IndexedMesh* waterMesh);
 
 	// Returns a point that is interpolated with ten other points for both normals and possition
-	inline MarchingCubeVoxel Interpolate(MarchingCubeVoxel v1, MarchingCubeVoxel v2)
+	MarchingCubeVoxel Interpolate(MarchingCubeVoxel v1, MarchingCubeVoxel v2, float isoValue)
 	{
 		MarchingCubeVoxel v;
 		float diff;
 
-		diff = (this->metaballsIsoValue - v1.density) / (v2.density - v1.density);
+		diff = (isoValue - v1.density) / (v2.density - v1.density);
 
 		//Interpolate density as well.
 		//We don't actually use density after this point, so there's no need to calculate it, but just in case we expand on this in the future ...
@@ -74,7 +74,7 @@ private:
 		return v;
 	}
 
-	inline float RandomFloat()
+	float RandomFloat()
 	{
 		float scale=RAND_MAX+1.0f;
 		float base=rand()/scale;
@@ -83,15 +83,10 @@ private:
 	}
 
 private:
-	unsigned int indexX, indexY, indexZ;
-	unsigned int sizeX, sizeY, sizeZ;
-	int index;
+	unsigned int sizeXAxis, sizeYAxis, sizeZAxis;
 	float metaballsIsoValue;
 
 	// Tables for edge cases and triangle lookup 
 	const static int edgeTable[256];
 	const static int triTable[256][16];
-
-	bool createWater;
-	float waterLevel;
 };

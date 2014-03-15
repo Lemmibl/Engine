@@ -1,11 +1,11 @@
 #pragma once
+
+#define BT_NO_SIMD_OPERATOR_OVERLOADS //Needed to fix clash between bullet libraries and xnamath. https://code.google.com/p/bullet/issues/detail?id=710
+
 #include "types.h"
 #include <windows.h>
 #include <vector>
 #include "IndexedMesh.h"
-
-#define BT_NO_SIMD_OPERATOR_OVERLOADS //Needed to fix clash between bullet libraries and xnamath. https://code.google.com/p/bullet/issues/detail?id=710
-
 #include "BulletDynamics\Dynamics\btRigidBody.h"
 #include "BulletCollision\CollisionShapes\btTriangleMesh.h"
 #include <xnamath.h>
@@ -17,13 +17,11 @@ public:
 	MarchingCubeChunk(XMFLOAT3 startPosition, XMFLOAT3 endPosition, XMFLOAT3 stepSize, XMFLOAT3 stepCount);
 	~MarchingCubeChunk();
 
-	bool IsReadyToBeRendered() { return isReady; }
-	void FlagAsReady() { isReady = true; }
-
 	IndexedMesh* GetTerrainMesh() { return &terrainMesh; }
 	IndexedMesh* GetWaterMesh() { return &waterMesh; }
 
 	std::vector<unsigned int>* GetIndices() { return &indices; }
+	std::vector<MarchingCubeVectors>* GetVertices() { return &vertices; }
 
 	XMFLOAT3 GetPosition() const { return centerPosition; }
 
@@ -47,16 +45,26 @@ public:
 	float GetExtentsY() const { return extents.y; }
 	float GetExtentsZ() const { return extents.z; }
 
-	btRigidBody* GetRigidBody() const { return rigidBody.get(); }
-	btCollisionShape* GetCollisionShape() const { return collisionShape.get(); }
+	std::shared_ptr<btRigidBody> GetRigidBody() const { return rigidBody; }
 	btTriangleMesh* GetTriMesh() { return triMesh.get(); }
+	std::shared_ptr<btCollisionShape> GetCollisionShape() const { return collisionShape; }
 
 	void SetRigidBody(std::shared_ptr<btRigidBody> body) { rigidBody = body; }
 	void SetCollisionShape(std::shared_ptr<btCollisionShape> shape) { collisionShape = shape; }
 
+	void SetWaterLevel(float val) { waterLevel = val; }
+	float GetWaterLevel() { return waterLevel; }
+
+	std::pair<int, int> GetKey() { return key; }
+	void SetKey(int x, int y) { key = std::make_pair<int, int>(x,y); }
+
 private:
 	//voxels is sizeX*sizeY*sizeZ big
 	std::vector<unsigned int> indices;
+	std::vector<MarchingCubeVectors> vertices;
+
+	//What key is used to fetch this chunk from the big map in terrainManager
+	std::pair<int, int> key;
 
 	//Our mesh that we'll be rendering. Contains all vertex/index data.
 	IndexedMesh terrainMesh;
@@ -64,9 +72,6 @@ private:
 
 	//Should be self explanatory. Defines the bounds of this chunk; where it starts and where it ends.
 	XMFLOAT3 startPosition, centerPosition, extents;
-
-	//Is this chunk fully loaded and ready to be rendered?
-	bool isReady;
 
 	// How long each step will be between startPosition and endPosition.
 	float stepSizeX;
@@ -78,8 +83,12 @@ private:
 	unsigned int stepCountY;
 	unsigned int stepCountZ;
 
-	std::shared_ptr<btTriangleMesh> triMesh;
-	std::shared_ptr<btCollisionShape> collisionShape; //triMesh
+	//Decides at what height the water mesh is going to be created.
+	float waterLevel;
+
+	//Collision objects
 	std::shared_ptr<btRigidBody> rigidBody;
+	std::shared_ptr<btTriangleMesh> triMesh;
+	std::shared_ptr<btCollisionShape> collisionShape;
 };
 

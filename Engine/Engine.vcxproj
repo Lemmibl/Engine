@@ -11,9 +11,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Tinythread\tinythread.cpp" />
     <ClCompile Include="bitmapclass.cpp" />
     <ClCompile Include="BlendStateManager.cpp" />
     <ClCompile Include="cameraclass.cpp" />
+    <ClCompile Include="ChunkFactory.cpp" />
     <ClCompile Include="controllerclass.cpp" />
     <ClCompile Include="cpumeter.cpp" />
     <ClCompile Include="d3dmanager.cpp" />
@@ -88,6 +90,9 @@
     <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Tinythread\fast_mutex.h" />
+    <ClInclude Include="..\Tinythread\tinythread.h" />
+    <ClInclude Include="ChunkFactory.h" />
     <ClInclude Include="DebugOverlayHUDHandle.h" />
     <ClInclude Include="bitmapclass.h" />
     <ClInclude Include="BlendStateManager.h" />
@@ -143,6 +148,7 @@
     <ClInclude Include="TerrainManager.h" />
     <ClInclude Include="TextureAndMaterialHandler.h" />
     <ClInclude Include="LSystemBranch.h" />
+    <ClInclude Include="ThreadsafeQueue.h" />
     <ClInclude Include="TurnToSmokeShader.h" />
     <ClInclude Include="Utility.h" />
     <ClInclude Include="LSystemClass.h" />
@@ -272,7 +278,7 @@
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
-      <AdditionalIncludeDirectories>..\CEGUI\lib;..\CEGUI\bin;libconfig;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\CEGUI\lib;..\CEGUI\bin;libconfig;..\Tinythread;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalUsingDirectories>
       </AdditionalUsingDirectories>
@@ -281,7 +287,6 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <Profile>true</Profile>
       <HeapReserveSize>
       </HeapReserveSize>
       <StackReserveSize>

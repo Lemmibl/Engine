@@ -15,7 +15,10 @@
 #include <unordered_map>
 #include <memory> //For shared_ptrs
 #include <math.h>
-#include <queue>
+
+#include "ThreadsafeQueue.h"
+
+using namespace tthread;
 
 class TerrainManager : public SettingsDependent
 {
@@ -26,12 +29,11 @@ private:
 	//	return ((v.first + v.second)*(v.first + v.second + 1)/2) + v.second;
 	struct int_pair_hash 
 	{
-		inline std::size_t operator()(const std::pair<int,int> & v) const 
+		inline std::size_t operator()(const std::pair<int,int>& v) const 
 		{
-			std::size_t hashOne(std::hash<int>()(v.first*31));
-			std::size_t hashTwo(std::hash<int>()(v.second));
+			std::size_t hashOne(std::hash<int>()(v.first*31 + (v.second+33)));
 
-			return hashOne+hashTwo;//((hashOne+hashTwo) * (hashOne+hashTwo + 1) / 2) + hashTwo;
+			return hashOne;//((hashOne+hashTwo) * (hashOne+hashTwo + 1) / 2) + hashTwo;
 		}
 	};
 
@@ -39,16 +41,42 @@ public:
 	TerrainManager();
 	~TerrainManager();
 
-	bool Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, std::shared_ptr<btDiscreteDynamicsWorld> collisionWorld, HWND hwnd,  XMFLOAT3 cameraPosition);
+	void Shutdown();
 
-	//Returns a bool to indicate if we've actually had to change anything. If true, it has changed and we should fetch the new data.
-	bool Update(ID3D11Device* device, ID3D11DeviceContext* deviceContext, XMFLOAT3 currentCameraPosition, float deltaTime);
+	bool Initialize(ID3D11Device* device, std::shared_ptr<btDiscreteDynamicsWorld> collisionWorld, HWND hwnd,  XMFLOAT3 cameraPosition);
+
+	////Returns a bool to indicate if we've actually had to change anything. If true, it has changed and we should fetch the new data.
+	//bool Update(ID3D11Device* device, ID3D11DeviceContext* deviceContext, XMFLOAT3 currentCameraPosition, float deltaTime);
 
 	//Returns a bool to indicate if we've actually had to change anything. If true, it has changed and we should fetch the new render data.
-	bool UpdateAgainstAABB(ID3D11Device* device, ID3D11DeviceContext* deviceContext, Lemmi2DAABB* aabb, float deltaTime);
+	bool UpdateAgainstAABB(Lemmi2DAABB* aabb, float deltaTime);
 
 	void ResetTerrain();
 
+	bool DXMultiThreading() { lock_guard<fast_mutex> guard(mutexObject); return multiThreadedMeshCreationEnabled; }
+
+	ThreadsafeQueue<std::pair<int,int>>* GetPreProductionQueue() {  lock_guard<fast_mutex> guard(mutexObject); return &preProductionQueue; }
+	ThreadsafeQueue<std::shared_ptr<MarchingCubeChunk>>* GetPostProductionQueue() {  lock_guard<fast_mutex> guard(mutexObject); return &postProductionQueue; }
+
+	std::unordered_map<std::pair<int,int>, std::pair<bool, std::shared_ptr<MarchingCubeChunk>>, int_pair_hash>* GetMap() 
+	{ 
+		lock_guard<fast_mutex> guard(mutexObject);
+		return chunkMap.get(); 
+	}
+
+	MarchingCubesClass& GetMarchingCubesClass() 
+	{
+		lock_guard<fast_mutex> guard(mutexObject);
+		return marchingCubes; 
+	}
+
+	TerrainNoiseSeeder& GetTerrainNoiser() 
+	{ 
+		lock_guard<fast_mutex> guard(mutexObject);
+		return terrainNoiser; 
+	}
+
+	ID3D11Device* GetDevice() { return device; }
 	VegetationManager* const GetVegetationManager() { return &vegetationManager; };
 	std::vector<RenderableInterface*>* GetTerrainRenderables(int x, int z);
 	std::vector<MarchingCubeChunk*>& GetActiveChunks() { return activeChunks; }
@@ -58,26 +86,28 @@ public:
 
 	void SetTerrainType(TerrainTypes::Type val) { terrainNoiser.SetTerrainType(val); }
 
-private:
 	//TODO: BuildMeshes(ID3D11Device* device, ID3D11DeviceContext* deviceContext, MarchingCubeChunk* chunk)
 	bool GetChunk(int x, int z, MarchingCubeChunk** outChunk);
-
-	//This is where we'll see if the thread has finished its' previous task and we see if there's a new task for it
-	void UpdateJobThread();
 
 	//This here is where we first decide to create a chunk
 	void QueueChunkForCreation(int startPosX, int startPosZ);
 
+	//After the work threads have finished everything, we need to do a few final tweaks before the chunk is ready to be released into the world
+	void ChunkFinalizing(ID3D11Device* device);
+
 	//Creating the actual chunk. This function will hopefully one day be run on a separate thread or core
-	void CreateChunk(ID3D11Device* device, ID3D11DeviceContext* deviceContext, int startPosX, int startPosZ);
+	void CreateChunk(ID3D11Device* device, int startPosX, int startPosZ, bool canCreateMesh);
 
-	//After you've created the chunk you need to finalize the meshes. This has to be done in the main thread because this is where DX11 device context lives.
-	void CreateChunkMeshes(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
+	//Create vertex and index buffers from the data that we've created
+	void CreateMesh(ID3D11Device* devicePtr, std::shared_ptr<MarchingCubeChunk> chunk);
 
+	//Creates a flat mesh from a min and max pos.
+	void CreateWaterMesh(ID3D11Device* devicePtr, std::shared_ptr<MarchingCubeChunk> chunk);
+
+private:
 	void MergeWithNeighbourChunks(MarchingCubeChunk* chunk,  int idX, int idZ);
 	void GenerateVegetation(ID3D11Device* device, bool UpdateInstanceBuffer, MarchingCubeChunk* chunk);
 	void Cleanup(float posX, float posZ);
-
 
 	inline std::pair<int,int> AddPairs(std::pair<int,int> pairOne, std::pair<int,int> pairTwo)
 	{
@@ -97,8 +127,8 @@ private:
 		return (int)((num > 0.0f) ? (num + 0.5f) : (num - 0.5f));
 	}
 
-
 private:
+	ID3D11Device* device;
 	std::shared_ptr<btDiscreteDynamicsWorld> collisionHandler;
 
 	MarchingCubesClass marchingCubes;
@@ -110,15 +140,26 @@ private:
 	float timePassed, timeThreshold, rangeThreshold;
 	TerrainTypes::Type terrainType;
 
-	std::shared_ptr<std::unordered_map<std::pair<int,int>, std::shared_ptr<MarchingCubeChunk>, int_pair_hash>> chunkMap;
+	mutable std::shared_ptr<std::unordered_map<std::pair<int,int>, std::pair<bool, std::shared_ptr<MarchingCubeChunk>>, int_pair_hash>> chunkMap;
 	std::vector<MarchingCubeChunk*> activeChunks;
 	std::vector<RenderableInterface*> activeRenderables; //We add each chunk's mesh to this list and only change it when our activechunks change
-	std::queue<MarchingCubeChunk*> productionQueue;
-	std::queue<std::pair<int,int>> toBeMeshedQueue;
+	
+	//Keys to the chunks that are "in construction".
+
+	//This queue is filled by the main thread and consumed by the work threads when they're looking for new work
+	ThreadsafeQueue<std::pair<int,int>> preProductionQueue;
+
+	//And this queue is filled by the work threads and consumed by the main thread to do the "sync-critical" parts that can't be performed by the work threads
+	ThreadsafeQueue<std::shared_ptr<MarchingCubeChunk>> postProductionQueue;
 
 	std::pair<int,int> lastUsedKey;
 	std::pair<int,int> lastMin;
 	std::pair<int,int> lastMax;
+
+	std::vector<thread*> workThreads;
+	unsigned int numThreads;
+	bool multiThreadedMeshCreationEnabled;
+	fast_mutex mutexObject;
 
 	//What this class is supposed to do is handle the creation and lifetime of chunks. Potentially save/load them to hdd as well.
 	//Also: Culling, interaction with higher-up-in-hierarchy classes, ...rendering? idk
@@ -128,4 +169,3 @@ private:
 	//http://stackoverflow.com/questions/15160889/how-to-make-unordered-set-of-pairs-of-integers-in-c << this
 
 };
-

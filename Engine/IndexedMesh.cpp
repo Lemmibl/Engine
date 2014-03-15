@@ -1,6 +1,6 @@
 #include "IndexedMesh.h"
 
-IndexedMesh::IndexedMesh() : RenderableInterface()
+IndexedMesh::IndexedMesh() : RenderableInterface(), vertexCount(0), indexCount(0), vertexStride(0)
 {	
 }
 

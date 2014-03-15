@@ -328,7 +328,7 @@ void TerrainNoiseSeeder::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass*
 	functionMap.insert(std::make_pair<TerrainTypes::Type, NoiseFunction>(TerrainTypes::Flat, flatTerrainNoise));
 }
 
-void TerrainNoiseSeeder::Noise3D(unsigned int startX, unsigned int startY, unsigned int startZ, unsigned int endX, unsigned int endY, unsigned int endZ )
+void TerrainNoiseSeeder::Noise3D(unsigned int startX, unsigned int startY, unsigned int startZ, unsigned int endX, unsigned int endY, unsigned int endZ, std::vector<MarchingCubeVoxel>* verts)
 {
 	unsigned int idx;
 
@@ -337,9 +337,6 @@ void TerrainNoiseSeeder::Noise3D(unsigned int startX, unsigned int startY, unsig
 
 	//Select which noise function to use depending on what terrain type we currently have selected.
 	NoiseFunction noiseFunction = functionMap[terrainMode];
-
-	//Get a local reference to out voxel field with a shorter name for added readability
-	std::vector<MarchingCubeVoxel>& verts = (*marchingCubeVertices);
 
 	for(index.y = startY; index.y < (endY-1); ++index.y)
 	{
@@ -351,10 +348,10 @@ void TerrainNoiseSeeder::Noise3D(unsigned int startX, unsigned int startY, unsig
 				idx = index.x + (index.y*index.sizeY) + (index.z * index.sizeY * index.sizeZ);
 
 				//Extract density value from selected noise function
-				verts[idx].density = noiseFunction(index, verts[idx].position, noise);
+				verts->at(idx).density = noiseFunction(index, verts->at(idx).position, noise);
 
 				//Decide if the vertex is considered inside
-				verts[idx].inside = (verts[idx].density >= densityToBeInside) ? true : false;
+				verts->at(idx).inside = (verts->at(idx).density >= densityToBeInside) ? true : false;
 			}
 		}
 	}
@@ -370,16 +367,16 @@ void TerrainNoiseSeeder::Noise3D(unsigned int startX, unsigned int startY, unsig
 				//Index value into the vertex voxel field
 				idx = index.x + (index.y*index.sizeY) + (index.z * index.sizeY * index.sizeZ);
 
-				verts[idx].normal.x = (verts[idx - 1							].density	-	verts[idx+1								].density)	* XFactor;
-				verts[idx].normal.y = (verts[idx - index.sizeY					].density	-	verts[idx + index.sizeY					].density)	* YFactor;
-				verts[idx].normal.z = (verts[idx - (index.sizeY * index.sizeZ)	].density	-	verts[idx + (index.sizeY * index.sizeZ)	].density)	* ZFactor;
+				verts->at(idx).normal.x = ((*verts)[idx - 1								].density	-	(*verts)[idx+1								].density)	* XFactor;
+				verts->at(idx).normal.y = ((*verts)[idx - index.sizeY					].density	-	(*verts)[idx + index.sizeY					].density)	* YFactor;
+				verts->at(idx).normal.z = ((*verts)[idx - (index.sizeY * index.sizeZ)	].density	-	(*verts)[idx + (index.sizeY * index.sizeZ)	].density)	* ZFactor;
 
 				//Normalize results.
-				float vectorLength = sqrt((verts[idx].normal.x*verts[idx].normal.x) + (verts[idx].normal.y*verts[idx].normal.y) + (verts[idx].normal.z*verts[idx].normal.z));
+				float vectorLength = sqrt((verts->at(idx).normal.x*verts->at(idx).normal.x) + (verts->at(idx).normal.y*verts->at(idx).normal.y) + (verts->at(idx).normal.z*verts->at(idx).normal.z));
 
-				verts[idx].normal.x = verts[idx].normal.x/vectorLength;
-				verts[idx].normal.y = verts[idx].normal.y/vectorLength;
-				verts[idx].normal.z = verts[idx].normal.z/vectorLength;
+				verts->at(idx).normal.x = verts->at(idx).normal.x/vectorLength;
+				verts->at(idx).normal.y = verts->at(idx).normal.y/vectorLength;
+				verts->at(idx).normal.z = verts->at(idx).normal.z/vectorLength;
 
 				//CreateNormal(verts, index, idx);
 			}
@@ -387,7 +384,7 @@ void TerrainNoiseSeeder::Noise3D(unsigned int startX, unsigned int startY, unsig
 	}
 }
 
-float TerrainNoiseSeeder::GetHighestPositionOfCoordinate(int x, int z, const MarchingCubeChunk* chunk)
+float TerrainNoiseSeeder::GetHighestPositionOfCoordinate(int x, int z, const MarchingCubeChunk* chunk, std::vector<MarchingCubeVoxel>* marchingCubeVertices)
 {
 	int idx;
 	float j = 0.0f;

@@ -33,15 +33,12 @@ public:
 	void LSystemTree();
 	void MCHeightMap();
 
-	void SetCurrentVoxelField(std::vector<MarchingCubeVoxel>* val){ marchingCubeVertices = val; }
+	//void SetCurrentVoxelField(std::vector<MarchingCubeVoxel>* val){ marchingCubeVertices = val; }
 
-	void Noise3D(unsigned int startX, unsigned int startY, unsigned int startZ, unsigned int endX, unsigned int endY, unsigned int endZ);
-	float GetHighestPositionOfCoordinate(int x, int z, const MarchingCubeChunk* chunk);
+	void Noise3D(unsigned int startX, unsigned int startY, unsigned int startZ, unsigned int endX, unsigned int endY, unsigned int endZ, std::vector<MarchingCubeVoxel>* marchingCubeVertices);
+	float GetHighestPositionOfCoordinate(int x, int z, const MarchingCubeChunk* chunk, std::vector<MarchingCubeVoxel>* marchingCubeVertices);
 
-	void SetTerrainType(TerrainTypes::Type terrainMode)
-	{
-		this->terrainMode = terrainMode;
-	}
+	void SetTerrainType(TerrainTypes::Type terrainMode){ this->terrainMode = terrainMode; }
 
 	inline void CreateNormal(std::vector<MarchingCubeVoxel>& verts, IndexingValue& index, unsigned int idx)
 	{
@@ -57,10 +54,7 @@ public:
 		verts[idx].normal.z = verts[idx].normal.z/vectorLength;
 	}
 
-	int GetTerrainType()
-	{
-		return terrainMode;
-	}
+	int GetTerrainType() { return terrainMode;	}
 	
 	//float GetHighestPositionOfCoordinate(vector<MarchingCubeVoxel>* marchingCubeVertices, int x, int z);
 
@@ -75,6 +69,6 @@ private:
 
 	std::map<TerrainTypes::Type, NoiseFunction> functionMap;
 
-	std::vector<MarchingCubeVoxel>* marchingCubeVertices;
+	//std::vector<MarchingCubeVoxel>* marchingCubeVertices;
 	NoiseClass* noise;
 };

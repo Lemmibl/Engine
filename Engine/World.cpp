@@ -97,7 +97,7 @@ void GameWorld::ResetCamera()
 void GameWorld::InitializeTerrain()
 {
 	//Initialize terrain manager
-	terrainManager.Initialize(d3D->GetDevice(), d3D->GetDeviceContext(), dynamicsWorld, d3D->GetHwnd(), camera->GetPosition());
+	terrainManager.Initialize(d3D->GetDevice(), dynamicsWorld, d3D->GetHwnd(), camera->GetPosition());
 }
 
 void GameWorld::Update( float deltaTimeSeconds, float deltaTimeMilliseconds )
@@ -178,7 +178,8 @@ void GameWorld::UpdateVisibility(float deltaTime)
 	frustum.ConstructFrustum(camera->GetFarClip(), &camera->GetProj(), &camera->GetView());
 	frustum.CalculateFrustumExtents(&frustumAABB, XMLoadFloat3(&camera->GetPosition()), camera->ForwardVector(), camera->UpVector());
 
-	if(terrainManager.UpdateAgainstAABB(d3D->GetDevice(), d3D->GetDeviceContext(), &frustumAABB, deltaTime))
+	//If this function returns false, it means that we haven't moved far enough to have loaded in any new chunks, hence we don't need to clear and regrow the terrainChunks vector
+	if(terrainManager.UpdateAgainstAABB(&frustumAABB, deltaTime))
 	{
 		renderableBundle.terrainChunks.clear();
 		renderableBundle.terrainChunks = terrainManager.GetActiveChunks();

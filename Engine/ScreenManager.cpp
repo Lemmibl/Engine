@@ -303,7 +303,7 @@ bool ScreenManager::UpdateInputs()
 				//	CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonClick(mouseArray[i].second);
 			}
 
-			if(mouseArray[i].second == CEGUI::MouseButton::RightButton)
+			if(mouseArray[i].second == CEGUI::RightButton)
 			{
 				//If right click was pressed then toggle the drawing of the mouse cursor.
 				if(mouseArray[i].first == InputClass::KeyUp)
