@@ -273,7 +273,7 @@ bool DRObjModelShader::SetNewTexture( ID3D11DeviceContext* deviceContext, ID3D11
 	return true;
 }
 
-bool DRObjModelShader::SetNewMaterial( ID3D11DeviceContext* deviceContext, TextureAndMaterialHandler::OBJMaterialStruct material )
+bool DRObjModelShader::SetNewMaterial( ID3D11DeviceContext* deviceContext, OBJMaterialStruct material )
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;

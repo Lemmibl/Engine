@@ -30,29 +30,6 @@ enum StageOfDay
 	STAGEOFDAY_LIST_SIZE //Keep last
 };
 
-//IDs for different things. Potential TODO: Read these in from an XML or smth?
-enum MaterialID
-{
-	MATERIAL_GRASS,
-	MATERIAL_ROCK,
-	MATERIAL_SNOW,
-	MATERIAL_DIRT,
-	MATERIAL_GRASSQUADS,
-	MATERIAL_UNDERGROUND,
-	MATERIALID_LIST_SIZE //Keep last
-};
-
-enum TextureID
-{
-	TEXTURE_DIRT,
-	TEXTURE_GRASS,
-	TEXTURE_ROCK,
-	TEXTURE_SAND,
-	TEXTURE_SNOW,
-	TEXTURE_TILEDSTONE,
-	TEXTUREID_LIST_SIZE //Keep last
-};
-
 struct PointLight
 {
 	XMFLOAT3 Position;

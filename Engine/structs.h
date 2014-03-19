@@ -5,25 +5,13 @@
 #include <d3dx9math.h>
 #include <d3d11.h>
 
-struct MaterialStruct
-{
-	float Ka;
-	float Kd;
-	float Ks;
-	float a;
-}
-
 struct Grads
 {
-	int x;
-	int y;
-	int z;
+	int x, y, z;
 
 	Grads(int extX, int extY, int extZ)
+	: x(extX), y(extY), z(extZ)
 	{
-		this->x = extX;
-		this->y = extY;
-		this->z = extZ;
 	}
 };
 
@@ -35,27 +23,6 @@ enum StageOfDay
 	DUSK,
 	EVENING, //Transition between dusk and night
 	NIGHT
-};
-
-//IDs for different things. Potential TODO: Read these in from an XML or smth?
-enum MaterialID
-{
-	MATERIAL_GRASS,
-	MATERIAL_ROCK,
-	MATERIAL_SNOW,
-	MATERIAL_DIRT,
-	MATERIAL_GRASSQUADS,
-	MATERIAL_UNDERGROUND
-};
-
-enum TextureID
-{
-	TEXTURE_DIRT,
-	TEXTURE_GRASS,
-	TEXTURE_ROCK,
-	TEXTURE_SAND,
-	TEXTURE_SNOW,
-	TEXTURE_TILEDSTONE
 };
 
 struct PointLight
@@ -166,3 +133,11 @@ struct StructuredBuffer
 	void Initialize(ID3D11Device* device, UINT stride, UINT numElements, BOOL useAsUAV = false,
 		BOOL appendConsume = false, BOOL useAsDrawIndirect = false, const void* initData = NULL);
 };
+
+//struct MaterialStruct
+//{
+//	float Ka;
+//	float Kd;
+//	float Ks;
+//	float a;
+//};

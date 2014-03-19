@@ -257,7 +257,7 @@ bool GameRenderer::InitializeModels( HWND hwnd )
 	bool result;
 
 	// Initialize the model object. It really doesn't matter what textures it has because it's only used for point light volume culling.
-	result = sphereModel.Initialize(d3D->GetDevice(), "../Engine/data/skydome.txt", L"../Engine/data/grass.dds", L"../Engine/data/dirt.dds", L"../Engine/data/rock.dds");
+	result = sphereModel.Initialize(d3D->GetDevice(), "../Engine/data/skydome.txt", L"../Engine/data/dirt.dds", L"../Engine/data/dirt.dds", L"../Engine/data/dirt.dds");
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
@@ -299,13 +299,17 @@ bool GameRenderer::InitializeEverythingElse( HWND hwnd )
 {
 	bool result;
 
-	result = textureAndMaterialHandler.Initialize(d3D->GetDevice(), d3D->GetDeviceContext(), &noise, &utility);
+	result = textureHandler.Initialize(d3D->GetDevice(), d3D->GetDeviceContext());
 	if(!result)
 	{
 		return false;
 	}
 
-	textureAndMaterialHandler.SetupWindtextures(d3D->GetDevice(), d3D->GetDeviceContext(), 0, 0, 1024, 1024, 0.6f);
+	result = materialHandler.Initialize(d3D->GetDevice(), d3D->GetDeviceContext(), &textureCreator, &noise);
+
+	result = proceduralTextureHandler.Initialize(d3D->GetDevice(), d3D->GetDeviceContext(), &textureCreator, &noise, &utility);
+
+	proceduralTextureHandler.SetupWindtextures(d3D->GetDevice(), d3D->GetDeviceContext(), 0, 0, 1024, 1024, 0.6f);
 
 	result = dayNightCycle.Initialize(DAY); //86400.0f/6 <-- This is realistic day/night cycle. 86400 seconds in a day.
 	if(!result)
@@ -810,7 +814,7 @@ bool GameRenderer::RenderGBuffer(XMMATRIX* viewMatrix, XMMATRIX* projectionMatri
 		chunks[i]->GetTerrainMesh()->Render(deviceContext);
 
 		if(!mcubeShader.Render(d3D->GetDeviceContext(),  chunks[i]->GetTerrainMesh()->GetIndexCount(), &worldMatrix, &worldView, 
-			identityWorldViewProj, textureAndMaterialHandler.GetTerrainTextureArray(), textureAndMaterialHandler.GetMaterialLookupTexture(), toggleColorMode))
+			identityWorldViewProj, textureHandler.GetTerrainTextureArray(), materialHandler.GetMaterialLookupTexture(), toggleColorMode))
 		{
 			return false;
 		}
@@ -824,7 +828,7 @@ bool GameRenderer::RenderGBuffer(XMMATRIX* viewMatrix, XMMATRIX* projectionMatri
 		chunks[i]->GetWaterMesh()->Render(deviceContext);
 
 		if(!waterShader.Render(d3D->GetDeviceContext(),  chunks[i]->GetWaterMesh()->GetIndexCount(), &worldMatrix, &worldView, identityWorldViewProj, 
-			textureAndMaterialHandler.GetVegetationTextureArray(), textureAndMaterialHandler.GetWindTexture(), textureAndMaterialHandler.GetWindNormalMap(), 
+			textureHandler.GetVegetationTextureArray(), proceduralTextureHandler.GetWindTexture(), proceduralTextureHandler.GetWindNormalMap(), 
 			textureOffsetDeltaTime, &windDir))
 		{
 			return false;
@@ -839,8 +843,8 @@ bool GameRenderer::RenderGBuffer(XMMATRIX* viewMatrix, XMMATRIX* projectionMatri
 		chunks[i]->GetTerrainMesh()->Render(deviceContext);
 
 		if(!geometryShaderGrass.Render(d3D->GetDeviceContext(),  chunks[i]->GetTerrainMesh()->GetIndexCount(), &worldMatrix, &worldView, 
-			identityWorldViewProj, textureAndMaterialHandler.GetVegetationTextureArray(), textureAndMaterialHandler.GetMaterialLookupTexture(), 
-			textureAndMaterialHandler.GetWindTexture(), toggleColorMode, textureOffsetDeltaTime, &windDir))
+			identityWorldViewProj, textureHandler.GetVegetationTextureArray(), materialHandler.GetMaterialLookupTexture(), 
+			proceduralTextureHandler.GetWindTexture(), toggleColorMode, textureOffsetDeltaTime, &windDir))
 		{
 			return false;
 		}
@@ -857,24 +861,24 @@ bool GameRenderer::RenderGBuffer(XMMATRIX* viewMatrix, XMMATRIX* projectionMatri
 	XMMATRIX tempView = XMMatrixTranspose(*viewMatrix);
 	XMMATRIX tempProj = XMMatrixTranspose(*projectionMatrix);
 
-	for(unsigned int i = 0; i < vecSize; ++i)
-	{
-		auto& model = renderableBundle->objModels[i];
-		IndexedMesh* tempMesh = meshHandler->GetMesh(model.GetMeshHandle());
+	auto& model = renderableBundle->objModels[0];
+	IndexedMesh* tempMesh = meshHandler->GetMesh(model.GetMeshHandle());
 
+	for(unsigned int i = 0; i < chunks.size(); ++i)
+	{
 		//Retarded little hack to see viability of rendering many trees
-		for(int k = 0; k < numtrees; ++k)
+		for(unsigned int k = 0; k < chunks[i]->GetBushCount(); ++k)
 		{
-			worldMatrix = XMMatrixTranspose(XMLoadFloat4x4(&(treeMatrices.at(k))));
+			worldMatrix = XMLoadFloat4x4(&chunks[i]->GetBushTransforms()[k]); /*XMMatrixTranspose(XMLoadFloat4x4(&(treeMatrices.at(k))));*/
 			objModelShader.UpdateMatrixBuffer(deviceContext, &worldMatrix, &tempView, &tempProj);
 
 			for(int j = 0; j < model.GetSubsetCount()-1; ++j)
 			{
 				//See if we need to update texture
-				auto tex = textureAndMaterialHandler.GetTexture(model.GetTextureHandles().at(j));
+				auto tex = textureHandler.GetTexture(model.GetTextureHandles().at(j));
 
 				//See if we need to update material
-				auto mat = textureAndMaterialHandler.GetMaterial(model.GetMaterialHandles().at(j));
+				auto mat = materialHandler.GetMaterial(model.GetMaterialHandles().at(j));
 
 				if(textureNeedsUpdate)
 				{
@@ -944,7 +948,7 @@ bool GameRenderer::RenderPointLight(XMMATRIX* view, XMMATRIX* invertedView, XMMA
 			sphereModel.Render(deviceContext);
 
 			if(!pointLightShader.Render(deviceContext, sphereModel.GetIndexCount(), &worldViewProj, &worldView, &world, invertedView, 
-				invertedProjection, &pointLights[i], &gbufferTextures[0].p, textureAndMaterialHandler.GetMaterialTextureArray(), camPos))
+				invertedProjection, &pointLights[i], &gbufferTextures[0].p, materialHandler.GetMaterialTextureArray(), camPos))
 			{
 				return false;
 			}
@@ -991,7 +995,7 @@ bool GameRenderer::RenderDirectionalLight(XMMATRIX* viewMatrix, XMMATRIX* worldB
 	}
 
 	if(!dirLightShader.Render(deviceContext, fullScreenQuad.GetIndexCount(), worldBaseViewOrthoProj, &worldView, &worldMatrix, viewMatrix, 
-		&invertedView, invertedProjection, lightView, lightProj, &dirLightTextures[0].p, textureAndMaterialHandler.GetMaterialTextureArray(), 
+		&invertedView, invertedProjection, lightView, lightProj, &dirLightTextures[0].p, materialHandler.GetMaterialTextureArray(), 
 		camPos, &dirLight, dayNightCycle.GetAmbientLightColor()))
 	{
 		return false;
@@ -1015,7 +1019,7 @@ bool GameRenderer::RenderComposedScene(XMMATRIX* worldBaseViewOrthoProj, XMMATRI
 	}
 
 	if(!composeShader.Render(deviceContext, fullScreenQuad.GetIndexCount(), worldBaseViewOrthoProj, worldView, view, invertedProjection, 
-		invertedViewProjection, &dayNightCycle.GetAmbientLightColor(), fogMinimum, &finalTextures[0].p, *textureAndMaterialHandler.GetSSAORandomTexture(), toggleSSAO))
+		invertedViewProjection, &dayNightCycle.GetAmbientLightColor(), fogMinimum, &finalTextures[0].p, *proceduralTextureHandler.GetSSAORandomTexture(), toggleSSAO))
 	{
 		return false;
 	}
@@ -1082,7 +1086,7 @@ bool GameRenderer::RenderGUI(XMMATRIX* worldBaseViewOrthoProj )
 		}
 
 		if(!textureShader.Render(deviceContext, debugWindows[5].GetIndexCount(), 
-			worldBaseViewOrthoProj, *textureAndMaterialHandler.GetWindNormalMap()))
+			worldBaseViewOrthoProj, *proceduralTextureHandler.GetWindNormalMap()))
 		{
 			return false;
 		}
@@ -1093,7 +1097,7 @@ bool GameRenderer::RenderGUI(XMMATRIX* worldBaseViewOrthoProj )
 		}
 
 		if(!textureShader.Render(deviceContext, debugWindows[6].GetIndexCount(), 
-			worldBaseViewOrthoProj, *textureAndMaterialHandler.GetWindTexture()))
+			worldBaseViewOrthoProj, *proceduralTextureHandler.GetWindTexture()))
 		{
 			return false;
 		}
@@ -1147,7 +1151,6 @@ void GameRenderer::OnSettingsReload(Config* cfg)
 }
 
 #pragma region Hidden stuff.. for now
-
 //if(inputManager->WasKeyPressed(DIK_U))
 //{
 //	textureAndMaterialHandler.RebuildRandom2DTexture(d3D->GetDevice(), d3D->GetDeviceContext());

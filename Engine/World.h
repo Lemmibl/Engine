@@ -22,7 +22,7 @@ public:
 
 	void CleanUp();
 
-	void Initialize(std::shared_ptr<D3DManager> extD3DManager, std::shared_ptr<InputClass> extInput, GameRenderer* gameRenderer);
+	void Initialize(std::shared_ptr<D3DManager> extD3DManager, std::shared_ptr<InputClass> extInput, GameRenderer* gameRenderer, DebugOverlayHUD* debugHud);
 
 	void Update(float deltaTimeSeconds, float deltaTimeMilliseconds);
 	void OnSettingsReload(Config* cfg);
@@ -51,6 +51,8 @@ private:
 	float bulletTimestepScale;
 	int maxSubSteps;
 
+	DebugOverlayHUD* debugHUD;
+
 	//Collision classes
 	std::shared_ptr<btBroadphaseInterface> broadphase;
 	std::shared_ptr<btDefaultCollisionConfiguration> collisionConfiguration;
@@ -69,6 +71,7 @@ private:
 	MeshHandler meshHandler;
 	GameRenderer::RenderableBundle renderableBundle;
 	float nearClip, farClip, screenWidth, screenHeight;
+	unsigned int currentlyActiveChunks, chunksInProduction; 
 
 	//Misc.
 	std::shared_ptr<ControllerClass> cameraController;

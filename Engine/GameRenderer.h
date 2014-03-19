@@ -27,7 +27,7 @@
 //Managers
 #include "d3dmanager.h"
 #include "TerrainManager.h"
-#include "TextureAndMaterialHandler.h"
+#include "TextureHandler.h"
 #include "VegetationManager.h"
 #include "MeshHandler.h"
 
@@ -92,7 +92,8 @@ public:
 	bool Update(HWND hwnd, int fps, int cpuPercentage, float millisecondDeltaTime, float secondDeltaTime, XMFLOAT3* windDirection);
 	bool Render(HWND hwnd, RenderableBundle* renderableBundle);
 
-	TextureAndMaterialHandler* GetTextureAndMaterialHandler() { return &textureAndMaterialHandler; }
+	TextureHandler* GetTextureHandler() { return &textureHandler; }
+	MaterialHandler* GetMaterialHandler() { return &materialHandler; }
 
 	virtual void OnSettingsReload(Config* cfg);
 
@@ -124,6 +125,11 @@ private:
 	std::shared_ptr<CameraClass> camera;
 	std::shared_ptr<InputClass> inputManager;
 	MeshHandler* meshHandler;
+
+	TextureCreator textureCreator;
+	TextureHandler textureHandler;
+	MaterialHandler materialHandler;
+	ProceduralTextureHandler proceduralTextureHandler;
 
 	std::vector<XMFLOAT4X4> treeMatrices;
 	int numtrees;
@@ -166,7 +172,6 @@ private:
 	NoiseClass noise;
 
 	Utility utility;
-	TextureAndMaterialHandler textureAndMaterialHandler;
 
 	int toggleSSAO, toggleColorMode;
 	float xPos, yPos, textureOffsetDeltaTime;

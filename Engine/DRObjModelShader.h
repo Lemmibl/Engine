@@ -6,7 +6,7 @@
 #include <fstream>
 #include <atlcomcli.h>
 #include "SettingsDependent.h"
-#include "TextureAndMaterialHandler.h"
+#include "TextureAndMaterialStructs.h"
 
 class DRObjModelShader : public SettingsDependent
 {
@@ -62,7 +62,7 @@ public:
 	bool Initialize(ID3D11Device*, HWND);
 
 	bool SetNewTexture(ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv, int textureCount);
-	bool SetNewMaterial(ID3D11DeviceContext* deviceContext, TextureAndMaterialHandler::OBJMaterialStruct material);
+	bool SetNewMaterial(ID3D11DeviceContext* deviceContext, OBJMaterialStruct material);
 	bool UpdateMatrixBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix);
 
 	void RenderShader(ID3D11DeviceContext* deviceContext, int indexCount, int startIndexLocation);

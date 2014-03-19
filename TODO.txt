@@ -3,19 +3,12 @@
 /*						TODO AND THINGS OF THAT SORT							*/
 /********************************************************************************/
 
-* BUG: Point light doesn't recieve new camera position properly.. Possibly need to multiply camera with World?
+* Skysphere texture mapping! Clouds? Stars?
 
-* .obj loading
-
-* Ability to load in obj models from tree[d]
-
-* Material and Texture handler keeps a bunch of DOD containers for all textures and materials, you can insert them from outside. 
-	This will means that you can load in all the models you want in mesh loader, and mesh loader can then insert all the new materials into the texMat handler.
-	texMat handler will return a handle whenever you insert a material, and you can append this handle to a model so that you can load everything related at rendertime.
-
-* Do some form of sorting based on material for all obj models
+* Depth only OBJ shader for shadow stage
 
 * Separate handler for procedural texture generation
+	-> In the near future, maybe just make a TextureCreator+Loader and just have that as a pointer inside each manager of different types... that'd work...
 
 * Spotlight shader
 
@@ -29,52 +22,6 @@
 	-> Finally look into compute shader..?
 
 * Water normal texture sliding thing that they do in arma2
-* Skysphere texture mapping! Clouds? Stars?
-* Shadow&Light manager...?
-
-いいいいい Thoughts on multi mesh models and meshes in general いいいいい
-What if the actual models are just a collection of handles?
-Handles to mesh IDs that are retrieved from meshHandler
-Handles to texture and material IDs that are retrieved from texAndMatHandler
-Handles to... Bodies? Transforms? All sorts of things. So at render time you just go through each "Model" and access each handle for each thing.
-
-You'd probably be accessing various materials/textures for each mesh, too, so you'd access textures and materials with the meshHandle..?
-
-struct Model
-{
-	MeshHandles* meshHandles[meshNr]
-	TextureHandles* textureHandles[texNr]
-	MaterialHandles* materialHandles[matNr]
-
-	uint32 bitfield with bunch of different settings... say, blendstate, rasterizer state, transparency, recieve shadows, cast shadows.
-	ushort meshNr, texNr, matNR
-}
-
-So for example when you want to render a tree model that has like 4 different meshes and 3 different materials:
-
-for(int i = 0; i < modelCount; i++)
-{
-	for(int j = 0; j < model[i].meshNr; j++)
-	{
-		meshHandler.GetMesh[model[i].meshHandle[j]].Render(vars);
-
-		shader.render(vars, textureAndMatHandler.getTextureArrayOrWhatever[model[i].getTextureHandle[j]]); <- Should also take materialArrays here
-	}
-}
-
-I should probably also make a multi-texture shader that takes a TextureCount var and loops through amount of textures.
-
-Perhaps just send texture and material IDs through constant buffer as one int32. 8bit per mat or tex id
-
-======== Idea regarding multithreading the terrain generation =============
-
-You just have a function that is like AddFinishedChunkToMap(ChunkPointer val) with a ...mutex? in it.
-
-So whenever one of the threads has created a chunk, it will lock the map, add its thing, then go to the next.
-
-Can I call the same function with several threads? Or just use one separate thread dedicated to generation?
-
-============================================================================
 
 ########## Idea regarding vegetation lookup table ##################
 
@@ -112,27 +59,6 @@ http://directtovideo.wordpress.com/2009/10/06/a-thoroughly-modern-particle-syste
 http://realtimecollisiondetection.net/blog/?p=91
 http://http.developer.nvidia.com/GPUGems3/gpugems3_ch23.html
 
-Multithreading:
-http://gamedev.stackexchange.com/questions/2116/multi-threaded-game-engine-design-resources
-http://www.gamasutra.com/view/feature/1830/multithreaded_game_engine_.php
-http://www.gamasutra.com/view/feature/2463/threading_3d_game_engine_basics.php
-http://bitsquid.blogspot.se/2010/03/task-management-practical-example.html
-*/
-
-/*
-Game engine requirements:
--Math, Physics and collision detection
--Rendering the scene, lighting, shadows, animation, etc with a high frame rate
--Network code for multiplayer
--Game world management
--GUI management
--Game state management
--Particle effects, sprite rendering, billboards, primitive geometry (points, lines, triangles, quads)
--Importing assets, like sound files, textures, models, font files, shaders, etc. and managing them
--Camera interfaces. A camera is a view into the game world. How do I make the camera do what I want it to do?
--IO interfaces for creating log files, saving and loading game states, loading game data files, etc.
--How to use the game engine to create a game (DLL file? stand alone IDE such as Unity? Source code include?). Who is going to be using the game engine? What kind of documentation will they need to use it effectively? What happens if they want to use a feature which isn't supported by the engine?
--How do I create my game world? Do I use an external tool?
 */
 
 TODO: Slerp.

@@ -24,18 +24,22 @@ void GameWorld::CleanUp()
 	}
 }
 
-void GameWorld::Initialize( std::shared_ptr<D3DManager> extD3DManager, std::shared_ptr<InputClass> extInput, GameRenderer* gameRenderer)
+void GameWorld::Initialize( std::shared_ptr<D3DManager> extD3DManager, std::shared_ptr<InputClass> extInput, GameRenderer* gameRenderer, DebugOverlayHUD* debugHud)
 {
 	inputManager = extInput;
 	d3D = extD3DManager;
 	renderer = gameRenderer;
+	debugHUD = debugHud;
 
 	//Load settings from file
 	InitializeSettings(this);
 
-	meshHandler.Initialize(gameRenderer->GetTextureAndMaterialHandler());
+	meshHandler.Initialize(gameRenderer->GetTextureHandler(), gameRenderer->GetMaterialHandler());
 
-	//InitializeMiscRenderables();
+	debugHud->AddNewWindowWithoutHandle("Chunks currently being drawn: ", &currentlyActiveChunks, DataTypeEnumMappings::UInt32);
+	debugHud->AddNewWindowWithoutHandle("Chunks currently in production: ", &chunksInProduction, DataTypeEnumMappings::UInt32);
+
+	InitializeMiscRenderables();
 	InitializeCollision();
 	InitializeCamera();
 	InitializeTerrain();
@@ -44,7 +48,7 @@ void GameWorld::Initialize( std::shared_ptr<D3DManager> extD3DManager, std::shar
 void GameWorld::InitializeMiscRenderables()
 {
 	std::wstring objFilepath = L"../Engine/data/Models/";
-	std::wstring treeModelFilepath = objFilepath + L"secondtree.obj";
+	std::wstring treeModelFilepath = objFilepath + L"SmallTree.obj";
 
 	OBJModel tempModelPtr;
 
@@ -102,8 +106,13 @@ void GameWorld::InitializeTerrain()
 
 void GameWorld::Update( float deltaTimeSeconds, float deltaTimeMilliseconds )
 {
+	chunksInProduction = terrainManager.GetChunkInProductionCount();
+	currentlyActiveChunks = terrainManager.GetActiveChunkCount();
+
 	//Advance bullet world simulation stepping
-	dynamicsWorld->stepSimulation(bulletTimestepScale, maxSubSteps);
+	
+	//bulletTimestepScale
+	dynamicsWorld->stepSimulation(deltaTimeSeconds, maxSubSteps);
 
 	//Update wind system, used for wind direction and other fun things.
 	weatherSystem.Update(deltaTimeSeconds);

@@ -1,7 +1,7 @@
 #pragma once
 #include "IndexedMesh.h"
 #include <vector>
-#include "TextureAndMaterialHandler.h"
+#include "TextureHandler.h"
 
 class MultiMeshModel
 {

@@ -48,7 +48,7 @@ bool GameplayScreen::Initialize()
 	debugHUD.Initialize(0.0f, 0.0f);
 
 	//Initialize world
-	world.Initialize(d3D, input, &worldRenderer);
+	world.Initialize(d3D, input, &worldRenderer, &debugHUD);
 
 	// Initialize the renderer.
 	result = worldRenderer.Initialize(hwnd, world.GetCamera(), input, d3D, world.GetMeshHandler(), &debugHUD, (unsigned int)screenWidth, (unsigned int)screenHeight, 

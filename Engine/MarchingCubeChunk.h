@@ -9,7 +9,7 @@
 #include "BulletDynamics\Dynamics\btRigidBody.h"
 #include "BulletCollision\CollisionShapes\btTriangleMesh.h"
 #include <xnamath.h>
-#include "customStructs.h"
+#include "TerrainStructs.h"
 
 class MarchingCubeChunk
 {
@@ -58,6 +58,9 @@ public:
 	std::pair<int, int> GetKey() { return key; }
 	void SetKey(int x, int y) { key = std::make_pair<int, int>(x,y); }
 
+	std::vector<XMFLOAT4X4>& GetBushTransforms() { return bushTransforms; }
+	unsigned int GetBushCount() { return bushCount; }
+
 private:
 	//voxels is sizeX*sizeY*sizeZ big
 	std::vector<unsigned int> indices;
@@ -90,5 +93,9 @@ private:
 	std::shared_ptr<btRigidBody> rigidBody;
 	std::shared_ptr<btTriangleMesh> triMesh;
 	std::shared_ptr<btCollisionShape> collisionShape;
+
+	//Vegetation objects
+	unsigned int bushCount;
+	std::vector<XMFLOAT4X4> bushTransforms;
 };
 

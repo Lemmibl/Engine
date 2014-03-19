@@ -10,7 +10,9 @@
 #include <sstream>
 
 #include "IndexedMesh.h"
-#include "TextureAndMaterialHandler.h"
+#include "TextureAndMaterialStructs.h"
+#include "TextureHandler.h"
+#include "MaterialHandler.h"
 #include "DODContainer.h"
 #include "OBJModel.h"
 
@@ -43,7 +45,7 @@ public:
 	MeshHandler();
 	~MeshHandler();
 
-	bool Initialize(TextureAndMaterialHandler* textureAndMaterialHandler);
+	bool Initialize(TextureHandler* textureHandler, MaterialHandler* materialHandler);
 
 	//Returns true on success
 	bool LoadModelFromOBJFile(ID3D11Device* device, std::wstring filepath, OBJModel* outModel);
@@ -63,7 +65,8 @@ private:
 
 private:
 	DODContainer<IndexedMesh> meshes;
-	TextureAndMaterialHandler* texAndMatHandler;
+	TextureHandler* textureHandler;
+	MaterialHandler* materialHandler;
 	std::wstring meshMatLib; //String to hold our obj material library filename
 
 	std::vector<CacheEntry*> vertexCache;

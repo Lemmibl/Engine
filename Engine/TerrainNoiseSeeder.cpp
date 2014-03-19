@@ -384,10 +384,9 @@ void TerrainNoiseSeeder::Noise3D(unsigned int startX, unsigned int startY, unsig
 	}
 }
 
-float TerrainNoiseSeeder::GetHighestPositionOfCoordinate(int x, int z, const MarchingCubeChunk* chunk, std::vector<MarchingCubeVoxel>* marchingCubeVertices)
+bool TerrainNoiseSeeder::GetHighestPositionOfCoordinate(int x, int z, MarchingCubeChunk* chunk, std::vector<MarchingCubeVoxel>* marchingCubeVertices, float* outHeightValue)
 {
 	int idx;
-	float j = 0.0f;
 	int i = 0;
 
 	//OR stepSize? can't remember
@@ -395,6 +394,8 @@ float TerrainNoiseSeeder::GetHighestPositionOfCoordinate(int x, int z, const Mar
 	int sizeZ = chunk->GetStepCountZ();
 
 	int idxPreCalc = x + z * sizeY * sizeZ;
+
+	int yBreakPoint = 0;
 
 	//So what this function does is that it takes a point in our voxel field, then it starts from the absolute highest point in the field, 
 	// and goes downward until it hits a point with a density that is high enough to be considered solid.
@@ -405,18 +406,46 @@ float TerrainNoiseSeeder::GetHighestPositionOfCoordinate(int x, int z, const Mar
 		//When we find our first solid voxel, we break, because we've found the right point
 		if((*marchingCubeVertices)[idx].inside)
 		{
+			yBreakPoint = i;
 			break;
 		} 
+	}
+
+	//If this point is below water level.... return false
+	if(yBreakPoint <= ((int)chunk->GetWaterLevel()))
+	{
+		return false;
 	}
 
 	//Now we want the point below it
 	int idx2 = idx+sizeY;
 
 	//Calculate an average
-	j = ((*marchingCubeVertices)[idx].density + (*marchingCubeVertices)[idx2].density)*0.5f;
+	float j = ((*marchingCubeVertices)[idx].density + (*marchingCubeVertices)[idx2].density)*0.5f;
+
+	//Upvector to compare vertex normals against
+	XMVECTOR upVector = XMLoadFloat3(&XMFLOAT3(0.0f, 1.0f, 0.0f));
+
+	XMVECTOR vertexNormal1 = XMLoadFloat3(&(*marchingCubeVertices)[idx].normal);
+	XMVECTOR vertexNormal2 = XMLoadFloat3(&(*marchingCubeVertices)[idx2].normal);
+
+	//http://msdn.microsoft.com/en-us/library/windows/desktop/microsoft.directx_sdk.geometric.xmvector3dot(v=vs.85).aspx
+	//Return value: Returns a vector. The dot product between V1 and V2 is replicated into each component.
+	//							//Take average of the two closest vertices
+	XMVECTOR result = XMVector3Dot(((vertexNormal1+vertexNormal2)*0.5f), upVector);
+
+	//We check the dot result between an UpNormal and the average of the two vertex normals
+	//If this value is too low, it means that the angle of the surface we're trying to 
+	// place something on is too slanted. Hence we break early and return false.
+	if(result.m128_f32[0] < 0.95f)
+	{
+		return false;
+	}
 
 	//Then we add some fuckin' magic numbers because we're BAD BOYS who don't PLAY BY THE RULES
-	return (i + 0.5f + j);
+	*outHeightValue = (i + 0.5f + j);
+
+	return true;
 }
 
 void TerrainNoiseSeeder::MCHeightMap()

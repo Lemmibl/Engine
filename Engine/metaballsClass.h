@@ -1,5 +1,5 @@
 #pragma once
-#include "customStructs.h"
+#include "TerrainStructs.h"
 #include <stdio.h>
 #include <windows.h>
 #include <xnamath.h> 

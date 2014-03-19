@@ -11,9 +11,10 @@ MeshHandler::~MeshHandler()
 }
 
 
-bool MeshHandler::Initialize( TextureAndMaterialHandler* textureAndMaterialHandler )
+bool MeshHandler::Initialize( TextureHandler* extTexHandler, MaterialHandler* extMatHandler)
 {
-	texAndMatHandler = textureAndMaterialHandler;
+	textureHandler = extTexHandler;
+	materialHandler = extMatHandler;
 
 	return true;
 }
@@ -269,9 +270,9 @@ bool MeshHandler::LoadOBJGeometry(ID3D11Device* device, std::wstring filepath, O
 	//Check to see if the file was opened
 	if(fileStream)
 	{
-		float vz, vy, vx;
-		float vtcu, vtcv;
-		float vnx, vny, vnz;
+		//float vz, vy, vx;
+		//float vtcu, vtcv;
+		//float vnx, vny, vnz;
 
 		while(fileStream.good())
 		{			
@@ -688,7 +689,7 @@ bool MeshHandler::LoadOBJGeometry(ID3D11Device* device, std::wstring filepath, O
 		subsetCount--;
 	}
 
-	for(int i = 0; i < subsetIndexStart.size(); i++)
+	for(unsigned int i = 0; i < subsetIndexStart.size(); i++)
 	{
 		outModel->InsertSubsetIndexStart(subsetIndexStart[i]);
 	}
@@ -788,7 +789,7 @@ bool MeshHandler::LoadOBJGeometry(ID3D11Device* device, std::wstring filepath, O
 			}
 
 			//Get the actual normal by dividing the normalSum by the number of faces sharing the vertex
-			normalSum = normalSum / facesUsing;
+			normalSum = normalSum / (float)facesUsing;
 
 			//Normalize the normalSum vector
 			normalSum = XMVector3Normalize(normalSum);
@@ -863,7 +864,7 @@ bool MeshHandler::LoadOBJGeometry(ID3D11Device* device, std::wstring filepath, O
 
 bool MeshHandler::LoadOBJMaterials( ID3D11Device* device, std::wstring filepath, OBJModel* outModel )
 {
-	std::vector<TextureAndMaterialHandler::OBJMaterialStruct> materialStructs;
+	std::vector<OBJMaterialStruct> materialStructs;
 	std::vector<unsigned short> subsetMaterialArray;
 
 	//Open the mtl file
@@ -913,7 +914,7 @@ bool MeshHandler::LoadOBJMaterials( ID3D11Device* device, std::wstring filepath,
 									if(checkChar == ' ')
 									{
 										//New material, set its defaults
-										TextureAndMaterialHandler::OBJMaterialStruct tempMat;
+										OBJMaterialStruct tempMat;
 
 										/* This is what an obj material looks like
 										newmtl wood03png
@@ -1086,7 +1087,7 @@ bool MeshHandler::LoadOBJMaterials( ID3D11Device* device, std::wstring filepath,
 		//When file has been fully read in, add all the materials to texAndMatHandler.
 		for(unsigned int i = 0; i < materialStructs.size(); i++)
 		{
-			unsigned short handle = texAndMatHandler->AddOBJMaterial(materialStructs[i]);
+			unsigned short handle = materialHandler->AddOBJMaterial(materialStructs[i]);
 
 			matNameAndHandlePairings.push_back(std::make_pair<std::wstring, unsigned short>(materialStructs[i].name, handle));
 		}
@@ -1094,7 +1095,7 @@ bool MeshHandler::LoadOBJMaterials( ID3D11Device* device, std::wstring filepath,
 		//And all the texture
 		for(unsigned int i = 0; i < textureNameArray.size(); ++i)
 		{
-			unsigned short handle = texAndMatHandler->AddNewtexture(device, materialBaseFilepath+textureNameArray[i]);
+			unsigned short handle = textureHandler->AddNewtexture(device, materialBaseFilepath+textureNameArray[i]);
 			outModel->InsertTextureHandle(handle);
 		} 
 	}	
@@ -1188,7 +1189,7 @@ unsigned int MeshHandler::AddVertex( unsigned int hash, VertexType vertex )
 void MeshHandler::DeleteCache()
 {
 	// Iterate through all the elements in the cache and subsequent linked lists
-	for( int i = 0; i < vertexCache.size(); i++ )
+	for(unsigned int i = 0; i < vertexCache.size(); i++ )
 	{
 		CacheEntry* entry = vertexCache.at(i);
 		while( entry != NULL )

@@ -1,6 +1,6 @@
 #pragma once
 #include <math.h>
-#include "customStructs.h"
+#include "TerrainStructs.h"
 #include "NoiseClass.h"
 #include <stdlib.h> //srand
 #include <time.h>
@@ -36,7 +36,7 @@ public:
 	//void SetCurrentVoxelField(std::vector<MarchingCubeVoxel>* val){ marchingCubeVertices = val; }
 
 	void Noise3D(unsigned int startX, unsigned int startY, unsigned int startZ, unsigned int endX, unsigned int endY, unsigned int endZ, std::vector<MarchingCubeVoxel>* marchingCubeVertices);
-	float GetHighestPositionOfCoordinate(int x, int z, const MarchingCubeChunk* chunk, std::vector<MarchingCubeVoxel>* marchingCubeVertices);
+	bool GetHighestPositionOfCoordinate(int x, int z, MarchingCubeChunk* chunk, std::vector<MarchingCubeVoxel>* marchingCubeVertices, float* outHeightValue);
 
 	void SetTerrainType(TerrainTypes::Type terrainMode){ this->terrainMode = terrainMode; }
 

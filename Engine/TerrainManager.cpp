@@ -34,7 +34,7 @@ enum Direction
 static const XMFLOAT3 stepSize(2.0f, 2.0f, 2.0f);
 
 //Needs to be kept at 28, 53, 103 etc, else your position slowly gets out of sync with the culling position. Need to look into this.
-static const XMFLOAT3 stepCount(28.0f, 28.0f, 28.0f);
+static const XMFLOAT3 stepCount(50.0f, 50.0f, 50.0f);
 
 volatile static bool IsRunning = true;
 
@@ -53,7 +53,6 @@ void JobThreadEntryPoint(void* terrainManagerPointer)
 
 		if(terrainManager->GetPreProductionQueue()->Try_pop(chunkKey))
 		{
-
 			float actualPosX, actualPosZ;
 
 			//Calculate start position
@@ -125,19 +124,102 @@ void JobThreadEntryPoint(void* terrainManagerPointer)
 			//Assign it to this chunk
 			chunk->SetRigidBody(rigidBody);
 
+			float randPosX, randPosZ;
+			int indexX, indexZ;
+
+			float resultHeight = 0.0f;
+
+			for(unsigned int i = 0; i < chunk->GetBushCount();)
+			{
+				indexX = rand()%(int)stepCount.x;
+				indexZ = rand()%(int)stepCount.z;
+				
+				randPosX = actualPosX + (indexX*stepSize.x);
+				randPosZ = actualPosZ + (indexZ*stepSize.z);
+
+				if(terrainManager->GetTerrainNoiser().GetHighestPositionOfCoordinate(indexX, indexZ, chunk.get(), &voxels, &resultHeight))
+				{
+					resultHeight *= stepSize.y;
+
+					//If we've found a proper position, store a transposed, rotated world matrix in the chunk.
+					XMStoreFloat4x4(	&(chunk->GetBushTransforms()[i]), XMMatrixTranspose(	XMMatrixScaling(4.0f, 4.0f, 4.0f) * 
+																								XMMatrixRotationY((float)(rand()%360)) * 
+																								XMMatrixTranslation(randPosX, resultHeight, randPosZ)
+																							)
+									);
+					++i;
+				}
+			}
+
 			terrainManager->GetPostProductionQueue()->Push(chunk);
 		}
 	}
 }
 
 TerrainManager::TerrainManager() 
-	: SettingsDependent(), marchingCubes((int)stepCount.x, (int)stepCount.y, (int)stepCount.z)
+	: SettingsDependent(), marchingCubes((int)stepCount.x, (int)stepCount.y, (int)stepCount.z), fullyLoaded(false)
 {
 }
 
 TerrainManager::~TerrainManager()
 {
 	Shutdown();
+}
+
+
+bool TerrainManager::Initialize(ID3D11Device* device, std::shared_ptr<btDiscreteDynamicsWorld> collisionWorld, HWND hwnd, XMFLOAT3 cameraPosition )
+{
+	//Load settings from file
+	InitializeSettings(this);
+
+	this->device = device;
+
+	timePassed = 0.0f;
+	timeThreshold = 10.0f;
+	rangeThreshold = 800.0f;
+
+	chunkMap = std::make_shared<std::unordered_map<std::pair<int,int>, std::pair<bool, std::shared_ptr<MarchingCubeChunk>>, int_pair_hash>>();
+	collisionHandler = collisionWorld;
+
+	noise.ReseedRandom();
+
+	lastUsedKey = std::make_pair<int, int>(99, -99);
+	lastMin = std::make_pair<int, int>(-99, -99);
+	lastMax = std::make_pair<int, int>(99, 99);
+
+	//Very powerful black magic going on here. Do not disturb.
+	stepScaling = 0.01f;//(stepSize.x*(stepCount.x-3)) / 5000;
+
+	//I give no shits if this throws a warning, it helps me remember which terraintypes there are and their names.
+	//terrainType = TerrainTypes::Plains;//(TerrainNoiseSeeder::TerrainTypes)(1 + rand()%8); //
+
+	terrainNoiser.Initialize((int)stepCount.x, (int)stepCount.y, (int)stepCount.z, &noise, terrainType);
+
+	vegetationManager.Initialize(device, hwnd);
+
+	D3D11_FEATURE_DATA_THREADING threadingFeatures;
+	multiThreadedMeshCreationEnabled = true;
+
+	if(!FAILED(device->CheckFeatureSupport(D3D11_FEATURE_THREADING, &threadingFeatures, sizeof(D3D11_FEATURE_DATA_THREADING))))
+	{
+		//BOOL to bool casting...
+		multiThreadedMeshCreationEnabled = (threadingFeatures.DriverConcurrentCreates != 0);
+	}
+
+	//Initialize it first...
+	numThreads = ((thread::hardware_concurrency()-1)/2);
+
+	if(numThreads > 1)
+	{
+		for(unsigned int i = 0; i < numThreads; i++)
+		{
+			workThreads.push_back(new thread(&JobThreadEntryPoint, ((void *)this)));
+		}
+	}
+
+	fullyLoaded = true;
+
+	return true;
 }
 
 void TerrainManager::Shutdown()
@@ -159,13 +241,17 @@ void TerrainManager::Shutdown()
 
 	workThreads.clear();
 
-	for(auto it = GetMap()->begin(); it != GetMap()->end(); it++)
+	if(chunkMap)
 	{
-		//Check against the bool flag first to see if we're trying to delete an object that isn't finished yet.
-		if(it->second.first)
+
+		for(auto it = chunkMap->begin(); it != chunkMap->end(); it++)
 		{
-			collisionHandler->removeRigidBody(it->second.second->GetRigidBody().get());
-			delete it->second.second->GetRigidBody()->getMotionState();
+			//Check against the bool flag first to see if we're trying to delete an object that isn't finished yet.
+			if(it->second.first)
+			{
+				collisionHandler->removeRigidBody(it->second.second->GetRigidBody().get());
+				delete it->second.second->GetRigidBody()->getMotionState();
+			}
 		}
 	}
 }
@@ -192,59 +278,6 @@ void TerrainManager::ResetTerrain()
 	lastMax = std::make_pair<int, int>(99, 99);
 
 	noise.ReseedRandom();
-}
-
-bool TerrainManager::Initialize( ID3D11Device* device, std::shared_ptr<btDiscreteDynamicsWorld> collisionWorld, HWND hwnd, XMFLOAT3 cameraPosition )
-{
-	//Load settings from file
-	InitializeSettings(this);
-
-	this->device = device;
-
-	timePassed = 0.0f;
-	timeThreshold = 10.0f;
-	rangeThreshold = 800.0f;
-
-	chunkMap = std::make_shared<std::unordered_map<std::pair<int,int>, std::pair<bool, std::shared_ptr<MarchingCubeChunk>>, int_pair_hash>>();
-	collisionHandler = collisionWorld;
-
-	noise.ReseedRandom();
-
-	lastUsedKey = std::make_pair<int, int>(99, -99);
-	lastMin = std::make_pair<int, int>(-99, -99);
-	lastMax = std::make_pair<int, int>(99, 99);
-
-	//Very powerful black magic going on here. Do not disturb.
-	stepScaling = (stepSize.x*(stepCount.x-3)) / 5000;
-
-	//I give no shits if this throws a warning, it helps me remember which terraintypes there are and their names.
-	//terrainType = TerrainTypes::Plains;//(TerrainNoiseSeeder::TerrainTypes)(1 + rand()%8); //
-
-	terrainNoiser.Initialize((int)stepCount.x, (int)stepCount.y, (int)stepCount.z, &noise, terrainType);
-
-	vegetationManager.Initialize(device, hwnd);
-
-	D3D11_FEATURE_DATA_THREADING threadingFeatures;
-	multiThreadedMeshCreationEnabled = true;
-
-	if(!FAILED(device->CheckFeatureSupport(D3D11_FEATURE_THREADING, &threadingFeatures, sizeof(D3D11_FEATURE_DATA_THREADING))))
-	{
-		//BOOL to bool casting...
-		multiThreadedMeshCreationEnabled = (threadingFeatures.DriverConcurrentCreates != 0);
-	}
-
-	//Initialize it first...
-	numThreads = thread::hardware_concurrency();
-
-	if(numThreads > 1)
-	{
-		for(int i = 0; i < 4; i++)
-		{
-			workThreads.push_back(new thread(&JobThreadEntryPoint, ((void *)this)));
-		}
-	}
-
-	return true;
 }
 
 void TerrainManager::CreateChunk(ID3D11Device* device, int startPosX, int startPosZ, bool canCreateMesh)
@@ -403,10 +436,10 @@ bool TerrainManager::UpdateAgainstAABB(Lemmi2DAABB* aabb, float deltaTime)
 	// I calculate the start and ending indices by dividing the positions by a large amount and casting them to int. 
 	// The amount I divide with is calculated through step size and step scaling.
 	//The *2 in there is ..... because before, the chunks used to be 100x100 units large... ish. Now they're 50x50 large... ish. Hence I needed a magic number offset. Yay!
-	startX =	RoundToNearest(startX*(2*stepScaling))-3;
-	startZ =	RoundToNearest(startZ*(2*stepScaling))-3;
-	endX =		RoundToNearest(endX*(2*stepScaling))+3;
-	endZ =		RoundToNearest(endZ*(2*stepScaling))+3;
+	startX =	RoundToNearest(startX*(stepScaling))-2;
+	startZ =	RoundToNearest(startZ*(stepScaling))-2;
+	endX =		RoundToNearest(endX*(stepScaling))+2;
+	endZ =		RoundToNearest(endZ*(stepScaling))+2;
 
 	//Instead of checking against like...... 25-30 grids we instead first check if the min and max points have changed.
 	if(lastMin.first != startX || lastMin.second != startZ || lastMax.first != endX || lastMax.second != endZ)
@@ -479,16 +512,6 @@ bool TerrainManager::UpdateAgainstAABB(Lemmi2DAABB* aabb, float deltaTime)
 				else
 				{
 					QueueChunkForCreation(neighbourKey.first, neighbourKey.second);
-
-					//... create chunk
-					//CreateChunk(device, neighbourKey.first, neighbourKey.second, multiThreadedMeshCreationEnabled);
-
-					////Fetch it
-					//result = GetChunk(neighbourKey.first, neighbourKey.second, &tempChunk);
-
-					////Add ptr to active chunk std::vector
-					//activeChunks.push_back(tempChunk);
-					//activeRenderables.push_back(tempChunk->GetTerrainMesh());
 				}
 			}
 		}
@@ -545,6 +568,12 @@ void TerrainManager::OnSettingsReload(Config* cfg)
 	settings.lookupValue("startingTerrainType", type);
 
 	terrainType = (TerrainTypes::Type)type;
+
+	//Only set terraintype if it's been fully initialized
+	if(fullyLoaded)
+	{
+		terrainNoiser.SetTerrainType(terrainType);
+	}
 }
 
 void TerrainManager::QueueChunkForCreation( int startPosX, int startPosZ)

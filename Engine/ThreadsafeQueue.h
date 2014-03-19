@@ -69,6 +69,11 @@ public:
 			std::swap( queue, empty );
 	}
 
+	unsigned int GetSize() 
+	{ 
+		return queue.size(); 
+	}
+
 private:
 	condition_variable conditionVariable;
 	mutable fast_mutex mutexVariable;

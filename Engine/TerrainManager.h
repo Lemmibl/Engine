@@ -82,6 +82,9 @@ public:
 	std::vector<MarchingCubeChunk*>& GetActiveChunks() { return activeChunks; }
 	std::vector<RenderableInterface*>& GetActiveRenderables(){ return activeRenderables; }
 
+	unsigned int GetActiveChunkCount() { return activeChunks.size(); }
+	unsigned int GetChunkInProductionCount() { return (preProductionQueue.GetSize() + postProductionQueue.GetSize()); }
+
 	void OnSettingsReload(Config* cfg);
 
 	void SetTerrainType(TerrainTypes::Type val) { terrainNoiser.SetTerrainType(val); }
@@ -155,6 +158,8 @@ private:
 	std::pair<int,int> lastUsedKey;
 	std::pair<int,int> lastMin;
 	std::pair<int,int> lastMax;
+
+	bool fullyLoaded;
 
 	std::vector<thread*> workThreads;
 	unsigned int numThreads;

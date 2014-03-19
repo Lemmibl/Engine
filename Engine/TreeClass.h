@@ -2,9 +2,7 @@
 #include <windows.h>
 #include <xnamath.h>
 #include <math.h>
-#include "customStructs.h"
-
-
+#include "TerrainStructs.h"
 
 class TreeClass
 {

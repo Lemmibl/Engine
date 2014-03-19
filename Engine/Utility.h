@@ -22,6 +22,7 @@ public:
 	float ConvertFromOneRangeToAnother(float OldValue, float OldMin, float OldMax, float NewMin, float NewMax);
 	
 	//Takes world Y position and returns the float and int value
-	void GenerateMaterialAndTextureData(const float WorldPositionY, const XMFLOAT3* const normal, float &lerpValue, unsigned int &materialAndTextureIDs);
+	//void GenerateMaterialAndTextureData(const float WorldPositionY, const XMFLOAT3* const normal, float &lerpValue, unsigned int &materialAndTextureIDs);
+
 	uint32_t PackIDsIntoInt32(uint8_t data[4]);
 };

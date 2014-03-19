@@ -58,9 +58,6 @@
     <ClCompile Include="DRCompose.cpp">
       <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
     </ClCompile>
-    <ClCompile Include="TextureAndMaterialHandler.cpp">
-      <Filter>Rendering\Managers</Filter>
-    </ClCompile>
     <ClCompile Include="textclass.cpp">
       <Filter>Rendering\Managers</Filter>
     </ClCompile>
@@ -210,9 +207,6 @@
     <ClCompile Include="MultiMeshModel.cpp">
       <Filter>Rendering\Objects</Filter>
     </ClCompile>
-    <ClCompile Include="ProceduralTextureHandler.cpp">
-      <Filter>Rendering\Managers</Filter>
-    </ClCompile>
     <ClCompile Include="LoadingScreen.cpp">
       <Filter>State machines and menus\Screens</Filter>
     </ClCompile>
@@ -230,6 +224,18 @@
     </ClCompile>
     <ClCompile Include="ChunkFactory.cpp">
       <Filter>Terrain and procedural generation\Chunk Creation</Filter>
+    </ClCompile>
+    <ClCompile Include="ProceduralTextureHandler.cpp">
+      <Filter>Rendering\Managers\Textures and materials</Filter>
+    </ClCompile>
+    <ClCompile Include="MaterialHandler.cpp">
+      <Filter>Rendering\Managers\Textures and materials</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureHandler.cpp">
+      <Filter>Rendering\Managers\Textures and materials</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureCreator.cpp">
+      <Filter>Rendering\Managers\Textures and materials</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -299,9 +305,6 @@
     <ClInclude Include="interfacepointers.h">
       <Filter>General Code\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="TextureAndMaterialHandler.h">
-      <Filter>Rendering\Managers</Filter>
-    </ClInclude>
     <ClInclude Include="textclass.h">
       <Filter>Rendering\Managers</Filter>
     </ClInclude>
@@ -313,9 +316,6 @@
     </ClInclude>
     <ClInclude Include="modelclass.h">
       <Filter>Rendering\Objects</Filter>
-    </ClInclude>
-    <ClInclude Include="customStructs.h">
-      <Filter>Terrain and procedural generation\MC</Filter>
     </ClInclude>
     <ClInclude Include="TerrainManager.h">
       <Filter>Terrain and procedural generation</Filter>
@@ -465,9 +465,6 @@
     <ClInclude Include="MultiMeshModel.h">
       <Filter>Rendering\Objects</Filter>
     </ClInclude>
-    <ClInclude Include="ProceduralTextureHandler.h">
-      <Filter>Rendering\Managers</Filter>
-    </ClInclude>
     <ClInclude Include="DODContainer.h">
       <Filter>General Code\Data classes</Filter>
     </ClInclude>
@@ -494,6 +491,24 @@
     </ClInclude>
     <ClInclude Include="ChunkFactory.h">
       <Filter>Terrain and procedural generation\Chunk Creation</Filter>
+    </ClInclude>
+    <ClInclude Include="ProceduralTextureHandler.h">
+      <Filter>Rendering\Managers\Textures and materials</Filter>
+    </ClInclude>
+    <ClInclude Include="MaterialHandler.h">
+      <Filter>Rendering\Managers\Textures and materials</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureHandler.h">
+      <Filter>Rendering\Managers\Textures and materials</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureCreator.h">
+      <Filter>Rendering\Managers\Textures and materials</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureAndMaterialStructs.h">
+      <Filter>Rendering\Managers\Textures and materials</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainStructs.h">
+      <Filter>Terrain and procedural generation\MC</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -741,6 +756,9 @@
     </Filter>
     <Filter Include="Terrain and procedural generation\Chunk Creation">
       <UniqueIdentifier>{f49b9e6b-4a1e-4562-bb93-eacc1859a033}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Managers\Textures and materials">
+      <UniqueIdentifier>{7c81cc1f-4288-4e5c-abb0-41996f8f3793}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

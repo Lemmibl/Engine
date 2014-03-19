@@ -12,7 +12,7 @@ MarchingCubeChunk::MarchingCubeChunk(XMFLOAT3 startPos, XMFLOAT3 endPos, XMFLOAT
 	waterMesh(),
 	terrainMesh(),
 	triMesh(std::make_shared<btTriangleMesh>()),
-	waterLevel(-1)
+	waterLevel(0)
 {
 	extents.x = ((stepCount.x/2) * stepSize.x);
 	extents.y = ((stepCount.y/2) * stepSize.y);
@@ -21,6 +21,9 @@ MarchingCubeChunk::MarchingCubeChunk(XMFLOAT3 startPos, XMFLOAT3 endPos, XMFLOAT
 	centerPosition.x = startPosition.x + extents.x;
 	centerPosition.y = startPosition.y + extents.y;
 	centerPosition.z = startPosition.z + extents.z;
+
+	bushCount = rand()%6;
+	bushTransforms.resize(bushCount);
 }
 
 MarchingCubeChunk::~MarchingCubeChunk()
