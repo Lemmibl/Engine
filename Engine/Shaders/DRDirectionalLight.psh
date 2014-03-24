@@ -77,11 +77,11 @@ float3 DecodeNormal(float2 enc)
 	float f = dot(fenc,fenc);
 	float g = sqrt(1.0f-(f*0.25f));
 	
-	float3 n;
-	n.xy = fenc*g;
-	n.z = 1.0f-(f*0.5f);
+	//float3 n;
+	//n.xy = fenc*g;
+	//n.z = 1.0f-(f*0.5f);
 
-	return n;//float3(fenc*g, 1.0f - (f*0.5f));
+	return float3(fenc*g, 1.0f - (f*0.5f));
 }
 
 //float3 ReconstructViewPositionFromDepth(float3 viewRay, float depth)

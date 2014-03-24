@@ -238,7 +238,7 @@ bool GameRenderer::InitializeLights( HWND hwnd )
 	XMStoreFloat3(&dirLight.Direction, direction);
 
 	//XMStoreFloat4x4(&dirLight.Projection, XMMatrixPerspectiveFovLH(XM_PIDIV4, 1.0f, 5.0f, 500.0f));	//Generate PERSPECTIVE light projection matrix and store it as float4x4
-	XMStoreFloat4x4(&dirLight.Projection, XMMatrixOrthographicLH(300.0f, 300.0f, 5.0f, 400.0f));					//Generate ORTHOGONAL light projection matrix and store it as float4x4
+	XMStoreFloat4x4(&dirLight.Projection, XMMatrixOrthographicLH(400.0f, 400.0f, 10.0f, 500.0f));					//Generate ORTHOGONAL light projection matrix and store it as float4x4
 	XMStoreFloat4x4(&dirLight.View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight.Position), lookAt, up));				//Generate light view matrix and store it as float4x4.
 #pragma endregion
 
@@ -659,10 +659,15 @@ bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 	baseView = XMMatrixTranspose(baseView);
 #pragma endregion
 
+	//Send untransposed lightView/lightProj here
 	if(!RenderShadowmap(&lightWorldViewProj, &lightWorldView, &lightView, &lightProj, renderableBundle))
 	{
 		return false;
 	}
+
+	//Then transpose
+	lightView =					XMMatrixTranspose(lightView);
+	lightProj =					XMMatrixTranspose(lightProj);
 
 	if(!RenderTwoPassGaussianBlur(&worldBaseViewOrthoProj))
 	{
