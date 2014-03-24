@@ -48,19 +48,20 @@ bool DayNightCycle::Initialize(StageOfDay startStage )
 float DayNightCycle::Update( float deltaTime, DirLight* directionalLight, Skysphere* skysphere, XMFLOAT3* cameraPosition)
 {
 	XMVECTOR startVector, endVector, currentVector;
+	XMFLOAT4 apexColor, centerColor;
 
 	currentVector =  XMLoadFloat3(&directionalLight->Position); //Save current position in XMVECTOR format, needed when calculating sum of each frame's lerping
 
-	this->elapsedTime += deltaTime;
+	elapsedTime += deltaTime;
 
-	if(lerpAmountThisStage < 1.0f)
+	if(lerpAmountThisStage < 1.1f)
 	{
-		lerpAmountThisStage += (deltaTime / stagesOfDay[currentStageOfDay].DurationOfStage); //Calculate amount we'll be moving by this frame //stagesOfDay[currentStageOfDay].DurationOfStage
+		lerpAmountThisStage += (deltaTime / stagesOfDay[currentStageOfDay].DurationOfStage); //Calculate amount we'll be moving by this frame
 	}
 
 
 	//See if we should change stage of day
-	if(this->elapsedTime > stagesOfDay[currentStageOfDay].DurationOfStage)
+	if(elapsedTime >= stagesOfDay[currentStageOfDay].DurationOfStage)
 	{
 		//Save the old struct before we change to a new one
 		previousStageStruct = stagesOfDay[currentStageOfDay];
@@ -69,7 +70,7 @@ float DayNightCycle::Update( float deltaTime, DirLight* directionalLight, Skysph
 		if(currentStageOfDay == NIGHT) //If it was night, we've reached the end of the enum list, hence...
 		{
 			currentStageOfDay = DAWN; //We reset
-			previousFrameStageOfDay = NIGHT; //Set previous to night... shouldn't be necessary..?
+			previousFrameStageOfDay = NIGHT; //Set previous to night
 		}
 		else
 		{
@@ -77,7 +78,7 @@ float DayNightCycle::Update( float deltaTime, DirLight* directionalLight, Skysph
 		}
 		
 		this->elapsedTime = 0.0f; //Reset elapsed time as well
-		lerpAmountThisStage =  0.0f;
+		lerpAmountThisStage = 0.0f;
 	}
 
 	if(currentStageOfDay != previousFrameStageOfDay) //Tiny optimization
@@ -99,13 +100,14 @@ float DayNightCycle::Update( float deltaTime, DirLight* directionalLight, Skysph
 	startVector = XMLoadFloat4(&previousStageStruct.AmbientColor);
 	endVector = XMLoadFloat4(&stagesOfDay[currentStageOfDay].AmbientColor);
 
-	directionalLight->Intensity = lerp(previousStageStruct.LightIntensity, stagesOfDay[currentStageOfDay].LightIntensity, lerpAmountThisStage);
-
 	//Lerp between the two values and save the current value as our current ambience color
 	currentVector = XMVectorLerp(startVector, endVector, lerpAmountThisStage);
 
+	directionalLight->Intensity = lerp(previousStageStruct.LightIntensity, stagesOfDay[currentStageOfDay].LightIntensity, lerpAmountThisStage);
+
 	//scale ambient color with light intensity
 	XMStoreFloat4(&currentAmbienceColor, currentVector * directionalLight->Intensity);
+
 
 	//Currently, all of our different colors are the same, so just apply them right here and now.
 	directionalLight->Color = currentAmbienceColor;

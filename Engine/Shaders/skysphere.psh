@@ -52,6 +52,8 @@ float4 SkyspherePixelShader(PixelInputType input) : SV_TARGET0
 	//Also scale intensity of the colors with light intensity, stored in ApexColor.w
 	sphereColor += ApexColor.w * (lerp(ApexColor, CenterColor, FogColor.w) * max((1.0f - CenterColor.w), 0.25f));
 
+	//float3 cloudCoordinates = float3(input.TexCoord.x + sin(FogColor.w), input.TexCoord.y + cos(FogColor.w), input.TexCoord.z) * 10.0f;
+
 	//Sample cloud texture
 	float4 cloudColor = cloudTexture.Sample(linearSampler, input.TexCoord);
 
@@ -60,15 +62,15 @@ float4 SkyspherePixelShader(PixelInputType input) : SV_TARGET0
 	{
 		//Mix between background color and cloud color.
 												//Scale cloud color with light intensity to saturate clouds slightly
-		sphereColor = (ApexColor.w * (cloudColor * max((1.0f - CenterColor.w), 0.25f)));
+		sphereColor = (ApexColor.w * cloudColor) * max((1.0f - (CenterColor.w)), 0.25f);
 	}
 	else
 	{
 		//If we aren't using colors from cloud texture, we sample from our star texture
-		float4 starColor = (CenterColor.w*0.5f) * backgroundTexture.Sample(linearSampler, (input.TexCoord*5.0f));
+		float4 starColor = (CenterColor.w*0.5f) * backgroundTexture.Sample(linearSampler, input.TexCoord);
 
 		//If stage of day flag is != 0, it means it's night, which means we sample from the star texture cube
-		if(CenterColor.w > 0.05f)
+		if(CenterColor.w > 0.05f && (starColor.r+starColor.g+starColor.b) > 0.1f)
 		{
 			//And assign starColor to sphereColor
 			sphereColor = starColor*3.0f;
