@@ -8,7 +8,7 @@ IMPORTANT:
 
 This project has really only been tested on Windows 7 64-bit with an nvidia card. I know for a fact that it runs worse on my laptop with an ATI 5650; for some reason there's loads of z-fighting and texture filtering is all messed up.
 
-For a real installer to the project, here's the newest (last updated March 19, 2014): ftp://lemminas.dlinkddns.com/Public/LemmiInstaller.msi
+For a real installer to the project, here's the newest (last updated March 24, 2014): ftp://lemminas.dlinkddns.com/Public/LemmiInstaller.msi
 
 It should work fine, as long as your x86 vc++ 2010 redist is up to date: (http://www.microsoft.com/en-us/download/details.aspx?id=5555)
 
