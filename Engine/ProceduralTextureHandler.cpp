@@ -16,6 +16,35 @@ bool ProceduralTextureHandler::Initialize(ID3D11Device* extDevice, ID3D11DeviceC
 	deviceContext = extDeviceContext;
 	texCreator = extTexCreator;
 
+	auto addOperator =
+		[](UINT8& lhs, int& rhs) -> void
+	{
+		lhs += rhs;
+	};
+
+	auto subOperator =
+		[](UINT8& lhs, int& rhs) -> void
+	{
+		lhs -= rhs;
+	};
+
+	auto mulOperator =
+		[](UINT8& lhs, int& rhs) -> void
+	{
+		lhs *= rhs;
+	};
+
+	auto divOperator =
+		[](UINT8& lhs, int& rhs) -> void
+	{
+		lhs /= rhs;
+	};
+
+	operatorFunctions.push_back(addOperator);
+	operatorFunctions.push_back(subOperator);
+	operatorFunctions.push_back(mulOperator);
+	operatorFunctions.push_back(divOperator);
+
 	//Initialize local variable to hold our noise generating class for future use.
 	noise = std::make_shared<NoiseClass>(*extNoise);
 	utility = std::make_shared<Utility>(*extUtility);
@@ -32,7 +61,7 @@ bool ProceduralTextureHandler::Initialize(ID3D11Device* extDevice, ID3D11DeviceC
 	{
 		noiseSRV.Release();
 	}
-	CreateSeamlessSimplex2DTexture(device, deviceContext, &noiseSRV.p, 0, 0, 1024, 100, 0.5f);
+	//CreateSeamlessSimplex2DTexture(device, deviceContext, &noiseSRV.p, 0, 0, 1024, 100, 0.5f);
 
 	return true;
 }
@@ -152,7 +181,7 @@ HRESULT ProceduralTextureHandler::CreateMirroredSimplex2DTexture(ID3D11Device* d
 
 //Credits: http://www.sjeiti.com/creating-tileable-noise-maps/
 HRESULT ProceduralTextureHandler::CreateSeamlessSimplex2DTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv, 
-	float startPosX, float startPosY, unsigned int textureWidth, unsigned int textureHeight, float noiseScale )
+	float startPosX, float startPosY, unsigned int textureWidth, unsigned int textureHeight, float noiseScale, ID3D11Texture2D** texture)
 {
 	int i;
 	i = 0;
@@ -187,7 +216,7 @@ HRESULT ProceduralTextureHandler::CreateSeamlessSimplex2DTexture( ID3D11Device* 
 	}
 
 	//Build texture
-	if(FAILED(texCreator->Build8Bit2DTexture(device, deviceContext, pixelData, textureWidth, textureHeight, srv)))
+	if(FAILED(texCreator->Build8Bit2DTexture(device, deviceContext, pixelData, textureWidth, textureHeight, srv, texture)))
 	{
 		MessageBox(GetDesktopWindow(), L"Something went wrong when calling CreateMaterialTexture. Look in TextureAndMaterialHandler::CreateMaterialTexture.", L"Error", MB_OK);
 		return S_FALSE;
@@ -200,7 +229,8 @@ HRESULT ProceduralTextureHandler::CreateSeamlessSimplex2DTexture( ID3D11Device* 
 }
 
 
-HRESULT ProceduralTextureHandler::Create2DNormalMapFromHeightmap( ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** destTex, unsigned int textureWidth, unsigned int textureHeight )
+HRESULT ProceduralTextureHandler::Create2DNormalMapFromHeightmap( ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** destTex, 
+	unsigned int textureWidth, unsigned int textureHeight, ID3D11Texture2D** texture)
 {
 	HRESULT hResult;
 	CComPtr<ID3D11Texture2D> tempTex;
@@ -219,11 +249,6 @@ HRESULT ProceduralTextureHandler::Create2DNormalMapFromHeightmap( ID3D11Device* 
 	texDesc.CPUAccessFlags     = 0;
 	texDesc.MiscFlags          = 0;
 
-	if(placeHolderTexture != 0)
-	{ 
-		placeHolderTexture.Release();
-	}
-
 	//Create texture with the description and the subresource that contains all the pixel data
 	hResult = device->CreateTexture2D(&texDesc, NULL, &tempTex.p);
 	if(FAILED(hResult))
@@ -231,7 +256,7 @@ HRESULT ProceduralTextureHandler::Create2DNormalMapFromHeightmap( ID3D11Device* 
 		return hResult;
 	}
 
-	hResult = D3DX11ComputeNormalMap(deviceContext, windNoiseTexture.p, NULL, D3DX_CHANNEL_RED, 30.0f, tempTex.p);
+	hResult = D3DX11ComputeNormalMap(deviceContext, *texture, NULL, D3DX_CHANNEL_RED, 30.0f, tempTex.p);
 	if(FAILED(hResult))
 	{
 		return hResult;
@@ -260,6 +285,62 @@ HRESULT ProceduralTextureHandler::Create2DNormalMapFromHeightmap( ID3D11Device* 
 void ProceduralTextureHandler::SetupWindtextures(ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
 	float startPosX, float startPosY, unsigned int textureWidth, unsigned int textureHeight, float noiseScale)
 {
-	CreateSeamlessSimplex2DTexture(device, deviceContext, &windTextureSRV.p, startPosX, startPosY, textureWidth, textureHeight, noiseScale);
-	Create2DNormalMapFromHeightmap(device, deviceContext, &windNormalMapSRV.p, textureWidth, textureHeight);
+	CreateSeamlessSimplex2DTexture(device, deviceContext, &windTextureSRV.p, startPosX, startPosY, textureWidth, textureHeight, noiseScale, &windNoiseTexture.p);
+	Create2DNormalMapFromHeightmap(device, deviceContext, &windNormalMapSRV.p, textureWidth, textureHeight, &windNoiseTexture.p);
+}
+
+HRESULT ProceduralTextureHandler::CreateTilingCloudTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv, unsigned int textureWidth, unsigned int textureHeight )
+{
+	std::vector<PixelData> pixelData;
+	pixelData.resize(textureWidth*textureHeight);
+
+	float randStartX, randStartY, randStartZ;
+
+	randStartX = (float)(rand()%1024);
+	randStartY = (float)(rand()%1024);
+	randStartZ = (float)(rand()%1024);
+
+	//This one is pretty good base!:
+	//	DoNoiseIterations(randStartX, randStartX, textureWidth, textureHeight, pixelData, ADDITION, 0.9f);
+
+	DoNoiseIterations(randStartX, randStartX, textureWidth, textureHeight, pixelData, ADDITION, 0.9f);
+	//DoNoiseIterations(randStartY, randStartY, textureWidth, textureHeight, pixelData, MULTIPLICATION, 0.1f);
+	//DoNoiseIterations(randStartZ, randStartZ, textureWidth, textureHeight, pixelData, ADDITION, 0.8f);
+	//DoNoiseIterations(randStartZ, randStartZ, textureWidth, textureHeight, pixelData, SUBTRACTION, 0.05f);
+	//DoNoiseIterations(randStartY, randStartY, textureWidth, textureHeight, pixelData, MULTIPLICATION, 1.8f);
+
+	//int i;
+	//i = 0;
+
+	//float noiseScale = 0.8f;
+	//float radius = (textureWidth/2)-2.0f;
+
+	//for(float x = randStartX; x < randStartX+textureWidth; x++)
+	//{
+	//	for(float y = randStartY; y < randStartY+textureHeight; y++)
+	//	{
+	//		float xScale = x / textureWidth;
+	//		float yScale = y / textureHeight;
+	//		float xPi = xScale * 2 * XM_PI;
+	//		float yPi = yScale * 2 * XM_PI;
+
+	//		//Produce the four points we'll make noise from
+	//		float nx = radius+sin(xPi);
+	//		float ny = radius+cos(xPi);
+	//		float nz = radius+sin(yPi);
+	//		float nw = radius+cos(yPi);
+
+	//		//Produce noise, rescale it from [-1, 1] to [0, 1] then multiply to [0, 256] to make full use of the 8bit channels of the texture it'll be stored in.
+	//		int noiseResult = (int)((0.5f * noise->SimplexNoise4D(nx*noiseScale, ny*noiseScale, nz*noiseScale, nw*noiseScale) + 0.5f) * 256);
+
+	//		pixelData[i].x += noiseResult;
+	//		pixelData[i].y += noiseResult;
+	//		pixelData[i].z += noiseResult;
+	//		pixelData[i].w += noiseResult;
+
+	//		i++;
+	//	}
+	//}
+
+	return texCreator->Build32Bit2DTexture(device, deviceContext, pixelData, textureWidth, textureHeight, srv);
 }

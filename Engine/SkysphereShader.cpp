@@ -23,6 +23,9 @@ bool SkysphereShader::Initialize(ID3D11Device* device, HWND hwnd)
 		return false;
 	}
 
+	currentStage = previousStage = DAY;
+	textureOpacity = 0.0f;
+
 	return true;
 }
 
@@ -36,12 +39,13 @@ void SkysphereShader::Shutdown()
 }
 
 
-bool SkysphereShader::Render( ID3D11DeviceContext* context, int indexCount, XMMATRIX* worldViewProjection, float cameraYPos, XMFLOAT4 apexColor, XMFLOAT4 centerColor, XMFLOAT4 fogColor, float time )
+bool SkysphereShader::Render( ID3D11DeviceContext* context, int indexCount, XMMATRIX* world, XMMATRIX* worldViewProjection, float cameraYPos, XMFLOAT4 apexColor, XMFLOAT4 centerColor, 
+	XMFLOAT4 fogColor, float time, ID3D11ShaderResourceView** cloudTexture, ID3D11ShaderResourceView** backgroundTexture, StageOfDay stageOfDay, float lightIntensity)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(context, worldViewProjection, cameraYPos, apexColor, centerColor, fogColor, time);
+	result = SetShaderParameters(context, world, worldViewProjection, cameraYPos, apexColor, centerColor, fogColor, time, cloudTexture, backgroundTexture, stageOfDay, lightIntensity);
 	if(!result)
 	{
 		return false;
@@ -64,6 +68,7 @@ bool SkysphereShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* v
 	unsigned int numElements;
 	D3D11_BUFFER_DESC matrixBufferDesc;
 	D3D11_BUFFER_DESC gradientBufferDesc;
+	D3D11_SAMPLER_DESC samplerDesc;
 
 
 	// Initialize the pointers this function will use to null.
@@ -124,6 +129,7 @@ bool SkysphereShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* v
 	}
 
 	// Create the vertex input layout description.
+	// This setup needs to match the VertexType structure in the ModelClass and in the shader.
 	polygonLayout[0].SemanticName = "POSITION";
 	polygonLayout[0].SemanticIndex = 0;
 	polygonLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
@@ -131,6 +137,22 @@ bool SkysphereShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* v
 	polygonLayout[0].AlignedByteOffset = 0;
 	polygonLayout[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[0].InstanceDataStepRate = 0;
+
+	//polygonLayout[1].SemanticName = "TEXCOORD";
+	//polygonLayout[1].SemanticIndex = 0;
+	//polygonLayout[1].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	//polygonLayout[1].InputSlot = 0;
+	//polygonLayout[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	//polygonLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	//polygonLayout[1].InstanceDataStepRate = 0;
+
+	//polygonLayout[2].SemanticName = "NORMAL";
+	//polygonLayout[2].SemanticIndex = 0;
+	//polygonLayout[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	//polygonLayout[2].InputSlot = 0;
+	//polygonLayout[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	//polygonLayout[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	//polygonLayout[2].InstanceDataStepRate = 0;
 
 	// Get a count of the elements in the layout.
 	numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
@@ -181,13 +203,34 @@ bool SkysphereShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* v
 		return false;
 	}
 
+	// Create a texture sampler state description.
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.MipLODBias = 0.0f;
+	samplerDesc.MaxAnisotropy = 1;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	samplerDesc.BorderColor[0] = 0;
+	samplerDesc.BorderColor[1] = 0;
+	samplerDesc.BorderColor[2] = 0;
+	samplerDesc.BorderColor[3] = 0;
+	samplerDesc.MinLOD = 0;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	// Create the texture sampler state.
+	result = device->CreateSamplerState(&samplerDesc, &sampler);
+	if(FAILED(result))
+	{
+		return false;
+	}
+
 	return true;
 }
 
 
 void SkysphereShader::ShutdownShader()
 {
-
 	//// Release the gradient constant buffer.
 	//if(gradientBuffer)
 	//{
@@ -263,7 +306,8 @@ void SkysphereShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hw
 }
 
 
-bool SkysphereShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, float cameraYPos, XMFLOAT4 apexColor, XMFLOAT4 centerColor, XMFLOAT4 fogColor, float time)
+bool SkysphereShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* world, XMMATRIX* worldViewProjection, float cameraYPos, XMFLOAT4 apexColor, XMFLOAT4 centerColor, 
+	XMFLOAT4 fogColor, float time, ID3D11ShaderResourceView** cloudTexture, ID3D11ShaderResourceView** backgroundTexture, StageOfDay stageOfDay, float lightIntensity)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -283,6 +327,7 @@ bool SkysphereShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XM
 
 	// Copy the matrices into the constant buffer.
 	dataPtr->WorldViewProjection =	*worldViewProjection;
+	dataPtr->World = *world;
 	dataPtr->cameraYPos = cameraYPos;
 
 	// Unlock the constant buffer.
@@ -306,8 +351,47 @@ bool SkysphereShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XM
 
 	// Copy the gradient color variables into the constant buffer.
 	dataPtr2->ApexColor = apexColor;
+
+	dataPtr2->ApexColor.w = lightIntensity;
+
 	dataPtr2->CenterColor = centerColor;
+
+	//Update once per stage change
+	if(currentStage != stageOfDay)
+	{
+		//Save old stage
+		previousStage = currentStage;
+
+		//Change to new stage
+		currentStage = stageOfDay;
+	}
+
+	//Only if it's night should we render the background texture, which is a texture of a starry sky
+	if(currentStage == EVENING)
+	{
+		textureOpacity += (time*0.01f);
+
+		textureOpacity = min(textureOpacity, 1.0f);
+	}
+	else if(currentStage == NIGHT)
+	{
+		textureOpacity = 1.0f;
+	}
+	else if(currentStage == DAWN)
+	{
+		textureOpacity -= (time*0.01f);
+
+		textureOpacity = max(textureOpacity, 0.0f);
+	}
+	else
+	{
+		textureOpacity = 0.0f;
+	}
+
+	dataPtr2->CenterColor.w = textureOpacity;
+
 	dataPtr2->FogColor = fogColor;
+
 	//Save time in the .w channel to save having to double the constant buffer size (16byte align etc)
 	dataPtr2->FogColor.w = time;
 
@@ -319,6 +403,13 @@ bool SkysphereShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XM
 
 	// Finally set the gradient constant buffer in the pixel shader with the updated values.
 	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &gradientBuffer.p);
+
+	// Set shader texture resource in the pixel shader.
+	deviceContext->PSSetShaderResources(0, 1, cloudTexture);
+	deviceContext->PSSetShaderResources(1, 1, backgroundTexture);
+
+	// Set the sampler state in the pixel shader.
+	deviceContext->PSSetSamplers(0, 1, &sampler.p);
 
 	return true;
 }

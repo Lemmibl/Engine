@@ -3,14 +3,15 @@
 /////////////
 cbuffer GradientBuffer
 {
+	//Brightness saved in ApexColor.w
 	float4 ApexColor;
+
+	//Texture opacity saved in CenterColor.w
 	float4 CenterColor;
 
 	//Time saved in FogColor.w
 	float4 FogColor;
 };
-
-
 
 //////////////
 // TYPEDEFS //
@@ -19,7 +20,13 @@ struct PixelInputType
 {
 	float4 Position : SV_POSITION;
 	float2 DomePositionYAndWorldY : TEXCOORD0;
+	float3 TexCoord : TEXCOORD1;
 };
+
+//TextureCube
+TextureCube cloudTexture : register( ps_5_0, t0 );
+TextureCube backgroundTexture : register( ps_5_0, t1 );
+SamplerState linearSampler : register(s0);
 
 //This function is used for values in the 0 to 1 range; lerp values etc. 
 //It's originally from Ken Perlin's perlin noise algorithm for smoothing transition between points.
@@ -33,26 +40,57 @@ float PerlinEaseCurve(float value)
 	return	(3.0f * (value*value) - (2.0f * (value*value*value)));
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////
 // Pixel Shader
 ////////////////////////////////////////////////////////////////////////////////
 float4 SkyspherePixelShader(PixelInputType input) : SV_TARGET0
 {
+	//Preallocate sphere color
+	float4 sphereColor = float4(0.0f, 0.0f, 0.0f, 0.0f);
+
 	//Use time, saved in FogColor.w to lerp between these values.
-	float4 sphereColor = lerp(ApexColor, CenterColor, FogColor.w);
+	//Also scale intensity of the colors with light intensity, stored in ApexColor.w
+	sphereColor += ApexColor.w * (lerp(ApexColor, CenterColor, FogColor.w) * max((1.0f - CenterColor.w), 0.25f));
+
+	//Sample cloud texture
+	float4 cloudColor = cloudTexture.Sample(linearSampler, input.TexCoord);
+
+	//If cloud texture is... White enough...
+	if(cloudColor.g >= 0.7f && cloudColor.r >= 0.7f)
+	{
+		//Mix between background color and cloud color.
+												//Scale cloud color with light intensity to saturate clouds slightly
+		sphereColor = (ApexColor.w * (cloudColor * max((1.0f - CenterColor.w), 0.25f)));
+	}
+	else
+	{
+		//If we aren't using colors from cloud texture, we sample from our star texture
+		float4 starColor = (CenterColor.w*0.5f) * backgroundTexture.Sample(linearSampler, (input.TexCoord*5.0f));
+
+		//If stage of day flag is != 0, it means it's night, which means we sample from the star texture cube
+		if(CenterColor.w > 0.05f)
+		{
+			//And assign starColor to sphereColor
+			sphereColor = starColor*3.0f;
+		}
+	}
+
 
 	//Fog/Skysphere color lerp multiplier. It basically scales with the Y position of this pixel, plus a little offset to make the fog begin higher up.
 	//We clamp it to 0-1 to make sure the lerp value doesn't get screwy.
-	//After that we put it through a perlin ease curve to make the beginning and the end more extreme
-	
+	//After that we put it through a perlin ease curve to accentuate the value more towards the extremes (lows AND highs)
 	float fogMultiplier = PerlinEaseCurve(clamp(0.35f-input.DomePositionYAndWorldY.x, 0.0f, 1.0f));
 
+	//If the camera isn't very high up in the air...
 	if(input.DomePositionYAndWorldY.y < 300.0f)
 	{
+		//We do some wonky math with magical numbers to scale fog density.
+		//What it actually does is make fog thicker and "higher up" on the skysphere the lower down the camera is.
+		//All of this is done so that the skysphere blends in with the fogged terrain, so that the fogged terrain doesn't get silhouetted against the skysphere behind.
 		fogMultiplier *= (0.9f + 4.0f*(1.0f - (input.DomePositionYAndWorldY.y/300)));
 	}
 
+	//Final clamp
 	fogMultiplier = clamp(fogMultiplier, 0.0f, 1.0f);
 
 	return lerp(sphereColor, FogColor, fogMultiplier); //We want to scale so that furthest down on the skysphere is covered in fog

@@ -32,12 +32,6 @@ Skysphere::Skysphere()
 {
 }
 
-
-Skysphere::Skysphere(const Skysphere& other)
-{
-}
-
-
 Skysphere::~Skysphere()
 {
 }
@@ -96,17 +90,16 @@ void Skysphere::Shutdown()
 	//	delete skysphereShader;
 	//	skysphereShader = 0;
 	//}
-	
 
 	return;
 }
 
-void Skysphere::Render( ID3D11DeviceContext* context, XMMATRIX* worldViewProjection, float cameraYPos, XMFLOAT4* fogColor, float time )
+void Skysphere::Render(ID3D11DeviceContext* context, XMMATRIX* world, XMMATRIX* worldViewProjection, float cameraYPos, XMFLOAT4* fogColor, float time, StageOfDay stageOfDay, float lightIntensity)
 {
 	// Render the sky dome.
 	RenderBuffers(context);
 
-	skysphereShader.Render(context, GetIndexCount(), worldViewProjection, cameraYPos, apexColor, centerColor, *fogColor, time);
+	skysphereShader.Render(context, GetIndexCount(), world, worldViewProjection, cameraYPos, apexColor, centerColor, *fogColor, time, &cloudTexture.p, &starTexture.p, stageOfDay, lightIntensity);
 
 	return;
 }
@@ -156,12 +149,25 @@ bool Skysphere::LoadModel(char* filename)
 	fin.get(input);
 	fin.get(input);
 
+	int counter = 0;
+	int faceID = 1;
+
 	// Read in the vertex data.
 	for(i=0; i<vertexCount; i++)
 	{
+		if(counter > 5)
+		{
+			faceID++;
+			counter = 0;
+		}
+
 		fin >> model[i].position.x	>> model[i].position.y	>> model[i].position.z;
 		fin >> model[i].texcoords.x >> model[i].texcoords.y;
 		fin >> model[i].normal.x	>> model[i].normal.y	>> model[i].normal.z;
+
+		 model[i].texcoords.z = faceID;
+
+		counter++;
 	}
 
 	// Close the model file.
@@ -208,7 +214,9 @@ bool Skysphere::InitializeBuffers(ID3D11Device* device)
 	// Load the vertex array and index array with data.
 	for(i=0; i<vertexCount; i++)
 	{
-		vertices[i].position = model[i].position;
+		vertices[i].position	= model[i].position;
+		vertices[i].normal		= model[i].normal;
+		vertices[i].texcoords	= model[i].texcoords;
 		indices[i] = i;
 	}
 

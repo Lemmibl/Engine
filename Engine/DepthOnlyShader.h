@@ -30,7 +30,7 @@ public:
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
 	void OnSettingsReload(Config* cfg);
-	bool Render(ID3D11DeviceContext*, int, XMMATRIX* worldViewProjection, XMMATRIX* worldView);
+	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, int indexStart, XMMATRIX* worldViewProjection, XMMATRIX* worldView);
 
 private:
 	bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
@@ -38,7 +38,7 @@ private:
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
 
 	bool SetShaderParameters(ID3D11DeviceContext*, XMMATRIX* worldViewProjection, XMMATRIX* worldView);
-	void RenderShader(ID3D11DeviceContext*, int);
+	void RenderShader(ID3D11DeviceContext*, int indexCount, int indexStart);
 
 private:
 	CComPtr<ID3D11VertexShader> vertexShader;

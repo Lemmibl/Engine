@@ -5,24 +5,24 @@
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pScmdline, int iCmdshow)
 {
-	Engine* system = new Engine();
+	Engine* engine = new Engine();
 	bool result;
 
-	if(!system)
+	if(!engine)
 	{
 		return 0;
 	}
 
 	// Initialize and run the system object.
-	result = system->Initialize();
+	result = engine->Initialize();
 	if(result)
 	{
-		system->MainLoop();
+		engine->MainLoop();
 	}
 
-	system->Shutdown();
-	delete system;
-	system = 0;
+	engine->Shutdown();
+	delete engine;
+	engine = 0;
 
 	return 0;
 }

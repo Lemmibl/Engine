@@ -99,7 +99,7 @@ public:
 	void ChunkFinalizing(ID3D11Device* device);
 
 	//Creating the actual chunk. This function will hopefully one day be run on a separate thread or core
-	void CreateChunk(ID3D11Device* device, int startPosX, int startPosZ, bool canCreateMesh);
+	void CreateChunk(ID3D11Device* device, int startPosX, int startPosZ);
 
 	//Create vertex and index buffers from the data that we've created
 	void CreateMesh(ID3D11Device* devicePtr, std::shared_ptr<MarchingCubeChunk> chunk);

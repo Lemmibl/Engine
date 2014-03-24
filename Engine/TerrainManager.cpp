@@ -207,12 +207,19 @@ bool TerrainManager::Initialize(ID3D11Device* device, std::shared_ptr<btDiscrete
 	}
 
 	//Initialize it first...
-	numThreads = ((thread::hardware_concurrency()-1)/2);
+	numThreads = thread::hardware_concurrency();
 
 	if(numThreads > 1)
 	{
-		for(unsigned int i = 0; i < numThreads; i++)
+		//If we have 4 or more cores, we create two threads.
+		if(numThreads >= 4)
 		{
+			workThreads.push_back(new thread(&JobThreadEntryPoint, ((void *)this)));
+			workThreads.push_back(new thread(&JobThreadEntryPoint, ((void *)this)));
+		}
+		else
+		{
+			//If we have more than 1 core but less than 4, we create one thread.
 			workThreads.push_back(new thread(&JobThreadEntryPoint, ((void *)this)));
 		}
 	}
@@ -280,7 +287,7 @@ void TerrainManager::ResetTerrain()
 	noise.ReseedRandom();
 }
 
-void TerrainManager::CreateChunk(ID3D11Device* device, int startPosX, int startPosZ, bool canCreateMesh)
+void TerrainManager::CreateChunk(ID3D11Device* device, int startPosX, int startPosZ)
 {
 	//Make a key out of the values
 	std::pair<int,int> key(startPosX, startPosZ);
@@ -339,11 +346,8 @@ void TerrainManager::CreateChunk(ID3D11Device* device, int startPosX, int startP
 		//Create the mesh for the chunk with marching cubes algorithm
 		marchingCubes.CalculateMesh(device, newChunk, &voxels);
 
-		if(canCreateMesh)
-		{
-			CreateMesh(device, newChunk);
-			CreateWaterMesh(device, newChunk);
-		}
+		CreateMesh(device, newChunk);
+		CreateWaterMesh(device, newChunk);
 
 		//Setup collision shape with the triMesh that was created inside marching cubes class
 		std::shared_ptr<btBvhTriangleMeshShape> triMeshShape = std::make_shared<btBvhTriangleMeshShape>(newChunk->GetTriMesh(), true);
@@ -447,6 +451,7 @@ bool TerrainManager::UpdateAgainstAABB(Lemmi2DAABB* aabb, float deltaTime)
 		//Every few seconds we do a cleanup to remove old chunks
 		if(timePassed >= timeThreshold)
 		{
+			//TODO: fix this
 			Cleanup(static_cast<float>((startX+endZ)/2), static_cast<float>((startZ+endZ)/2));
 
 			//Reset
@@ -588,7 +593,7 @@ void TerrainManager::QueueChunkForCreation( int startPosX, int startPosZ)
 	{
 		if(numThreads <= 1)
 		{
-			CreateChunk(device, startPosX, startPosZ, true);
+			CreateChunk(device, startPosX, startPosZ);
 		}
 		else
 		{

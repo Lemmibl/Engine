@@ -1,5 +1,7 @@
 #pragma once
 
+//TODO: Just delete all of these and #include back the ones that are needed...
+
 //System includes
 #include <stdlib.h>
 #include <time.h>
@@ -105,7 +107,7 @@ private:
 	bool InitializeDebugText();
 	void InitializeRenderingSpecifics();
 
-	bool RenderShadowmap(XMMATRIX* lightWorldViewProj, XMMATRIX* lightWorldView, RenderableBundle* renderableBundle);
+	bool RenderShadowmap(XMMATRIX* lightWorldViewProj, XMMATRIX* lightWorldView,  XMMATRIX* lightView,  XMMATRIX* lightProj, RenderableBundle* renderableBundle);
 	bool RenderTwoPassGaussianBlur(XMMATRIX* worldBaseViewOrthoProj);
 	bool RenderGBuffer(XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, XMMATRIX* identityWorldViewProj, RenderableBundle* renderableBundle);
 

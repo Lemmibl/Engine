@@ -629,19 +629,10 @@
     <None Include="Shaders\OBJGbuffer.psh">
       <Filter>Rendering\Shaders\Deferred shaders</Filter>
     </None>
-    <None Include="libconfig\libconfig++.dll">
-      <Filter>Libraries\Libconfig</Filter>
-    </None>
-    <None Include="libconfig\libconfig++_d.dll">
-      <Filter>Libraries\Libconfig</Filter>
-    </None>
-    <None Include="libconfig\libconfig.dll">
-      <Filter>Libraries\Libconfig</Filter>
-    </None>
     <None Include="libconfig\libconfig.h++">
       <Filter>Libraries\Libconfig</Filter>
     </None>
-    <None Include="libconfig\libconfig_d.dll">
+    <None Include="libconfig\libconfig++.dll">
       <Filter>Libraries\Libconfig</Filter>
     </None>
   </ItemGroup>
@@ -763,9 +754,6 @@
   </ItemGroup>
   <ItemGroup>
     <Library Include="libconfig\libconfig++.lib">
-      <Filter>Libraries\Libconfig</Filter>
-    </Library>
-    <Library Include="libconfig\libconfig.lib">
       <Filter>Libraries\Libconfig</Filter>
     </Library>
   </ItemGroup>

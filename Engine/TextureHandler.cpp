@@ -85,6 +85,71 @@ bool TextureHandler::Initialize(ID3D11Device* extDevice, ID3D11DeviceContext* ex
 	return true;
 }
 
+
+bool TextureHandler::Load2DTextureFromFile( ID3D11Device* device, std::wstring textureFilepath, ID3D11ShaderResourceView** srv )
+{
+	HRESULT result;
+	
+	D3DX11CreateShaderResourceViewFromFile(device, textureFilepath.c_str(), NULL, NULL, srv, &result);
+	if(FAILED(result))
+	{
+		MessageBox(GetDesktopWindow(), (L"Couldn't load this 2D texture: " + *textureFilepath.c_str()), L"Error", MB_OK);
+		return false;
+	}
+
+	return true;
+}
+
+bool TextureHandler::Load2DCubemapTextureFromFile( ID3D11Device* device, std::wstring textureFilepath, ID3D11ShaderResourceView** srv)
+{
+	HRESULT result;
+
+	//Tell D3D we will be loading a cube texture
+	D3DX11_IMAGE_LOAD_INFO loadInfo;
+	loadInfo.Width = 1024;
+	loadInfo.Height = 1024;
+	loadInfo.Depth = 0;
+	loadInfo.FirstMipLevel = 0;
+	loadInfo.MipLevels = 0;
+	loadInfo.Usage = D3D11_USAGE_IMMUTABLE;
+	loadInfo.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	loadInfo.CpuAccessFlags = 0;
+	loadInfo.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+	loadInfo.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	loadInfo.Filter = D3DX11_FILTER_LINEAR;
+	loadInfo.MipFilter = D3DX11_FILTER_LINEAR;
+	loadInfo.pSrcInfo = NULL; 
+
+	//Load the texture
+	ID3D11Texture2D* SMTexture = 0;
+
+	result = D3DX11CreateTextureFromFile(device, textureFilepath.c_str(), &loadInfo, NULL, (ID3D11Resource**)&SMTexture, NULL);
+	if(FAILED(result))
+	{
+		return false;
+	}
+
+	//Create the textures description
+	D3D11_TEXTURE2D_DESC SMTextureDesc;
+	SMTexture->GetDesc(&SMTextureDesc);
+
+	//Tell D3D We have a cube texture, which is an array of 2D textures
+	D3D11_SHADER_RESOURCE_VIEW_DESC SMViewDesc;
+	SMViewDesc.Format = SMTextureDesc.Format;
+	SMViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+	SMViewDesc.TextureCube.MipLevels = SMTextureDesc.MipLevels;
+	SMViewDesc.TextureCube.MostDetailedMip = 0;
+
+	//Create the Resource view
+	result = device->CreateShaderResourceView(SMTexture, &SMViewDesc, srv);
+	if(FAILED(result))
+	{
+		return false;
+	}
+
+	return true;
+}
+
 void TextureHandler::SaveTextureToFile( ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView* texture, D3DX11_IMAGE_FILE_FORMAT format, LPCSTR fileName )
 {
 	HRESULT hResult;
@@ -171,3 +236,5 @@ bool TextureHandler::GetTextureHandle( std::wstring textureFilepath, unsigned sh
 {
 	return CheckForDuplicateTextures(textureFilepath, handle);
 }
+
+

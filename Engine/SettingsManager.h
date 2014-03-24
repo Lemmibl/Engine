@@ -23,7 +23,7 @@ http://stackoverflow.com/questions/10892167/proper-implementation-of-global-conf
 using namespace Schladetsch::Events;
 using namespace libconfig;
 
-static const std::string filepath = "settings.cfg";
+static const std::string filepath = "../Engine/settings.cfg";
 
 class SettingsManager
 {

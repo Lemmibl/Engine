@@ -48,14 +48,18 @@ float LoadWindForce(float2 coords)
 	return windTexture.SampleLevel(linearSampler, coords, 0);
 }
 
+static const float densitySamplingSpacing = 0.05f;
+
 //Function for making grass quads
 void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, float distanceHeightScaling, inout TriangleStream<PS_INPUT> TriStream)
 { 
 	//Sum up random values to decide if we want to draw grass here.
 	float randSum = v2.YPosDepthAndRand.z + v1.YPosDepthAndRand.z;
 	
+	float density = (randSum + windTexture.SampleLevel(linearSampler, v2.Position.xz*densitySamplingSpacing, 0));
+
 	//Skip if random sum is too low. It's a crude way to make empty patches appear, as opposed to vegetation EVERYWHERE. TODO: Density maps..?
-	if(randSum <= 1.15f)
+	if(density >= 1.8f)
 	{
 		//Allocate four output values
 		PS_INPUT output[4];
@@ -78,15 +82,17 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, float distanceHeightScaling, inout Tri
 
 		float4 pos1, pos2;
 
+		float3 randomDeviance = float3(rand.x*positionalRandomDeviance, 0.0f, rand.y*positionalRandomDeviance);
+
 		//Create a random position for the quad
-		pos1.xyz = v1.Position.xyz + float3(rand.x*positionalRandomDeviance, 0.0f, rand.y*positionalRandomDeviance); //Add a tiny offset to make placement of grass seem more random.
+		pos1.xyz = v1.Position.xyz + randomDeviance; //Add a tiny offset to make placement of grass seem more random.
 
 		//Second position will be a certain distance away from pos1, scaled by height. This is to always make the quads look uniform as opposed to sometimes being squished/stretched.
-		pos2.xyz = pos1.xyz + ((v2.Position.xyz - v1.Position.xyz)); //height * normalize
+		pos2.xyz = pos1.xyz + (((v2.Position.xyz+randomDeviance) - v1.Position.xyz)); //height * normalize
 		pos1.w = pos2.w = 1.0f;
 
 		//Distance between the two bases. Needed so that I can scale the height properly. The height of the quad is clamped by the width.
-		float vertexDistance = length(v2.Position.xyz - v1.Position.xyz);
+		float vertexDistance = length(pos2 - pos1);
 
 		//Scale height of the quad with opacity times vegetation scale plus a small random value.
 		//Clamp it between 1.0f and distance between our vertices

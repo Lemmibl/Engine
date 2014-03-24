@@ -295,7 +295,7 @@ HRESULT TextureCreator::Build16Bit2DTexture( ID3D11Device* device, ID3D11DeviceC
 }
 
 HRESULT TextureCreator::Build8Bit2DTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
-	const std::vector<UINT8>& pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV )
+	const std::vector<UINT8>& pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV, ID3D11Texture2D** texture)
 {
 	if((*textureSRV))
 	{
@@ -326,13 +326,9 @@ HRESULT TextureCreator::Build8Bit2DTexture( ID3D11Device* device, ID3D11DeviceCo
 	texInitializeData.SysMemPitch = textureWidth*(sizeof(UINT8));
 	//texInitializeData.SysMemSlicePitch = textureWidth*textureHeight*(sizeof(float)*4);
 
-	if(placeHolderTexture != 0)
-	{
-		placeHolderTexture.Release();
-	}
 
 	//Create texture with the description and the subresource that contains all the pixel data
-	hResult = device->CreateTexture2D(&texDesc, &texInitializeData, &placeHolderTexture.p);
+	hResult = device->CreateTexture2D(&texDesc, &texInitializeData, texture);
 	if(FAILED(hResult))
 	{
 		return hResult;
@@ -347,7 +343,7 @@ HRESULT TextureCreator::Build8Bit2DTexture( ID3D11Device* device, ID3D11DeviceCo
 	viewDesc.Texture2DArray.ArraySize = 1;
 
 	//Initialize the texture shader resource view and fill it with data
-	hResult = device->CreateShaderResourceView(placeHolderTexture.p, &viewDesc, textureSRV);
+	hResult = device->CreateShaderResourceView(*texture, &viewDesc, textureSRV);
 	if(FAILED(hResult))
 	{
 		return hResult;

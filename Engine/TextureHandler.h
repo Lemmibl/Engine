@@ -41,6 +41,9 @@ public:
 	unsigned short AddNewtexture(ID3D11Device* device, std::wstring textureFilepath);
 	ID3D11ShaderResourceView** GetTexture(unsigned short handle) { return &modelTextures[handle].p; }
 
+	bool Load2DTextureFromFile(ID3D11Device* device, std::wstring textureFilepath, ID3D11ShaderResourceView** srv);
+	bool Load2DCubemapTextureFromFile(ID3D11Device* device, std::wstring textureFilepath, ID3D11ShaderResourceView** srv);
+
 	bool GetTextureHandle(std::wstring textureFilepath, unsigned short& handle);
 
 	ID3D11ShaderResourceView** GetVegetationTextureArray()	{ return &vegetationTextureArraySRV.p;	};
@@ -58,7 +61,6 @@ private:
 	ID3D11Device* device;
 	ID3D11DeviceContext* deviceContext;
 
-	//TODO...
 	MaterialHandler matHandler;
 	TextureCreator texCreator;
 	ProceduralTextureHandler proceduralTexHandler;

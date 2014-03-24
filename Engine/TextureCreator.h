@@ -21,7 +21,7 @@ public:
 		WCHAR** filenames, int textureCount, ID3D11ShaderResourceView** textureArray, int texWidth, int texHeight);
 
 	HRESULT Build8Bit2DTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
-		const std::vector<UINT8>& pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV );
+		const std::vector<UINT8>& pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV, ID3D11Texture2D** texture);
 
 	HRESULT Build16Bit2DTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, 
 		const std::vector<UINT16>& pixelData, int textureWidth, int textureHeight, ID3D11ShaderResourceView** textureSRV );

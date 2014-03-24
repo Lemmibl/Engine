@@ -39,7 +39,7 @@ void DepthOnlyShader::Shutdown()
 }
 
 
-bool DepthOnlyShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldViewProjection, XMMATRIX* worldView)
+bool DepthOnlyShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, int indexStart, XMMATRIX* worldViewProjection, XMMATRIX* worldView)
 {
 	bool result;
 
@@ -52,7 +52,7 @@ bool DepthOnlyShader::Render(ID3D11DeviceContext* deviceContext, int indexCount,
 	}
 
 	// Now render the prepared buffers with the shader.
-	RenderShader(deviceContext, indexCount);
+	RenderShader(deviceContext, indexCount, indexStart);
 
 	return true;
 }
@@ -319,7 +319,7 @@ bool DepthOnlyShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XM
 }
 
 
-void DepthOnlyShader::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
+void DepthOnlyShader::RenderShader( ID3D11DeviceContext* deviceContext, int indexCount, int indexStart )
 {
 	// Set the vertex input layout.
 	deviceContext->IASetInputLayout(layout);
@@ -329,7 +329,7 @@ void DepthOnlyShader::RenderShader(ID3D11DeviceContext* deviceContext, int index
 	deviceContext->PSSetShader(pixelShader, NULL, 0);
 
 	// Render the triangle.
-	deviceContext->DrawIndexed(indexCount, 0, 0);
+	deviceContext->DrawIndexed(indexCount, indexStart, 0);
 
 	return;
 }

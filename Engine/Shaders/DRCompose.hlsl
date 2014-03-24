@@ -49,10 +49,6 @@ float3 DecodeNormal(float2 enc)
 	float f = dot(fenc,fenc);
 	float g = sqrt(1.0f-(f*0.25f));
 	
-	//float3 n;
-	//n.xy = fenc*g;
-	//n.z = 1.0f-(f*0.5f);
-
 	return float3(fenc*g, 1.0f - (f*0.5f));
 }
 
@@ -62,13 +58,13 @@ float3 DepthToPosition(float4 ScreenPosition, float depth)
 	return float3(viewPosition.xy * (farClip / viewPosition.z), farClip) * depth;
 }
 
-float3 ReconstructViewPositionFromDepth(float3 viewPosition, float depth)
+float3 ReconstructViewPositionFromDepth(float3 viewRay, float depth)
 {
 	// Sample the depth and scale the view ray to reconstruct view space position
 	//float3 viewRay = float3(viewPosition.xy * (150.0f / viewPosition.z), 150.0f);
 	//float normalizedDepth = shaderTextures[1].Sample(linearSampler, texCoord);
 
-	return float3(viewPosition.xy * (farClip / viewPosition.z), farClip) * depth;
+	return float3(viewRay.xy * (farClip / viewRay.z), farClip) * depth;
 }
 
 float DoAmbientOcclusion(float2 TexCoord, float2 Offset, float4 ScreenPosition, float3 Position, float3 Normal)
@@ -77,7 +73,7 @@ float DoAmbientOcclusion(float2 TexCoord, float2 Offset, float4 ScreenPosition, 
 	float offsetDepth = shaderTextures[2].Sample(samplers[0], (TexCoord + Offset));
 	
 	//Reconstruct an offset position with the help of our offset screenpos and offset depth
-	float3 offsetPosition = float3(TexCoord + Offset, offsetDepth);//DepthToPosition(ScreenPosition, offsetDepth);
+	float3 offsetPosition = DepthToPosition(ScreenPosition, offsetDepth); //float3(TexCoord + Offset, offsetDepth);//
 
 	//Calculate difference between offset position and position of pixel
 	float3 diff = offsetPosition - Position;
@@ -115,24 +111,22 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		//SSAO:
 		//http://www.gamedev.net/page/resources/_/technical/graphics-programming-and-theory/a-simple-and-practical-approach-to-ssao-r2753
 		
-		const float2 vec[4] = {	float2(1, 0),float2(-1 ,0),
+		const float2 vec[8] = {	float2(1, 0),float2(-1 ,0),
+								float2(0, 1),float2(0, -1),
+								float2(1, 0),float2(-1 ,0),
 								float2(0, 1),float2(0, -1) };
 
 		float3 position = ReconstructViewPositionFromDepth(input.ViewPosition.xyz, depth);
-		float3 normal = normalize( mul(DecodeNormal(shaderTextures[3].Sample(samplers[0], input.TexCoord).xy), View)*2.0f - 1.0f); //Viewspace normals
-		
-		//float3 normal = normalize(DecodeNormal(shaderTextures[3].Sample(samplers[0], input.TexCoord).xy)); //Worldspace normals
-
-
+		float3 normal = normalize(mul(DecodeNormal(shaderTextures[3].Sample(samplers[0], input.TexCoord).xy * 2.0f - 1.0f), (float3x3)View)); //Viewspace normals
 
 		float ao = 1.0f;		
 		
 		if(toggleSSAO >= 1)
 		{
-			float2 rand = normalize(randomTexture.Sample(samplers[0], (screenSize*input.TexCoord / randomSize)) * 2.0f - 1.0f);//
+			float2 rand = normalize(randomTexture.Sample(samplers[0], (screenSize*input.TexCoord / randomSize))  * 2.0f - 1.0f);//
 			float rad = sampleRadius / position.z;
 
-			int iterations = lerp(8, 2, depth); //primitive SSAO LOD; scales with how close to the pixel we are
+			int iterations = lerp(8, 1, depth); //primitive SSAO LOD; scales with how close to the pixel we are
 
 			//SSAO Calculation
 			[unroll]
@@ -148,11 +142,10 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 				ao += DoAmbientOcclusion(input.TexCoord, coord2,		input.ScreenPosition, position, normal);
 			}
 
-			ao /= (float)iterations*4.0f;
+			ao /= (float)(iterations*4.0f);
 
 			//Add AO to final calculation ...
-			ao = max((1.0f - ao), 0.4f); //We don't want the ssao to make things completely black (0.0f), so we cap it at a minimum of 0.4f.
-
+			ao = max((1.0f - ao), 0.0f); //max((1.0f - ao), 0.4f); //We don't want the ssao to make things completely black (0.0f), so we cap it at a minimum of 0.4f.
 		}
 
 

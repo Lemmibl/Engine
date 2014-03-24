@@ -3,12 +3,14 @@
 /*						TODO AND THINGS OF THAT SORT							*/
 /********************************************************************************/
 
-* Skysphere texture mapping! Clouds? Stars?
+* Skysphere texture mapping! Clouds?
+
+* Non-simplex/perlin smooth noise
+	-> Using this function, stuff like waves, marble etc will be possible
+
+* Fix SSAO shader
 
 * Depth only OBJ shader for shadow stage
-
-* Separate handler for procedural texture generation
-	-> In the near future, maybe just make a TextureCreator+Loader and just have that as a pointer inside each manager of different types... that'd work...
 
 * Spotlight shader
 
@@ -16,7 +18,6 @@
 
 * Make geometry shader grass more fancy.
 	-Should pretty much be finished now, just need to do the lookup-based-on-height thing.
-	-> Also, make a bool to toggle whether to randomize placement positions or not
 
 * Particles
 	-> Finally look into compute shader..?
@@ -38,12 +39,6 @@ Rendering and general layout of rendering system:
 http://gamedev.stackexchange.com/questions/22080/which-of-these-directx11-calls-actually-sends-data-to-the-gpu
 http://www.dataorienteddesign.com/dodmain/node14.html
 http://www.bitsquid.se/presentations/benefits-of-a-data-driven-renderer.pdf
-
-Trees:
-http://http.developer.nvidia.com/GPUGems3/gpugems3_ch04.html
-
-Wind affecting vegetation:
-http://http.developer.nvidia.com/GPUGems3/gpugems3_ch06.html
 
 Entity system:
 http://www.gameprogblog.com/managing-entities/#more-79

@@ -84,12 +84,6 @@ bool GameRenderer::InitializeShaders( HWND hwnd )
 {
 	bool result;
 
-	result = skySphere.Initialize(d3D->GetDevice(), hwnd);
-	if(!result)
-	{
-		return false;
-	}
-
 	result = pointLightShader.Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
@@ -255,6 +249,30 @@ bool GameRenderer::InitializeLights( HWND hwnd )
 bool GameRenderer::InitializeModels( HWND hwnd )
 {
 	bool result;
+
+	result = skySphere.Initialize(d3D->GetDevice(), hwnd);
+	if(!result)
+	{
+		return false;
+	}
+
+	result = textureHandler.Load2DCubemapTextureFromFile(d3D->GetDevice(), L"../Engine/data/cloudCubeMap3.dds", skySphere.GetCloudTexturePP());
+	if(!result)
+	{
+		return false;
+	}
+
+	//result = (proceduralTextureHandler.CreateTilingCloudTexture(d3D->GetDevice(), d3D->GetDeviceContext(), skySphere.GetCloudTexturePP(), 4096, 4096) != S_FALSE);
+	//if(!result)
+	//{
+	//	return false;
+	//}
+
+	result = textureHandler.Load2DCubemapTextureFromFile(d3D->GetDevice(), L"../Engine/data/starCubemap.dds", skySphere.GetStarTexturePP());
+	if(!result)
+	{
+		return false;
+	}
 
 	// Initialize the model object. It really doesn't matter what textures it has because it's only used for point light volume culling.
 	result = sphereModel.Initialize(d3D->GetDevice(), "../Engine/data/skydome.txt", L"../Engine/data/dirt.dds", L"../Engine/data/dirt.dds", L"../Engine/data/dirt.dds");
@@ -466,7 +484,7 @@ bool GameRenderer::Update( HWND hwnd, int fps, int cpuPercentage, float millisec
 	//Speed up the change of day
 	if(inputManager->IsKeyPressed(DIK_1))
 	{
-		secondDeltaTime += (millisecondDeltaTime);
+		secondDeltaTime += (millisecondDeltaTime*0.2f);
 	}
 
 	//Toggle the coloring mode of materials
@@ -620,8 +638,6 @@ bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 
 	lightWorldView =			XMMatrixTranspose(lightWorldView);
 	lightWorldViewProj =		XMMatrixTranspose(lightWorldViewProj);
-	lightView =					XMMatrixTranspose(lightView);
-	lightProj =					XMMatrixTranspose(lightProj);
 
 	invertedView =				XMMatrixTranspose(invertedView);
 	invertedWorldView =			XMMatrixTranspose(invertedWorldView);
@@ -643,7 +659,7 @@ bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 	baseView = XMMatrixTranspose(baseView);
 #pragma endregion
 
-	if(!RenderShadowmap(&lightWorldViewProj, &lightWorldView, renderableBundle))
+	if(!RenderShadowmap(&lightWorldViewProj, &lightWorldView, &lightView, &lightProj, renderableBundle))
 	{
 		return false;
 	}
@@ -686,8 +702,10 @@ bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 }
 
 
-bool GameRenderer::RenderShadowmap(XMMATRIX* lightWorldViewProj, XMMATRIX* lightWorldView, RenderableBundle* renderableBundle)
+bool GameRenderer::RenderShadowmap( XMMATRIX* lightWorldViewProj, XMMATRIX* lightWorldView, XMMATRIX* lightView, XMMATRIX* lightProj, RenderableBundle* renderableBundle )
 {
+	XMMATRIX world, WVP, WV;
+
 	//Early depth pass for shadowmap
 	d3D->GetShadowManager()->SetShadowViewport();
 
@@ -707,11 +725,44 @@ bool GameRenderer::RenderShadowmap(XMMATRIX* lightWorldViewProj, XMMATRIX* light
 	{	
 		renderableBundle->terrainChunks[i]->GetTerrainMesh()->Render(deviceContext);
 
-		if(!depthOnlyShader.Render(deviceContext, renderableBundle->terrainChunks[i]->GetTerrainMesh()->GetIndexCount(), lightWorldViewProj, lightWorldView))
+		if(!depthOnlyShader.Render(deviceContext, renderableBundle->terrainChunks[i]->GetTerrainMesh()->GetIndexCount(), 0, lightWorldViewProj, lightWorldView))
 		{
 			return false;
 		}
 	}
+
+	////This is where we'll render trees.
+	//const auto& objModels = renderableBundle->objModels;
+	//const auto& chunks = renderableBundle->terrainChunks;
+	//unsigned int vecSize = objModels.size();
+
+	////Should be temporary ...
+	//bool textureNeedsUpdate = true;
+	//bool materialNeedsUpdate = true;
+
+	//auto& model = renderableBundle->objModels[0];
+	//IndexedMesh* tempMesh = meshHandler->GetMesh(model.GetMeshHandle());
+
+	//for(unsigned int i = 0; i < chunks.size(); ++i)
+	//{
+	//	//Retarded little hack to see viability of rendering many trees
+	//	for(unsigned int k = 0; k < chunks[i]->GetBushCount(); ++k)
+	//	{
+	//		world = XMLoadFloat4x4(&chunks[i]->GetBushTransforms()[k]); /*XMMatrixTranspose(XMLoadFloat4x4(&(treeMatrices.at(k))));*/
+	//		WVP = XMMatrixTranspose(world * *lightView * *lightProj);
+	//		WV = XMMatrixTranspose(world * *lightView);
+
+	//		for(int j = 0; j < model.GetSubsetCount()-1; ++j)
+	//		{
+	//			tempMesh->Render(deviceContext);
+
+	//			//This will always work, because when we load in the model we add one last set of index subsets that contains the entire count (the end of the indices, essentially).
+	//			int indexCount = model.GetSubSetIndices().at(j+1) - model.GetSubSetIndices().at(j);
+
+	//			depthOnlyShader.Render(deviceContext, indexCount, model.GetSubSetIndices().at(j), &WVP, &WV);
+	//		}
+	//	}
+	//}
 
 	return true;
 }
@@ -779,7 +830,7 @@ bool GameRenderer::RenderGBuffer(XMMATRIX* viewMatrix, XMMATRIX* projectionMatri
 	worldViewProjMatrix = (XMMatrixScaling(3.0f, 3.0f, 3.0f) * worldMatrix) * ((*viewMatrix) * (*projectionMatrix));
 	worldViewProjMatrix = XMMatrixTranspose(worldViewProjMatrix);
 
-	skySphere.Render(deviceContext, &worldViewProjMatrix, camPos.y, &dayNightCycle.GetAmbientLightColor(), timeOfDay);
+	skySphere.Render(deviceContext, &worldMatrix, &worldViewProjMatrix, camPos.y, &dayNightCycle.GetAmbientLightColor(), timeOfDay, dayNightCycle.GetCurrentStageOfDay(), dirLight.Intensity);
 
 	d3D->GetDepthStencilManager()->SetDefaultDepthStencilView();
 	d3D->GetRasterizerStateManager()->SetBackFaceCullingRasterizer();
@@ -1019,7 +1070,7 @@ bool GameRenderer::RenderComposedScene(XMMATRIX* worldBaseViewOrthoProj, XMMATRI
 	}
 
 	if(!composeShader.Render(deviceContext, fullScreenQuad.GetIndexCount(), worldBaseViewOrthoProj, worldView, view, invertedProjection, 
-		invertedViewProjection, &dayNightCycle.GetAmbientLightColor(), fogMinimum, &finalTextures[0].p, *proceduralTextureHandler.GetSSAORandomTexture(), toggleSSAO))
+		invertedViewProjection, &dayNightCycle.GetAmbientLightColor(), fogMinimum, &finalTextures[0].p, *proceduralTextureHandler.GetSSAORandomTexture(), toggleSSAO, dirLight.Intensity))
 	{
 		return false;
 	}
@@ -1086,7 +1137,7 @@ bool GameRenderer::RenderGUI(XMMATRIX* worldBaseViewOrthoProj )
 		}
 
 		if(!textureShader.Render(deviceContext, debugWindows[5].GetIndexCount(), 
-			worldBaseViewOrthoProj, *proceduralTextureHandler.GetWindNormalMap()))
+			worldBaseViewOrthoProj, *skySphere.GetCloudTexturePP()))
 		{
 			return false;
 		}

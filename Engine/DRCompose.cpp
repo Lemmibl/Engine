@@ -61,14 +61,15 @@ void DRCompose::Shutdown()
 	return;
 }
 
-bool DRCompose::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldViewProjection, XMMATRIX* worldView, XMMATRIX* view, XMMATRIX* invertedProjection, XMMATRIX* invViewProjection,
-	XMFLOAT4* fogColor, float fogMinimum, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView* randomTexture, int toggle)
+bool DRCompose::Render( ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldViewProjection, XMMATRIX* worldView, XMMATRIX* view,
+	 XMMATRIX* invertedProjection, XMMATRIX* invViewProjection, XMFLOAT4* fogColor, float fogMinimum, ID3D11ShaderResourceView** textureArray, 
+	 ID3D11ShaderResourceView* randomTexture, int toggle, float lightIntensity )
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
 	result = SetShaderParameters(deviceContext, worldViewProjection, worldView, view, invertedProjection, invViewProjection, fogColor, fogMinimum, 
-		textureArray, randomTexture, toggle);
+		textureArray, randomTexture, toggle, lightIntensity);
 	if(!result)
 	{
 		return false;
@@ -369,8 +370,9 @@ void DRCompose::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WC
 	return;
 }
 
-bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, XMMATRIX* worldView, XMMATRIX* view, XMMATRIX* invertedProjection, XMMATRIX* invViewProjection,
-	XMFLOAT4* fogColor, float fogMinimum, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView* randomTexture, int toggle)
+bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, XMMATRIX* worldView, XMMATRIX* view, 
+	XMMATRIX* invertedProjection, XMMATRIX* invViewProjection, XMFLOAT4* fogColor, float fogMinimum, ID3D11ShaderResourceView** textureArray, 
+	ID3D11ShaderResourceView* randomTexture, int toggle, float lightIntensity )
 {		
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;

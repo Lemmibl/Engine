@@ -7,6 +7,7 @@
 #include <atlcomcli.h>
 #include <memory>
 #include <vector>
+#include "StructsAndEnums.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: Skysphere
@@ -16,24 +17,26 @@ class Skysphere
 private:
 	struct ModelType
 	{
+		//alpha channel contains face ID
 		XMFLOAT3 position;
-		XMFLOAT2 texcoords;
+		XMFLOAT3 texcoords;
 		XMFLOAT3 normal;
 	};
 
 	struct VertexType
 	{
 		XMFLOAT3 position;
+		XMFLOAT3 texcoords;
+		XMFLOAT3 normal;
 	};
 
 public:
 	Skysphere();
-	Skysphere(const Skysphere&);
 	~Skysphere();
 
 	bool Initialize(ID3D11Device* device, HWND hwnd);
 	void Shutdown();
-	void Render(ID3D11DeviceContext* context, XMMATRIX* worldViewProjection, float cameraYPos, XMFLOAT4* fogColor, float time);
+	void Render(ID3D11DeviceContext* context, XMMATRIX* world, XMMATRIX* worldViewProjection, float cameraYPos, XMFLOAT4* fogColor, float time, StageOfDay stageOfDay, float lightIntensity);
 
 	int GetIndexCount();
 
@@ -43,6 +46,9 @@ public:
 
 	void SetApexColor(XMFLOAT4 val);
 	void SetCenterColor(XMFLOAT4 val);
+
+	ID3D11ShaderResourceView** GetCloudTexturePP() { return &cloudTexture.p; }
+	ID3D11ShaderResourceView** GetStarTexturePP() { return &starTexture.p; }
 
 private:
 	bool LoadModel(char*);
@@ -59,4 +65,7 @@ private:
 	CComPtr<ID3D11Buffer> indexBuffer;
 	XMFLOAT4 apexColor, centerColor;
 	SkysphereShader skysphereShader;
+
+	CComPtr<ID3D11ShaderResourceView> cloudTexture;
+	CComPtr<ID3D11ShaderResourceView> starTexture;
 };

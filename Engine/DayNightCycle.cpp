@@ -55,7 +55,7 @@ float DayNightCycle::Update( float deltaTime, DirLight* directionalLight, Skysph
 
 	if(lerpAmountThisStage < 1.0f)
 	{
-		lerpAmountThisStage += (deltaTime / timePerStage); //Calculate amount we'll be moving by this frame //stagesOfDay[currentStageOfDay].DurationOfStage
+		lerpAmountThisStage += (deltaTime / stagesOfDay[currentStageOfDay].DurationOfStage); //Calculate amount we'll be moving by this frame //stagesOfDay[currentStageOfDay].DurationOfStage
 	}
 
 
@@ -99,14 +99,16 @@ float DayNightCycle::Update( float deltaTime, DirLight* directionalLight, Skysph
 	startVector = XMLoadFloat4(&previousStageStruct.AmbientColor);
 	endVector = XMLoadFloat4(&stagesOfDay[currentStageOfDay].AmbientColor);
 
+	directionalLight->Intensity = lerp(previousStageStruct.LightIntensity, stagesOfDay[currentStageOfDay].LightIntensity, lerpAmountThisStage);
+
 	//Lerp between the two values and save the current value as our current ambience color
 	currentVector = XMVectorLerp(startVector, endVector, lerpAmountThisStage);
-	XMStoreFloat4(&currentAmbienceColor, currentVector);
+
+	//scale ambient color with light intensity
+	XMStoreFloat4(&currentAmbienceColor, currentVector * directionalLight->Intensity);
 
 	//Currently, all of our different colors are the same, so just apply them right here and now.
 	directionalLight->Color = currentAmbienceColor;
-
-	directionalLight->Intensity = lerp(previousStageStruct.LightIntensity, stagesOfDay[currentStageOfDay].LightIntensity, lerpAmountThisStage);
 
 	previousFrameStageOfDay = currentStageOfDay;
 
