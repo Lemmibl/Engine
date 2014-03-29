@@ -638,6 +638,8 @@ bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 
 	lightWorldView =			XMMatrixTranspose(lightWorldView);
 	lightWorldViewProj =		XMMatrixTranspose(lightWorldViewProj);
+	lightView =					XMMatrixTranspose(lightView);
+	lightProj =					XMMatrixTranspose(lightProj);
 
 	invertedView =				XMMatrixTranspose(invertedView);
 	invertedWorldView =			XMMatrixTranspose(invertedWorldView);
@@ -660,14 +662,10 @@ bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 #pragma endregion
 
 	//Send untransposed lightView/lightProj here
-	if(!RenderShadowmap(&lightWorldViewProj, &lightWorldView, &lightView, &lightProj, renderableBundle))
+	if(!RenderShadowmap(&lightWorldViewProj, &lightWorldView, &XMLoadFloat4x4(&dirLight.View), &XMLoadFloat4x4(&dirLight.Projection), renderableBundle))
 	{
 		return false;
 	}
-
-	//Then transpose
-	lightView =					XMMatrixTranspose(lightView);
-	lightProj =					XMMatrixTranspose(lightProj);
 
 	if(!RenderTwoPassGaussianBlur(&worldBaseViewOrthoProj))
 	{

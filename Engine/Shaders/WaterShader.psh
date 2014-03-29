@@ -50,7 +50,7 @@ PSOutput WaterShaderPS(PSInput input)
 
 	float4 PreCalcNormal = normalize(float4(UpNormal + normalTexture.SampleLevel(linearSampler, input.TexCoord.xy, 0).xyz, 1.0f));
 
-	float3 normal =  mul(PreCalcNormal, World).xyz;
+	float3 normal =  mul(PreCalcNormal, (float3x3)World).xyz;
 
 	output.Normal.xy = Encode(normal);
 	output.Normal.zw = EncodeMaterialID(6.0f); //Both channels are reserved for material ID. Assign the water material.

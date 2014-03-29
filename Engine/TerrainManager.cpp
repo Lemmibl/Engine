@@ -141,8 +141,10 @@ void JobThreadEntryPoint(void* terrainManagerPointer)
 				{
 					resultHeight *= stepSize.y;
 
+					float randScale = 2.0f + (float)(rand()%2);
+
 					//If we've found a proper position, store a transposed, rotated world matrix in the chunk.
-					XMStoreFloat4x4(	&(chunk->GetBushTransforms()[i]), XMMatrixTranspose(	XMMatrixScaling(4.0f, 4.0f, 4.0f) * 
+					XMStoreFloat4x4(	&(chunk->GetBushTransforms()[i]), XMMatrixTranspose(	XMMatrixScaling(randScale, randScale, randScale) * 
 																								XMMatrixRotationY((float)(rand()%360)) * 
 																								XMMatrixTranslation(randPosX, resultHeight, randPosZ)
 																							)
