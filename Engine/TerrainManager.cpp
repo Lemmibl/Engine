@@ -143,7 +143,8 @@ void JobThreadEntryPoint(void* terrainManagerPointer)
 
 					float randScale = 2.0f + (float)(rand()%2);
 
-					//If we've found a proper position, store a transposed, rotated world matrix in the chunk.
+					//360 degrees =	6.28318531 radians
+					//If we've found a proper position, store a scaled, rotated and translated world matrix to this point, into the chunk.
 					XMStoreFloat4x4(	&(chunk->GetBushTransforms()[i]), XMMatrixTranspose(	XMMatrixScaling(randScale, randScale, randScale) * 
 																								XMMatrixRotationY((float)(rand()%360)) * 
 																								XMMatrixTranslation(randPosX, resultHeight, randPosZ)
@@ -453,8 +454,7 @@ bool TerrainManager::UpdateAgainstAABB(Lemmi2DAABB* aabb, float deltaTime)
 		//Every few seconds we do a cleanup to remove old chunks
 		if(timePassed >= timeThreshold)
 		{
-			//TODO: fix this
-			Cleanup(static_cast<float>((startX+endZ)/2), static_cast<float>((startZ+endZ)/2));
+			Cleanup(((aabb->MinPoint().x+aabb->MaxPoint().x)/2), ((aabb->MinPoint().y+aabb->MaxPoint().y)/2));
 
 			//Reset
 			timePassed = 0.0f;
