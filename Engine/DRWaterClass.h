@@ -20,6 +20,20 @@ private:
 		XMMATRIX WorldViewProjection;
 	};
 
+	struct WaterAnimationVertexBuffer
+	{
+		XMMATRIX World;
+		XMMATRIX WorldView;
+		XMMATRIX WorldViewProjection;
+		float DeltaTime;
+		float positionSamplingOffset;
+		float heightScaling;
+		float timeScaling;
+		float farClip;
+		XMFLOAT3 windDirection;
+		float waterHeight; //This is the height at where we will render the water.
+	};
+
 	struct GeometryVariableBuffer
 	{
 		XMMATRIX WorldViewProjection;
@@ -67,14 +81,17 @@ private:
 	CComPtr<ID3D11GeometryShader> geometryShader;
 	CComPtr<ID3D11PixelShader> pixelShader;
 	CComPtr<ID3D11InputLayout> layout;
+
 	CComPtr<ID3D11Buffer> matrixBuffer;
 	CComPtr<ID3D11Buffer> variableBuffer;
+	CComPtr<ID3D11Buffer> animationVariableBuffer;
 	CComPtr<ID3D11Buffer> pixelMatrixBuffer;
 	CComPtr<ID3D11SamplerState> sampler;
 	CComPtr<ID3D11SamplerState> comparisonSampler;
 
 	bool bufferNeedsUpdating;
 
+	WaterAnimationVertexBuffer animationVariables;
 	GeometryVariableBuffer variables;
 	float waterColorStartOffset;
 	float waterColorMultiplier;

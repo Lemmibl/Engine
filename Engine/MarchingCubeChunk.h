@@ -59,7 +59,8 @@ public:
 	void SetKey(int x, int y) { key = std::make_pair<int, int>(x,y); }
 
 	std::vector<XMFLOAT4X4>& GetBushTransforms() { return bushTransforms; }
-	unsigned int GetBushCount() { return bushCount; }
+	unsigned int GetVegetationCount() { return vegetationCount; }
+	void SetVegetationCount(unsigned int val) { vegetationCount = val; }
 
 private:
 	//voxels is sizeX*sizeY*sizeZ big
@@ -86,7 +87,7 @@ private:
 	unsigned int stepCountY;
 	unsigned int stepCountZ;
 
-	//Decides at what height the water mesh is going to be created.
+	//Decides at what height the water mesh is going to be created at. If it is going to be created at all.
 	float waterLevel;
 
 	//Collision objects
@@ -94,8 +95,12 @@ private:
 	std::shared_ptr<btTriangleMesh> triMesh;
 	std::shared_ptr<btCollisionShape> collisionShape;
 
-	//Vegetation objects
-	unsigned int bushCount;
+	//Vegetation
+
+	//Count of vegetation objects to be rendered on this chunk
+	unsigned int vegetationCount;
+
+	//and the transforms of these objects
 	std::vector<XMFLOAT4X4> bushTransforms;
 };
 

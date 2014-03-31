@@ -9,8 +9,9 @@
 #include "Utility.h"
 #include "MarchingCubeChunk.h"
 #include "BulletCollision\CollisionShapes\btTriangleMesh.h"
+#include "SettingsDependent.h"
 
-class MarchingCubesClass
+class MarchingCubesClass : public SettingsDependent
 {
 private:
 	struct Triangle
@@ -24,6 +25,8 @@ public:
 
 	//Converts a voxel field to a mesh
 	void CalculateMesh(ID3D11Device* device, std::shared_ptr<MarchingCubeChunk> chunk, std::vector<MarchingCubeVoxel>* voxels);
+
+	void OnSettingsReload(Config* cfg);
 
 private:
 	//Extract a cube from the .. voxel field...
@@ -84,7 +87,7 @@ private:
 
 private:
 	unsigned int sizeXAxis, sizeYAxis, sizeZAxis;
-	float metaballsIsoValue;
+	float metaballsIsoValue, waterLevel;
 
 	// Tables for edge cases and triangle lookup 
 	const static int edgeTable[256];

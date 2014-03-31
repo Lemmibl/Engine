@@ -224,6 +224,7 @@
     <None Include="Shaders\texture.vsh" />
     <None Include="Shaders\VegetationQuad.psh" />
     <None Include="Shaders\VegetationQuad.vsh" />
+    <None Include="Shaders\WaterAnimationVertexShader.vsh" />
     <None Include="Shaders\WaterShader.gsh" />
     <None Include="Shaders\WaterShader.psh" />
     <None Include="Shaders\WaterShader.vsh" />

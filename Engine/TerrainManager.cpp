@@ -129,7 +129,9 @@ void JobThreadEntryPoint(void* terrainManagerPointer)
 
 			float resultHeight = 0.0f;
 
-			for(unsigned int i = 0; i < chunk->GetBushCount();)
+			unsigned int tries = 0;
+
+			for(unsigned int i = 0; i < chunk->GetVegetationCount();)
 			{
 				indexX = rand()%(int)stepCount.x;
 				indexZ = rand()%(int)stepCount.z;
@@ -137,20 +139,45 @@ void JobThreadEntryPoint(void* terrainManagerPointer)
 				randPosX = actualPosX + (indexX*stepSize.x);
 				randPosZ = actualPosZ + (indexZ*stepSize.z);
 
+				//Get the height position of this coordinate
 				if(terrainManager->GetTerrainNoiser().GetHighestPositionOfCoordinate(indexX, indexZ, chunk.get(), &voxels, &resultHeight))
 				{
+					//We scale the result height with stepping size (since the placement algorithm just returns the Y index of the voxel that we'll be placing the object on)
 					resultHeight *= stepSize.y;
 
+					//Scale for the object with some randomization spice
 					float randScale = 2.0f + (float)(rand()%2);
 
-					//360 degrees =	6.28318531 radians
+					//360 degrees =	6.28318531 radians. XM Rotation matrices are created from radians
 					//If we've found a proper position, store a scaled, rotated and translated world matrix to this point, into the chunk.
 					XMStoreFloat4x4(	&(chunk->GetBushTransforms()[i]), XMMatrixTranspose(	XMMatrixScaling(randScale, randScale, randScale) * 
 																								XMMatrixRotationY((float)(rand()%360)) * 
 																								XMMatrixTranslation(randPosX, resultHeight, randPosZ)
 																							)
 									);
+
+					//If we found a proper position, increment loop
 					++i;
+				}
+				else
+				{
+					//If we didn't find a proper position, instead increment a counter
+					++tries;
+
+					//If we've tried to find a position 6 times and still haven't found one, just increment anyway
+					if(tries >= 5)
+					{
+						++i;
+
+						//Not before reducing the count, because we skipped creating one object...
+						if(chunk->GetVegetationCount() >= 1)
+						{
+							chunk->SetVegetationCount(chunk->GetVegetationCount()-1);
+						}
+
+						//And reset tries variable for next time
+						tries = 0;
+					}
 				}
 			}
 
@@ -567,22 +594,6 @@ void TerrainManager::Cleanup(float posX, float posZ)
 	}
 }
 
-void TerrainManager::OnSettingsReload(Config* cfg)
-{
-	int type;
-
-	const Setting& settings = cfg->getRoot()["terrain"];
-	settings.lookupValue("startingTerrainType", type);
-
-	terrainType = (TerrainTypes::Type)type;
-
-	//Only set terraintype if it's been fully initialized
-	if(fullyLoaded)
-	{
-		terrainNoiser.SetTerrainType(terrainType);
-	}
-}
-
 void TerrainManager::QueueChunkForCreation( int startPosX, int startPosZ)
 {
 	std::pair<int,int> key(startPosX, startPosZ);
@@ -644,6 +655,22 @@ void TerrainManager::ChunkFinalizing(ID3D11Device* device)
 	}
 }
 
+void TerrainManager::OnSettingsReload(Config* cfg)
+{
+	int type;
+
+	const Setting& settings = cfg->getRoot()["terrain"];
+	settings.lookupValue("startingTerrainType", type);
+
+	terrainType = (TerrainTypes::Type)type;
+
+	//Only set terraintype if it's been fully initialized
+	if(fullyLoaded)
+	{
+		terrainNoiser.SetTerrainType(terrainType);
+	}
+}
+
 void TerrainManager::CreateMesh(ID3D11Device* devicePtr, std::shared_ptr<MarchingCubeChunk> chunk)
 {
 	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
@@ -695,7 +722,7 @@ void TerrainManager::CreateMesh(ID3D11Device* devicePtr, std::shared_ptr<Marchin
 
 void TerrainManager::CreateWaterMesh(ID3D11Device* devicePtr, std::shared_ptr<MarchingCubeChunk> chunk)
 {
-	if(chunk->GetWaterLevel() > 0)
+	if(chunk->GetWaterLevel() > 0.1f)
 	{
 
 		D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;

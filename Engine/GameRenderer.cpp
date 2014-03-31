@@ -921,7 +921,7 @@ bool GameRenderer::RenderGBuffer(XMMATRIX* viewMatrix, XMMATRIX* projectionMatri
 	for(unsigned int i = 0; i < chunks.size(); ++i)
 	{
 		//Retarded little hack to see viability of rendering many trees
-		for(unsigned int k = 0; k < chunks[i]->GetBushCount(); ++k)
+		for(unsigned int k = 0; k < chunks[i]->GetVegetationCount(); ++k)
 		{
 			worldMatrix = XMLoadFloat4x4(&chunks[i]->GetBushTransforms()[k]); /*XMMatrixTranspose(XMLoadFloat4x4(&(treeMatrices.at(k))));*/
 			objModelShader.UpdateMatrixBuffer(deviceContext, &worldMatrix, &tempView, &tempProj);

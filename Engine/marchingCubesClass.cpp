@@ -330,16 +330,16 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 		std::make_pair<unsigned int, unsigned int>(3, 7),
 	};
 
-static const float waterLevel = 5.0f;
+	MarchingCubesClass::MarchingCubesClass(unsigned int sizeX,  unsigned int sizeY, unsigned int sizeZ)
+		: SettingsDependent(), sizeXAxis(sizeX), sizeYAxis(sizeY), sizeZAxis(sizeZ)
+	{	
+		waterLevel = 0.0f;
+		InitializeSettings(this);								  
+		metaballsIsoValue = 0.2f;
+	}
 
 	MarchingCubesClass::~MarchingCubesClass()
 	{	
-	}
-
-	MarchingCubesClass::MarchingCubesClass(unsigned int sizeX,  unsigned int sizeY, unsigned int sizeZ)
-		: sizeXAxis(sizeX), sizeYAxis(sizeY), sizeZAxis(sizeZ)
-	{									  
-		metaballsIsoValue = 0.2f;
 	}
 
 	void MarchingCubesClass::CalculateMesh(ID3D11Device* device, std::shared_ptr<MarchingCubeChunk> chunk, std::vector<MarchingCubeVoxel>* voxels)
@@ -670,4 +670,10 @@ static const float waterLevel = 5.0f;
 
 		// Create the index buffer.
 		result = device->CreateBuffer(&indexBufferDesc, &indexData, waterMesh->GetIndexBufferPP());
+	}
+
+	void MarchingCubesClass::OnSettingsReload(Config* cfg)
+	{
+		const Setting& settings = cfg->getRoot()["shaders"]["waterShader"];
+		settings.lookupValue("waterLevels", waterLevel);
 	}

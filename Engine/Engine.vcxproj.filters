@@ -91,15 +91,6 @@
     <ClCompile Include="NoiseClass.cpp">
       <Filter>Terrain and procedural generation\Noise</Filter>
     </ClCompile>
-    <ClCompile Include="DRPointLight.cpp">
-      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
-    </ClCompile>
-    <ClCompile Include="DRDirectionalLight.cpp">
-      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
-    </ClCompile>
-    <ClCompile Include="DRWaterClass.cpp">
-      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
-    </ClCompile>
     <ClCompile Include="fontshaderclass.cpp">
       <Filter>Rendering\Shader wrappers\General shader wrappers</Filter>
     </ClCompile>
@@ -237,6 +228,15 @@
     <ClCompile Include="TextureCreator.cpp">
       <Filter>Rendering\Managers\Textures and materials</Filter>
     </ClCompile>
+    <ClCompile Include="DRDirectionalLight.cpp">
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers\Lighting</Filter>
+    </ClCompile>
+    <ClCompile Include="DRPointLight.cpp">
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers\Lighting</Filter>
+    </ClCompile>
+    <ClCompile Include="DRWaterClass.cpp">
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers\Water</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cpumeter.h">
@@ -340,15 +340,6 @@
     </ClInclude>
     <ClInclude Include="NoiseClass.h">
       <Filter>Terrain and procedural generation\Noise</Filter>
-    </ClInclude>
-    <ClInclude Include="DRPointLight.h">
-      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
-    </ClInclude>
-    <ClInclude Include="DRDirectionalLight.h">
-      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
-    </ClInclude>
-    <ClInclude Include="DRWaterClass.h">
-      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClInclude>
     <ClInclude Include="VertexShaderOnly.h">
       <Filter>Rendering\Shader wrappers\General shader wrappers</Filter>
@@ -510,6 +501,15 @@
     <ClInclude Include="TerrainStructs.h">
       <Filter>Terrain and procedural generation\MC</Filter>
     </ClInclude>
+    <ClInclude Include="DRDirectionalLight.h">
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers\Lighting</Filter>
+    </ClInclude>
+    <ClInclude Include="DRPointLight.h">
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers\Lighting</Filter>
+    </ClInclude>
+    <ClInclude Include="DRWaterClass.h">
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers\Water</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\GeometryShaderGrass.gsh">
@@ -575,37 +575,16 @@
     <None Include="Shaders\BasicVertexShader.vsh">
       <Filter>Rendering\Shaders\General shaders</Filter>
     </None>
-    <None Include="Shaders\WaterShader.vsh">
-      <Filter>Rendering\Shaders\Deferred shaders</Filter>
-    </None>
-    <None Include="Shaders\WaterShader.psh">
-      <Filter>Rendering\Shaders\Deferred shaders</Filter>
-    </None>
-    <None Include="Shaders\WaterShader.gsh">
-      <Filter>Rendering\Shaders\Deferred shaders</Filter>
-    </None>
     <None Include="Shaders\MCGBufferTerrainShader.vsh">
       <Filter>Rendering\Shaders\Deferred shaders</Filter>
     </None>
     <None Include="Shaders\MCGBufferTerrainShader.psh">
       <Filter>Rendering\Shaders\Deferred shaders</Filter>
     </None>
-    <None Include="Shaders\DRPointLight.vsh">
-      <Filter>Rendering\Shaders\Deferred shaders</Filter>
-    </None>
-    <None Include="Shaders\DRPointLight.psh">
-      <Filter>Rendering\Shaders\Deferred shaders</Filter>
-    </None>
     <None Include="Shaders\DRGBuffer.vsh">
       <Filter>Rendering\Shaders\Deferred shaders</Filter>
     </None>
     <None Include="Shaders\DRGBuffer.psh">
-      <Filter>Rendering\Shaders\Deferred shaders</Filter>
-    </None>
-    <None Include="Shaders\DRDirectionalLight.vsh">
-      <Filter>Rendering\Shaders\Deferred shaders</Filter>
-    </None>
-    <None Include="Shaders\DRDirectionalLight.psh">
       <Filter>Rendering\Shaders\Deferred shaders</Filter>
     </None>
     <None Include="credits.txt">
@@ -634,6 +613,30 @@
     </None>
     <None Include="libconfig\libconfig++.dll">
       <Filter>Libraries\Libconfig</Filter>
+    </None>
+    <None Include="Shaders\WaterShader.vsh">
+      <Filter>Rendering\Shaders\Deferred shaders\Water</Filter>
+    </None>
+    <None Include="Shaders\WaterShader.gsh">
+      <Filter>Rendering\Shaders\Deferred shaders\Water</Filter>
+    </None>
+    <None Include="Shaders\WaterShader.psh">
+      <Filter>Rendering\Shaders\Deferred shaders\Water</Filter>
+    </None>
+    <None Include="Shaders\DRPointLight.psh">
+      <Filter>Rendering\Shaders\Deferred shaders\Lighting</Filter>
+    </None>
+    <None Include="Shaders\DRPointLight.vsh">
+      <Filter>Rendering\Shaders\Deferred shaders\Lighting</Filter>
+    </None>
+    <None Include="Shaders\DRDirectionalLight.psh">
+      <Filter>Rendering\Shaders\Deferred shaders\Lighting</Filter>
+    </None>
+    <None Include="Shaders\DRDirectionalLight.vsh">
+      <Filter>Rendering\Shaders\Deferred shaders\Lighting</Filter>
+    </None>
+    <None Include="Shaders\WaterAnimationVertexShader.vsh">
+      <Filter>Rendering\Shaders\Deferred shaders\Water</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -750,6 +753,18 @@
     </Filter>
     <Filter Include="Rendering\Managers\Textures and materials">
       <UniqueIdentifier>{7c81cc1f-4288-4e5c-abb0-41996f8f3793}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shaders\Deferred shaders\Water">
+      <UniqueIdentifier>{da1bdbce-f89e-4dde-8e5d-4b514eff0efa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shaders\Deferred shaders\Lighting">
+      <UniqueIdentifier>{07b57fd5-9f4d-49f6-b992-debb7dd48c94}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shader wrappers\Deferred rendering wrappers\Water">
+      <UniqueIdentifier>{352ab356-575e-4f66-ae5f-70ee5a6799a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shader wrappers\Deferred rendering wrappers\Lighting">
+      <UniqueIdentifier>{938f22ed-f852-4c01-869d-5b5504714088}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
