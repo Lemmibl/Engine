@@ -464,14 +464,18 @@ void GeometryShaderGrass::OnSettingsReload( Config* cfg )
 	settings.lookupValue("forceScale",					values.forceScale);
 	settings.lookupValue("waveLength",					values.waveLength);
 	settings.lookupValue("traversalSpeed",				values.traversalSpeed);
-	settings.lookupValue("grassMinimumHeightLevel",		values.minimumHeightLevel);
 	settings.lookupValue("grassMaximumHeightLevel",		values.maximumHeightLevel);
 	
 	settings.lookupValue("positionalRandomDeviance",	values.positionalRandomDeviance);
 	settings.lookupValue("angularRandomDeviance",		values.angularRandomDeviance);
 	settings.lookupValue("acceptableSlopeScale",		values.acceptableSlopeAngle);
 
-	const Setting& settings2 = cfg->getRoot()["rendering"];
+	Setting& settingsWater = cfg->getRoot()["shaders"]["waterShader"];	
+	settingsWater.lookupValue("waterLevels",		values.minimumHeightLevel);
 
-	settings2.lookupValue("farClip", values.farClip);
+	//We sample water level then add a little, so that we have a bit of a buffer zone before we start rendering grass.
+	values.minimumHeightLevel += 1.5f;
+
+	Setting& settingsRendering = cfg->getRoot()["rendering"];
+	settingsRendering.lookupValue("farClip", values.farClip);
 }

@@ -10,6 +10,9 @@ cbuffer AnimationDataBuffer
 	float farClip					: packoffset(c13.x);
 	float3 windDirection			: packoffset(c13.y);
 	float waterHeight				: packoffset(c14.x);
+	float largeWavePositionSamplingOffset : packoffset(c14.y);
+	float largeWaveHeightOffset		: packoffset(c14.z);
+	float largeWaveTimeSamplingOffset : packoffset(c14.w);
 }
 
 static const float4 UpNormal = normalize(float4(0.0f, 1.0f, 0.0f, 0.0f));
@@ -38,8 +41,14 @@ VSOutput WaterAnimationVertexShader(VSInput input)
 	//Calculate where we'll be sampling from, based on original vertex position, then offset by size offset, wind direction and delta time
 	output.TexCoord.xy = ((input.Position.xz*positionSamplingOffset)+(normalize(windDirection.xz) * scaledDeltaTime));
 
-	//Read and scale the height that we sample from the noise texture
+	//Large wave coordinates
+	float2 bigWaveTexCoord = ((input.Position.xz*positionSamplingOffset)+(normalize(windDirection.xz) * (scaledDeltaTime*4.0f))) * 0.07f;
+
+	//Read and scale the height that we sample from the noise texture to create small ripples
 	output.TexCoord.z = heightScaling * noiseTexture.SampleLevel(linearSampler, output.TexCoord.xy, 0);
+
+	//Then once more with bigger coordinates and a larger height scaling for actual big waves
+	output.TexCoord.z += 1.3f * noiseTexture.SampleLevel(linearSampler, bigWaveTexCoord, 0);
 
 	//Save linear depth
 	output.TexCoord.w = mul(pos, WorldView).z / farClip;

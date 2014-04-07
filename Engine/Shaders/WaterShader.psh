@@ -43,12 +43,12 @@ PSOutput WaterShaderPS(PSInput input)
 	PSOutput output;
 
 	//Offset by 0.2f and scale the rest by 0.8f to make the avg. color brighter while maintaining the same max value.
-	float waterColorOffset = waterColorStartOffset + (input.TexCoord.z * waterColorMultiplier);
+	float waterColorOffset = 1.0f / (0.001f+(3.5f - waterColorStartOffset + (input.TexCoord.z * waterColorMultiplier)));
 
 	//Depth has been stored in normal .w channel.
 	output.Depth = input.TexCoord.w;
 
-	float4 PreCalcNormal = normalize(float4(UpNormal + normalTexture.SampleLevel(linearSampler, input.TexCoord.xy, 0).xyz, 1.0f));
+	float4 PreCalcNormal = normalize(float4(UpNormal + normalTexture.SampleLevel(linearSampler, input.TexCoord.xy * 1.5f, 0).xyz, 1.0f));
 
 	float3 normal =  mul(PreCalcNormal, (float3x3)World).xyz;
 
@@ -57,7 +57,7 @@ PSOutput WaterShaderPS(PSInput input)
 
 	//So my mode of thinking here is that the higher the water is, the brighter the colors I want. 
 	//I feel this reflects reality because more light escapes the thinner the water is, if you know what I mean.
-	output.Color = saturate(float4(0.0f, 0.35f, 0.5f, 0.85f) * float4(waterColorOffset, waterColorOffset, waterColorOffset, 1.0f));
+	output.Color = saturate(float4(0.0f, 0.35f, 0.5f, 0.95f) * float4(waterColorOffset, waterColorOffset, waterColorOffset, 1.0f));
 
 	return output;
 }

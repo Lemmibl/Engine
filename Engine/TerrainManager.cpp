@@ -135,7 +135,7 @@ void JobThreadEntryPoint(void* terrainManagerPointer)
 			{
 				indexX = rand()%(int)stepCount.x;
 				indexZ = rand()%(int)stepCount.z;
-				
+
 				randPosX = actualPosX + (indexX*stepSize.x);
 				randPosZ = actualPosZ + (indexZ*stepSize.z);
 
@@ -151,10 +151,10 @@ void JobThreadEntryPoint(void* terrainManagerPointer)
 					//360 degrees =	6.28318531 radians. XM Rotation matrices are created from radians
 					//If we've found a proper position, store a scaled, rotated and translated world matrix to this point, into the chunk.
 					XMStoreFloat4x4(	&(chunk->GetBushTransforms()[i]), XMMatrixTranspose(	XMMatrixScaling(randScale, randScale, randScale) * 
-																								XMMatrixRotationY((float)(rand()%360)) * 
-																								XMMatrixTranslation(randPosX, resultHeight, randPosZ)
-																							)
-									);
+						XMMatrixRotationY((float)(rand()%360)) * 
+						XMMatrixTranslation(randPosX, resultHeight, randPosZ)
+						)
+						);
 
 					//If we found a proper position, increment loop
 					++i;
@@ -481,7 +481,7 @@ bool TerrainManager::UpdateAgainstAABB(Lemmi2DAABB* aabb, float deltaTime)
 		//Every few seconds we do a cleanup to remove old chunks
 		if(timePassed >= timeThreshold)
 		{
-			Cleanup(((aabb->MinPoint().x+aabb->MaxPoint().x)/2), ((aabb->MinPoint().y+aabb->MaxPoint().y)/2));
+			Cleanup(aabb->CenterPoint().x, aabb->CenterPoint().y);
 
 			//Reset
 			timePassed = 0.0f;
@@ -545,7 +545,7 @@ bool TerrainManager::UpdateAgainstAABB(Lemmi2DAABB* aabb, float deltaTime)
 				}
 				else
 				{
-					QueueChunkForCreation(neighbourKey.first, neighbourKey.second);
+					QueueChunkForCreation(neighbourKey.first, neighbourKey.second, (aabb->CenterPoint().x*stepScaling), (aabb->CenterPoint().y*stepScaling));
 				}
 			}
 		}
@@ -594,28 +594,32 @@ void TerrainManager::Cleanup(float posX, float posZ)
 	}
 }
 
-void TerrainManager::QueueChunkForCreation( int startPosX, int startPosZ)
+void TerrainManager::QueueChunkForCreation(int startPosX, int startPosZ, int cameraPosX, int cameraPosZ)
 {
-	std::pair<int,int> key(startPosX, startPosZ);
-
-	//See if the key that we're using already exists
-	unsigned int count = GetMap()->count(key);
-
-	//If the key doesn't exist, we go about creating the chunk
-	if(count == 0)
+	//So this is a sanity check to see if we aren't trying to create a chunk that is ... really far away, for whatever reason
+	if(abs(startPosX - cameraPosX) < 15 && abs(startPosZ - cameraPosZ) < 15)
 	{
-		if(numThreads <= 1)
-		{
-			CreateChunk(device, startPosX, startPosZ);
-		}
-		else
-		{
+		std::pair<int,int> key(startPosX, startPosZ);
 
-			//Insert the key and newly created chunk
-			GetMap()->emplace(std::make_pair<std::pair<int,int>, std::pair<bool, std::shared_ptr<MarchingCubeChunk>>>(key, std::make_pair<bool, std::shared_ptr<MarchingCubeChunk>>(false, nullptr)));
+		//See if the key that we're using already exists
+		unsigned int count = GetMap()->count(key);
 
-			//Push key into production line to tell the work threads to begin noising and creating this chunk properly
-			preProductionQueue.Push(key);
+		//If the key doesn't exist, we go about creating the chunk
+		if(count == 0)
+		{
+			if(numThreads <= 1)
+			{
+				CreateChunk(device, startPosX, startPosZ);
+			}
+			else
+			{
+
+				//Insert the key and newly created chunk
+				GetMap()->emplace(std::make_pair<std::pair<int,int>, std::pair<bool, std::shared_ptr<MarchingCubeChunk>>>(key, std::make_pair<bool, std::shared_ptr<MarchingCubeChunk>>(false, nullptr)));
+
+				//Push key into production line to tell the work threads to begin noising and creating this chunk properly
+				preProductionQueue.Push(key);
+			}
 		}
 	}
 }

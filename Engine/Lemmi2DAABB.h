@@ -22,6 +22,7 @@ class Lemmi2DAABB
 	~Lemmi2DAABB(){}
 
 	XMFLOAT2 MinPoint() const { return minPoint; }
+	XMFLOAT2 CenterPoint() const { return centerPosition; }
 	XMFLOAT2 MaxPoint() const { return maxPoint; }
 
 	void Resize(float xAxis, float yAxis) { xSize = xAxis; ySize = yAxis; }
@@ -121,6 +122,8 @@ class Lemmi2DAABB
 	{
 		minPoint.x = x;
 		minPoint.y = y;
+		centerPosition.x = x+(xSize/2);
+		centerPosition.y = y+(ySize/2);
 		maxPoint.x = x+xSize;
 		maxPoint.y = y+ySize;
 	}

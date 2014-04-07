@@ -93,7 +93,7 @@ public:
 	bool GetChunk(int x, int z, MarchingCubeChunk** outChunk);
 
 	//This here is where we first decide to create a chunk
-	void QueueChunkForCreation(int startPosX, int startPosZ);
+	void QueueChunkForCreation(int startPosX, int startPosZ, int cameraPosX, int cameraPosZ);
 
 	//After the work threads have finished everything, we need to do a few final tweaks before the chunk is ready to be released into the world
 	void ChunkFinalizing(ID3D11Device* device);

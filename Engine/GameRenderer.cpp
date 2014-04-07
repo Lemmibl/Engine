@@ -420,12 +420,18 @@ bool GameRenderer::InitializeEverythingElse( HWND hwnd )
 
 bool GameRenderer::Update( HWND hwnd, int fps, int cpuPercentage, float millisecondDeltaTime, float secondDeltaTime, XMFLOAT3* windDirection )
 {
+	//Speed up the change of day
+	if(inputManager->IsKeyPressed(DIK_1))
+	{
+		secondDeltaTime += (millisecondDeltaTime*0.2f);
+	}
+
 	timer += secondDeltaTime;
 	textureOffsetDeltaTime += secondDeltaTime;
 	windDir = *windDirection;
 
 	//Reset every once in a while.
-	if(textureOffsetDeltaTime >= 30.0f)
+	if(textureOffsetDeltaTime >= 300.0f)
 	{
 		textureOffsetDeltaTime = -textureOffsetDeltaTime;
 	}
@@ -479,12 +485,6 @@ bool GameRenderer::Update( HWND hwnd, int fps, int cpuPercentage, float millisec
 		{
 			XMStoreFloat4x4(&treeMatrices[i], XMMatrixRotationRollPitchYaw(0.0f, secondDeltaTime, 0.0f) * XMLoadFloat4x4(&treeMatrices[i]));
 		}
-	}
-
-	//Speed up the change of day
-	if(inputManager->IsKeyPressed(DIK_1))
-	{
-		secondDeltaTime += (millisecondDeltaTime*0.2f);
 	}
 
 	//Toggle the coloring mode of materials

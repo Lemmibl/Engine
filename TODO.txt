@@ -5,6 +5,8 @@
 
 Fixes:
 
+* FINALLY FIX SSAO
+
 * Fixing the SSAO shader...
 	-> Look at that old gamasutra article
 	-> Look and make sure that all normals are saved in the same space and that everything is transposed properly
@@ -21,6 +23,10 @@ Fixes:
 * Depth only OBJ shader for shadow stage
 
 Features:
+
+* When camera moves below waterHeight, the screen gets a blue filter
+
+* Simple rain or snow screen shader
 
 * Spotlight shader
 

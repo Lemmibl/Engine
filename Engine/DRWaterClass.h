@@ -32,6 +32,9 @@ private:
 		float farClip;
 		XMFLOAT3 windDirection;
 		float waterHeight; //This is the height at where we will render the water.
+		float largeWavePositionSamplingOffset;
+		float largeWaveHeightOffset;
+		float largeWaveTimeSamplingOffset;
 	};
 
 	struct GeometryVariableBuffer
