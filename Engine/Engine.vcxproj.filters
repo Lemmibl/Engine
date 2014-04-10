@@ -596,9 +596,6 @@
     <None Include="..\TODO.txt">
       <Filter>Text files</Filter>
     </None>
-    <None Include="FullscreenQuadVertexShader.vsh">
-      <Filter>Rendering\Shaders\General shaders</Filter>
-    </None>
     <None Include="settings.cfg">
       <Filter>Text files</Filter>
     </None>
@@ -637,6 +634,9 @@
     </None>
     <None Include="Shaders\WaterAnimationVertexShader.vsh">
       <Filter>Rendering\Shaders\Deferred shaders\Water</Filter>
+    </None>
+    <None Include="Shaders\FullscreenQuadVertexShader.vsh">
+      <Filter>Rendering\Shaders\General shaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

@@ -56,15 +56,12 @@ void DRDirLight::Shutdown()
 	return;
 }
 
-bool DRDirLight::Render( ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldViewProjection, XMMATRIX* worldView, 
-XMMATRIX* world, XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* invertedProjection, XMMATRIX* lightView, XMMATRIX* lightProj, 
-ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** materialTextureArray, XMFLOAT3 cameraPosition, DirLight* dirLight, XMFLOAT4 ambienceColor)
+bool DRDirLight::Render( ID3D11DeviceContext* deviceContext, int indexCount, DirectionalLightInput& input)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldViewProjection, worldView, world, view, invertedView, invertedProjection, lightView, lightProj, textureArray, materialTextureArray, 
-		cameraPosition, dirLight, ambienceColor);
+	result = SetShaderParameters(deviceContext, input);
 	if(!result)
 	{
 		return false;
@@ -91,10 +88,10 @@ bool DRDirLight::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFile
 	D3D11_BUFFER_DESC vertexMatrixBufferDesc;
 	D3D11_BUFFER_DESC pixelMatrixBufferDesc;
 
-	//// Initialize the pointers this function will use to null.
-	//errorMessage = 0;
-	//vertexShaderBuffer = 0;
-	//pixelShaderBuffer = 0;
+	// Initialize the pointers this function will use to null.
+	errorMessage.p = 0;
+	vertexShaderBuffer.p = 0;
+	pixelShaderBuffer.p = 0;
 
 	// Compile the vertex shader code.
 	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "LightVertexShader", "vs_5_0", NULL, 0, NULL, 
@@ -106,7 +103,6 @@ bool DRDirLight::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFile
 		{
 			OutputShaderErrorMessage(errorMessage, hwnd, vsFilename);
 		}
-		// If there was nothing in the error message then it simply could not find the shader file itself.
 		else
 		{
 			MessageBox(hwnd, vsFilename, L"Missing Shader File", MB_OK);
@@ -125,7 +121,6 @@ bool DRDirLight::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFile
 		{
 			OutputShaderErrorMessage(errorMessage, hwnd, psFilename);
 		}
-		// If there was nothing in the error message then it simply could not find the file itself.
 		else
 		{
 			MessageBox(hwnd, psFilename, L"Missing Shader File", MB_OK);
@@ -415,9 +410,7 @@ void DRDirLight::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, W
 	return;
 }
 
-bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, XMMATRIX* worldView, XMMATRIX* world, 
-XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* invertedProjection, XMMATRIX* lightView, XMMATRIX* lightProj, ID3D11ShaderResourceView** textureArray, 
-	ID3D11ShaderResourceView** materialTextureArray, XMFLOAT3 cameraPosition, DirLight* dirLight, XMFLOAT4 ambienceColor)
+bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, DirectionalLightInput& input)
 {		
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -440,7 +433,9 @@ XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* invertedProjection, XMMATRIX* 
 	// Get a pointer to the data in the constant buffer.
 	dataPtr1 = (VertexMatrixBuffer*)mappedResource.pData;
 
-	dataPtr1->WorldViewProjection = *worldViewProjection;
+	dataPtr1->WorldViewProjection = *input.worldViewProjection;
+	dataPtr1->WorldView = *input.worldView;
+	dataPtr1->InvertedProjection = *input.invertedProjection;
 	//dataPtr1->WorldView = *worldView;
 	//dataPtr1->World = *world;
 	//dataPtr1->InvertedViewProjection = XMMatrixMultiplyTranspose(*invertedView, *invertedProjection);
@@ -465,8 +460,8 @@ XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* invertedProjection, XMMATRIX* 
 	// Get a pointer to the data in the constant buffer.
 	dataPtr2 = (PositionalBuffer*)mappedResource.pData;
 
-	dataPtr2->LightDirection = XMFLOAT4(dirLight->Direction.x, dirLight->Direction.y, dirLight->Direction.z, dirLight->Intensity);
-	dataPtr2->CameraPosition = XMFLOAT4(cameraPosition.x, cameraPosition.y, cameraPosition.z, cameraFarClip);
+	dataPtr2->LightDirection = XMFLOAT4(input.dirLight->Direction.x, input.dirLight->Direction.y, input.dirLight->Direction.z, input.dirLight->Intensity);
+	dataPtr2->CameraPosition = XMFLOAT4(input.cameraPosition.x, input.cameraPosition.y, input.cameraPosition.z, cameraFarClip);
 
 	deviceContext->Unmap(positionalBuffer, 0);
 
@@ -485,10 +480,9 @@ XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* invertedProjection, XMMATRIX* 
 
 	dataPtr3 = (PixelMatrixBuffer*)mappedResource.pData;
 
-	dataPtr3->InvertedView = *invertedView;
-	dataPtr3->InvertedProjection = *invertedProjection;
-	dataPtr3->LightView = *lightView;
-	dataPtr3->LightProjection = *lightProj;
+	dataPtr3->InvertedView = *input.invertedView;
+	dataPtr3->LightViewProj = *input.lightViewProj;
+	dataPtr3->LightView = *input.lightView;
 
 	deviceContext->Unmap(pixelMatrixBuffer, 0);
 
@@ -510,8 +504,8 @@ XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* invertedProjection, XMMATRIX* 
 	dataPtr4 = (LightBuffer*)mappedResource.pData;
 
 	// Copy the lighting variables into the constant buffer.
-	dataPtr4->DiffuseColor = dirLight->Color;
-	dataPtr4->AmbienceColor = ambienceColor;
+	dataPtr4->DiffuseColor = input.dirLight->Color;
+	dataPtr4->AmbienceColor = input.ambienceColor;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(lightBuffer, 0);
@@ -523,8 +517,8 @@ XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* invertedProjection, XMMATRIX* 
 	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &lightBuffer.p);
 
 	// Set shader texture resources in the pixel shader.
-	deviceContext->PSSetShaderResources(0, 1, materialTextureArray);
-	deviceContext->PSSetShaderResources(1, 4, textureArray);
+	deviceContext->PSSetShaderResources(0, 1, input.materialTextureArray);
+	deviceContext->PSSetShaderResources(1, 4, input.textureArray);
 
 	return true;
 }

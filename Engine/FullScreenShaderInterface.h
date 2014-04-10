@@ -1,17 +1,20 @@
 #pragma once
+#include <d3d11.h>
+#include <atlcomcli.h>
+#include <d3dx11async.h>
+
 class FullScreenShaderInterface
 {
-private:
-	//Literally empty
-	struct EmptyVertex
-	{
-	};
-
-public:
+	public:
 	FullScreenShaderInterface();
-	~FullScreenShaderInterface();
+	virtual ~FullScreenShaderInterface();
 
-	//Just three literally empty vertices, used for the vertex shader
-	EmptyVertex emptyVertices[3];
+	public:
+	void InitializeShader(ID3D11Device* device, HWND hwnd);
+	void SetupDrawCall(ID3D11DeviceContext* deviceContext);
+	void DrawFullScreenQuad(ID3D11DeviceContext* deviceContext);
+
+	private:
+	CComPtr<ID3D11VertexShader> vertexShader;
 };
 

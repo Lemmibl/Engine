@@ -114,12 +114,16 @@ private:
 	//bool RenderTerrain();
 	//bool RenderVegetation();
 
-	bool RenderDirectionalLight(XMMATRIX* viewMatrix, XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* lightView, XMMATRIX* lightProj, XMMATRIX* invertedProjection);
+	bool RenderDirectionalLight(DRDirLight::DirectionalLightInput& input);
 	bool RenderPointLight(XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* invertedProjection, XMMATRIX* viewProjection);
-	bool RenderComposedScene(XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* worldView, XMMATRIX* view, XMMATRIX* invertedProjection, XMMATRIX* invertedViewProjection);
+	bool RenderComposedScene(DRCompose::ComposeShaderInput& input);
 	bool RenderGUI(XMMATRIX* worldBaseViewOrthoProj);
 
 private:
+
+	/************************************************************************/
+	/* Various managers, handlers and system pointers                       */
+	/************************************************************************/
 	ID3D11DeviceContext* deviceContext;
 	ID3D11Device* device;
 
@@ -131,64 +135,20 @@ private:
 	TextureCreator textureCreator;
 	TextureHandler textureHandler;
 	MaterialHandler materialHandler;
-	ProceduralTextureHandler proceduralTextureHandler;
-
-	std::vector<XMFLOAT4X4> treeMatrices;
-	int numtrees;
-
-	DebugOverlayHUD* debugHUD;
-	std::vector<DebugWindowHandle> debugWindowHandles;
-
-	DRPointLight pointLightShader;
-	std::vector<PointLight> pointLights;
-
-	VertexShaderOnly vertexOnlyShader;
-	DepthOnlyShader depthOnlyShader;
-	DRGBuffer gbufferShader;
-	DRCompose composeShader;
-	GaussianBlur gaussianBlurShader;
-	GeometryShaderGrass geometryShaderGrass;
-	DRWaterClass waterShader;
-	MCGBufferTerrainShader mcubeShader;
-	DRObjModelShader objModelShader;
-
-	DRDirLight dirLightShader;
-	DirLight dirLight;
-
-	ModelClass sphereModel;
-	Skysphere skySphere;
-
-	TextureShaderClass textureShader;
-	DebugWindowClass debugWindows[7];
-	DebugWindowClass fullScreenQuad;
-
-	XMFLOAT4X4 baseViewMatrix;
-
-	UINT shadowMapWidth, shadowMapHeight, screenWidth, screenHeight;
-	float farClip, nearClip, timer, timeOfDay;
-
-	bool returning, toggleDebugInfo, toggleTextureShader, toggleOtherPointLights, drawWireFrame;
-	float fogMinimum;
-
+	ProceduralTextureHandler proceduralTextureHandler;	
 	DayNightCycle dayNightCycle;
 	NoiseClass noise;
-
 	Utility utility;
 
-	int toggleSSAO, toggleColorMode;
-	float xPos, yPos, textureOffsetDeltaTime;
-
-	XMFLOAT3 camPos, camDir, windDir;
-
+	/************************************************************************/
+	/* Render targets and necessary rendering states and objects            */
+	/************************************************************************/
 	RenderTarget2D colorRT; // render target for storing color. 8R 8G 8B 8A. stores specular intensity in alpha value.
 	RenderTarget2D depthRT; // render target for storing depth. it's a R16 G16 because we use variance shadowmapping
 	RenderTarget2D normalRT; //render target for storing normals. 8R 8G 8B 8A. stores specular power in alpha value.
 	RenderTarget2D lightRT; // light rendertarget
 	RenderTarget2D shadowRT; //Shadow map
 	RenderTarget2D gaussianBlurPingPongRT; //Used for blurring shadow map
-
-	//http://stackoverflow.com/questions/2319224/dynamic-array-of-com-objects
-	//http://369o.com/data/books/atl/0321159624/ch03lev1sec4.html
 
 	CComPtr<ID3D11RenderTargetView> gbufferRenderTargets[3]; //render targets for GBuffer pass
 	CComPtr<ID3D11RenderTargetView> lightTarget[1];
@@ -203,4 +163,59 @@ private:
 
 	CComPtr<ID3D11DepthStencilView> shadowDepthStencil;
 	CComPtr<ID3D11DepthStencilView> depthStencil;
+
+	/************************************************************************/
+	/* Shaders                                                              */
+	/************************************************************************/
+	VertexShaderOnly vertexOnlyShader;
+	DepthOnlyShader depthOnlyShader;
+	DRGBuffer gbufferShader;
+	DRCompose composeShader;
+	GaussianBlur gaussianBlurShader;
+	GeometryShaderGrass geometryShaderGrass;
+	DRWaterClass waterShader;
+	MCGBufferTerrainShader mcubeShader;
+	DRObjModelShader objModelShader;
+
+	/************************************************************************/
+	/* Shader input objects                                                 */
+	/************************************************************************/
+	DRDirLight::DirectionalLightInput dirLightInput;
+	DRCompose::ComposeShaderInput composeInput;
+
+	/************************************************************************/
+	/* Light and models                                                     */
+	/************************************************************************/
+	DebugWindowClass fullScreenQuad;
+
+	std::vector<XMFLOAT4X4> treeMatrices;
+	int numtrees;
+
+	DRPointLight pointLightShader;
+	std::vector<PointLight> pointLights;
+
+	DRDirLight dirLightShader;
+	DirLight dirLight;
+
+	ModelClass sphereModel;
+	Skysphere skySphere;
+
+	/************************************************************************/
+	/* Debug data                                                           */
+	/************************************************************************/
+	TextureShaderClass textureShader;
+	DebugWindowClass debugWindows[7];
+
+	DebugOverlayHUD* debugHUD;
+	std::vector<DebugWindowHandle> debugWindowHandles;
+
+	/************************************************************************/
+	/* Miscellaneous                                                        */
+	/************************************************************************/
+	XMFLOAT4X4 baseViewMatrix;
+	XMFLOAT3 camPos, camDir, windDir;
+	UINT shadowMapWidth, shadowMapHeight, screenWidth, screenHeight;
+	int toggleSSAO, toggleColorMode;
+	float xPos, yPos, textureOffsetDeltaTime, fogMinimum, farClip, nearClip, timer, timeOfDay;;
+	bool returning, toggleDebugInfo, toggleTextureShader, toggleOtherPointLights, drawWireFrame;
 };

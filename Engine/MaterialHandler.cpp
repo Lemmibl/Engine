@@ -2,8 +2,9 @@
 
 
 MaterialHandler::MaterialHandler()
-: modelMaterials(32)
+: SettingsDependent(), modelMaterials(32)
 {
+	waterLevel = 0;
 }
 
 
@@ -13,6 +14,8 @@ MaterialHandler::~MaterialHandler()
 
 bool MaterialHandler::Initialize(ID3D11Device* extDevice, ID3D11DeviceContext* extDeviceContext, TextureCreator* extTexCreator, NoiseClass* extNoise)
 {
+	InitializeSettings(this);
+
 	device = extDevice;
 	deviceContext = extDeviceContext;
 	texCreator = extTexCreator;
@@ -132,7 +135,7 @@ bool MaterialHandler::Initialize(ID3D11Device* extDevice, ID3D11DeviceContext* e
 
 		for(size_t i = 0; i < pixelData.size(); i++)
 		{
-			if(i <= 5)
+			if(i <= waterLevel)
 			{
 				//Only dirt
 				texture1 = 0;
@@ -141,7 +144,7 @@ bool MaterialHandler::Initialize(ID3D11Device* extDevice, ID3D11DeviceContext* e
 				material1 = 3;
 				material2 = 3;
 			}
-			else if(i <= 6)
+			else if(i <= waterLevel+1)
 			{
 				//Dirt and grass
 				texture1 = 0;
@@ -150,7 +153,7 @@ bool MaterialHandler::Initialize(ID3D11Device* extDevice, ID3D11DeviceContext* e
 				material1 = 3;
 				material2 = 0;
 			}
-			else if(i <= 44)
+			else if(i <= waterLevel+21)
 			{
 				//Only grass
 				texture1 = 1;
@@ -159,7 +162,7 @@ bool MaterialHandler::Initialize(ID3D11Device* extDevice, ID3D11DeviceContext* e
 				material1 = 0;
 				material2 = 0;
 			}
-			else if( i <= 45)
+			else if( i <= waterLevel+22)
 			{
 				//Grass and rock
 				texture1 = 1;
@@ -168,7 +171,7 @@ bool MaterialHandler::Initialize(ID3D11Device* extDevice, ID3D11DeviceContext* e
 				material1 = 0;
 				material2 = 1;
 			}
-			else if(i <= 46)
+			else if(i <= waterLevel+23)
 			{
 				//Rock and snow
 				texture1 = 2;
@@ -177,7 +180,7 @@ bool MaterialHandler::Initialize(ID3D11Device* extDevice, ID3D11DeviceContext* e
 				material1 = 1;
 				material2 = 2;
 			}
-			else if(i <= 190)
+			else if(i <= waterLevel+170)
 			{
 				//Dirt and grass
 				texture1 = 4;
@@ -186,7 +189,7 @@ bool MaterialHandler::Initialize(ID3D11Device* extDevice, ID3D11DeviceContext* e
 				material1 = 2;
 				material2 = 2;
 			}
-			else if(i <= 191)
+			else if(i <= waterLevel+171)
 			{
 				//Dirt and grass
 				texture1 = 4;
@@ -320,4 +323,11 @@ bool MaterialHandler::Initialize(ID3D11Device* extDevice, ID3D11DeviceContext* e
 		hash += (material.transparent ? 10000.0f : 100000.0f);
 
 		return (unsigned int)hash;
+	}
+
+	void MaterialHandler::OnSettingsReload( Config* cfg )
+	{
+		auto& settings = cfg->getRoot()["shaders"]["waterShader"];
+
+		settings.lookupValue("waterLevels", waterLevel);
 	}

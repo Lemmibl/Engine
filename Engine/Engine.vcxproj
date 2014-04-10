@@ -187,7 +187,6 @@
   <ItemGroup>
     <None Include="..\TODO.txt" />
     <None Include="credits.txt" />
-    <None Include="FullscreenQuadVertexShader.vsh" />
     <None Include="libconfig\libconfig++.dll" />
     <None Include="libconfig\libconfig.h++" />
     <None Include="OBJGbuffer.vsh" />
@@ -207,6 +206,7 @@
     <None Include="Shaders\DRGBuffer.vsh" />
     <None Include="Shaders\DRPointLight.psh" />
     <None Include="Shaders\DRPointLight.vsh" />
+    <None Include="Shaders\FullscreenQuadVertexShader.vsh" />
     <None Include="Shaders\gaussianBlurX.psh" />
     <None Include="Shaders\gaussianBlurY.psh" />
     <None Include="Shaders\GeometryShaderGrass.gsh" />

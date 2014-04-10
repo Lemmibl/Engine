@@ -603,8 +603,8 @@ bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 
 #pragma region Matrix preparations
 	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, viewProjection, invertedViewProjection, invertedView, 
-		lightView, lightProj, baseView, worldBaseViewOrthoProj, identityWorldViewProj, lightWorldViewProj, 
-		invertedProjection, lightWorldView, invertedWorldView, worldBaseView;
+		lightView, lightProj, lightViewProj, baseView, worldBaseViewOrthoProj, identityWorldViewProj, lightWorldViewProj, 
+		invertedProjection, lightWorldView, invertedWorldView, worldBaseView, invertedBaseView, lightViewAndInvertedCameraView;
 
 	//XMMATRIX shadowScaleBiasMatrix = new XMMATRIX
 	//	(
@@ -618,11 +618,14 @@ bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 	camera->GetOrthographicProjection(orthoMatrix);
 	camera->GetViewMatrix(viewMatrix);
 	camera->GetProjectionMatrix(projectionMatrix);
+	baseView = XMLoadFloat4x4(&baseViewMatrix);
 	lightView = XMLoadFloat4x4(&dirLight.View);
 	lightProj = XMLoadFloat4x4(&dirLight.Projection);
 
+	lightViewProj = lightView * lightProj;
+
 	//XMVECTOR nullVec = ;
-	viewProjection = XMMatrixMultiply(viewMatrix, projectionMatrix);
+	viewProjection = viewMatrix * projectionMatrix;
 
 	invertedView = XMMatrixInverse(&XMVectorSplatOne(), viewMatrix);
 	invertedProjection = XMMatrixInverse(&XMVectorSplatOne(), projectionMatrix);
@@ -633,13 +636,15 @@ bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 	lightWorldViewProj = worldMatrix * lightView * lightProj;
 
 	identityWorldViewProj = worldMatrix * viewMatrix * projectionMatrix;
-	worldBaseView = worldMatrix * XMLoadFloat4x4(&baseViewMatrix);
+	worldBaseView = worldMatrix * baseView;
 
+	lightViewAndInvertedCameraView = XMMatrixTranspose(XMMatrixMultiply(lightView, invertedView));
 
 	lightWorldView =			XMMatrixTranspose(lightWorldView);
 	lightWorldViewProj =		XMMatrixTranspose(lightWorldViewProj);
 	lightView =					XMMatrixTranspose(lightView);
 	lightProj =					XMMatrixTranspose(lightProj);
+	lightViewProj =				XMMatrixTranspose(lightViewProj);
 
 	invertedView =				XMMatrixTranspose(invertedView);
 	invertedWorldView =			XMMatrixTranspose(invertedWorldView);
@@ -649,7 +654,7 @@ bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 	worldMatrix =				XMMatrixTranspose(worldMatrix);
 	//viewMatrix =				XMMatrixTranspose(viewMatrix);
 	//projectionMatrix =		XMMatrixTranspose(projectionMatrix);
-	baseView =					XMMatrixTranspose(XMLoadFloat4x4(&baseViewMatrix));
+	invertedBaseView =			XMMatrixTranspose(XMMatrixInverse(&XMVectorSplatOne(), 	invertedBaseView));
 
 	worldBaseView =				XMMatrixTranspose(worldBaseView);
 	//viewProjection =			XMMatrixTranspose(viewProjection);
@@ -659,6 +664,39 @@ bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 	worldBaseViewOrthoProj =	(worldMatrix * baseView * orthoMatrix);
 
 	baseView = XMMatrixTranspose(baseView);
+#pragma endregion
+
+#pragma region Prepare input structs...
+//Directional light
+dirLightInput.worldViewProjection = &worldBaseViewOrthoProj;
+dirLightInput.worldView = &worldBaseView;
+dirLightInput.world = &XMMatrixTranspose(XMMatrixIdentity());
+dirLightInput.view = &XMMatrixTranspose(viewMatrix);
+dirLightInput.invertedView = &invertedView;
+dirLightInput.invertedProjection = &invertedProjection;
+dirLightInput.lightViewAndInvertedCameraView = &lightViewAndInvertedCameraView;
+dirLightInput.lightView = &lightView;
+dirLightInput.lightProj = &lightProj;
+dirLightInput.lightViewProj = &lightViewProj;
+dirLightInput.dirLight = &dirLight;
+dirLightInput.textureArray = &dirLightTextures[0].p;
+dirLightInput.materialTextureArray = materialHandler.GetMaterialTextureArray();
+dirLightInput.ambienceColor = dayNightCycle.GetAmbientLightColor();
+dirLightInput.cameraPosition = camPos;
+
+//Compose shader
+composeInput.worldViewProjection = &worldBaseViewOrthoProj;
+composeInput.worldView = &worldBaseView;
+composeInput.view = &baseView; 
+composeInput.invertedProjection = &invertedProjection;
+composeInput.invViewProjection = &invertedViewProjection;
+composeInput.fogColor = &dayNightCycle.GetAmbientLightColor();
+composeInput.fogMinimum = fogMinimum;
+composeInput.textureArray = &finalTextures[0].p;
+composeInput.randomTexture = *proceduralTextureHandler.GetSSAORandomTexture();
+composeInput.toggle = toggleSSAO;
+composeInput.lightIntensity = dirLight.Intensity;
+composeInput.cameraHeight = camPos.y;
 #pragma endregion
 
 	//Send untransposed lightView/lightProj here
@@ -682,12 +720,12 @@ bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 		return false;
 	}
 
-	if(!RenderDirectionalLight(&viewMatrix, &worldBaseViewOrthoProj, &lightView, &lightProj, &invertedProjection))
+	if(!RenderDirectionalLight(dirLightInput)) 
 	{
 		return false;
 	}
 
-	if(!RenderComposedScene(&worldBaseViewOrthoProj, &worldBaseView, &baseView, &invertedProjection, &invertedViewProjection))
+	if(!RenderComposedScene(composeInput))
 	{
 		return false;
 	}
@@ -748,7 +786,7 @@ bool GameRenderer::RenderShadowmap( XMMATRIX* lightWorldViewProj, XMMATRIX* ligh
 
 	//for(unsigned int i = 0; i < chunks.size(); ++i)
 	//{
-	//	//Retarded little hack to see viability of rendering many trees
+	//	//Dumb hack to see viability of rendering many trees
 	//	for(unsigned int k = 0; k < chunks[i]->GetBushCount(); ++k)
 	//	{
 	//		world = XMLoadFloat4x4(&chunks[i]->GetBushTransforms()[k]); /*XMMatrixTranspose(XMLoadFloat4x4(&(treeMatrices.at(k))));*/
@@ -1020,37 +1058,21 @@ bool GameRenderer::RenderPointLight(XMMATRIX* view, XMMATRIX* invertedView, XMMA
 }
 
 
-bool GameRenderer::RenderDirectionalLight(XMMATRIX* viewMatrix, XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* lightView, XMMATRIX* lightProj, XMMATRIX* invertedProjection )
+bool GameRenderer::RenderDirectionalLight(DRDirLight::DirectionalLightInput& input)
 {
-	XMMATRIX worldMatrix, worldView, invertedWorldView, invertedView;
-
 	//Directional light stage
 	/*TODO: Create a directional light stencilstate that does a NOTEQUAL==0 stencil check.*/
-
 	d3D->GetDepthStencilManager()->SetDepthDisabledStencilState();
 	d3D->GetRasterizerStateManager()->SetNoCullRasterizer();
 
 	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-	XMVECTOR det = XMVectorSplatOne();
-	worldMatrix = XMMatrixIdentity();
-	worldView = (worldMatrix * (*viewMatrix));
-	invertedView = XMMatrixInverse(&det, (*viewMatrix));
-	invertedWorldView = XMMatrixInverse(&det, worldView);
-
-	invertedView = XMMatrixTranspose(invertedView);
-	worldMatrix = XMMatrixTranspose(worldMatrix);
-	worldView = XMMatrixTranspose(worldView);
-	invertedWorldView = XMMatrixTranspose(invertedWorldView);
 
 	if(!fullScreenQuad.Render(deviceContext, 0, 0))
 	{
 		return false;
 	}
 
-	if(!dirLightShader.Render(deviceContext, fullScreenQuad.GetIndexCount(), worldBaseViewOrthoProj, &worldView, &worldMatrix, viewMatrix, 
-		&invertedView, invertedProjection, lightView, lightProj, &dirLightTextures[0].p, materialHandler.GetMaterialTextureArray(), 
-		camPos, &dirLight, dayNightCycle.GetAmbientLightColor()))
+	if(!dirLightShader.Render(deviceContext, fullScreenQuad.GetIndexCount(), input))
 	{
 		return false;
 	}
@@ -1058,7 +1080,7 @@ bool GameRenderer::RenderDirectionalLight(XMMATRIX* viewMatrix, XMMATRIX* worldB
 	return true;
 }
 
-bool GameRenderer::RenderComposedScene(XMMATRIX* worldBaseViewOrthoProj, XMMATRIX* worldView, XMMATRIX* view, XMMATRIX* invertedProjection, XMMATRIX* invertedViewProjection )
+bool GameRenderer::RenderComposedScene(DRCompose::ComposeShaderInput& input)
 {
 	//Render final composed scene that is the sum of all the previous scene
 	d3D->ResetBackBufferRenderTarget();
@@ -1072,8 +1094,7 @@ bool GameRenderer::RenderComposedScene(XMMATRIX* worldBaseViewOrthoProj, XMMATRI
 		return false;
 	}
 
-	if(!composeShader.Render(deviceContext, fullScreenQuad.GetIndexCount(), worldBaseViewOrthoProj, worldView, view, invertedProjection, 
-		invertedViewProjection, &dayNightCycle.GetAmbientLightColor(), fogMinimum, &finalTextures[0].p, *proceduralTextureHandler.GetSSAORandomTexture(), toggleSSAO, dirLight.Intensity))
+	if(!composeShader.Render(deviceContext, fullScreenQuad.GetIndexCount(), input))
 	{
 		return false;
 	}

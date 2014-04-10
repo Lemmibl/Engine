@@ -61,15 +61,12 @@ void DRCompose::Shutdown()
 	return;
 }
 
-bool DRCompose::Render( ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldViewProjection, XMMATRIX* worldView, XMMATRIX* view,
-	 XMMATRIX* invertedProjection, XMMATRIX* invViewProjection, XMFLOAT4* fogColor, float fogMinimum, ID3D11ShaderResourceView** textureArray, 
-	 ID3D11ShaderResourceView* randomTexture, int toggle, float lightIntensity )
+bool DRCompose::Render( ID3D11DeviceContext* deviceContext, int indexCount, ComposeShaderInput& input)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldViewProjection, worldView, view, invertedProjection, invViewProjection, fogColor, fogMinimum, 
-		textureArray, randomTexture, toggle, lightIntensity);
+	result = SetShaderParameters(deviceContext, input);
 	if(!result)
 	{
 		return false;
@@ -370,9 +367,7 @@ void DRCompose::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WC
 	return;
 }
 
-bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRIX* worldViewProjection, XMMATRIX* worldView, XMMATRIX* view, 
-	XMMATRIX* invertedProjection, XMMATRIX* invViewProjection, XMFLOAT4* fogColor, float fogMinimum, ID3D11ShaderResourceView** textureArray, 
-	ID3D11ShaderResourceView* randomTexture, int toggle, float lightIntensity )
+bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, ComposeShaderInput& input)
 {		
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -394,8 +389,8 @@ bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRI
 	// Get a pointer to the data in the constant buffer.
 	dataPtr1 = (VertexMatrixBuffer*)mappedResource.pData;
 
-	dataPtr1->WorldViewProjection = *worldViewProjection;
-	dataPtr1->WorldView = *worldView;
+	dataPtr1->WorldViewProjection = *input.worldViewProjection;
+	dataPtr1->WorldView = *input.worldView;
 
 	deviceContext->Unmap(vertexMatrixBuffer, 0);
 
@@ -417,9 +412,9 @@ bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRI
 	// Get a pointer to the data in the constant buffer.
 	dataPtr2 = (PixelMatrixBuffer*)mappedResource.pData;
 
-	dataPtr2->View = *view;
-	dataPtr2->InvertedProjection = *invertedProjection;
-	dataPtr2->FogColor = XMFLOAT4(fogColor->x, fogColor->y, fogColor->z, fogMinimum);
+	dataPtr2->View = *input.view;
+	dataPtr2->InvertedProjection = *input.invertedProjection;
+	dataPtr2->FogColor = XMFLOAT4(input.fogColor->x, input.fogColor->y, input.fogColor->z, input.fogMinimum);
 
 	deviceContext->Unmap(pixelMatrixBuffer, 0);
 
@@ -428,15 +423,15 @@ bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRI
 
 	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &pixelMatrixBuffer.p);
 
-	if(variables.toggleSSAO != toggle)
-	{
-		bufferNeedsUpdate = true;
-	}
+	//if(variables.toggleSSAO != input.toggle)
+	//{
+	//	bufferNeedsUpdate = true;
+	//}
 
 	/////////////#3
-	if(bufferNeedsUpdate)
-	{
-		variables.toggleSSAO = toggle;
+	//if(bufferNeedsUpdate)
+	//{
+		variables.toggleSSAO = input.toggle;
 
 		// Lock the vertex constant buffer so it can be written to.
 		result = deviceContext->Map(variableBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -458,11 +453,13 @@ bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRI
 		dataPtr3->toggleSSAO	=	variables.toggleSSAO;
 		dataPtr3->randomSize	=	variables.randomSize;
 		dataPtr3->screenSize	=	variables.screenSize;
+		dataPtr3->cameraHeight  =	input.cameraHeight;
+		dataPtr3->waterLevel    =   variables.waterLevel;
 
 		deviceContext->Unmap(variableBuffer, 0);
 
-		bufferNeedsUpdate = false;
-	}
+	//bufferNeedsUpdate = false;
+	//}
 
 	// Set the position of the constant buffer in the vertex shader.
 	bufferNumber = 1;
@@ -472,8 +469,8 @@ bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMATRI
 	///////// Assorted shit
 
 	// Set shader texture resource in the pixel shader.
-	deviceContext->PSSetShaderResources(0, 1, &randomTexture);
-	deviceContext->PSSetShaderResources(1, 4, textureArray);
+	deviceContext->PSSetShaderResources(0, 1, &input.randomTexture);
+	deviceContext->PSSetShaderResources(1, 4, input.textureArray);
 
 	return true;
 }
@@ -512,6 +509,9 @@ void DRCompose::OnSettingsReload(Config* cfg)
 
 	settings.lookupValue("FogStart", variables.fogStart);
 	settings.lookupValue("FogEnd", variables.fogEnd);
+
+	const Setting& waterSettings = cfg->getRoot()["shaders"]["waterShader"];
+	waterSettings.lookupValue("waterLevels", variables.waterLevel);
 
 	const Setting& settings2 = cfg->getRoot()["rendering"];
 

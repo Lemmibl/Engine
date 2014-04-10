@@ -11,9 +11,8 @@ cbuffer PositionalBuffer //Whatever, idk what else to name it
 cbuffer PixelMatrixBuffer
 {
 	float4x4 InvertedView;
-	float4x4 InvertedProjection;
 	float4x4 LightView;
-	float4x4 LightProjection;
+	float4x4 LightViewProj;
 };
 
 cbuffer LightBuffer
@@ -36,6 +35,7 @@ struct VertexShaderOutput
 	float4 Position : SV_POSITION;
 	float4 ScreenPosition : TEXCOORD0;
 	float2 TexCoord : TEXCOORD1;
+	float3 ViewPosition : TEXCOORD2;
 };
 
 /////////////////////////////////////////////
@@ -76,7 +76,7 @@ float3 DecodeNormal(float2 enc)
 	float2 fenc = (enc*4.0f)-2.0f;
 	float f = dot(fenc,fenc);
 	float g = sqrt(1.0f-(f*0.25f));
-	
+
 	//float3 n;
 	//n.xy = fenc*g;
 	//n.z = 1.0f-(f*0.5f);
@@ -84,29 +84,9 @@ float3 DecodeNormal(float2 enc)
 	return float3(fenc*g, 1.0f - (f*0.5f));
 }
 
-//float3 ReconstructViewPositionFromDepth(float3 viewRay, float depth)
-//{
-//	// Sample the depth and scale the view ray to reconstruct view space position
-//	return float3(viewRay.xy * (CameraFarClip / viewRay.z), CameraFarClip) * depth;
-//}
-//
-//float3 ReconstructWorldPositionFromDepth(float3 viewRay, float depth)
-//{
-//	//Multiply by invertedView to reconstruct world position.
-//	return CameraPosition.xyz * viewRay+(CameraFarClip*depth);
-//}
-
-float3 DepthToPosition2(float iDepth, float farClip, float3 vPos)
+float3 ReconstructViewPositionFromDepth(float3 viewRay, float depth, float farClip)
 {
-	float3 vViewRay = float3(vPos.xy * (farClip / vPos.z), farClip);
-	return vViewRay * iDepth;
-}
-
-float3 DepthToPosition(float depth, float farClip, float4 ScreenPosition)
-{
-	float3 viewPosition = mul(ScreenPosition, InvertedProjection).xyz;
-	float3 viewRay = float3(viewPosition.xy * (farClip / viewPosition.z), farClip);
-	return viewRay * depth;
+	return float3(viewRay.xy * (farClip / viewRay.z), farClip) * depth;
 }
 
 /////////////////////////////////////////////
@@ -169,14 +149,14 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target0
 	float LightIntensity = LightDirection.w;
 
 	float4 encodedNormal = shaderTextures[0].Sample(anisotropicSampler, input.TexCoord);
-	
+
 	//http://gamedev.stackexchange.com/questions/22864/enconding-decoding-bit-value-in-texture-alpha-channel
 	//We recreate the material IDs
 	int materialID = round(encodedNormal.z * 255);
 	int materialID2 = round(encodedNormal.w * 255);
 
 	RetrieveMaterialData(materialID, ambienceCoefficient, diffuseCoefficient, specularCoefficient, surfaceSmoothness);
-	
+
 	//If there's a difference between our two materials, we have to lerp!
 	if(materialID != materialID2) 
 	{
@@ -200,13 +180,12 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target0
 	float NdL = dot(lightVector, normal);
 
 	//Reconstructing world position
-	float4 position = mul(float4(DepthToPosition(depth, CameraPosition.w, input.ScreenPosition), 1.0f), InvertedView);
+	float4 position = mul(float4(ReconstructViewPositionFromDepth(input.ViewPosition, depth, CameraPosition.w), 1.0f), InvertedView);
 	position /= position.w;
 
 	//Extract pixel position as seen from light POV for shadow map extraction.
-	float4 lightScreenPos = mul(position,  mul(LightView, LightProjection));
-
-	float realDistanceToLight = 0.01f+(mul(position, LightView).z/CameraPosition.w);
+	float4 lightScreenPos = mul(position,  LightViewProj);
+	float realDistanceToLight = mul(position, LightView).z/CameraPosition.w;
 
 	lightScreenPos.xy = 0.5 * lightScreenPos.xy / lightScreenPos.w + float2(0.5f, 0.5f);
 	lightScreenPos.y = 1.0f - lightScreenPos.y;
@@ -235,7 +214,7 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target0
 
 		//Calculate specular light 
 		finalSpecularProduct += specularCoefficient * pow( saturate( dot(reflectionVector, directionToCamera)), surfaceSmoothness);
-	
+
 		//Calculate diffuse light
 		finalDiffuseProduct += diffuseCoefficient * (NdL * DiffuseColor.rgb);
 	}

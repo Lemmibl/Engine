@@ -9,8 +9,9 @@
 #include "TextureCreator.h"
 #include "TextureAndMaterialStructs.h"
 #include "NoiseClass.h"
+#include "SettingsDependent.h"
 
-class MaterialHandler
+class MaterialHandler : public SettingsDependent
 {
 public:
 	MaterialHandler();
@@ -25,6 +26,8 @@ public:
 	OBJMaterialStruct& GetMaterial(unsigned short handle) { return modelMaterials[handle]; }
 
 	ID3D11ShaderResourceView** GetTerrainMaterialTexture()			{ return &terrainMaterialTextureSRV.p;			};
+
+	virtual void OnSettingsReload( Config* cfg );
 
 private:
 	bool CheckForDuplicateMaterials(unsigned int hash, unsigned short& outHandle);
@@ -58,5 +61,7 @@ private:
 
 	//A hash to see if material is identical
 	std::vector<std::pair<unsigned int, unsigned short>> materialHashAndKeyPairings;
+
+	float waterLevel;
 };
 

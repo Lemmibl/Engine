@@ -11,16 +11,6 @@ SamplerState samplers[2]; //0 == linear sampler, 1 == point
 Texture2D randomTexture : register(ps_5_0, t0);
 Texture2D shaderTextures[4] : register(ps_5_0, t1); // 0 = color, 1 = light, 2 = depth, 3 = normal
 
-//static const float sampleRadius = 0.6f; //Controls sampling radius. 0.1f to 1.0f are pretty ok values.
-//static const float intensity = 4.0f; //AO intensity. The higher this value is, the darker the occluded parts will be. 1.0f to 10.0f values is pretty ok values.
-//static const float scale = 0.8f; //Scales distance between occluders and occludee. Still a little unsure as to what values would be good to use.
-//static const float bias = 0.2f; //Cutoff value. The higher this value is, the harsher we are with cutting off low AO values. 0.01f to 0.4f values are pretty ok.
-//static const float farClip = 400.0f;
-//static const float fogEnd = 380.0f;
-//static const float fogStart = 200.0f;
-//static const float2 screenSize = float2(1024.0f, 768.0f);
-//static const float2 randomSize = float2(64.0f, 64.0f);
-
 cbuffer PixelMatrixBufferType
 {
 	float4x4 View;
@@ -38,8 +28,11 @@ cbuffer VariableBuffer
 	float fogStart		: packoffset(c1.y);
 	float fogEnd		: packoffset(c1.z);
 	float farClip		: packoffset(c1.w);
-	float2 randomSize	: packoffset(c2.x);
-	float2 screenSize	: packoffset(c2.z);
+	float waterLevel	: packoffset(c2.x);
+	float cameraHeight	: packoffset(c2.y);
+	float2 randomSize	: packoffset(c2.z);
+	float2 screenSize	: packoffset(c3.x);
+	float2 PADDING		: packoffset(c3.z);
 };
 
 //Decoding of GBuffer Normals
@@ -52,6 +45,8 @@ float3 DecodeNormal(float2 enc)
 	return float3(fenc*g, 1.0f - (f*0.5f));
 }
 
+static const float2 vecArray[4] = { float2(1,0), float2(-1,0), float2(0,1), float2(0,-1) };
+
 float3 DepthToPosition(float4 ScreenPosition, float depth)
 {
 	float3 viewPosition = mul(ScreenPosition, InvertedProjection).xyz;
@@ -60,10 +55,6 @@ float3 DepthToPosition(float4 ScreenPosition, float depth)
 
 float3 ReconstructViewPositionFromDepth(float3 viewRay, float depth)
 {
-	// Sample the depth and scale the view ray to reconstruct view space position
-	//float3 viewRay = float3(viewPosition.xy * (150.0f / viewPosition.z), 150.0f);
-	//float normalizedDepth = shaderTextures[1].Sample(linearSampler, texCoord);
-
 	return float3(viewRay.xy * (farClip / viewRay.z), farClip) * depth;
 }
 
@@ -90,31 +81,29 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 {
 		float depth = shaderTextures[2].Sample(samplers[0], input.TexCoord);
 		float3 baseColor = shaderTextures[0].Sample(samplers[0], input.TexCoord).rgb;
+		float fogFactor = saturate(((depth*farClip) - fogStart) / (fogEnd - fogStart));
+		float4 fogColor = FogColor;
 
-		if(depth == 0.0f) //Skip as early as possible if this pixel isn't supposed to be lit. (Skysphere for example.)
+		if(cameraHeight < waterLevel)
+		{
+			//Everything is darker because we're below the water
+			baseColor.xyz -= 0.2f;
+
+			//Our vision range is shorter because underwater
+			fogFactor += 0.95f;
+
+			//Make the fog a little darker too.
+			fogColor -= 0.3f;
+		}
+		else if(depth == 0.0f) //Skip as early as possible if this pixel isn't supposed to be lit. (Skysphere for example.)
 		{
 			return float4(baseColor, 1.0f);
 		}
 
-		float fogFactor = saturate(((depth*farClip) - fogStart) / (fogEnd - fogStart));
-		
 		if(fogFactor >= 1.0f)
 		{
-			return FogColor; //Cut early. Only return fog color.
+			return fogColor; //Cut early. Only return fog color.
 		}
-
-		//FOG:
-		//http://www.iquilezles.org/www/articles/ssao/ssao.htm
-		//http://jcoluna.wordpress.com/2012/11/06/xna-adding-fog-in-a-lpp-or-deferred-pipeline/
-		//http://cloneofduty.com/2012/07/30/deferred-rendering-5-foggy-haze/
-
-		//SSAO:
-		//http://www.gamedev.net/page/resources/_/technical/graphics-programming-and-theory/a-simple-and-practical-approach-to-ssao-r2753
-		
-		const float2 vec[8] = {	float2(1, 0),float2(-1 ,0),
-								float2(0, 1),float2(0, -1),
-								float2(1, 0),float2(-1 ,0),
-								float2(0, 1),float2(0, -1) };
 
 		float3 position = ReconstructViewPositionFromDepth(input.ViewPosition.xyz, depth);
 		float3 normal = normalize(mul(DecodeNormal(shaderTextures[3].Sample(samplers[0], input.TexCoord).xy * 2.0f - 1.0f), (float3x3)View)); //Viewspace normals
@@ -123,16 +112,15 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		
 		if(toggleSSAO >= 1)
 		{
-			float2 rand = normalize(randomTexture.Sample(samplers[0], (screenSize*input.TexCoord / randomSize))  * 2.0f - 1.0f);//
-			float rad = sampleRadius / position.z;
-
-			int iterations = lerp(8, 1, depth); //primitive SSAO LOD; scales with how close to the pixel we are
+			float2 rand = normalize(randomTexture.Sample(samplers[0], (screenSize*input.TexCoord / randomSize))  * 2.0f - 1.0f);
+			float rad = sampleRadius * (position.z/farClip);
+			int iterations = lerp(4, 1, depth); //primitive SSAO LOD; scales with how close to the pixel we are
 
 			//SSAO Calculation
 			[unroll]
 			for (int i = 0; i < iterations; i++)
 			{
-				float2 coord1 = reflect(vec[i], rand)*rad;
+				float2 coord1 = reflect(vecArray[i], rand)*rad;
 				float2 coord2 = float2(	coord1.x*0.707 - coord1.y*0.707,
 										coord1.x*0.707 + coord1.y*0.707);
 			
@@ -162,62 +150,6 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		else
 		{
 			//Default case
-			return ao * lerp((float4((baseColor) * (diffuseLight + specularLight), 1.0f)),  FogColor, fogFactor);
+			return ao * lerp((float4((baseColor.xyz) * (diffuseLight + specularLight), 1.0f)),  fogColor, fogFactor);
 		}
 }
-/*
-
-uniform sampler2D rnm;
-uniform sampler2D normalMap;
-varying vec2 uv;
-const float totStrength = 1.38;
-const float strength = 0.07;
-const float offset = 18.0;
-const float falloff = 0.000002;
-const float rad = 0.006;
-#define SAMPLES 10 // 10 is good
-const float invSamples = 1.0f/SAMPLES;
-void main(void)
-{
-// these are the random vectors inside a unit sphere
-vec3 pSphere[10] = vec3[](vec3(-0.010735935, 0.01647018, 0.0062425877),vec3(-0.06533369, 0.3647007, -0.13746321),vec3(-0.6539235, -0.016726388, -0.53000957),vec3(0.40958285, 0.0052428036, -0.5591124),vec3(-0.1465366, 0.09899267, 0.15571679),vec3(-0.44122112, -0.5458797, 0.04912532),vec3(0.03755566, -0.10961345, -0.33040273),vec3(0.019100213, 0.29652783, 0.066237666),vec3(0.8765323, 0.011236004, 0.28265962),vec3(0.29264435, -0.40794238, 0.15964167));
- 
-   // grab a normal for reflecting the sample rays later on
-   vec3 fres = normalize((texture2D(rnm,uv*offset).xyz*2.0) - vec3(1.0));
- 
-   vec4 currentPixelSample = texture2D(normalMap,uv);
- 
-   float currentPixelDepth = currentPixelSample.a;
- 
-   // current fragment coords in screen space
-   vec3 ep = vec3(uv.xy,currentPixelDepth);
-  // get the normal of current fragment
-   vec3 norm = currentPixelSample.xyz;
- 
-   float bl = 0.0;
-   // adjust for the depth ( not shure if this is good..)
-   float radD = rad/currentPixelDepth;
- 
-   //vec3 ray, se, occNorm;
-   float occluderDepth, depthDifference;
-   vec4 occluderFragment;
-   vec3 ray;
-   for(int i=0; i&lt;SAMPLES;++i)
-   {
-	  // get a vector (randomized inside of a sphere with radius 1.0) from a texture and reflect it
-	  ray = radD*reflect(pSphere[i],fres);
- 
-	  // get the depth of the occluder fragment
-	  occluderFragment = texture2D(normalMap,ep.xy + sign(dot(ray,norm) )*ray.xy);
-	// if depthDifference is negative = occluder is behind current fragment
-	  depthDifference = currentPixelDepth-occluderFragment.a;
- 
-	  // calculate the difference between the normals as a weight
-	  // the falloff equation, starts at falloff and is kind of 1/x^2 falling
-	  bl += step(falloff,depthDifference)*(1.0-dot(occluderFragment.xyz,norm))*(1.0-smoothstep(falloff,strength,depthDifference));
-   }
- 
-   // output the result
-   gl_FragColor.r = 1.0f+bl*invSamples;
-}
-*/

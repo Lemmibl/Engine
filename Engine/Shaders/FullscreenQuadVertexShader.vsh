@@ -1,16 +1,16 @@
-struct VSQuadOut 
-{
-    float4 Position : SV_Position;
+//I don't take credit for this code, I found it here:
+//http://www.altdevblogaday.com/2011/08/08/interesting-vertex-shader-trick/
+struct VS_Output
+{  
+    float4 Position : SV_POSITION;       
     float2 TexCoord : TEXCOORD0;
 };
-
-// outputs a full screen triangle with screen-space coordinates
-// input: three empty vertices
-VSQuadOut VSQuad( uint vertexID : SV_VertexID )
+ 
+VS_Output VS_Quad(uint id : SV_VertexID)
 {
-    VSQuadOut result;
-    result.TexCoord = float2((vertexID << 1) & 2, vertexID & 2);
-    result.Position = float4(result.TexCoord * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f), 0.0f, 1.0f);
+    VS_Output output;
+    output.TexCoord = float2((id << 1) & 2, id & 2);
+    output.Position = float4(output.TexCoord * float2(2,-2) + float2(-1,1), 0, 1);
 
-    return result;
+    return output;
 }
