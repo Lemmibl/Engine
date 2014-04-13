@@ -237,6 +237,7 @@
     <ClCompile Include="DRWaterClass.cpp">
       <Filter>Rendering\Shader wrappers\Deferred rendering wrappers\Water</Filter>
     </ClCompile>
+    <ClCompile Include="SSAOShader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cpumeter.h">
@@ -510,6 +511,7 @@
     <ClInclude Include="DRWaterClass.h">
       <Filter>Rendering\Shader wrappers\Deferred rendering wrappers\Water</Filter>
     </ClInclude>
+    <ClInclude Include="SSAOShader.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\GeometryShaderGrass.gsh">
@@ -637,6 +639,12 @@
     </None>
     <None Include="Shaders\FullscreenQuadVertexShader.vsh">
       <Filter>Rendering\Shaders\General shaders</Filter>
+    </None>
+    <None Include="SSAOShader.psh">
+      <Filter>Rendering\Shaders\Post processing</Filter>
+    </None>
+    <None Include="SSAOShader.vsh">
+      <Filter>Rendering\Shaders\Post processing</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

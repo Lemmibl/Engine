@@ -44,6 +44,7 @@
 #include "LSystemClass.h"
 #include "NoiseClass.h"
 #include "IndexedMesh.h"
+#include "OBJModel.h"
 
 //Shaders
 #include "MCGBufferTerrainShader.h"
@@ -52,6 +53,8 @@
 #include "DepthOnlyShader.h"
 #include "DRCompose.h"
 #include "DRPointLight.h"
+#include "DRObjModelShader.h"
+#include "SSAOShader.h"
 #include "DRDirectionalLight.h"
 #include "fontshaderclass.h"
 #include "DepthOnlyQuadShader.h"
@@ -59,8 +62,6 @@
 #include "GeometryShaderGrass.h"
 #include "DRWaterClass.h"
 #include "DRGBuffer.h"
-#include "OBJModel.h"
-#include "DRObjModelShader.h"
 
 class GameRenderer : public SettingsDependent
 {
@@ -107,15 +108,17 @@ private:
 	bool InitializeDebugText();
 	void InitializeRenderingSpecifics();
 
+	//Scene rendering
 	bool RenderShadowmap(XMMATRIX* lightWorldViewProj, XMMATRIX* lightWorldView,  XMMATRIX* lightView,  XMMATRIX* lightProj, RenderableBundle* renderableBundle);
 	bool RenderTwoPassGaussianBlur(XMMATRIX* worldBaseViewOrthoProj);
 	bool RenderGBuffer(XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, XMMATRIX* identityWorldViewProj, RenderableBundle* renderableBundle);
 
-	//bool RenderTerrain();
-	//bool RenderVegetation();
-
+	//Light rendering
 	bool RenderDirectionalLight(DRDirLight::DirectionalLightInput& input);
 	bool RenderPointLight(XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* invertedProjection, XMMATRIX* viewProjection);
+
+	//Post processing
+	bool RenderSSAO(SSAOShader::SSAOShaderInput& input);
 	bool RenderComposedScene(DRCompose::ComposeShaderInput& input);
 	bool RenderGUI(XMMATRIX* worldBaseViewOrthoProj);
 
@@ -161,6 +164,9 @@ private:
 	CComPtr<ID3D11ShaderResourceView> gaussianBlurTexture[1];
 	CComPtr<ID3D11ShaderResourceView> lightMap;
 
+	//0 == depth, 1 == normal, 2 == random vectors, 3 == sampling kernel
+	CComPtr<ID3D11ShaderResourceView> ssaoTextures[4];
+
 	CComPtr<ID3D11DepthStencilView> shadowDepthStencil;
 	CComPtr<ID3D11DepthStencilView> depthStencil;
 
@@ -182,6 +188,7 @@ private:
 	/************************************************************************/
 	DRDirLight::DirectionalLightInput dirLightInput;
 	DRCompose::ComposeShaderInput composeInput;
+	SSAOShader::SSAOShaderInput ssaoInput;
 
 	/************************************************************************/
 	/* Light and models                                                     */

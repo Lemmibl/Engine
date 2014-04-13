@@ -5,6 +5,7 @@
 class SettingsDependent
 {
 	public:
+	//TODO: Move InitializeSettings to constructor instead?
 	virtual ~SettingsDependent(){};
 
 	template<class T>

@@ -72,7 +72,7 @@ void GameWorld::InitializeCamera()
 
 	camera->SetPosition(XMFLOAT3(0.0f, 25.0f, -100.0f));
 	camera->SetRotation(XMFLOAT3(0.0f, 0.0f, 0.0f));
-	camera->SetPerspectiveProjection(screenWidth, screenHeight, XM_PIDIV4, nearClip, farClip); 
+	camera->SetPerspectiveProjection(screenWidth, screenHeight, XM_PIDIV2, nearClip, farClip); 
 }
 
 void GameWorld::InitializeCollision()

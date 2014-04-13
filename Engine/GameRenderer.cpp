@@ -587,6 +587,11 @@ void GameRenderer::InitializeRenderingSpecifics()
 	finalTextures[3] = normalRT.SRView;
 
 	gaussianBlurTexture[0] = gaussianBlurPingPongRT.SRView;
+
+	ssaoTextures[0] = depthRT.SRView;
+	ssaoTextures[1] = normalRT.SRView;
+	ssaoTextures[2] = *proceduralTextureHandler.GetSSAORandomTexture();
+	ssaoTextures[3] = *proceduralTextureHandler.GetSSAOSamplingKernel();
 }
 
 
@@ -697,6 +702,9 @@ composeInput.randomTexture = *proceduralTextureHandler.GetSSAORandomTexture();
 composeInput.toggle = toggleSSAO;
 composeInput.lightIntensity = dirLight.Intensity;
 composeInput.cameraHeight = camPos.y;
+
+ssaoInput.rtTextureArray = &ssaoTextures[0].p;
+ssaoInput.worldViewProjection = &worldBaseViewOrthoProj;
 #pragma endregion
 
 	//Send untransposed lightView/lightProj here
@@ -868,7 +876,7 @@ bool GameRenderer::RenderGBuffer(XMMATRIX* viewMatrix, XMMATRIX* projectionMatri
 	worldMatrix = XMMatrixTranslation(camPos.x, camPos.y, camPos.z);
 
 	//Scale skysphere by 3.0f because camera nearClip is 2.0f. Nearclip is 2.0f because else I get precision issues when rendering water.
-	worldViewProjMatrix = (XMMatrixScaling(3.0f, 3.0f, 3.0f) * worldMatrix) * ((*viewMatrix) * (*projectionMatrix));
+	worldViewProjMatrix = (XMMatrixScaling(5.0f, 5.0f, 5.0f) * worldMatrix) * ((*viewMatrix) * (*projectionMatrix));
 	worldViewProjMatrix = XMMatrixTranspose(worldViewProjMatrix);
 
 	skySphere.Render(deviceContext, &worldMatrix, &worldViewProjMatrix, camPos.y, &dayNightCycle.GetAmbientLightColor(), timeOfDay, dayNightCycle.GetCurrentStageOfDay(), dirLight.Intensity);
@@ -913,7 +921,8 @@ bool GameRenderer::RenderGBuffer(XMMATRIX* viewMatrix, XMMATRIX* projectionMatri
 	}
 
 	d3D->GetBlendStateManager()->TurnOnTransparencyBlending();
-	d3D->GetRasterizerStateManager()->SetBackFaceCullingRasterizer();
+	//d3D->GetRasterizerStateManager()->SetBackFaceCullingRasterizer();
+	d3D->GetRasterizerStateManager()->SetNoCullRasterizer();
 
 	for(unsigned int i = 0; i < vecSize; i++)
 	{	
@@ -956,41 +965,41 @@ bool GameRenderer::RenderGBuffer(XMMATRIX* viewMatrix, XMMATRIX* projectionMatri
 	auto& model = renderableBundle->objModels[0];
 	IndexedMesh* tempMesh = meshHandler->GetMesh(model.GetMeshHandle());
 
-	for(unsigned int i = 0; i < chunks.size(); ++i)
-	{
-		//Retarded little hack to see viability of rendering many trees
-		for(unsigned int k = 0; k < chunks[i]->GetVegetationCount(); ++k)
-		{
-			worldMatrix = XMLoadFloat4x4(&chunks[i]->GetBushTransforms()[k]); /*XMMatrixTranspose(XMLoadFloat4x4(&(treeMatrices.at(k))));*/
-			objModelShader.UpdateMatrixBuffer(deviceContext, &worldMatrix, &tempView, &tempProj);
+	//for(unsigned int i = 0; i < chunks.size(); ++i)
+	//{
+	//	//Retarded little hack to see viability of rendering many trees
+	//	for(unsigned int k = 0; k < chunks[i]->GetVegetationCount(); ++k)
+	//	{
+	//		worldMatrix = XMLoadFloat4x4(&chunks[i]->GetBushTransforms()[k]); /*XMMatrixTranspose(XMLoadFloat4x4(&(treeMatrices.at(k))));*/
+	//		objModelShader.UpdateMatrixBuffer(deviceContext, &worldMatrix, &tempView, &tempProj);
 
-			for(int j = 0; j < model.GetSubsetCount()-1; ++j)
-			{
-				//See if we need to update texture
-				auto tex = textureHandler.GetTexture(model.GetTextureHandles().at(j));
+	//		for(int j = 0; j < model.GetSubsetCount()-1; ++j)
+	//		{
+	//			//See if we need to update texture
+	//			auto tex = textureHandler.GetTexture(model.GetTextureHandles().at(j));
 
-				//See if we need to update material
-				auto mat = materialHandler.GetMaterial(model.GetMaterialHandles().at(j));
+	//			//See if we need to update material
+	//			auto mat = materialHandler.GetMaterial(model.GetMaterialHandles().at(j));
 
-				if(textureNeedsUpdate)
-				{
-					objModelShader.SetNewTexture(deviceContext, tex, 1);
-				}
+	//			if(textureNeedsUpdate)
+	//			{
+	//				objModelShader.SetNewTexture(deviceContext, tex, 1);
+	//			}
 
-				if(materialNeedsUpdate)
-				{
-					objModelShader.SetNewMaterial(deviceContext, mat);
-				}
+	//			if(materialNeedsUpdate)
+	//			{
+	//				objModelShader.SetNewMaterial(deviceContext, mat);
+	//			}
 
-				tempMesh->Render(deviceContext);
+	//			tempMesh->Render(deviceContext);
 
-				//This will always work, because when we load in the model we add one last set of index subsets that contains the entire count (the end of the indices, essentially).
-				int indexCount = model.GetSubSetIndices().at(j+1) - model.GetSubSetIndices().at(j);
+	//			//This will always work, because when we load in the model we add one last set of index subsets that contains the entire count (the end of the indices, essentially).
+	//			int indexCount = model.GetSubSetIndices().at(j+1) - model.GetSubSetIndices().at(j);
 
-				objModelShader.RenderShader(deviceContext, indexCount, model.GetSubSetIndices().at(j));
-			}
-		}
-	}
+	//			objModelShader.RenderShader(deviceContext, indexCount, model.GetSubSetIndices().at(j));
+	//		}
+	//	}
+	//}
 
 	d3D->GetBlendStateManager()->TurnOnDefaultBlendState();
 	d3D->GetRasterizerStateManager()->SetBackFaceCullingRasterizer();
@@ -1172,7 +1181,7 @@ bool GameRenderer::RenderGUI(XMMATRIX* worldBaseViewOrthoProj )
 		}
 
 		if(!textureShader.Render(deviceContext, debugWindows[6].GetIndexCount(), 
-			worldBaseViewOrthoProj, *proceduralTextureHandler.GetWindTexture()))
+			worldBaseViewOrthoProj, *proceduralTextureHandler.GetSSAOSamplingKernel()))
 		{
 			return false;
 		}

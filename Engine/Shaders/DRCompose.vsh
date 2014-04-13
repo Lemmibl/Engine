@@ -18,8 +18,6 @@ struct VertexShaderOutput
 		float2 TexCoord : TEXCOORD2;
 };
 
-//TODO Make a LightDirection + CameraPosition cbuffer that gets sent to vertexbuffer.
-
 VertexShaderOutput ComposeVertexShader(VertexShaderInput input)
 {
 		VertexShaderOutput output;

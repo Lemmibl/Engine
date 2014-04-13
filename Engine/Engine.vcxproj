@@ -58,6 +58,7 @@
     <ClCompile Include="MarchingCubeChunk.cpp" />
     <ClCompile Include="SettingsManager.cpp" />
     <ClCompile Include="ShadowManager.cpp" />
+    <ClCompile Include="SSAOShader.cpp" />
     <ClCompile Include="TerrainManager.cpp" />
     <ClCompile Include="TextureCreator.cpp" />
     <ClCompile Include="TextureHandler.cpp" />
@@ -101,6 +102,7 @@
     <ClInclude Include="cameraclass.h" />
     <ClInclude Include="controllerclass.h" />
     <ClInclude Include="cpumeter.h" />
+    <ClInclude Include="SSAOShader.h" />
     <ClInclude Include="TerrainStructs.h" />
     <ClInclude Include="d3dmanager.h" />
     <ClInclude Include="DayNightCycle.h" />
@@ -228,6 +230,8 @@
     <None Include="Shaders\WaterShader.gsh" />
     <None Include="Shaders\WaterShader.psh" />
     <None Include="Shaders\WaterShader.vsh" />
+    <None Include="SSAOShader.psh" />
+    <None Include="SSAOShader.vsh" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="libconfig\libconfig++.lib" />

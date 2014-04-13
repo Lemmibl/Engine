@@ -50,21 +50,75 @@ bool ProceduralTextureHandler::Initialize(ID3D11Device* extDevice, ID3D11DeviceC
 	utility = std::make_shared<Utility>(*extUtility);
 
 	//If this SRV has been initialized before, release it first.
-	if(ssaoRandomTextureSRV)
-	{
-		ssaoRandomTextureSRV.Release();
-	}
-	CreateRandom2DTexture(device, deviceContext, &ssaoRandomTextureSRV.p);
+	Create2DSSAORandomTexture(device, deviceContext, &ssaoRandomTextureSRV.p);
+	CreateSSAOSamplingKernel(device, deviceContext, &ssaoSamplingKernelSRV.p);
 
 	//If this SRV has been initialized before, release it first.
-	if(noiseSRV)
-	{
-		noiseSRV.Release();
-	}
+	//if(noiseSRV)
+	//{
+	//	noiseSRV.Release();
+	//}
 	//CreateSeamlessSimplex2DTexture(device, deviceContext, &noiseSRV.p, 0, 0, 1024, 100, 0.5f);
+
 
 	return true;
 }
+
+
+HRESULT ProceduralTextureHandler::Create2DSSAORandomTexture( ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv )
+{
+	int textureWidth, textureHeight;
+	textureWidth = 128;
+	textureHeight = 128;
+
+	std::vector<PixelData> pixelData;
+	pixelData.resize(textureWidth*textureHeight);
+
+	XMFLOAT4 result;
+
+	//Don't use utility.Random(). We do not want floats.
+	for(int i = 0; i < textureWidth*textureHeight; ++i)
+	{
+		XMVECTOR tempVector = XMLoadFloat4(&XMFLOAT4(rand()%255, rand()%255, rand()%255, 1.0f));
+		tempVector = (XMVector4Normalize(tempVector) *= utility->RandomFloat());
+		XMStoreFloat4(&result, tempVector);
+
+		pixelData[i].x = result.x*255.0f;
+		pixelData[i].y = result.y*255.0f;
+		pixelData[i].z = 0.0f;
+		pixelData[i].w = 1.0f;
+	}
+
+	return texCreator->Build32Bit2DTexture(device, deviceContext, pixelData, textureWidth, textureHeight, srv);
+}
+
+HRESULT ProceduralTextureHandler::CreateSSAOSamplingKernel( ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv )
+{
+	int textureWidth, textureHeight;
+	textureWidth = 32;
+	textureHeight = 1;
+
+	std::vector<PixelData> pixelData;
+	pixelData.resize(textureWidth*textureHeight);
+
+	XMFLOAT4 result;
+
+	//Don't use utility.Random(). We do not want floats.
+	for(int i = 0; i < textureWidth; ++i)
+	{
+		XMVECTOR tempVector = XMLoadFloat4(&XMFLOAT4(rand()%255, rand()%255, rand()%255, 1.0f));
+		tempVector = (XMVector4Normalize(tempVector) *= utility->RandomFloat());
+		XMStoreFloat4(&result, tempVector);
+
+		pixelData[i].x = result.x*255.0f;
+		pixelData[i].y = result.y*255.0f;
+		pixelData[i].z = result.z*255.0f;
+		pixelData[i].w = 1.0f;
+	}
+
+	return texCreator->Build32Bit2DTexture(device, deviceContext, pixelData, textureWidth, textureHeight, srv);
+}
+
 
 HRESULT ProceduralTextureHandler::CreateRandom2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv)
 {
@@ -76,7 +130,7 @@ HRESULT ProceduralTextureHandler::CreateRandom2DTexture(ID3D11Device* device, ID
 	pixelData.resize(textureWidth*textureHeight);
 
 	//Don't use utility.Random(). We do not want floats.
-	for(int i = 0; i < textureWidth*textureHeight; i++)
+	for(int i = 0; i < textureWidth*textureHeight; ++i)
 	{
 		pixelData[i].x = rand()%255;//%255;
 		pixelData[i].y = rand()%255;//%255;
@@ -344,3 +398,4 @@ HRESULT ProceduralTextureHandler::CreateTilingCloudTexture( ID3D11Device* device
 
 	return texCreator->Build32Bit2DTexture(device, deviceContext, pixelData, textureWidth, textureHeight, srv);
 }
+

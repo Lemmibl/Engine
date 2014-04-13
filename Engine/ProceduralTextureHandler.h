@@ -30,6 +30,8 @@ public:
 	bool Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, TextureCreator* texCreator, NoiseClass* noise, Utility* utility);
 
 	ID3D11ShaderResourceView** GetSSAORandomTexture()		{ return &ssaoRandomTextureSRV.p;		};
+	ID3D11ShaderResourceView** GetSSAOSamplingKernel()		{ return &ssaoSamplingKernelSRV.p;		};
+
 	ID3D11ShaderResourceView** GetNoiseTexture()			{ return &noiseSRV.p;					};
 
 	ID3D11ShaderResourceView** GetWindTexture()				{ return &windTextureSRV.p;				};
@@ -46,6 +48,8 @@ public:
 		unsigned int textureWidth, unsigned int textureHeight, ID3D11Texture2D** texture);
 
 	HRESULT Create2DSSAORandomTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv);
+	HRESULT CreateSSAOSamplingKernel(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv);
+
 	HRESULT CreateRandom2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv);
 	HRESULT CreateSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv);
 	HRESULT CreateMirroredSimplex2DTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv);
@@ -123,6 +127,7 @@ private:
 
 	CComPtr<ID3D11ShaderResourceView> noiseSRV;
 	CComPtr<ID3D11ShaderResourceView> ssaoRandomTextureSRV;
+	CComPtr<ID3D11ShaderResourceView> ssaoSamplingKernelSRV;
 	CComPtr<ID3D11ShaderResourceView> windTextureSRV;
 	CComPtr<ID3D11ShaderResourceView> windNormalMapSRV;
 	CComPtr<ID3D11Texture2D> windNoiseTexture;
