@@ -9,7 +9,7 @@ public:
 	MainMenuScreen(std::shared_ptr<InputClass> input);
 	~MainMenuScreen();
 
-	virtual void Enter();
+	virtual bool Enter();
 	virtual void Exit();
 
 	bool Initialize();

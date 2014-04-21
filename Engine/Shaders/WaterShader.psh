@@ -4,7 +4,7 @@ SamplerState linearSampler;
 
 cbuffer PixelMatrixBuffer
 {
-	float4x4 World : packoffset(c0.x);
+	float4x4 WorldView : packoffset(c0.x);
 	float waterColorStartOffset : packoffset(c4.x);
 	float waterColorMultiplier	: packoffset(c4.y);
 };
@@ -24,10 +24,10 @@ struct PSOutput
 
 //http://aras-p.info/texts/CompactNormalStorage.html#method04spheremap
 //Normal Encoding Function
-float2 Encode(float3 n)
+half2 Encode(half3 n)
 {
-	float p = sqrt(n.z*8.0f+8.0f);
-	return float2(n.xy/p + 0.5f);
+	half p = sqrt(n.z*8+8);
+	return half2(n.xy/p + 0.5);
 }
 
 //Since it's an 8bit UNORM channel, it means every value will end up in the 0..1 spectrum, so we have to do some trickery to save it and unload it properly.
@@ -36,7 +36,7 @@ float EncodeMaterialID(float id)
 	return (id / 255.0f);
 }
 
-static const float3 UpNormal = float3(0.0f, 1.0f, 0.0f);
+static const float3 UpNormal = float3(0.0f, 0.2f, 0.0f);
 
 PSOutput WaterShaderPS(PSInput input)
 {
@@ -48,9 +48,9 @@ PSOutput WaterShaderPS(PSInput input)
 	//Depth has been stored in normal .w channel.
 	output.Depth = input.TexCoord.w;
 
-	float4 PreCalcNormal = normalize(float4(UpNormal + normalTexture.SampleLevel(linearSampler, input.TexCoord.xy * 1.5f, 0).xyz, 1.0f));
+	float4 PreCalcNormal = float4(UpNormal + normalTexture.SampleLevel(linearSampler, input.TexCoord.xy * 1.5f, 0).xyz, 1.0f);
 
-	float3 normal =  mul(PreCalcNormal, (float3x3)World).xyz;
+	float3 normal =  normalize(mul(PreCalcNormal, (float3x3)WorldView)).xyz;
 
 	output.Normal.xy = Encode(normal);
 	output.Normal.zw = EncodeMaterialID(6.0f); //Both channels are reserved for material ID. Assign the water material.

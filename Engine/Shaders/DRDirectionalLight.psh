@@ -71,22 +71,26 @@ void RetrieveMaterialData(int materialID, out float ambienceCoefficient, out flo
 }
 
 //Decoding of GBuffer Normals
-float3 DecodeNormal(float2 enc)
+half3 DecodeNormal(half2 enc)
 {
-	float2 fenc = (enc*4.0f)-2.0f;
-	float f = dot(fenc,fenc);
-	float g = sqrt(1.0f-(f*0.25f));
-
-	//float3 n;
-	//n.xy = fenc*g;
-	//n.z = 1.0f-(f*0.5f);
-
-	return float3(fenc*g, 1.0f - (f*0.5f));
+	half2 fenc = enc*4-2;
+	half f = dot(fenc,fenc);
+	half g = sqrt(1-f/4);
+	half3 n;
+	n.xy = fenc*g;
+	n.z = 1-f/2;
+	return n;
 }
 
 float3 ReconstructViewPositionFromDepth(float3 viewRay, float depth, float farClip)
 {
 	return float3(viewRay.xy * (farClip / viewRay.z), farClip) * depth;
+}
+
+
+float3 ReconstructWorldPositionFromDepth(float3 viewRay, float depth)
+{
+	return CameraPosition.xyz + (viewRay * (depth*400.0f));
 }
 
 /////////////////////////////////////////////

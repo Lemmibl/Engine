@@ -32,17 +32,15 @@ static const float CameraFarClip = 400.0f;
 //////////////////////////////////////////////////
 
 //Decoding of GBuffer Normals
-float3 DecodeNormal(float2 enc)
+half3 DecodeNormal(half2 enc)
 {
-	float2 fenc = (enc*4.0f)-2.0f;
-	float f = dot(fenc,fenc);
-	float g = sqrt(1.0f-(f*0.25f));
-	
-	//float3 n;
-	//n.xy = fenc*g;
-	//n.z = 1.0f-(f*0.5f);
-
-	return float3(fenc*g, 1.0f - (f*0.5f));
+	half2 fenc = enc*4-2;
+	half f = dot(fenc,fenc);
+	half g = sqrt(1-f/4);
+	half3 n;
+	n.xy = fenc*g;
+	n.z = 1-f/2;
+	return n;
 }
 
 void RetrieveMaterialData(int materialID, out float Kd, out float Ks, out float surfaceSmoothness)
@@ -100,8 +98,6 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 
 	float2 texCoord = 0.5f * (float2(input.ScreenPosition.x, -input.ScreenPosition.y) + 1.0f);
 
-	float3 viewRay = normalize(input.ViewRay);
-
 	//get normal data from the normalMap
 	float4 normalData = textures[1].Sample(pointSampler, texCoord);
 
@@ -126,7 +122,7 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	float depth = textures[2].Sample(pointSampler, texCoord);
 	float3 normal = normalize(DecodeNormal(normalData.xy));
 	
-	float4 position = float4(ReconstructWorldPositionFromDepth(input.ViewRay, depth), 1.0f);//mul(float4(ReconstructViewPositionFromDepth(input.ViewPosition.xyz, depth), 1.0f), InvertedView);//float4(ReconstructWorldPositionFromDepth(viewRay, depth), 1.0f); //ReconstructPositionFromDepth(depth, input.ScreenPosition.xy);
+	float4 position = float4(ReconstructWorldPositionFromDepth(normalize(input.ViewRay), depth), 1.0f);
 
 	//surface-to-light vector
 	float3 lightVector = (position - LightPosition);

@@ -161,6 +161,13 @@ bool GameRenderer::InitializeShaders( HWND hwnd )
 		return false;
 	}
 
+	result = ssaoShader.Initialize(d3D->GetDevice(), hwnd);
+	if(!result)
+	{
+		MessageBox(NULL, L"Couldn't initialize SSAO shader.", L"Error", MB_OK);
+		return false;
+	}
+
 	return true;
 }
 
@@ -188,7 +195,7 @@ bool GameRenderer::InitializeLights( HWND hwnd )
 		pointLights[i].Color = XMFLOAT3(red, green, blue);
 		pointLights[i].Position = XMFLOAT3(x, y, z);
 		pointLights[i].Radius = 4.0f + (2.0f*utility.RandomFloat()); //Used to both scale the actual point light model and is a factor in the attenuation
-		pointLights[i].Intensity = (10.0f*utility.RandomFloat()); //Is used to control the attenuation
+		pointLights[i].Intensity = 30.0f + (10.0f*utility.RandomFloat()); //Is used to control the attenuation
 
 		x += 18.0f;
 
@@ -348,8 +355,10 @@ bool GameRenderer::InitializeEverythingElse( HWND hwnd )
 	normalRT.Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
 	depthRT.Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
 	lightRT.Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
-	shadowRT.Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R32G32_FLOAT);
-	gaussianBlurPingPongRT.Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R32G32_FLOAT); //Needs to be identical to shadowRT
+	shadowRT.Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_FLOAT);
+	gaussianBlurPingPongRT.Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_FLOAT); //Needs to be identical to shadowRT
+	ssaoRT.Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
+	ssaoPingPongRT.Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
 
 	//TODO:
 	/*
@@ -528,7 +537,7 @@ bool GameRenderer::Update( HWND hwnd, int fps, int cpuPercentage, float millisec
 	{
 		toggleSSAO++;
 
-		if(toggleSSAO > 2)
+		if(toggleSSAO > 1)
 		{
 			toggleSSAO = 0;
 		}
@@ -569,6 +578,8 @@ void GameRenderer::InitializeRenderingSpecifics()
 	//For lighting pass
 	lightTarget[0] = lightRT.RTView; 
 
+	ssaoRTView[0] = ssaoRT.RTView;
+
 	//For GBuffer pass
 	gbufferTextures[0] = colorRT.SRView; 
 	gbufferTextures[1] = normalRT.SRView;
@@ -584,14 +595,15 @@ void GameRenderer::InitializeRenderingSpecifics()
 	finalTextures[0] = colorRT.SRView;
 	finalTextures[1] = lightRT.SRView;
 	finalTextures[2] = depthRT.SRView;
-	finalTextures[3] = normalRT.SRView;
+	finalTextures[3] = ssaoRT.SRView;
 
 	gaussianBlurTexture[0] = gaussianBlurPingPongRT.SRView;
+
+	ssaoView = ssaoRT.SRView;
 
 	ssaoTextures[0] = depthRT.SRView;
 	ssaoTextures[1] = normalRT.SRView;
 	ssaoTextures[2] = *proceduralTextureHandler.GetSSAORandomTexture();
-	ssaoTextures[3] = *proceduralTextureHandler.GetSSAOSamplingKernel();
 }
 
 
@@ -629,7 +641,6 @@ bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 
 	lightViewProj = lightView * lightProj;
 
-	//XMVECTOR nullVec = ;
 	viewProjection = viewMatrix * projectionMatrix;
 
 	invertedView = XMMatrixInverse(&XMVectorSplatOne(), viewMatrix);
@@ -638,9 +649,9 @@ bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 	invertedWorldView = XMMatrixInverse(&XMVectorSplatOne(), worldMatrix*viewMatrix);
 
 	lightWorldView = worldMatrix * lightView;
-	lightWorldViewProj = worldMatrix * lightView * lightProj;
+	lightWorldViewProj = (worldMatrix * lightView) * lightProj;
 
-	identityWorldViewProj = worldMatrix * viewMatrix * projectionMatrix;
+	identityWorldViewProj = (worldMatrix * viewMatrix) * projectionMatrix;
 	worldBaseView = worldMatrix * baseView;
 
 	lightViewAndInvertedCameraView = XMMatrixTranspose(XMMatrixMultiply(lightView, invertedView));
@@ -666,45 +677,47 @@ bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 	identityWorldViewProj =		XMMatrixTranspose(identityWorldViewProj);
 
 	//Post-transpose matrix multiplications for the calculations that contain orthogonal projections
-	worldBaseViewOrthoProj =	(worldMatrix * baseView * orthoMatrix);
+	worldBaseViewOrthoProj =	(worldMatrix * baseView) * orthoMatrix;
 
-	baseView = XMMatrixTranspose(baseView);
+	//baseView = XMMatrixTranspose(baseView);
 #pragma endregion
 
 #pragma region Prepare input structs...
-//Directional light
-dirLightInput.worldViewProjection = &worldBaseViewOrthoProj;
-dirLightInput.worldView = &worldBaseView;
-dirLightInput.world = &XMMatrixTranspose(XMMatrixIdentity());
-dirLightInput.view = &XMMatrixTranspose(viewMatrix);
-dirLightInput.invertedView = &invertedView;
-dirLightInput.invertedProjection = &invertedProjection;
-dirLightInput.lightViewAndInvertedCameraView = &lightViewAndInvertedCameraView;
-dirLightInput.lightView = &lightView;
-dirLightInput.lightProj = &lightProj;
-dirLightInput.lightViewProj = &lightViewProj;
-dirLightInput.dirLight = &dirLight;
-dirLightInput.textureArray = &dirLightTextures[0].p;
-dirLightInput.materialTextureArray = materialHandler.GetMaterialTextureArray();
-dirLightInput.ambienceColor = dayNightCycle.GetAmbientLightColor();
-dirLightInput.cameraPosition = camPos;
+	//Directional light
+	dirLightInput.worldViewProjection = &worldBaseViewOrthoProj;
+	dirLightInput.worldView = &worldBaseView;
+	dirLightInput.world = &XMMatrixTranspose(XMMatrixIdentity());
+	dirLightInput.view = &XMMatrixTranspose(viewMatrix);
+	dirLightInput.invertedView = &invertedView;
+	dirLightInput.invertedProjection = &invertedProjection;
+	dirLightInput.lightViewAndInvertedCameraView = &lightViewAndInvertedCameraView;
+	dirLightInput.lightView = &lightView;
+	dirLightInput.lightProj = &lightProj;
+	dirLightInput.lightViewProj = &lightViewProj;
+	dirLightInput.dirLight = &dirLight;
+	dirLightInput.textureArray = &dirLightTextures[0].p;
+	dirLightInput.materialTextureArray = materialHandler.GetMaterialTextureArray();
+	dirLightInput.ambienceColor = dayNightCycle.GetAmbientLightColor();
+	dirLightInput.cameraPosition = camPos;
 
-//Compose shader
-composeInput.worldViewProjection = &worldBaseViewOrthoProj;
-composeInput.worldView = &worldBaseView;
-composeInput.view = &baseView; 
-composeInput.invertedProjection = &invertedProjection;
-composeInput.invViewProjection = &invertedViewProjection;
-composeInput.fogColor = &dayNightCycle.GetAmbientLightColor();
-composeInput.fogMinimum = fogMinimum;
-composeInput.textureArray = &finalTextures[0].p;
-composeInput.randomTexture = *proceduralTextureHandler.GetSSAORandomTexture();
-composeInput.toggle = toggleSSAO;
-composeInput.lightIntensity = dirLight.Intensity;
-composeInput.cameraHeight = camPos.y;
+	//Compose shader
+	composeInput.worldViewProjection = &worldBaseViewOrthoProj;
+	composeInput.worldView = &worldBaseView;
+	composeInput.view = &baseView; 
+	composeInput.invertedProjection = &invertedProjection;
+	composeInput.invViewProjection = &invertedViewProjection;
+	composeInput.fogColor = &dayNightCycle.GetAmbientLightColor();
+	composeInput.fogMinimum = fogMinimum;
+	composeInput.textureArray = &finalTextures[0].p;
+	composeInput.randomTexture = *proceduralTextureHandler.GetSSAORandomTexture();
+	composeInput.toggle = toggleSSAO;
+	composeInput.lightIntensity = dirLight.Intensity;
+	composeInput.cameraHeight = camPos.y;
 
-ssaoInput.rtTextureArray = &ssaoTextures[0].p;
-ssaoInput.worldViewProjection = &worldBaseViewOrthoProj;
+	ssaoInput.rtTextureArray = &ssaoTextures[0].p;
+	ssaoInput.worldViewProjection = &worldBaseViewOrthoProj;
+	ssaoInput.projection = &XMMatrixTranspose(projectionMatrix); //&orthoMatrix; //
+	ssaoInput.view = &(baseView); //&XMMatrixTranspose(viewMatrix);//&baseView;
 #pragma endregion
 
 	//Send untransposed lightView/lightProj here
@@ -718,7 +731,7 @@ ssaoInput.worldViewProjection = &worldBaseViewOrthoProj;
 		return false;
 	}
 
-	if(!RenderGBuffer(&viewMatrix, &projectionMatrix, &identityWorldViewProj, renderableBundle))
+	if(!RenderGBuffer(&viewMatrix, &baseView, &projectionMatrix, &identityWorldViewProj, renderableBundle))
 	{
 		return false;
 	}
@@ -730,6 +743,11 @@ ssaoInput.worldViewProjection = &worldBaseViewOrthoProj;
 
 	if(!RenderDirectionalLight(dirLightInput)) 
 	{
+		return false;
+	}
+
+	if(!RenderSSAO(ssaoInput))
+	{	
 		return false;
 	}
 
@@ -855,7 +873,7 @@ bool GameRenderer::RenderTwoPassGaussianBlur(XMMATRIX* worldBaseViewOrthoProj )
 }
 
 
-bool GameRenderer::RenderGBuffer(XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, XMMATRIX* identityWorldViewProj, RenderableBundle* renderableBundle)
+bool GameRenderer::RenderGBuffer( XMMATRIX* viewMatrix, XMMATRIX* baseView, XMMATRIX* projectionMatrix, XMMATRIX* identityWorldViewProj, RenderableBundle* renderableBundle )
 {
 	XMMATRIX worldViewProjMatrix, worldMatrix, worldView, view, proj;
 
@@ -875,7 +893,7 @@ bool GameRenderer::RenderGBuffer(XMMATRIX* viewMatrix, XMMATRIX* projectionMatri
 
 	worldMatrix = XMMatrixTranslation(camPos.x, camPos.y, camPos.z);
 
-	//Scale skysphere by 3.0f because camera nearClip is 2.0f. Nearclip is 2.0f because else I get precision issues when rendering water.
+	//Scale skysphere by arbitrary value because camera nearClip is 2.0f. Nearclip is 2.0f because else I get precision issues when rendering water.
 	worldViewProjMatrix = (XMMatrixScaling(5.0f, 5.0f, 5.0f) * worldMatrix) * ((*viewMatrix) * (*projectionMatrix));
 	worldViewProjMatrix = XMMatrixTranspose(worldViewProjMatrix);
 
@@ -897,7 +915,7 @@ bool GameRenderer::RenderGBuffer(XMMATRIX* viewMatrix, XMMATRIX* projectionMatri
 	//gbufferShader.Render(deviceContext, renderableBundle->testSphere.mesh.GetIndexCount(), &worldMatrix, &view, &proj, sphereModel.GetTexture(), farClip);
 
 	worldMatrix = XMMatrixIdentity();
-	worldView = XMMatrixTranspose(XMMatrixMultiply(worldMatrix, (*viewMatrix)));
+	worldView = XMMatrixTranspose(XMLoadFloat4x4(camera->GetWorldMatrix()) * (*viewMatrix)); //
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
 	if(drawWireFrame)
@@ -951,19 +969,19 @@ bool GameRenderer::RenderGBuffer(XMMATRIX* viewMatrix, XMMATRIX* projectionMatri
 		}
 	}
 
-	//This is where we'll render trees.
-	auto& objModels = renderableBundle->objModels;
-	vecSize = renderableBundle->objModels.size();
+	////This is where we'll render trees.
+	//auto& objModels = renderableBundle->objModels;
+	//vecSize = renderableBundle->objModels.size();
 
-	//Should be temporary ...
-	bool textureNeedsUpdate = true;
-	bool materialNeedsUpdate = true;
+	////Should be temporary ...
+	//bool textureNeedsUpdate = true;
+	//bool materialNeedsUpdate = true;
 
-	XMMATRIX tempView = XMMatrixTranspose(*viewMatrix);
-	XMMATRIX tempProj = XMMatrixTranspose(*projectionMatrix);
+	//XMMATRIX tempView = XMMatrixTranspose(*viewMatrix);
+	//XMMATRIX tempProj = XMMatrixTranspose(*projectionMatrix);
 
-	auto& model = renderableBundle->objModels[0];
-	IndexedMesh* tempMesh = meshHandler->GetMesh(model.GetMeshHandle());
+	//auto& model = renderableBundle->objModels[0];
+	//IndexedMesh* tempMesh = meshHandler->GetMesh(model.GetMeshHandle());
 
 	//for(unsigned int i = 0; i < chunks.size(); ++i)
 	//{
@@ -971,6 +989,9 @@ bool GameRenderer::RenderGBuffer(XMMATRIX* viewMatrix, XMMATRIX* projectionMatri
 	//	for(unsigned int k = 0; k < chunks[i]->GetVegetationCount(); ++k)
 	//	{
 	//		worldMatrix = XMLoadFloat4x4(&chunks[i]->GetBushTransforms()[k]); /*XMMatrixTranspose(XMLoadFloat4x4(&(treeMatrices.at(k))));*/
+	//		worldView = smth
+	//		worldViewProj = smth too
+	//		
 	//		objModelShader.UpdateMatrixBuffer(deviceContext, &worldMatrix, &tempView, &tempProj);
 
 	//		for(int j = 0; j < model.GetSubsetCount()-1; ++j)
@@ -1089,6 +1110,32 @@ bool GameRenderer::RenderDirectionalLight(DRDirLight::DirectionalLightInput& inp
 	return true;
 }
 
+bool GameRenderer::RenderSSAO( SSAOShader::SSAOShaderInput& input )
+{
+	//Point light stage
+	deviceContext->OMSetRenderTargets(1, &ssaoRTView[0].p, depthStencil);
+	deviceContext->ClearRenderTargetView(ssaoRTView[0].p, D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
+	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	//d3D->GetDepthStencilManager()->SetDefaultDepthStencilView();
+	d3D->GetBlendStateManager()->TurnOnDefaultBlendState();
+	deviceContext->ClearDepthStencilView(depthStencil,  D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	if(!fullScreenQuad.Render(deviceContext, 0, 0))
+	{
+		return false;
+	}
+
+	if(!ssaoShader.Render(deviceContext, fullScreenQuad.GetIndexCount(), input))
+	{
+		return false;
+	}
+
+	//TODO: Gaussian blur
+
+	return true;
+}
+
 bool GameRenderer::RenderComposedScene(DRCompose::ComposeShaderInput& input)
 {
 	//Render final composed scene that is the sum of all the previous scene
@@ -1164,27 +1211,27 @@ bool GameRenderer::RenderGUI(XMMATRIX* worldBaseViewOrthoProj )
 			return false;
 		}
 
-		if(!debugWindows[5].Render(deviceContext, 400, 200))
-		{
-			return false;
-		}
-
-		if(!textureShader.Render(deviceContext, debugWindows[5].GetIndexCount(), 
-			worldBaseViewOrthoProj, *skySphere.GetCloudTexturePP()))
-		{
-			return false;
-		}
-
-		if(!debugWindows[6].Render(deviceContext, 600, 200))
+		if(!debugWindows[6].Render(deviceContext, 400, 200))
 		{
 			return false;
 		}
 
 		if(!textureShader.Render(deviceContext, debugWindows[6].GetIndexCount(), 
-			worldBaseViewOrthoProj, *proceduralTextureHandler.GetSSAOSamplingKernel()))
+			worldBaseViewOrthoProj, ssaoView.p))
 		{
 			return false;
 		}
+
+		//if(!debugWindows[5].Render(deviceContext, 600, 200))
+		//{
+		//	return false;
+		//}
+
+		//if(!textureShader.Render(deviceContext, debugWindows[5].GetIndexCount(), 
+		//	worldBaseViewOrthoProj, *skySphere.GetCloudTexturePP()))
+		//{
+		//	return false;
+		//}
 	}
 
 	// Turn off alpha blending after rendering the text->

@@ -19,7 +19,7 @@ public:
 
 	bool Initialize(HWND extHwnd, HINSTANCE hInst, int screenWidth, int screenHeight, int centerPosX, int centerPosY, bool vsyncEnabled, bool fullScreen);
 	void InitializeCEGUI();
-	void AddNewScreen(std::shared_ptr<GenericScreen> screen, GameStates::Type gameState);
+	void AddNewScreen(std::shared_ptr<GenericScreen> screen, GameStates::Type gameState, std::wstring name);
 
 	//Provides smooth transition out of current state and into new state
 	void ChangeState(GameStates::Type state);
@@ -51,6 +51,7 @@ private:
 	GameStates::Type previousState, currentState;
 	std::shared_ptr<GenericScreen> currentScreen;
 
+	std::map<GameStates::Type, std::wstring> stateNames;
 	std::map<GameStates::Type, std::shared_ptr<GenericScreen>> stateToScreenMap;
 	LoadingScreen loadingScreen;
 

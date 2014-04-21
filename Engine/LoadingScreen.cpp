@@ -37,8 +37,9 @@ void LoadingScreen::Initialize()
 	textWindow->activate();
 }
 
-void LoadingScreen::Enter()
+bool LoadingScreen::Enter()
 {
+	return true;
 }
 
 void LoadingScreen::Exit()

@@ -111,7 +111,7 @@ private:
 	//Scene rendering
 	bool RenderShadowmap(XMMATRIX* lightWorldViewProj, XMMATRIX* lightWorldView,  XMMATRIX* lightView,  XMMATRIX* lightProj, RenderableBundle* renderableBundle);
 	bool RenderTwoPassGaussianBlur(XMMATRIX* worldBaseViewOrthoProj);
-	bool RenderGBuffer(XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix, XMMATRIX* identityWorldViewProj, RenderableBundle* renderableBundle);
+	bool RenderGBuffer(XMMATRIX* viewMatrix, XMMATRIX* baseView, XMMATRIX* projectionMatrix, XMMATRIX* identityWorldViewProj, RenderableBundle* renderableBundle);
 
 	//Light rendering
 	bool RenderDirectionalLight(DRDirLight::DirectionalLightInput& input);
@@ -146,17 +146,36 @@ private:
 	/************************************************************************/
 	/* Render targets and necessary rendering states and objects            */
 	/************************************************************************/
-	RenderTarget2D colorRT; // render target for storing color. 8R 8G 8B 8A. stores specular intensity in alpha value.
-	RenderTarget2D depthRT; // render target for storing depth. it's a R16 G16 because we use variance shadowmapping
-	RenderTarget2D normalRT; //render target for storing normals. 8R 8G 8B 8A. stores specular power in alpha value.
-	RenderTarget2D lightRT; // light rendertarget
-	RenderTarget2D shadowRT; //Shadow map
-	RenderTarget2D gaussianBlurPingPongRT; //Used for blurring shadow map
+	// render target for storing color. R8G8B8A8. Stores a... lerp value in alpha channel, used in case I want to lerp between two materials in lighting stage.
+	RenderTarget2D colorRT;
+	
+	// render target for storing depth. it's a R32
+	RenderTarget2D depthRT;
+	
+	//render target for storing normals. R8G8B8A8. 
+	// I use a compression algorithm for my normals, so only the .xy channels are used when storing normals. the .zw channels are used for material IDs
+	RenderTarget2D normalRT; 
+
+	//light rendertarget. R8G8B8A8
+	RenderTarget2D lightRT;
+	
+	//Shadow map. it's a R16 G16 because we use variance shadowmapping 
+	RenderTarget2D shadowRT; 
+
+	//Used for blurring shadow map. this one is also R16G16 because it has to mirror shadowRT
+	RenderTarget2D gaussianBlurPingPongRT; 
+
+	//R32, pretty much identical to depth RT in every way
+	RenderTarget2D ssaoRT; 
+
+	 //For blurring ssao map. I can't reuse the gaussianblur pingpongRT because that one is R16G16, this one will be R32
+	RenderTarget2D ssaoPingPongRT;
 
 	CComPtr<ID3D11RenderTargetView> gbufferRenderTargets[3]; //render targets for GBuffer pass
 	CComPtr<ID3D11RenderTargetView> lightTarget[1];
 	CComPtr<ID3D11RenderTargetView> shadowTarget[1];
 	CComPtr<ID3D11RenderTargetView> gaussianBlurPingPongRTView[1];
+	CComPtr<ID3D11RenderTargetView> ssaoRTView[1];
 
 	CComPtr<ID3D11ShaderResourceView> gbufferTextures[3];
 	CComPtr<ID3D11ShaderResourceView> dirLightTextures[4];
@@ -164,8 +183,9 @@ private:
 	CComPtr<ID3D11ShaderResourceView> gaussianBlurTexture[1];
 	CComPtr<ID3D11ShaderResourceView> lightMap;
 
-	//0 == depth, 1 == normal, 2 == random vectors, 3 == sampling kernel
-	CComPtr<ID3D11ShaderResourceView> ssaoTextures[4];
+	//0 == depth, 1 == normal, 2 == random vectors
+	CComPtr<ID3D11ShaderResourceView> ssaoView;
+	CComPtr<ID3D11ShaderResourceView> ssaoTextures[3];
 
 	CComPtr<ID3D11DepthStencilView> shadowDepthStencil;
 	CComPtr<ID3D11DepthStencilView> depthStencil;
@@ -182,6 +202,7 @@ private:
 	DRWaterClass waterShader;
 	MCGBufferTerrainShader mcubeShader;
 	DRObjModelShader objModelShader;
+	SSAOShader ssaoShader;
 
 	/************************************************************************/
 	/* Shader input objects                                                 */

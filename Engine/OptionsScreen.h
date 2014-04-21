@@ -6,7 +6,7 @@ public:
 	OptionsScreen();
 	~OptionsScreen();
 
-	virtual void Enter();
+	virtual bool Enter();
 	virtual void Exit();
 
 	virtual bool Update(float deltaTime);

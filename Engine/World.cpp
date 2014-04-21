@@ -24,28 +24,55 @@ void GameWorld::CleanUp()
 	}
 }
 
-void GameWorld::Initialize( std::shared_ptr<D3DManager> extD3DManager, std::shared_ptr<InputClass> extInput, GameRenderer* gameRenderer, DebugOverlayHUD* debugHud)
+bool GameWorld::Initialize( std::shared_ptr<D3DManager> extD3DManager, std::shared_ptr<InputClass> extInput, GameRenderer* gameRenderer, DebugOverlayHUD* debugHud)
 {
 	inputManager = extInput;
 	d3D = extD3DManager;
 	renderer = gameRenderer;
 	debugHUD = debugHud;
 
+	bool result;
+
 	//Load settings from file
 	InitializeSettings(this);
 
-	meshHandler.Initialize(gameRenderer->GetTextureHandler(), gameRenderer->GetMaterialHandler());
+	result = meshHandler.Initialize(gameRenderer->GetTextureHandler(), gameRenderer->GetMaterialHandler());
+	if(!result)
+	{
+		return false;
+	}
 
 	debugHud->AddNewWindowWithoutHandle("Chunks currently being drawn: ", &currentlyActiveChunks, DataTypeEnumMappings::UInt32);
 	debugHud->AddNewWindowWithoutHandle("Chunks currently in production: ", &chunksInProduction, DataTypeEnumMappings::UInt32);
 
-	InitializeMiscRenderables();
-	InitializeCollision();
-	InitializeCamera();
-	InitializeTerrain();
+	result = InitializeMiscRenderables();
+	if(!result)
+	{
+		return false;
+	}
+
+	result = InitializeCollision();
+	if(!result)
+	{
+		return false;
+	}
+
+	result = InitializeCamera();
+	if(!result)
+	{
+		return false;
+	}
+
+	result = InitializeTerrain();
+	if(!result)
+	{
+		return false;
+	}
+
+	return true;
 }
 
-void GameWorld::InitializeMiscRenderables()
+bool GameWorld::InitializeMiscRenderables()
 {
 	std::wstring objFilepath = L"../Engine/data/Models/";
 	std::wstring treeModelFilepath = objFilepath + L"LushTree.obj";
@@ -57,10 +84,14 @@ void GameWorld::InitializeMiscRenderables()
 	{
 		//Add model by value into renderable bundle... Should just be temporary
 		renderableBundle.objModels.push_back(tempModelPtr);
+
+		return true;
 	}
+
+	return false;
 }
 
-void GameWorld::InitializeCamera()
+bool GameWorld::InitializeCamera()
 {
 	//Create camera and the camera controller
 	cameraController = std::make_shared<ControllerClass>(dynamicsWorld, inputManager, 0.05f); //0.03f
@@ -73,9 +104,11 @@ void GameWorld::InitializeCamera()
 	camera->SetPosition(XMFLOAT3(0.0f, 25.0f, -100.0f));
 	camera->SetRotation(XMFLOAT3(0.0f, 0.0f, 0.0f));
 	camera->SetPerspectiveProjection(screenWidth, screenHeight, XM_PIDIV2, nearClip, farClip); 
+
+	return true;
 }
 
-void GameWorld::InitializeCollision()
+bool GameWorld::InitializeCollision()
 {
 	broadphase				=	std::make_shared<btDbvtBroadphase>();
 	collisionConfiguration	=	std::make_shared<btDefaultCollisionConfiguration>();
@@ -91,6 +124,8 @@ void GameWorld::InitializeCollision()
 
 	//1.77f is 16:9 aspect ratio
 	frustum.SetInternals((float)(screenWidth / screenHeight), XM_PIDIV2, nearClip, farClip);
+
+	return true;
 }
 
 void GameWorld::ResetCamera()
@@ -98,10 +133,15 @@ void GameWorld::ResetCamera()
 	cameraController->ResetBody();
 }
 
-void GameWorld::InitializeTerrain()
+bool GameWorld::InitializeTerrain()
 {
 	//Initialize terrain manager
-	terrainManager.Initialize(d3D->GetDevice(), dynamicsWorld, d3D->GetHwnd(), camera->GetPosition());
+	if(!terrainManager.Initialize(d3D->GetDevice(), dynamicsWorld, d3D->GetHwnd(), camera->GetPosition()))
+	{
+		return false;
+	}
+
+	return true;
 }
 
 void GameWorld::Update( float deltaTimeSeconds, float deltaTimeMilliseconds )

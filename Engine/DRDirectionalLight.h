@@ -43,6 +43,9 @@ private:
 		XMMATRIX WorldViewProjection;
 		XMMATRIX WorldView;
 		XMMATRIX InvertedProjection;
+		float thFOV;
+		float aspectRatio;
+		XMFLOAT2 PADDING;
 	};
 
 	/*
@@ -93,5 +96,5 @@ private:
 	CComPtr<ID3D11Buffer> vertexMatrixBuffer;
 	CComPtr<ID3D11Buffer> pixelMatrixBuffer;
 	CComPtr<ID3D11Buffer> positionalBuffer;
-	float cameraFarClip;
+	float cameraFarClip, thFOV, aspectRatio;
 };

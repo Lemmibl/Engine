@@ -439,7 +439,7 @@ bool DRWaterClass::SetShaderParameters( ID3D11DeviceContext* deviceContext, XMMA
 	dataPtr3 = (PixelMatrixBuffer*)mappedResource.pData;
 
 	// Copy the matrices into the constant buffer.
-	dataPtr3->World = *worldMatrix;
+	dataPtr3->WorldView = *worldViewMatrix;
 	dataPtr3->waterColorMultiplier = waterColorMultiplier;
 	dataPtr3->waterColorStartOffset = waterColorStartOffset;
 

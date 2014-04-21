@@ -22,13 +22,13 @@ public:
 
 	void CleanUp();
 
-	void Initialize(std::shared_ptr<D3DManager> extD3DManager, std::shared_ptr<InputClass> extInput, GameRenderer* gameRenderer, DebugOverlayHUD* debugHud);
+	bool Initialize(std::shared_ptr<D3DManager> extD3DManager, std::shared_ptr<InputClass> extInput, GameRenderer* gameRenderer, DebugOverlayHUD* debugHud);
 
 	void Update(float deltaTimeSeconds, float deltaTimeMilliseconds);
 	void OnSettingsReload(Config* cfg);
 
 	void ResetCamera();
-	void InitializeTerrain();
+	bool InitializeTerrain();
 
 	MeshHandler* GetMeshHandler() { return &meshHandler; }
 
@@ -37,9 +37,10 @@ public:
 	XMFLOAT3* GetWindDirection() { return weatherSystem.GetWindDirection(); }
 
 private:
-	void InitializeMiscRenderables();
-	void InitializeCollision();
-	void InitializeCamera();
+	bool InitializeMiscRenderables();
+	bool InitializeCollision();
+	bool InitializeCamera();
+	
 	void HandleInput();
 
 	//Do frustum culling and that sort of stuff

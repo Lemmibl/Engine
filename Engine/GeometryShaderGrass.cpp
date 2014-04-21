@@ -356,7 +356,7 @@ bool GeometryShaderGrass::SetShaderParameters( ID3D11DeviceContext* deviceContex
 	dataPtr3 = (GeometryShaderBuffer*)mappedResource.pData;
 
 	// Copy the matrices into the constant buffer.
-	dataPtr3->World = *worldMatrix;
+	dataPtr3->WorldView = *worldViewMatrix;
 	dataPtr3->WorldViewProjection = *worldViewProjection;
 	dataPtr3->DeltaTime = deltaTime;
 	dataPtr3->WindDirection = *windDirection;

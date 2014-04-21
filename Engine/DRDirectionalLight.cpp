@@ -436,6 +436,8 @@ bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, Direct
 	dataPtr1->WorldViewProjection = *input.worldViewProjection;
 	dataPtr1->WorldView = *input.worldView;
 	dataPtr1->InvertedProjection = *input.invertedProjection;
+	dataPtr1->aspectRatio = aspectRatio;
+	dataPtr1->thFOV = thFOV;
 	//dataPtr1->WorldView = *worldView;
 	//dataPtr1->World = *world;
 	//dataPtr1->InvertedViewProjection = XMMatrixMultiplyTranspose(*invertedView, *invertedProjection);
@@ -548,4 +550,18 @@ void DRDirLight::OnSettingsReload(Config* cfg)
 	const Setting& settings = cfg->getRoot()["rendering"];
 
 	settings.lookupValue("farClip", cameraFarClip);
+
+	float screenWidth, screenHeight;
+
+	const Setting& cameraSettings = cfg->getRoot()["camera"];
+	cameraSettings.lookupValue("fov", thFOV);
+
+	thFOV = tan(thFOV/2);
+
+	//windowWidth, windowHeight
+	const Setting& renderingSettings = cfg->getRoot()["rendering"];
+	renderingSettings.lookupValue("windowWidth", screenWidth);
+	renderingSettings.lookupValue("windowHeight", screenHeight);
+
+	aspectRatio = (screenWidth / screenHeight);
 }

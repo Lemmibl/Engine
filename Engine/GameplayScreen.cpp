@@ -19,13 +19,19 @@ GameplayScreen::~GameplayScreen()
 {
 }
 
-void GameplayScreen::Enter()
+bool GameplayScreen::Enter()
 {
 	SetActive(true);
+	bool result;
 
 	if(!HasBeenInitialized())
 	{
-		Initialize();
+		result = Initialize();
+		if(!result)
+		{
+			return false;
+		}
+
 		SetInitializedState(true);
 	}
 
@@ -35,7 +41,13 @@ void GameplayScreen::Enter()
 	world.ResetCamera();
 
 	//Reset terrain.
-	world.InitializeTerrain();
+	result = world.InitializeTerrain();
+	if(!result)
+	{
+		return false;
+	}
+
+	return true;
 }
 
 bool GameplayScreen::Initialize()
@@ -45,10 +57,18 @@ bool GameplayScreen::Initialize()
 	//Load settings from file
 	InitializeSettings(this);
 
-	debugHUD.Initialize(0.0f, 0.0f);
+	result = debugHUD.Initialize(0.0f, 0.0f);
+	if(!result)
+	{
+		return false;
+	}
 
 	//Initialize world
-	world.Initialize(d3D, input, &worldRenderer, &debugHUD);
+	result = world.Initialize(d3D, input, &worldRenderer, &debugHUD);
+	if(!result)
+	{
+		return false;
+	}
 
 	// Initialize the renderer.
 	result = worldRenderer.Initialize(hwnd, world.GetCamera(), input, d3D, world.GetMeshHandler(), &debugHUD, (unsigned int)screenWidth, (unsigned int)screenHeight, 

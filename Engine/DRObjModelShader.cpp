@@ -230,7 +230,7 @@ void DRObjModelShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND h
 	return;
 }
 
-bool DRObjModelShader::UpdateMatrixBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix)
+bool DRObjModelShader::UpdateMatrixBuffer( ID3D11DeviceContext* deviceContext, XMMATRIX*world, XMMATRIX* worldView, XMMATRIX* worldViewProjection)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -249,9 +249,9 @@ bool DRObjModelShader::UpdateMatrixBuffer(ID3D11DeviceContext* deviceContext, XM
 	dataPtr = (MatrixBufferType*)mappedResource.pData;
 
 	// Copy the matrices into the constant buffer.
-	dataPtr->World = *worldMatrix;
-	dataPtr->View = *viewMatrix;
-	dataPtr->Projection = *projectionMatrix;
+	dataPtr->World = *world;
+	dataPtr->WorldView = *worldView;
+	dataPtr->WorldViewProjection = *worldViewProjection;
 
 	// Unlock the matrix constant buffer.
 	deviceContext->Unmap(matrixBuffer, 0);

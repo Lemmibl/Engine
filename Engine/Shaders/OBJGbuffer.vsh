@@ -1,6 +1,52 @@
 cbuffer MatrixBuffer
 {
 	float4x4 World;
+	float4x4 WorldView;
+	float4x4 WorldViewProjection;
+};
+
+struct VertexShaderInput
+{
+	float3 Position : POSITION;
+	float2 TexCoord : TEXCOORD;
+	float3 Normal	: NORMAL;
+};
+
+struct VertexShaderOutput
+{
+	float4 Position : SV_POSITION;
+	float3 Normal	: NORMAL;
+	float3 TexCoord : TEXCOORD0; //Viewdepth in .z
+};
+
+VertexShaderOutput OBJGbufferVertex(VertexShaderInput input)
+{
+	VertexShaderOutput output;
+
+	float4 pos = float4(input.Position, 1.0f);
+
+	//Calculate view position so that we can extract view depth
+	float4 viewPosition = mul(pos, WorldView);
+
+	//Transform pos by WVP to get clip space
+	output.Position = mul(pos, WorldViewProjection);
+
+	//Pass along texture coordinates
+	output.TexCoord.xy = input.TexCoord;
+
+	//Save view depth in texcoord z channel
+	output.TexCoord.z = viewPosition.z;
+
+	//Pass along surface normal, transformed by world matrix
+	output.Normal = normalize(mul(input.Normal, (float3x3)World));
+
+	return output;
+}
+
+/*
+cbuffer MatrixBuffer
+{
+	float4x4 World;
 	float4x4 View;
 	float4x4 Projection;
 };
@@ -8,16 +54,15 @@ cbuffer MatrixBuffer
 struct VertexShaderInput
 {
 	float3 Position : POSITION;
-	float2 TexCoord : TEXCOORD0;
-	float3 Normal : NORMAL;
+	float2 TexCoord : TEXCOORD;
+	float3 Normal	: NORMAL;
 };
 
 struct VertexShaderOutput
 {
 	float4 Position : SV_POSITION;
-	float3 Normal : NORMAL;
-	float2 TexCoord : TEXCOORD0;
-	float ViewDepth : TEXCOORD1;
+	float3 Normal	: NORMAL;
+	float3 TexCoord : TEXCOORD0; //Viewdepth in .z
 };
 
 VertexShaderOutput OBJGbufferVertex(VertexShaderInput input)
@@ -25,19 +70,20 @@ VertexShaderOutput OBJGbufferVertex(VertexShaderInput input)
 	VertexShaderOutput output;
 
 	//Calculate view position so that we can extract view depth
-	float4 viewPosition =	mul(float4(input.Position, 1.0f), mul(World, View));
+	float4 viewPosition = mul(mul(float4(input.Position, 1.0f), World), View);
 
-	//Calculate world view projection
+	//Transform viewposition by projection to turn it into the "final space"
 	output.Position = mul(viewPosition, Projection);
 
 	//Pass along texture coordinates
-	output.TexCoord		= input.TexCoord;
+	output.TexCoord.xy = input.TexCoord;
 
-	//Pass along surface normal
-	output.Normal		= normalize(mul(input.Normal, World));
+	//Pass along surface normal, transformed by world matrix
+	output.Normal = normalize(mul(input.Normal, (float3x3)World));
 
-	//Get view depth
-	output.ViewDepth	= viewPosition.z;
+	//Save view depth in texcoord z channel
+	output.TexCoord.z = viewPosition.z;
 
 	return output;
 }
+*/

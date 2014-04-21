@@ -10,12 +10,14 @@ OptionsScreen::~OptionsScreen()
 {
 }
 
-void OptionsScreen::Enter()
+bool OptionsScreen::Enter()
 {
 	if(!HasBeenInitialized())
 	{
 		SetInitializedState(true);
 	}
+
+	return true;
 }
 
 void OptionsScreen::Exit()

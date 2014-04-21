@@ -11,13 +11,19 @@ MainMenuScreen::~MainMenuScreen()
 {
 }
 
-void MainMenuScreen::Enter()
+bool MainMenuScreen::Enter()
 {
 	SetActive(true);
+	bool result;
 
 	if(!HasBeenInitialized())
 	{
-		Initialize();
+		result = Initialize();
+		if(!result)
+		{
+			return false;
+		}
+
 		SetInitializedState(true);
 	}
 
@@ -29,6 +35,8 @@ void MainMenuScreen::Enter()
 
 	rootWindow->activate();
 	rootWindow->show();
+
+	return true;
 }
 
 void MainMenuScreen::Exit()
@@ -46,6 +54,10 @@ bool MainMenuScreen::Initialize()
 {
 	//Load the layout for this menu
 	rootWindow = CEGUI::WindowManager::getSingleton().loadLayoutFromFile("mainMenu.layout");
+	if(!rootWindow)
+	{
+		return false;
+	}
 	CEGUI::System::getSingleton().getDefaultGUIContext().setRootWindow(rootWindow);
 
 	//Set up start game function and bind it to the options button
@@ -59,6 +71,10 @@ bool MainMenuScreen::Initialize()
 	};
 
 	CEGUI::Window* startGame = rootWindow->getChild("Start Game");
+	if(!startGame)
+	{
+		return false;
+	}
 	startGame->subscribeEvent(CEGUI::Window::EventMouseClick, CEGUI::SubscriberSlot::SubscriberSlot(startGameFunction));
 
 	//Set up open options function and bind it to the Options button
@@ -72,6 +88,10 @@ bool MainMenuScreen::Initialize()
 	};
 
 	CEGUI::Window* optionsMenu = rootWindow->getChild("Options");
+	if(!optionsMenu)
+	{
+		return false;
+	}
 	optionsMenu->subscribeEvent(CEGUI::Window::EventMouseClick, CEGUI::SubscriberSlot::SubscriberSlot(openOptionsFunction));
 
 
@@ -86,6 +106,10 @@ bool MainMenuScreen::Initialize()
 	};
 
 	CEGUI::Window* quitGame = rootWindow->getChild("Exit Game");
+	if(!quitGame)
+	{
+		return false;
+	}
 	quitGame->subscribeEvent(CEGUI::Window::EventMouseClick, CEGUI::SubscriberSlot::SubscriberSlot(quitFunction));
 
 	return true;
@@ -105,7 +129,7 @@ bool MainMenuScreen::Update( float deltaTime )
 
 bool MainMenuScreen::Render( float deltaTime )
 {
-	//Not much going on here either
+	//Not much going on here either; it's all managed by internal CEGUI rendering
 
 	return true;
 }

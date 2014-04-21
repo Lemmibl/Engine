@@ -3,7 +3,7 @@ SamplerState linearSampler;
 
 cbuffer MatrixBuffer
 {
-	float4x4 World : packoffset(c0);
+	float4x4 WorldView : packoffset(c0);
 	float4x4 WorldViewProjection : packoffset(c4);
 	float DeltaTime : packoffset(c8.x);
 	float3 WindDirection : packoffset(c8.y);
@@ -34,13 +34,13 @@ struct VS_OUTPUT
 struct PS_INPUT
 {
 	float4 Position : SV_POSITION;
-	float4 Normal	: TEXCOORD0;
+	float3 Normal	: TEXCOORD0;
 	float4 TexCoord : TEXCOORD1;
 	float Opacity : OPACITY;
 };
 
 //static const float vegetationScale = 2.2f;
-static const float4 UpNormal = normalize(float4(0.0f, 1.0f, 0.0f, 0.0f));
+static const float3 UpNormal = normalize(float3(0.0f, 1.0f, 0.0f));
 
 //TODO: Sample level........ yeah..
 float LoadWindForce(float2 coords)
@@ -105,30 +105,28 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, float distanceHeightScaling, inout Tri
 		//If the grass is close enough to the camera, add wind. Just pointless to add a bunch of wind to grass that is too far away to be seen properly.
 		if(v1.YPosDepthAndRand.y < (vegetationFalloff*0.4f))
 		{
-			//Add wind direction to our already randomized normal. This value will be used to offset the two upper vertices of the quad.
+			//Add wind to our already randomized normal. This value will be used to offset the two upper vertices of the quad.
 			randomizedNormal.xyz += (WindDirection * (forceScale * LoadWindForce((v1.Position.xz*waveLength) + (traversalSpeed*DeltaTime))));
-
-			randomizedNormal.w = 0.0f;
 		}
 
 		//Define the four vertices, corners
 		output[0].Position = mul(pos1, WorldViewProjection);
-		output[0].Normal = normalize(v1.Normal);
+		output[0].Normal = normalize(mul(v1.Normal, (float3x3)WorldView));
 		output[0].TexCoord = float4(0.0f, 1.0f, textureID, v1.YPosDepthAndRand.y/farClip);
 		output[0].Opacity = opacity;
 
 		output[1].Position = mul(pos2, WorldViewProjection);
-		output[1].Normal = normalize(v2.Normal);
+		output[1].Normal = normalize(mul(v2.Normal, (float3x3)WorldView));
 		output[1].TexCoord = float4(1.0f, 1.0f, textureID, v2.YPosDepthAndRand.y/farClip);
 		output[1].Opacity = opacity;
 
 		output[2].Position = mul((pos1 + randomizedNormal), WorldViewProjection);
-		output[2].Normal = normalize(v1.Normal+randomizedNormal);
+		output[2].Normal = normalize(mul(v1.Normal+randomizedNormal.xyz, (float3x3)WorldView));
 		output[2].TexCoord = float4(0.0f, 0.0f, textureID, v1.YPosDepthAndRand.y/farClip);
 		output[2].Opacity = opacity;
 
 		output[3].Position = mul((pos2 + randomizedNormal), WorldViewProjection);
-		output[3].Normal = normalize(v2.Normal + randomizedNormal);
+		output[3].Normal = normalize(mul(v2.Normal + randomizedNormal.xyz, (float3x3)WorldView));
 		output[3].TexCoord = float4(1.0f, 0.0f, textureID, v2.YPosDepthAndRand.y/farClip);
 		output[3].Opacity = opacity;
 
@@ -147,7 +145,7 @@ void GrassGS(triangle VS_OUTPUT Input[3], inout TriangleStream<PS_INPUT> TriStre
 { 
 	//So we do a dot between the three normals of the triangle and an Up vector that just points straight up.
 	//Which means that if the surface is angled too far in any direction, we don't create grass there.
-	float dotResult = dot(normalize(Input[0].Normal+Input[1].Normal+Input[2].Normal), UpNormal);
+	float dotResult = dot(normalize(Input[0].Normal.xyz+Input[1].Normal.xyz+Input[2].Normal.xyz), UpNormal);
 
 	float viewDepth = Input[0].YPosDepthAndRand.y;
 

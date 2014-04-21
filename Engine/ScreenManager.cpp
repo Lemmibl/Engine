@@ -64,23 +64,11 @@ bool ScreenManager::Initialize(HWND extHwnd, HINSTANCE hInst,int screenWidth, in
 	loadingScreen.Initialize();
 
 	std::shared_ptr<GameplayScreen> gameplayScreen = std::make_shared<GameplayScreen>(hwnd, input, d3D);
-	//result = gameplayScreen->Initialize();
-	//if(!result)
-	//{
-	//	return false;
-	//}
-
-	AddNewScreen(gameplayScreen, GameStates::GameScreen);
+	AddNewScreen(gameplayScreen, GameStates::GameScreen, L"Gameplay screen");
 
 
 	std::shared_ptr<MainMenuScreen> mainMenuScreen = std::make_shared<MainMenuScreen>(input);
-	//result = mainMenuScreen->Initialize();
-	//if(!result)
-	//{
-	//	return false;
-	//}
-
-	AddNewScreen(mainMenuScreen, GameStates::MainMenuScreen);
+	AddNewScreen(mainMenuScreen, GameStates::MainMenuScreen, L"Main menu");
 
 
 	previousState = currentState = GameStates::MainMenuScreen;
@@ -146,7 +134,7 @@ void ScreenManager::InitializeCEGUI()
 
 //Inserts a new screen into the map, together with its' corresponding gameState key.
 //Also attaches the screen's game state changing event to our ChangeState function.
-void ScreenManager::AddNewScreen(std::shared_ptr<GenericScreen> screen, GameStates::Type gameState )
+void ScreenManager::AddNewScreen(std::shared_ptr<GenericScreen> screen, GameStates::Type gameState, std::wstring name)
 {
 	//Technically speaking not a key, but an iterator into the map, but for all intents and purposes, I use it as a key here.
 	auto& key = stateToScreenMap.find(gameState);
@@ -157,8 +145,11 @@ void ScreenManager::AddNewScreen(std::shared_ptr<GenericScreen> screen, GameStat
 		//Append event
 		screen->GetStateChangeEvent()->Add(*this, &ScreenManager::ChangeState);
 
-		//Insert into map
+		//Insert into ptr map
 		stateToScreenMap.insert(std::make_pair(gameState, screen));
+
+		//Insert into name map
+		stateNames.insert(std::make_pair(gameState, name));
 	}
 }
 
@@ -195,7 +186,16 @@ void ScreenManager::ChangeState(GameStates::Type newState)
 				DrawLoadingScreen();
 
 				//Call enter
-				currentScreen->Enter();
+				if(!currentScreen->Enter())
+				{
+					std::wstring errorMessage = L"Couldn't enter state: ";
+					errorMessage += (stateNames.find(newState)->second); //This will always be viable, because we've already passed the other find function
+					errorMessage += L". Terminating...";
+
+					MessageBox(NULL, errorMessage.c_str(), L"Error", MB_OK);
+
+					Quit();
+				}
 			}
 		}
 	}

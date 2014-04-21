@@ -5,15 +5,9 @@
 
 Fixes:
 
-* FINALLY FIX SSAO
+* Change all shaders to viewspace... save normals in viewspace
 
-* Fixing the SSAO shader...
-	-> Look at that old gamasutra article
-	-> Look and make sure that all normals are saved in the same space and that everything is transposed properly
-
-* Make GameWorld actually return bools on initialize... everything falls apart because it doesnt return anything...
-
-* Look into changing water shader animation from gsh to vsh...
+* Fix whatever is wrong with the trees... terrainmanager? bugged model? loading broken?
 
 * Options screen...
 
@@ -23,8 +17,6 @@ Fixes:
 * Depth only OBJ shader for shadow stage
 
 Features:
-
-* When camera moves below waterHeight, the screen gets a blue filter
 
 * Simple rain or snow screen shader
 
@@ -55,9 +47,6 @@ Rendering and general layout of rendering system:
 http://gamedev.stackexchange.com/questions/22080/which-of-these-directx11-calls-actually-sends-data-to-the-gpu
 http://www.dataorienteddesign.com/dodmain/node14.html
 http://www.bitsquid.se/presentations/benefits-of-a-data-driven-renderer.pdf
-
-Entity system:
-http://www.gameprogblog.com/managing-entities/#more-79
 
 Directional light lens flare:
 http://www.madgamedev.com/post/2010/04/21/Article-Sun-and-Lens-Flare-as-a-Post-Process.aspx

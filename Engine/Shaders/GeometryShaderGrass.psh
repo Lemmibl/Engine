@@ -10,7 +10,7 @@ SamplerState linearSampler;
 struct PixelShaderInput
 {
 	float4 Position : SV_POSITION;
-	float4 Normal :	TEXCOORD0;
+	float3 Normal :	TEXCOORD0;
 	float4 TexCoord : TEXCOORD1;
 	float Opacity : OPACITY;
 };
@@ -33,10 +33,10 @@ float EncodeMaterialID(float id)
 
 //http://aras-p.info/texts/CompactNormalStorage.html#method04spheremap
 //Normal Encoding Function
-float2 Encode(float3 n)
+half2 Encode(half3 n)
 {
-	float p = sqrt(n.z*8.0f+8.0f);
-	return float2(n.xy/p + 0.5f);
+	half p = sqrt(n.z*8+8);
+	return half2(n.xy/p + 0.5);
 }
 
 //Essentially the ease curve will accentuate a value towards the extremes; 
@@ -55,12 +55,6 @@ float PerlinEaseCurve(float value)
 PixelShaderOutput GrassPS(PixelShaderInput input)
 {
 	PixelShaderOutput output;
-
-	//TODO:  Do something like this? Scale transparency with texCoord
-	/* 
-	//compute distance from center
-	float distance = color.a > 0.3f?length(TexCoord - 0.5f):1.0f;
-	*/
 
 	output.Color = shaderTexture.Sample(linearSampler, input.TexCoord.xyz);
 

@@ -1,4 +1,4 @@
-cbuffer VertexMatrixBuffer
+cbuffer VertexShaderBuffer
 {
 	float4x4 WorldViewProjection;
 	float thFOV;
@@ -8,15 +8,15 @@ cbuffer VertexMatrixBuffer
 
 struct VertexShaderInput
 {
-		float4 Position : POSITION0;
-		float2 TexCoord : TEXCOORD0;
+		float4 Position : POSITION;
+		float2 TexCoord : TEXCOORD;
 };
 
 struct VertexShaderOutput
 {
 		float4 Position : SV_POSITION;
-		float3 ViewRay : TEXCOORD0;
-		float2 TexCoord : TEXCOORD1;
+		float2 TexCoord : TEXCOORD0;
+		float3 ViewRay	: TEXCOORD1;
 };
 
 /*
@@ -32,8 +32,7 @@ ndc.y * thfov,
 You can do this either in the vertex shader (and interpolate the view ray), or directly in the fragment shader (compute ndc as texcoords * 2.0 - 1.0).
 */
 
-
-VertexShaderOutput ComposeVertexShader(VertexShaderInput input)
+VertexShaderOutput SSAOVertexShader(VertexShaderInput input)
 {
 		VertexShaderOutput output;
 
@@ -41,12 +40,7 @@ VertexShaderOutput ComposeVertexShader(VertexShaderInput input)
 		output.TexCoord = input.TexCoord;
 		
 		//Possibly do this in pixel shader or use texcoords..?
-		output.ViewRay = float3
-		(
-			output.Position.x * thFOV * aspectRatio,
-			output.Position.y * thFOV,
-			1.0f
-		);
+		output.ViewRay = float3(output.Position.x * thFOV * aspectRatio, output.Position.y * thFOV, 1.0f);
 
 		return output;
 }

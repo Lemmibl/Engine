@@ -2,9 +2,6 @@
 // Filename: drcompose.cpp
 ////////////////////////////////////////////////////////////////////////////////
 #include "DRCompose.h"
-#include <stdio.h>
-#include <d3dcompiler.h>
-
 
 DRCompose::DRCompose() : SettingsDependent()
 {
@@ -18,10 +15,10 @@ DRCompose::DRCompose() : SettingsDependent()
 	//pixelMatrixBuffer = 0;
 
 	//Assigning some default values
-	variables.sampleRadius = 0.6f; //Controls sampling radius. 0.1f to 1.0f are pretty ok values.
-	variables.intensity = 4.0f; //AO intensity. The higher this value is, the darker the occluded parts will be. 1.0f to 10.0f values is pretty ok values.
-	variables.scale = 0.8f; //Scales distance between occluders and occludee. Still a little unsure as to what values would be good to use.
-	variables.bias = 0.2f; //Cutoff value. The higher this value is, the harsher we are with cutting off low AO values. 0.01f to 0.4f values are pretty ok.
+	//variables.sampleRadius = 0.6f; //Controls sampling radius. 0.1f to 1.0f are pretty ok values.
+	//variables.intensity = 4.0f; //AO intensity. The higher this value is, the darker the occluded parts will be. 1.0f to 10.0f values is pretty ok values.
+	//variables.scale = 0.8f; //Scales distance between occluders and occludee. Still a little unsure as to what values would be good to use.
+	//variables.bias = 0.2f; //Cutoff value. The higher this value is, the harsher we are with cutting off low AO values. 0.01f to 0.4f values are pretty ok.
 	variables.fogStart = 150.0f;
 	variables.fogEnd = 380.0f;
 
@@ -199,32 +196,11 @@ bool DRCompose::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
 	// Create the texture sampler state.
-	result = device->CreateSamplerState(&samplerDesc, &samplers[0].p);
+	result = device->CreateSamplerState(&samplerDesc, &sampler.p);
 	if(FAILED(result))
 	{
 		return false;
 	}
-
-	// Create a texture sampler state description.
-	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.MipLODBias = 0.0f;
-	samplerDesc.MaxAnisotropy = 1;
-	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	samplerDesc.BorderColor[0] = samplerDesc.BorderColor[1] = samplerDesc.BorderColor[2] = samplerDesc.BorderColor[3] = 0;
-	samplerDesc.MinLOD = 0;
-	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-	// Create the texture sampler state.
-	result = device->CreateSamplerState(&samplerDesc, &samplers[1].p);
-	if(FAILED(result))
-	{
-		return false;
-	}
-
-
 
 	// Setup the description of the dynamic matrix constant buffer that is in the pixel shader.
 	vertexMatrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
@@ -443,13 +419,13 @@ bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, Compose
 		// Get a pointer to the data in the constant buffer.
 		dataPtr3 = (VariableBuffer*)mappedResource.pData;
 
-		dataPtr3->bias			=	variables.bias;
+		//dataPtr3->bias			=	variables.bias;
 		dataPtr3->farClip		=	variables.farClip;
 		dataPtr3->fogEnd		=	variables.fogEnd;
 		dataPtr3->fogStart		=	variables.fogStart;
-		dataPtr3->intensity		=	variables.intensity;
-		dataPtr3->sampleRadius	=	variables.sampleRadius;
-		dataPtr3->scale			=	variables.scale;
+		//dataPtr3->intensity		=	variables.intensity;
+		//dataPtr3->sampleRadius	=	variables.sampleRadius;
+		//dataPtr3->scale			=	variables.scale;
 		dataPtr3->toggleSSAO	=	variables.toggleSSAO;
 		dataPtr3->randomSize	=	variables.randomSize;
 		dataPtr3->screenSize	=	variables.screenSize;
@@ -485,8 +461,7 @@ void DRCompose::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
 	deviceContext->PSSetShader(pixelShader, NULL, 0);
 
 	// Set the sampler state in the pixel shader.
-	deviceContext->PSSetSamplers(0, 1, &samplers[0].p);
-	deviceContext->PSSetSamplers(1, 1, &samplers[1].p);
+	deviceContext->PSSetSamplers(0, 1, &sampler.p);
 
 	// Render the triangle.
 	deviceContext->DrawIndexed(indexCount, 0, 0);
@@ -502,10 +477,10 @@ void DRCompose::OnSettingsReload(Config* cfg)
 
 	const Setting& settings = cfg->getRoot()["shaders"]["composeShader"];
 
-	settings.lookupValue("sampleRadius", variables.sampleRadius);
-	settings.lookupValue("intensity", variables.intensity);
-	settings.lookupValue("scale", variables.scale);
-	settings.lookupValue("bias", variables.bias);
+	//settings.lookupValue("sampleRadius", variables.sampleRadius);
+	//settings.lookupValue("intensity", variables.intensity);
+	//settings.lookupValue("scale", variables.scale);
+	//settings.lookupValue("bias", variables.bias);
 
 	settings.lookupValue("FogStart", variables.fogStart);
 	settings.lookupValue("FogEnd", variables.fogEnd);

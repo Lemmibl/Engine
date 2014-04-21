@@ -1,0 +1,119 @@
+cbuffer PixelShaderBuffer
+{
+	float4x4 View;
+	float4x4 Projection;
+	float thFOV;
+	float aspectRatio;
+	float2 PADDING;
+	float4 samplingRays[14]; //Sampling kernel
+}
+
+struct VertexShaderOutput
+{
+		float4 Position : SV_POSITION;
+		float2 TexCoord : TEXCOORD0;
+		float3 ViewRay	: TEXCOORD1;
+};
+
+SamplerState linearSampler : register(s0);
+Texture2D shaderTextures[3] : register(ps_5_0, t0); //0 == depth, 1 == normal, 2 == random vectors
+
+static const int kernelSize = 14;
+
+static const float samplingRadius = 2.0f;
+static const float intensity = 4.0f;
+static const float2 screenSize = float2(1024.0f, 768.0f);
+static const float2 randomTextureSize = float2(128.0f, 128.0f);
+
+static const float    gOcclusionFadeStart = 0.4f;
+static const float    gOcclusionFadeEnd   = 4.0f;
+static const float    gSurfaceEpsilon     = 0.62f;
+
+//Decoding of GBuffer Normals
+half3 DecodeNormal(half2 enc)
+{
+	half2 fenc = enc*4.0f-2.0f;
+	half f = dot(fenc,fenc);
+	half g = sqrt(1.0f-f/4.0f);
+	half3 n;
+	n.xy = fenc*g;
+	n.z = 1.0f-f/2.0f;
+	return n;
+}
+
+float3 ReconstructViewPositionFromDepth(float3 viewRay, float depth)
+{
+	return viewRay * depth;
+}
+
+float3 GetRandomVector(float2 uv)
+{
+	return mul(normalize(shaderTextures[2].SampleLevel(linearSampler, (((screenSize.xy * uv.xy) / randomTextureSize.xy)), 0.0f) * 2.0f - 1.0f), View);
+}
+
+// Determines how much the sample point q occludes the point p as a function
+// of distZ.
+float OcclusionFunction(float distZ)
+{
+	// If depth(q) is "behind" depth(p), then q cannot occlude p.  Moreover, if 
+	// depth(q) and depth(p) are sufficiently close, then we also assume q cannot
+	// occlude p because q needs to be in front of p by Epsilon to occlude p.
+	//
+	// We use the following function to determine the occlusion.  
+	// 
+	//
+	//       1.0     -------------\
+	//               |           |  \
+	//               |           |    \
+	//               |           |      \ 
+	//               |           |        \
+	//               |           |          \
+	//               |           |            \
+	//  ------|------|-----------|-------------|---------|--> zv
+	//        0     Eps          z0            z1        
+	
+	float occlusion = 0.0f;
+	if(distZ >= gSurfaceEpsilon)
+	{
+		float fadeLength = gOcclusionFadeEnd - gOcclusionFadeStart;
+		
+		// Linearly decrease occlusion from 1 to 0 as distZ goes 
+		// from gOcclusionFadeStart to gOcclusionFadeEnd.    
+		occlusion = saturate((gOcclusionFadeEnd-distZ)/fadeLength);
+	}
+	
+	return occlusion;    
+}
+
+float SSAOPixelShader(VertexShaderOutput input) : SV_Target0
+{
+	float depth = shaderTextures[0].Sample(linearSampler, input.TexCoord);
+	float3 normal = normalize(DecodeNormal(shaderTextures[1].Sample(linearSampler, input.TexCoord).xy));
+	float3 viewPosition = (input.ViewRay * depth); //input.ViewRay // float3((input.TexCoord.x*2.0f-1.0f) * thFOV * aspectRatio, (input.TexCoord.y*2.0f-1.0f) * thFOV, 1.0)
+	float3 randomVector = GetRandomVector(input.TexCoord.xy);
+
+	float occlusion = 0.0f;
+
+	for(int i = 0; i < kernelSize; i++)
+	{
+		float3 offset = reflect(samplingRays[i], randomVector);
+		float flip = sign(dot(offset, normal));
+		float3 q = (viewPosition + (flip * samplingRadius * offset));
+
+		float4 projectedCoords = mul(float4(q, 1.0f), Projection);
+		projectedCoords /= projectedCoords.w;
+
+		float sampleDepth = 1.0f - shaderTextures[0].SampleLevel(linearSampler, projectedCoords.xy, 0.0f);
+		float3 ray = (q * sampleDepth);
+
+
+		float distance = (viewPosition.z - ray.z);
+		float dp = max(dot(normal, normalize(ray - viewPosition)), 0.0f);
+
+		occlusion += (dp * OcclusionFunction(distance));
+	}
+
+	occlusion = 1.0f - (occlusion / kernelSize);
+
+	return pow(occlusion, intensity);
+}

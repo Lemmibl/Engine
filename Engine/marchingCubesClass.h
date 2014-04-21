@@ -62,17 +62,17 @@ private:
 		v.position.y = v1.position.y + (v2.position.y - v1.position.y) * diff;
 		v.position.z = v1.position.z + (v2.position.z - v1.position.z) * diff;
 
-		//Calculate the average normal for each point
-		v.normal.x = v1.normal.x + (v2.normal.x - v1.normal.x) * diff;
-		v.normal.y = v1.normal.y + (v2.normal.y - v1.normal.y) * diff;
-		v.normal.z = v1.normal.z + (v2.normal.z - v1.normal.z) * diff;
+		//Calculate t(he average normal for each point
+		v.normal.x = (v1.normal.x + v2.normal.x) * 0.5f; //v1.normal.x + (v2.normal.x - v1.normal.x) * diff;
+		v.normal.y = (v1.normal.y + v2.normal.y) * 0.5f; //v1.normal.y + (v2.normal.y - v1.normal.y) * diff;
+		v.normal.z = (v1.normal.z + v2.normal.z) * 0.5f; //v1.normal.z + (v2.normal.z - v1.normal.z) * diff;
 
-		////Normalize the normal
-		float vectorlength = sqrt((v.normal.x*v.normal.x) + (v.normal.y*v.normal.y) + (v.normal.z*v.normal.z));
+		//////Normalize the normal
+		//float vectorlength = sqrt((v.normal.x*v.normal.x) + (v.normal.y*v.normal.y) + (v.normal.z*v.normal.z));
 
-		v.normal.x = v.normal.x / vectorlength;
-		v.normal.y = v.normal.y / vectorlength;
-		v.normal.z = v.normal.z / vectorlength;
+		//v.normal.x = v.normal.x / vectorlength;
+		//v.normal.y = v.normal.y / vectorlength;
+		//v.normal.z = v.normal.z / vectorlength;
 
 		return v;
 	}

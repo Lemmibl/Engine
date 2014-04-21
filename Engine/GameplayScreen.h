@@ -17,7 +17,7 @@ public:
 	GameplayScreen(HWND extHwnd, std::shared_ptr<InputClass> extInput, std::shared_ptr<D3DManager> extD3D);
 	~GameplayScreen();
 
-	virtual void Enter();
+	virtual bool Enter();
 	bool Initialize();
 	virtual bool Update(float deltaTime);
 	virtual bool Render(float deltaTime);

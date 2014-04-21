@@ -221,7 +221,7 @@ void CameraClass::Update()
 
 	forward = XMVector4Transform(forwardVector, rotationMatrix); //Create forward vector
 	up =  XMVector4Transform(upVector, rotationMatrix); //Create up vector
-	right = (forward * up); //Create right vector in relation to up and forward vector
+	//right = XMVector3Cross(forward, up); //Create right vector in relation to up and forward vector
 
 	target = tempPos + forward; //Calculate new 'target' for the camera
 

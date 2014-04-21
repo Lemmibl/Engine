@@ -9,7 +9,7 @@ public:
 	GenericScreen();
 	virtual ~GenericScreen();
 
-	virtual void Enter() = 0;
+	virtual bool Enter() = 0;
 	virtual void Exit() = 0;
 
 	virtual bool Update(float deltaTime) = 0;

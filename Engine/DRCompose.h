@@ -6,6 +6,8 @@
 #include <fstream>
 #include <atlcomcli.h>
 #include "SettingsDependent.h"
+#include <stdio.h>
+#include <d3dcompiler.h>
 
 class DRCompose : public SettingsDependent
 {
@@ -43,10 +45,6 @@ private:
 	struct VariableBuffer
 	{
 		int toggleSSAO;
-		float sampleRadius;	//Controls sampling radius. 0.1f to 1.0f are pretty ok values.
-		float intensity; 	//AO intensity. The higher this value is, the darker the occluded parts will be. 1.0f to 10.0f values is pretty ok values.
-		float scale;		//Scales distance between occluders and occludee. Still a little unsure as to what values would be good to use.
-		float bias;			//Cutoff value. The higher this value is, the harsher we are with cutting off low AO values. 0.01f to 0.4f values are pretty ok.
 		float fogStart;
 		float fogEnd;
 		float farClip;
@@ -57,6 +55,13 @@ private:
 		XMFLOAT2 PADDING;
 	};
 
+
+	/*
+	float sampleRadius;	//Controls sampling radius. 0.1f to 1.0f are pretty ok values.
+	float intensity; 	//AO intensity. The higher this value is, the darker the occluded parts will be. 1.0f to 10.0f values is pretty ok values.
+	float scale;		//Scales distance between occluders and occludee. Still a little unsure as to what values would be good to use.
+	float bias;			//Cutoff value. The higher this value is, the harsher we are with cutting off low AO values. 0.01f to 0.4f values are pretty ok.
+	 */
 
 public:
 	DRCompose();
@@ -80,7 +85,7 @@ private:
 	CComPtr<ID3D11VertexShader> vertexShader;
 	CComPtr<ID3D11PixelShader> pixelShader;
 	CComPtr<ID3D11InputLayout> layout;
-	CComPtr<ID3D11SamplerState> samplers[2];
+	CComPtr<ID3D11SamplerState> sampler;
 
 	CComPtr<ID3D11Buffer> vertexMatrixBuffer;
 	CComPtr<ID3D11Buffer> pixelMatrixBuffer;

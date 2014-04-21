@@ -79,23 +79,24 @@ HRESULT ProceduralTextureHandler::Create2DSSAORandomTexture( ID3D11Device* devic
 	//Don't use utility.Random(). We do not want floats.
 	for(int i = 0; i < textureWidth*textureHeight; ++i)
 	{
-		XMVECTOR tempVector = XMLoadFloat4(&XMFLOAT4(rand()%255, rand()%255, rand()%255, 1.0f));
-		tempVector = (XMVector4Normalize(tempVector) *= utility->RandomFloat());
+		XMVECTOR tempVector = XMLoadFloat4(&XMFLOAT4(rand()%255, rand()%255, 0.0f, 0.0f));
+		tempVector = (XMVector4Normalize(tempVector *= utility->RandomFloat()));
 		XMStoreFloat4(&result, tempVector);
 
 		pixelData[i].x = result.x*255.0f;
 		pixelData[i].y = result.y*255.0f;
-		pixelData[i].z = 0.0f;
-		pixelData[i].w = 1.0f;
+		pixelData[i].z = result.z*255.0f;
+		pixelData[i].w = 0.0f;
 	}
 
 	return texCreator->Build32Bit2DTexture(device, deviceContext, pixelData, textureWidth, textureHeight, srv);
 }
 
+//Discontinued ...
 HRESULT ProceduralTextureHandler::CreateSSAOSamplingKernel( ID3D11Device* device, ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv )
 {
 	int textureWidth, textureHeight;
-	textureWidth = 32;
+	textureWidth = 256;
 	textureHeight = 1;
 
 	std::vector<PixelData> pixelData;
@@ -106,14 +107,14 @@ HRESULT ProceduralTextureHandler::CreateSSAOSamplingKernel( ID3D11Device* device
 	//Don't use utility.Random(). We do not want floats.
 	for(int i = 0; i < textureWidth; ++i)
 	{
-		XMVECTOR tempVector = XMLoadFloat4(&XMFLOAT4(rand()%255, rand()%255, rand()%255, 1.0f));
-		tempVector = (XMVector4Normalize(tempVector) *= utility->RandomFloat());
+		XMVECTOR tempVector = XMLoadFloat4(&XMFLOAT4(rand()%255, rand()%255, rand()%255, 0.0f));
+		tempVector = (XMVector4Normalize(tempVector *= utility->RandomFloat()));
 		XMStoreFloat4(&result, tempVector);
 
 		pixelData[i].x = result.x*255.0f;
 		pixelData[i].y = result.y*255.0f;
 		pixelData[i].z = result.z*255.0f;
-		pixelData[i].w = 1.0f;
+		pixelData[i].w = 0.0f;
 	}
 
 	return texCreator->Build32Bit2DTexture(device, deviceContext, pixelData, textureWidth, textureHeight, srv);

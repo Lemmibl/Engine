@@ -12,12 +12,11 @@ class DRObjModelShader : public SettingsDependent
 {
 
 private:
-
 	struct MatrixBufferType
 	{
 		XMMATRIX World;
-		XMMATRIX View;
-		XMMATRIX Projection;
+		XMMATRIX WorldView;
+		XMMATRIX WorldViewProjection;
 	};
 
 	/*
@@ -63,7 +62,7 @@ public:
 
 	bool SetNewTexture(ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView** srv, int textureCount);
 	bool SetNewMaterial(ID3D11DeviceContext* deviceContext, OBJMaterialStruct material);
-	bool UpdateMatrixBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX* worldMatrix, XMMATRIX* viewMatrix, XMMATRIX* projectionMatrix);
+	bool UpdateMatrixBuffer(ID3D11DeviceContext* deviceContext, XMMATRIX*world, XMMATRIX* worldView, XMMATRIX* worldViewProjection);
 
 	void RenderShader(ID3D11DeviceContext* deviceContext, int indexCount, int startIndexLocation);
 	

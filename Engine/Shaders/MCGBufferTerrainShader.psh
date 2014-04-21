@@ -12,7 +12,7 @@ struct VertexShaderOutput
 	float4 Position : SV_POSITION;
 	float3 WorldNormal : NORMAL;
 	float4 WorldPosition : TEXCOORD0;
-	float ViewDepth : TEXCOORD1;
+	float4 ViewNormalAndDepth : TEXCOORD1; //Depth in .w
 };
 
 struct PixelShaderOutput
@@ -30,10 +30,10 @@ static const float3 UpNormal = float3(0.0f, 1.0f, 0.0f);
 
 //http://aras-p.info/texts/CompactNormalStorage.html#method04spheremap
 //Normal Encoding Function
-float2 Encode(float3 n)
+half2 Encode(half3 n)
 {
-	float p = sqrt(n.z*8.0f+8.0f);
-	return float2(n.xy/p + 0.5f);
+	half p = sqrt(n.z*8+8);
+	return half2(n.xy/p + 0.5);
 }
 
 void ExtractMaterialAndTextureID(float4 encodedValues, out int texture1, out int texture2, out float material1, out float material2)
@@ -70,10 +70,7 @@ PixelShaderOutput MCGBufferTerrainPixelShader(VertexShaderOutput input)
 	//Create weights for color interpolation based on world-space normal of surface
 	float3 NormalizedWorldNormal = normalize(input.WorldNormal);
 
-	//... Long story short, it's a fix to counteract bugged normals in marching cubes terrain ...
-	NormalizedWorldNormal.z += 0.01f;
-
-	float3 blend_weights = CalculateBlendWeights(NormalizedWorldNormal);
+	float3 blend_weights = CalculateBlendWeights(input.WorldNormal);
 
 	float4 YZColor = shaderTextures.Sample(textureSampler, float3(input.WorldPosition.yz * textureScale, 2.0f));
 	float4 XYColor = shaderTextures.Sample(textureSampler, float3(input.WorldPosition.xy * textureScale, 2.0f));
@@ -127,12 +124,12 @@ PixelShaderOutput MCGBufferTerrainPixelShader(VertexShaderOutput input)
 
 	//Store an encoded normal in the XY channels. Only two channels! Amazing!
 	//Encode material IDs and hide in normal Z and W channels
-	output.Normal.xy = Encode(NormalizedWorldNormal); 
+	output.Normal.xy = Encode(normalize(input.ViewNormalAndDepth.xyz)+float3(0.0f, 0.0f, 0.5f)); 
 	output.Normal.z = material1;
 	output.Normal.w = material2;
 
 	//Store linear depth. Farclip is stored in toggleColorMode.y.
-	output.Depth = (input.ViewDepth/farClip);
+	output.Depth = (input.ViewNormalAndDepth.w/farClip);
 
 	return output;
 }

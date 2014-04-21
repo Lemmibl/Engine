@@ -32,10 +32,10 @@ float EncodeMaterialID(float id)
 
 //http://aras-p.info/texts/CompactNormalStorage.html#method04spheremap
 //Normal Encoding Function
-float2 Encode(float3 n)
+half2 Encode(half3 n)
 {
-	float p = sqrt(n.z*8.0f+8.0f);
-	return float2(n.xy/p + 0.5f);
+	half p = sqrt(n.z*8+8);
+	return half2(n.xy/p + 0.5);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

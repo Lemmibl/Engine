@@ -191,7 +191,6 @@
     <None Include="credits.txt" />
     <None Include="libconfig\libconfig++.dll" />
     <None Include="libconfig\libconfig.h++" />
-    <None Include="OBJGbuffer.vsh" />
     <None Include="Shaders\DRCompose.hlsl" />
     <None Include="Shaders\DepthOnlyQuadShader.psh" />
     <None Include="Shaders\DepthOnlyQuadShader.vsh" />
@@ -219,8 +218,11 @@
     <None Include="settings.cfg" />
     <None Include="shader-error.txt" />
     <None Include="Shaders\OBJGbuffer.psh" />
+    <None Include="Shaders\OBJGbuffer.vsh" />
     <None Include="Shaders\skysphere.psh" />
     <None Include="Shaders\skysphere.vsh" />
+    <None Include="Shaders\SSAOShader.psh" />
+    <None Include="Shaders\SSAOShader.vsh" />
     <None Include="Shaders\standard.vsh" />
     <None Include="Shaders\texture.psh" />
     <None Include="Shaders\texture.vsh" />
@@ -230,8 +232,6 @@
     <None Include="Shaders\WaterShader.gsh" />
     <None Include="Shaders\WaterShader.psh" />
     <None Include="Shaders\WaterShader.vsh" />
-    <None Include="SSAOShader.psh" />
-    <None Include="SSAOShader.vsh" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="libconfig\libconfig++.lib" />
