@@ -48,7 +48,7 @@ PSOutput WaterShaderPS(PSInput input)
 	//Depth has been stored in normal .w channel.
 	output.Depth = input.TexCoord.w;
 
-	float4 PreCalcNormal = float4(UpNormal + normalTexture.SampleLevel(linearSampler, input.TexCoord.xy * 1.5f, 0).xyz, 1.0f);
+	float4 PreCalcNormal = float4(UpNormal + (normalTexture.SampleLevel(linearSampler, input.TexCoord.xy * 1.5f, 0).xyz), 1.0f);
 
 	float3 normal =  normalize(mul(PreCalcNormal, (float3x3)WorldView)).xyz;
 

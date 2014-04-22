@@ -50,11 +50,11 @@ VSOutput WaterAnimationVertexShader(VSInput input)
 	//Then once more with bigger coordinates and a larger height scaling for actual big waves
 	output.TexCoord.z += 1.3f * noiseTexture.SampleLevel(linearSampler, bigWaveTexCoord, 0);
 
-	//Save linear depth
-	output.TexCoord.w = mul(pos, WorldView).z / farClip;
-
 	//Finally, take our vertex position, offset it upwards based on the height value we loaded earlier, and transform it with WVP matrix.
 	output.Position = mul((pos + (UpNormal * output.TexCoord.z)), WorldViewProjection);
+
+	//Save linear depth
+	output.TexCoord.w = output.Position.w / farClip; //mul(pos, WorldView).z / farClip;
 
 	return output;
 }

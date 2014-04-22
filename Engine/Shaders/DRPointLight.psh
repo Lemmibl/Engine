@@ -37,10 +37,7 @@ half3 DecodeNormal(half2 enc)
 	half2 fenc = enc*4-2;
 	half f = dot(fenc,fenc);
 	half g = sqrt(1-f/4);
-	half3 n;
-	n.xy = fenc*g;
-	n.z = 1-f/2;
-	return n;
+	return half3(fenc*g, 1-f/2);
 }
 
 void RetrieveMaterialData(int materialID, out float Kd, out float Ks, out float surfaceSmoothness)
@@ -75,7 +72,7 @@ float3 ReconstructViewPositionFromDepth(float3 viewPosition, float depth)
 
 float3 ReconstructWorldPositionFromDepth(float3 viewRay, float depth)
 {
-	return CameraPosition.xyz + (viewRay * (depth*400.0f));
+	return CameraPosition.xyz + (viewRay * (depth*CameraFarClip));
 }
 
 float3 DepthToPosition(float depth, float farClip, float4 ScreenPosition)
@@ -121,11 +118,11 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 
 	float depth = textures[2].Sample(pointSampler, texCoord);
 	float3 normal = normalize(DecodeNormal(normalData.xy));
-	
-	float4 position = float4(ReconstructWorldPositionFromDepth(normalize(input.ViewRay), depth), 1.0f);
+
+	float3 position = mul(float4(ReconstructViewPositionFromDepth(input.ViewPosition.xyz, depth), 1.0f), InvertedView);
 
 	//surface-to-light vector
-	float3 lightVector = (position - LightPosition);
+	float3 lightVector = (position.xyz - LightPosition.xyz);
 
 	float d = length(lightVector);
 	float denom = ((d*d) / LightColor.w);
@@ -140,20 +137,20 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	//compute diffuse light using NdotL product
 	float3 diffuseLight = LightColor.rgb;//max((LightColor.rgb*NdL), 0.1f);
 
-	////Blinn half angle modification for performance over correctness
-	//float3 h = normalize(normalize(CameraPosition - position) - lightVector);
+	//Blinn half angle modification for performance over correctness
+	float3 h = normalize(normalize(CameraPosition - position) - lightVector);
 
-	////compute specular light
-	//float specularLight = pow( saturate( dot(h, normal)), surfaceSmoothness);
+	//compute specular light
+	float specularLight = pow( saturate( dot(h, normal)), surfaceSmoothness);
 
-	 //reflection vector
-	float3 reflectionVector = normalize(reflect(lightVector, normal));
+	// //reflection vector
+	//float3 reflectionVector = normalize(reflect(lightVector, normal));
 
-	//camera-to-surface vector
-	float3 directionToCamera = normalize(CameraPosition - position);
+	////camera-to-surface vector
+	//float3 directionToCamera = normalize(CameraPosition.xyz - position.xyz);
 
-	//compute specular light. Phong.
-	float specularLight = pow(saturate(dot(reflectionVector, directionToCamera)), surfaceSmoothness);
+	////compute specular light. Phong.
+	//float specularLight = pow(saturate(dot(reflectionVector, directionToCamera)), surfaceSmoothness);
 
 	//scale final value with attenuation, take into calculation the current material of this pixel
 	return half4((diffuseCoefficient*diffuseLight), (specularCoefficient*specularLight)) * attenuation;

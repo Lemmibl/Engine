@@ -483,6 +483,7 @@ bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, Direct
 	dataPtr3 = (PixelMatrixBuffer*)mappedResource.pData;
 
 	dataPtr3->InvertedView = *input.invertedView;
+	dataPtr3->View = *input.view;
 	dataPtr3->LightViewProj = *input.lightViewProj;
 	dataPtr3->LightView = *input.lightView;
 

@@ -33,6 +33,7 @@ public:
 private:
 	struct PixelMatrixBuffer
 	{
+		XMMATRIX View;
 		XMMATRIX InvertedView;
 		XMMATRIX LightView;
 		XMMATRIX LightViewProj;

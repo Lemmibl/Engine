@@ -10,6 +10,7 @@ cbuffer PositionalBuffer //Whatever, idk what else to name it
 
 cbuffer PixelMatrixBuffer
 {
+	float4x4 View;
 	float4x4 InvertedView;
 	float4x4 LightView;
 	float4x4 LightViewProj;
@@ -76,10 +77,7 @@ half3 DecodeNormal(half2 enc)
 	half2 fenc = enc*4-2;
 	half f = dot(fenc,fenc);
 	half g = sqrt(1-f/4);
-	half3 n;
-	n.xy = fenc*g;
-	n.z = 1-f/2;
-	return n;
+	return half3(fenc*g, 1-f/2);
 }
 
 float3 ReconstructViewPositionFromDepth(float3 viewRay, float depth, float farClip)
@@ -184,12 +182,14 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target0
 	float NdL = dot(lightVector, normal);
 
 	//Reconstructing world position
-	float4 position = mul(float4(ReconstructViewPositionFromDepth(input.ViewPosition, depth, CameraPosition.w), 1.0f), InvertedView);
-	position /= position.w;
+	float4 viewPosition = float4(ReconstructViewPositionFromDepth(input.ViewPosition, depth, CameraPosition.w), 1.0f);
+
+	float4 worldPosition = mul(viewPosition, InvertedView);
+	worldPosition /= worldPosition.w;
 
 	//Extract pixel position as seen from light POV for shadow map extraction.
-	float4 lightScreenPos = mul(position,  LightViewProj);
-	float realDistanceToLight = mul(position, LightView).z/CameraPosition.w;
+	float4 lightScreenPos = mul(worldPosition,  LightViewProj);
+	float realDistanceToLight = mul(worldPosition, LightView).z/CameraPosition.w;
 
 	lightScreenPos.xy = 0.5 * lightScreenPos.xy / lightScreenPos.w + float2(0.5f, 0.5f);
 	lightScreenPos.y = 1.0f - lightScreenPos.y;
@@ -214,7 +214,7 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target0
 		float3 reflectionVector = normalize(reflect(lightVector, normal));
 
 		//surface-to-camera vector
-		float3 directionToCamera = normalize(position.xyz - CameraPosition.xyz);
+		float3 directionToCamera = normalize(worldPosition.xyz - CameraPosition.xyz);
 
 		//Calculate specular light 
 		finalSpecularProduct += specularCoefficient * pow( saturate( dot(reflectionVector, directionToCamera)), surfaceSmoothness);

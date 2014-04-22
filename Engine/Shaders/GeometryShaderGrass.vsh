@@ -49,7 +49,7 @@ VS_OUTPUT GrassVS(VertexShaderInput input)
 	output.YPosDepthAndRand.x = mul(pos, World).y;
 
 	//You can only do this if you are using a perspective projection matrix! Beware!
-	output.YPosDepthAndRand.y = mul(pos, WorldView).z;
+	output.YPosDepthAndRand.y = mul(pos, WorldViewProjection).w;
 
 	//Creates a random value with world positions as seeds. Means it'll never change. TODO: Move to cpu/mesh creation? Probably needed.
 	output.YPosDepthAndRand.z = input.Position.w;//random(float2(input.Position.z*3.5f, input.Position.x*7.0f));
