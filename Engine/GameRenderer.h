@@ -98,6 +98,16 @@ public:
 	TextureHandler* GetTextureHandler() { return &textureHandler; }
 	MaterialHandler* GetMaterialHandler() { return &materialHandler; }
 
+	void SetCamera(CameraClass* cam)
+	{
+		camera.reset(cam);
+	}
+
+	void SetMeshHandler(MeshHandler* handler)
+	{
+		meshHandler = handler;
+	}
+
 	virtual void OnSettingsReload(Config* cfg);
 
 private:
@@ -123,6 +133,8 @@ private:
 	bool RenderGUI(XMMATRIX* worldBaseViewOrthoProj);
 
 private:
+	//Flag to make sure we don't initialize over a bunch of shit
+	bool previouslyInitialized;
 
 	/************************************************************************/
 	/* Various managers, handlers and system pointers                       */

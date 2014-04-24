@@ -1,7 +1,7 @@
 #include "GameplayScreen.h"
 
 GameplayScreen::GameplayScreen(HWND extHwnd, std::shared_ptr<InputClass> extInput, std::shared_ptr<D3DManager> extD3D) 
-: GenericScreen(), SettingsDependent(), world(), worldRenderer(), fpsMeter(), cpuMeter(), debugHUD()
+: GenericScreen(), SettingsDependent(), worldRenderer(), fpsMeter(), cpuMeter(), debugHUD()
 {
 	input = extInput;
 	d3D = extD3D;
@@ -32,16 +32,6 @@ bool GameplayScreen::Enter()
 			return false;
 		}
 
-		//Reset camera
-		world.ResetCamera();
-
-		////Reset terrain.
-		//result = world.InitializeTerrain();
-		//if(!result)
-		//{
-		//	return false;
-		//}
-
 		SetInitializedState(true);
 
 		debugHUD.SetHUDVisibility(false);
@@ -63,15 +53,17 @@ bool GameplayScreen::Initialize()
 		return false;
 	}
 
+	world.reset(new GameWorld());
+
 	//Initialize world
-	result = world.Initialize(d3D, input, &worldRenderer, &debugHUD);
+	result = world->Initialize(d3D, input, &worldRenderer, &debugHUD);
 	if(!result)
 	{
 		return false;
 	}
 
 	// Initialize the renderer.
-	result = worldRenderer.Initialize(hwnd, world.GetCamera(), input, d3D, world.GetMeshHandler(), &debugHUD, (unsigned int)screenWidth, (unsigned int)screenHeight, 
+	result = worldRenderer.Initialize(hwnd, world->GetCamera(), input, d3D, world->GetMeshHandler(), &debugHUD, (unsigned int)screenWidth, (unsigned int)screenHeight, 
 		(unsigned int)shadowMapWidth, (unsigned int)shadowMapHeight, nearClip, farClip);
 	if(!result)
 	{
@@ -85,7 +77,7 @@ bool GameplayScreen::Initialize()
 
 	debugHUD.AddNewWindow("FPS ", &fps, DataTypeEnumMappings::Int32, fpsDebugHandle);
 	debugHUD.AddNewWindow("CPU Usage % ", &cpuUsage, DataTypeEnumMappings::Int32, cpuDebugHandle);
-	debugHUD.AddNewWindowWithoutHandle("Wind direction ", world.GetWindDirection(), DataTypeEnumMappings::Float3);
+	debugHUD.AddNewWindowWithoutHandle("Wind direction ", world->GetWindDirection(), DataTypeEnumMappings::Float3);
 
 	return true;
 }
@@ -105,14 +97,17 @@ bool GameplayScreen::Update(float deltaTime)
 	{
 		//If we press escape from gameplay screen, change state back to main menu screen
 		stateChangeEvent(GameStates::MainMenuScreen);
+
+		//Break function before we hit any objects that might have gotten deleted
+		return true;
 	}
 
 	//Here. Do world update stuff here.
-	world.Update(deltaTime, deltaTimeMilliseconds);
+	world->Update(deltaTime, deltaTimeMilliseconds);
 
 
 	// Do update renderer.
-	if(!worldRenderer.Update(hwnd, fps, cpuUsage, deltaTimeMilliseconds, deltaTime, world.GetWindDirection()))
+	if(!worldRenderer.Update(hwnd, fps, cpuUsage, deltaTimeMilliseconds, deltaTime, world->GetWindDirection()))
 	{
 		return false;
 	}
@@ -123,7 +118,7 @@ bool GameplayScreen::Update(float deltaTime)
 bool GameplayScreen::Render(float deltaTime)
 {
 	// Finally render the graphics to the screen.
-	if(!worldRenderer.Render(hwnd, world.GetRenderableBundle()))
+	if(!worldRenderer.Render(hwnd, world->GetRenderableBundle()))
 	{
 		return false;
 	}
@@ -135,9 +130,11 @@ void GameplayScreen::Exit()
 {
 	debugHUD.SetHUDVisibility(false);
 
-	world.CleanUp();
-	SetActive(false);
+	world.reset();
+	
 	SetInitializedState(false);
+
+	SetActive(false);
 }
 
 void GameplayScreen::OnSettingsReload( Config* cfg )

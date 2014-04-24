@@ -31,7 +31,7 @@ private:
 
 	FpsMeter fpsMeter;
 	CpuMeter cpuMeter;
-	GameWorld world;
+	std::unique_ptr<GameWorld> world;
 	GameRenderer worldRenderer;
 	DebugOverlayHUD debugHUD;
 

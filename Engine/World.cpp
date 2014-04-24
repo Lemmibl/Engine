@@ -137,8 +137,6 @@ void GameWorld::ResetCamera()
 
 bool GameWorld::InitializeTerrain()
 {
-	terrainManager.Shutdown();
-
 	//Initialize terrain manager
 	if(!terrainManager.Initialize(d3D->GetDevice(), dynamicsWorld, d3D->GetHwnd(), camera->GetPosition()))
 	{

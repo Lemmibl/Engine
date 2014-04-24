@@ -65,6 +65,8 @@ private:
 	Lemmi2DAABB frustumAABB;
 
 	//Terrain related objects
+
+	//TODO: pointer? delete it when shutdown ..
 	TerrainManager terrainManager;
 	WeatherSystem weatherSystem;
 

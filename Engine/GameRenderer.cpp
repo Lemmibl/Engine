@@ -3,6 +3,8 @@
 GameRenderer::GameRenderer() : SettingsDependent(),
 	noise()
 {
+	previouslyInitialized = false;
+
 	xPos = yPos = 0.0f;
 	timeOfDay = 0.0f;
 	timer = 10.0f;
@@ -28,6 +30,7 @@ bool GameRenderer::Initialize(HWND hwnd, std::shared_ptr<CameraClass> camera, st
 {
 	bool result;
 
+
 	this->toggleDebugInfo = false;
 	this->inputManager = inputManager;
 	this->shadowMapWidth = shadowmapWidth;
@@ -48,6 +51,12 @@ bool GameRenderer::Initialize(HWND hwnd, std::shared_ptr<CameraClass> camera, st
 	srand((unsigned int)time(NULL));
 
 	XMStoreFloat4x4(&baseViewMatrix, camera->GetView());
+
+	//Break asap, yo. Not before we've assigned external pointers though, because those might have changed
+	if(previouslyInitialized == true)
+	{
+		return true;
+	}
 
 	result = InitializeLights(hwnd);
 	if(!result)
@@ -75,6 +84,8 @@ bool GameRenderer::Initialize(HWND hwnd, std::shared_ptr<CameraClass> camera, st
 
 	InitializeRenderingSpecifics();
 	InitializeDebugText();
+
+	previouslyInitialized = true;
 
 	return true;
 }
@@ -760,10 +771,6 @@ bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 	{
 		return false;
 	}
-
-	//This function has for the moment been moved to screenManager
-	//// Present the rendered scene to the screen.
-	//d3D->PresentFrame();
 
 	return true;
 }

@@ -34,7 +34,7 @@ enum Direction
 static const XMFLOAT3 stepSize(2.0f, 2.0f, 2.0f);
 
 //Needs to be kept at 28, 53, 103 etc, else your position slowly gets out of sync with the culling position. Need to look into this.
-static const XMFLOAT3 stepCount(50.0f, 50.0f, 50.0f);
+static const XMFLOAT3 stepCount(53.0f, 53.0f, 53.0f);
 
 volatile static bool IsRunning = true;
 
@@ -241,18 +241,21 @@ bool TerrainManager::Initialize(ID3D11Device* device, std::shared_ptr<btDiscrete
 	//Initialize it first...
 	numThreads = thread::hardware_concurrency();
 
-	if(numThreads > 1)
+	if(workThreads.size() == 0)
 	{
-		//If we have 4 or more cores, we create two threads.
-		if(numThreads >= 4)
+		if(numThreads > 1)
 		{
-			workThreads.push_back(new thread(&JobThreadEntryPoint, ((void *)this)));
-			workThreads.push_back(new thread(&JobThreadEntryPoint, ((void *)this)));
-		}
-		else
-		{
-			//If we have more than 1 core but less than 4, we create one thread.
-			workThreads.push_back(new thread(&JobThreadEntryPoint, ((void *)this)));
+			//If we have 4 or more cores, we create two threads.
+			if(numThreads >= 4)
+			{
+				workThreads.push_back(new thread(&JobThreadEntryPoint, ((void *)this)));
+				workThreads.push_back(new thread(&JobThreadEntryPoint, ((void *)this)));
+			}
+			else
+			{
+				//If we have more than 1 core but less than 4, we create one thread.
+				workThreads.push_back(new thread(&JobThreadEntryPoint, ((void *)this)));
+			}
 		}
 	}
 
@@ -267,8 +270,6 @@ void TerrainManager::Shutdown()
 	{
 		preProductionQueue.Clear();
 		preProductionQueue.Shutdown();
-		postProductionQueue.Clear();
-		postProductionQueue.Shutdown();
 
 		IsRunning = false;
 
@@ -282,11 +283,13 @@ void TerrainManager::Shutdown()
 			delete workThreads[i];
 		}
 
+		postProductionQueue.Clear();
+		postProductionQueue.Shutdown();
+
 		workThreads.clear();
 
 		if(chunkMap)
 		{
-
 			for(auto it = chunkMap->begin(); it != chunkMap->end(); it++)
 			{
 				//Check against the bool flag first to see if we're trying to delete an object that isn't finished yet.
@@ -298,14 +301,25 @@ void TerrainManager::Shutdown()
 			}
 		}
 	}
+
+	fullyLoaded = false;
 }
 
 void TerrainManager::ResetTerrain()
 {
+	//Break workthreads
+	IsRunning = false;
+
+	//Clear all the queued up work
 	preProductionQueue.Clear();
 	preProductionQueue.Shutdown();
+
 	postProductionQueue.Clear();
 	postProductionQueue.Shutdown();
+
+
+	//After we've joined all threads and made them stop, we can turn on isRunning again
+	IsRunning = true;
 
 	for(auto it = GetMap()->begin(); it != GetMap()->end(); ++it)
 	{
@@ -317,7 +331,7 @@ void TerrainManager::ResetTerrain()
 		}
 	}
 
-	GetMap()->clear();
+	chunkMap->clear();
 	activeRenderables.clear();
 	activeChunks.clear();
 
@@ -642,11 +656,9 @@ void TerrainManager::QueueChunkForCreation(int startPosX, int startPosZ, int cam
 void TerrainManager::ChunkFinalizing(ID3D11Device* device)
 {
 	std::pair<bool, std::shared_ptr<MarchingCubeChunk>> key;
-	bool result;
 
-	result = postProductionQueue.Try_pop(key.second);
-
-	if(result)
+	//If popping succeeds ...
+	if(postProductionQueue.Try_pop(key.second))
 	{
 		//Do one last check to make sure this isn't a wildly out of bounds chunk
 		if(abs(key.second->GetKey().first - lastCamX) < 15 && abs(key.second->GetKey().second - lastCamZ) < 15)
