@@ -1,16 +1,19 @@
-#include "LoadingScreen.h"
+#include "TextOverlayScreen.h"
 
+#include "d3dmanager.h"
 
-LoadingScreen::LoadingScreen()
+TextOverlayScreen::TextOverlayScreen()
 {
 }
 
-LoadingScreen::~LoadingScreen()
+TextOverlayScreen::~TextOverlayScreen()
 {
 }
 
-void LoadingScreen::Initialize()
+void TextOverlayScreen::Initialize(D3DManager* d3D)
 {
+	this->d3DManager = d3D;
+
 	CEGUI::WindowManager& winMgr = CEGUI::WindowManager::getSingleton();
 	rootWindow = winMgr.createWindow("DefaultWindow", "loadingRoot");
 	rootWindow->setVisible(true);
@@ -37,22 +40,25 @@ void LoadingScreen::Initialize()
 	textWindow->activate();
 }
 
-bool LoadingScreen::Enter()
+bool TextOverlayScreen::Enter()
 {
 	return true;
 }
 
-void LoadingScreen::Exit()
+void TextOverlayScreen::Exit()
 {
 }
 
-bool LoadingScreen::Update( float deltaTime )
+bool TextOverlayScreen::Update( float deltaTime )
 {
 	return true;
 }
 
-bool LoadingScreen::Render( float deltaTime )
+bool TextOverlayScreen::Render(float deltaTime )
 {
+	//Just do a quick pass to render loading screen text
+	d3DManager->BeginScene(0.0f, 0.0f, 0.0f, 0.0f);
+
 	CEGUI::System::getSingleton().getDefaultGUIContext().clearGeometry();
 
 	//Show mouse cursor
@@ -62,16 +68,25 @@ bool LoadingScreen::Render( float deltaTime )
 	CEGUI::System::getSingleton().getDefaultGUIContext().setRootWindow(rootWindow);
 
 	rootWindow->activate();
-	textWindow->activate();
-	textWindow->show();
+	rootWindow->show();
+
+	//textWindow->activate();
+	//textWindow->show();
 
 	CEGUI::System::getSingleton().renderAllGUIContexts();
+
+	d3DManager->PresentFrame();
 
 	return true;
 }
 
-void LoadingScreen::Clear()
+void TextOverlayScreen::Clear()
 {
 	//When exiting, hide and deactivate window
 	rootWindow->hide();
+}
+
+void TextOverlayScreen::SetText(const std::string& text )
+{
+	textWindow->setText(text.c_str());
 }

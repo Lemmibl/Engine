@@ -4,7 +4,7 @@
 #include "Engine.h"
 
 Engine::Engine()
-: SettingsDependent(), screenManager()
+	: SettingsDependent(), screenManager()
 {
 }
 
@@ -25,7 +25,7 @@ bool Engine::Initialize()
 
 	//Load settings from file
 	InitializeSettings(this);
-	
+
 	result = screenManager.Initialize(hwnd, hinstance, screenWidth, screenHeight, windowCenterPosX, windowCenterPosY, VSYNC_ENABLED, FULL_SCREEN);
 	if(!result)
 	{
@@ -56,13 +56,15 @@ void Engine::MainLoop()
 			DispatchMessage(&msg);
 		}
 
-		// If windows signals to end the application then exit out.
-		if(msg.message == WM_QUIT)
+		// If windows or engine itself signals to end the application then exit out.
+		if(msg.message == WM_QUIT || screenManager.Quitting() == true)
 		{
 			done = true;
 		}
 		else
 		{
+			//TODO: http://stackoverflow.com/questions/17785022/game-not-recieving-wm-killfocus-message-while-in-fullscreen
+
 			//Otherwise do the frame processing. If frame processing fails then exit.
 			result = Update();
 			if(!result)
@@ -70,12 +72,6 @@ void Engine::MainLoop()
 				MessageBox(hwnd, L"Main update loop failed.", L"Error", MB_OK);
 				done = true;
 			}
-		}
-
-		// Check if the user pressed escape and wants to quit.
-		if(screenManager.Quitting() == true)
-		{
-			done = true;
 		}
 	}
 
@@ -200,14 +196,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam)
 			PostQuitMessage(0);
 			return 0;
 		}
-
 		// Check if the window is being closed.
 	case WM_CLOSE:
 		{
 			PostQuitMessage(0);		
 			return 0;
 		}
-
 		// All other messages pass to the message handler in the system class.
 	default:
 		{

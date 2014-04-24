@@ -198,9 +198,6 @@
     <ClCompile Include="MultiMeshModel.cpp">
       <Filter>Rendering\Objects</Filter>
     </ClCompile>
-    <ClCompile Include="LoadingScreen.cpp">
-      <Filter>State machines and menus\Screens</Filter>
-    </ClCompile>
     <ClCompile Include="OBJModel.cpp">
       <Filter>Rendering\Objects</Filter>
     </ClCompile>
@@ -239,6 +236,9 @@
     </ClCompile>
     <ClCompile Include="SSAOShader.cpp">
       <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
+    </ClCompile>
+    <ClCompile Include="TextOverlayScreen.cpp">
+      <Filter>State machines and menus\Screens</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -462,9 +462,6 @@
     <ClInclude Include="DODContainer.h">
       <Filter>General Code\Data classes</Filter>
     </ClInclude>
-    <ClInclude Include="LoadingScreen.h">
-      <Filter>State machines and menus\Screens</Filter>
-    </ClInclude>
     <ClInclude Include="OBJModel.h">
       <Filter>Rendering\Objects</Filter>
     </ClInclude>
@@ -515,6 +512,9 @@
     </ClInclude>
     <ClInclude Include="SSAOShader.h">
       <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="TextOverlayScreen.h">
+      <Filter>State machines and menus\Screens</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

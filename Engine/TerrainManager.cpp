@@ -202,6 +202,8 @@ bool TerrainManager::Initialize(ID3D11Device* device, std::shared_ptr<btDiscrete
 	//Load settings from file
 	InitializeSettings(this);
 
+
+	IsRunning = true;
 	this->device = device;
 
 	timePassed = 0.0f;
@@ -261,33 +263,38 @@ bool TerrainManager::Initialize(ID3D11Device* device, std::shared_ptr<btDiscrete
 
 void TerrainManager::Shutdown()
 {
-	preProductionQueue.Clear();
-	preProductionQueue.Shutdown();
-
-	IsRunning = false;
-
-	for(unsigned int i = 0; i < workThreads.size(); i++)
+	if(fullyLoaded)
 	{
-		if(workThreads[i]->joinable())
+		preProductionQueue.Clear();
+		preProductionQueue.Shutdown();
+		postProductionQueue.Clear();
+		postProductionQueue.Shutdown();
+
+		IsRunning = false;
+
+		for(unsigned int i = 0; i < workThreads.size(); i++)
 		{
-			workThreads[i]->join();
+			if(workThreads[i]->joinable())
+			{
+				workThreads[i]->join();
+			}
+
+			delete workThreads[i];
 		}
 
-		delete workThreads[i];
-	}
+		workThreads.clear();
 
-	workThreads.clear();
-
-	if(chunkMap)
-	{
-
-		for(auto it = chunkMap->begin(); it != chunkMap->end(); it++)
+		if(chunkMap)
 		{
-			//Check against the bool flag first to see if we're trying to delete an object that isn't finished yet.
-			if(it->second.first)
+
+			for(auto it = chunkMap->begin(); it != chunkMap->end(); it++)
 			{
-				collisionHandler->removeRigidBody(it->second.second->GetRigidBody().get());
-				delete it->second.second->GetRigidBody()->getMotionState();
+				//Check against the bool flag first to see if we're trying to delete an object that isn't finished yet.
+				if(it->second.first)
+				{
+					collisionHandler->removeRigidBody(it->second.second->GetRigidBody().get());
+					delete it->second.second->GetRigidBody()->getMotionState();
+				}
 			}
 		}
 	}
@@ -295,7 +302,12 @@ void TerrainManager::Shutdown()
 
 void TerrainManager::ResetTerrain()
 {
-	for(auto it = GetMap()->begin(); it != GetMap()->end(); it++)
+	preProductionQueue.Clear();
+	preProductionQueue.Shutdown();
+	postProductionQueue.Clear();
+	postProductionQueue.Shutdown();
+
+	for(auto it = GetMap()->begin(); it != GetMap()->end(); ++it)
 	{
 		//Check against the bool flag first to see if we're trying to delete an object that isn't finished yet.
 		if(it->second.first)
@@ -461,6 +473,9 @@ bool TerrainManager::UpdateAgainstAABB(Lemmi2DAABB* aabb, float deltaTime)
 
 	timePassed += deltaTime;
 
+	lastCamX = (aabb->CenterPoint().x*stepScaling);
+	lastCamZ = (aabb->CenterPoint().y*stepScaling);
+
 	int startX	=	static_cast<int>(aabb->MinPoint().x);
 	int startZ	=	static_cast<int>(aabb->MinPoint().y);
 	int endX	=	static_cast<int>(aabb->MaxPoint().x);
@@ -545,7 +560,7 @@ bool TerrainManager::UpdateAgainstAABB(Lemmi2DAABB* aabb, float deltaTime)
 				}
 				else
 				{
-					QueueChunkForCreation(neighbourKey.first, neighbourKey.second, (aabb->CenterPoint().x*stepScaling), (aabb->CenterPoint().y*stepScaling));
+					QueueChunkForCreation(neighbourKey.first, neighbourKey.second, lastCamX, lastCamZ);
 				}
 			}
 		}
@@ -633,29 +648,33 @@ void TerrainManager::ChunkFinalizing(ID3D11Device* device)
 
 	if(result)
 	{
-		//If we can't create the meshes in the work threads due to driver limitations, then we do it in the main thread...
-		if(!DXMultiThreading())
+		//Do one last check to make sure this isn't a wildly out of bounds chunk
+		if(abs(key.second->GetKey().first - lastCamX) < 15 && abs(key.second->GetKey().second - lastCamZ) < 15)
 		{
-			CreateMesh(device, key.second);
-			CreateWaterMesh(device, key.second);
+			//If we can't create the meshes in the work threads due to driver limitations, then we do it in the main thread...
+			if(!DXMultiThreading())
+			{
+				CreateMesh(device, key.second);
+				CreateWaterMesh(device, key.second);
+			}
+
+			//Clear index vector, then shrink to 0 (free up memory)
+			key.second->GetIndices()->clear();
+			key.second->GetIndices()->shrink_to_fit();
+
+			//Clear vertex vector, then shrink to 0 (free up memory)
+			key.second->GetVertices()->clear();
+			key.second->GetVertices()->shrink_to_fit();
+
+			//Add it to the world
+			collisionHandler->addRigidBody(key.second->GetRigidBody().get());
+
+			//Replace chump value
+			(*chunkMap)[key.second->GetKey()].second = key.second;
+
+			//Flag bool as true, this means it's ready to use...
+			(*chunkMap)[key.second->GetKey()].first = true;
 		}
-
-		//Clear index vector, then shrink to 0 (free up memory)
-		key.second->GetIndices()->clear();
-		key.second->GetIndices()->shrink_to_fit();
-
-		//Clear vertex vector, then shrink to 0 (free up memory)
-		key.second->GetVertices()->clear();
-		key.second->GetVertices()->shrink_to_fit();
-
-		//Add it to the world
-		collisionHandler->addRigidBody(key.second->GetRigidBody().get());
-
-		//Replace chump value
-		(*chunkMap)[key.second->GetKey()].second = key.second;
-
-		//Flag bool as true, this means it's ready to use...
-		(*chunkMap)[key.second->GetKey()].first = true;
 	}
 }
 
@@ -889,7 +908,10 @@ std::vector<RenderableInterface*>* TerrainManager::GetTerrainRenderables(int x, 
 
 		for(auto it = activeChunks.begin(); it != activeChunks.end(); ++it)
 		{
-			activeRenderables.push_back((*it)->GetTerrainMesh());
+			if(abs((*it)->GetKey().first - lastCamX) < 15 && abs((*it)->GetKey().second - lastCamZ) < 15)
+			{
+				activeRenderables.push_back((*it)->GetTerrainMesh());
+			}
 		}
 	}
 

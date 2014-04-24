@@ -9,7 +9,7 @@
 #include "CEGUI/CEGUI.h"
 #include "CEGUI/RendererModules/Direct3D11/Renderer.h"
 #include "GameStates.h"
-#include "LoadingScreen.h"
+#include "TextOverlayScreen.h"
 
 class ScreenManager : public SettingsDependent
 {
@@ -38,7 +38,7 @@ public:
 	GameStates::Type GetCurrentState() { return currentState; }
 
 private:
-	void DrawLoadingScreen();
+	void DrawOverlayText(const std::string& text);
 
 	HWND hwnd;
 	float nearClip, farClip, shadowMapWidth, shadowMapHeight;
@@ -53,8 +53,8 @@ private:
 
 	std::map<GameStates::Type, std::wstring> stateNames;
 	std::map<GameStates::Type, std::shared_ptr<GenericScreen>> stateToScreenMap;
-	LoadingScreen loadingScreen;
+	TextOverlayScreen overlayTextScreen;
 
-	bool isQuitting, showCursor;
+	bool isQuitting, showCursor, paused;
 };
 

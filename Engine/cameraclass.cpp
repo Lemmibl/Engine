@@ -201,7 +201,7 @@ void CameraClass::SetPerspectiveProjection(float screenWidth, float screenHeight
 
 void CameraClass::Update()
 {
-	XMVECTOR target, tempRot, tempPos, upVector, forwardVector, up, forward, right;
+	XMVECTOR target, tempRot, tempPos, upVector, forwardVector, up, forward; //right
 	XMMATRIX rotationMatrix, tempView;
 
 	upVector = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);

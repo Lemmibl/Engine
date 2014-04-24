@@ -32,19 +32,19 @@ bool GameplayScreen::Enter()
 			return false;
 		}
 
+		//Reset camera
+		world.ResetCamera();
+
+		////Reset terrain.
+		//result = world.InitializeTerrain();
+		//if(!result)
+		//{
+		//	return false;
+		//}
+
 		SetInitializedState(true);
-	}
 
-	debugHUD.SetHUDVisibility(false);
-
-	//Reset camera
-	world.ResetCamera();
-
-	//Reset terrain.
-	result = world.InitializeTerrain();
-	if(!result)
-	{
-		return false;
+		debugHUD.SetHUDVisibility(false);
 	}
 
 	return true;
@@ -137,6 +137,7 @@ void GameplayScreen::Exit()
 
 	world.CleanUp();
 	SetActive(false);
+	SetInitializedState(false);
 }
 
 void GameplayScreen::OnSettingsReload( Config* cfg )

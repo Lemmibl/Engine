@@ -1,10 +1,11 @@
 #include "ScreenManager.h"
 
-ScreenManager::ScreenManager() : SettingsDependent(), timer(), stateToScreenMap(), loadingScreen()
+ScreenManager::ScreenManager() : SettingsDependent(), timer(), stateToScreenMap(), overlayTextScreen()
 {
 	InitializeSettings(this);
-	isQuitting = false;
+	isQuitting = false;	
 	showCursor = true;
+	paused = false;
 }
 
 
@@ -61,7 +62,7 @@ bool ScreenManager::Initialize(HWND extHwnd, HINSTANCE hInst,int screenWidth, in
 
 	InitializeCEGUI();
 
-	loadingScreen.Initialize();
+	overlayTextScreen.Initialize(d3D.get());
 
 	std::shared_ptr<GameplayScreen> gameplayScreen = std::make_shared<GameplayScreen>(hwnd, input, d3D);
 	AddNewScreen(gameplayScreen, GameStates::GameScreen, L"Gameplay screen");
@@ -183,7 +184,7 @@ void ScreenManager::ChangeState(GameStates::Type newState)
 				currentScreen = screen->second;
 
 				//Render "Loading..." screen once before entering the current screen, so will be what is displayed during loading/entering
-				DrawLoadingScreen();
+				DrawOverlayText("Loading...");
 
 				//Call enter
 				if(!currentScreen->Enter())
@@ -196,6 +197,9 @@ void ScreenManager::ChangeState(GameStates::Type newState)
 
 					Quit();
 				}
+
+				//Then clear the text (hide it), so that when we've finished loading, it won't show up
+				overlayTextScreen.Clear();
 			}
 		}
 	}
@@ -206,50 +210,74 @@ bool ScreenManager::UpdateActiveScreen()
 {
 	bool result;
 
-	timer.Update();
-
-	// Do the input frame processing.
-	result = input->Update(hwnd);
-	if(!result)
+	//Is this window in focus? If so, go about normal business
+	if(GetForegroundWindow() == hwnd)
 	{
-		return false;
+		//If this is first frame since we unpaused...
+		if(paused)
+		{
+			//Then clear the overlay text (hide it), so that when we've finished loading, it won't show up
+			overlayTextScreen.Clear();
+
+			currentScreen->Enter();
+			
+			paused = false;
+		}
+
+		timer.Update();
+
+		// Do the input frame processing.
+		result = input->Update(hwnd);
+		if(!result)
+		{
+			return false;
+		}
+
+		result = UpdateInputs();
+		if(!result)
+		{
+			return false;
+		}
+
+		result = currentScreen->Update(timer.GetFrameTimeSeconds());
+		if(!result)
+		{
+			return false;
+		}
+
+		result = currentScreen->Render(timer.GetFrameTimeSeconds());
+		if(!result)
+		{
+			return false;
+		}
+
+		// draw GUI
+		CEGUI::System::getSingleton().renderAllGUIContexts();
+
+		d3D->PresentFrame();
+	}
+	else
+	{
+		//Using paused as a flag to make sure we only set overlay text once. No need to constantly send in the same string...
+		if(!paused)
+		{
+			DrawOverlayText("Paused");
+
+			//Set the flag so that we won't visit this again until next time we unpause then pause
+			paused = true;
+		}
 	}
 
-	result = UpdateInputs();
-	if(!result)
-	{
-		return false;
-	}
-
-	result = currentScreen->Update(timer.GetFrameTimeSeconds());
-	if(!result)
-	{
-		return false;
-	}
-
-	result = currentScreen->Render(timer.GetFrameTimeSeconds());
-	if(!result)
-	{
-		return false;
-	}
-
-	// draw GUI
-	CEGUI::System::getSingleton().renderAllGUIContexts();
-
-	d3D->PresentFrame();
 
 	return true;
 }
 
-void ScreenManager::DrawLoadingScreen()
+void ScreenManager::DrawOverlayText(const std::string& text)
 {
-	//Just do a quick pass to render loading screen text
-	d3D->BeginScene(0.0f, 0.0f, 0.0f, 0.0f);
-	loadingScreen.Render(0.0f);
-	d3D->PresentFrame();
+	overlayTextScreen.SetText(text);
 
-	//Then clear the text (hide it), so that when we've finished loading, it won't show up
-	loadingScreen.Clear();
+	//Just do a quick pass to render loading screen text
+	overlayTextScreen.Render(0.0f);
 }
 
 bool ScreenManager::UpdateInputs()

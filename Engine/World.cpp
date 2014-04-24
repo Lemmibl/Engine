@@ -12,6 +12,8 @@ GameWorld::~GameWorld()
 
 void GameWorld::CleanUp()
 {
+	terrainManager.Shutdown();
+
 	if(dynamicsWorld)
 	{
 		auto objArray = dynamicsWorld->getCollisionObjectArray();
@@ -135,6 +137,8 @@ void GameWorld::ResetCamera()
 
 bool GameWorld::InitializeTerrain()
 {
+	terrainManager.Shutdown();
+
 	//Initialize terrain manager
 	if(!terrainManager.Initialize(d3D->GetDevice(), dynamicsWorld, d3D->GetHwnd(), camera->GetPosition()))
 	{
@@ -149,16 +153,18 @@ void GameWorld::Update( float deltaTimeSeconds, float deltaTimeMilliseconds )
 	chunksInProduction = terrainManager.GetChunkInProductionCount();
 	currentlyActiveChunks = terrainManager.GetActiveChunkCount();
 
+	cameraController->Update(deltaTimeMilliseconds, camera->GetWorldMatrix());
+	camera->Update();
+
 	//Advance bullet world simulation stepping
-	
+
 	//bulletTimestepScale
 	dynamicsWorld->stepSimulation(deltaTimeSeconds, maxSubSteps);
+	dynamicsWorld->clearForces();
+
 
 	//Update wind system, used for wind direction and other fun things.
 	weatherSystem.Update(deltaTimeSeconds);
-
-	cameraController->Update(deltaTimeMilliseconds, camera->GetWorldMatrix());
-	camera->Update();
 
 	HandleInput();
 	UpdateVisibility(deltaTimeSeconds);

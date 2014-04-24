@@ -5,7 +5,7 @@
 
 Fixes:
 
-* Change all shaders to viewspace... save normals in viewspace
+* Fix all bulletphysics related bugs ...
 
 * Fix whatever is wrong with the trees... terrainmanager? bugged model? loading broken?
 

@@ -35,7 +35,7 @@
     <ClCompile Include="frustumclass.cpp" />
     <ClCompile Include="FullScreenShaderInterface.cpp" />
     <ClCompile Include="GameplayScreen.cpp" />
-    <ClCompile Include="LoadingScreen.cpp" />
+    <ClCompile Include="TextOverlayScreen.cpp" />
     <ClCompile Include="MainMenuScreen.cpp" />
     <ClCompile Include="MaterialHandler.cpp" />
     <ClCompile Include="MultiMeshModel.cpp" />
@@ -124,7 +124,7 @@
     <ClInclude Include="FullScreenShaderInterface.h" />
     <ClInclude Include="GameplayScreen.h" />
     <ClInclude Include="GameStates.h" />
-    <ClInclude Include="LoadingScreen.h" />
+    <ClInclude Include="TextOverlayScreen.h" />
     <ClInclude Include="MainMenuScreen.h" />
     <ClInclude Include="MaterialHandler.h" />
     <ClInclude Include="MultiMeshModel.h" />

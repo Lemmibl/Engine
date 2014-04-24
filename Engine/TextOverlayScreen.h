@@ -2,13 +2,15 @@
 #include "GenericScreen.h"
 #include "CEGUI/CEGUI.h"
 
-class LoadingScreen : GenericScreen
+class D3DManager;
+
+class TextOverlayScreen : GenericScreen
 {
 public:
-	LoadingScreen();
-	~LoadingScreen();
+	TextOverlayScreen();
+	~TextOverlayScreen();
 
-	void Initialize();
+	void Initialize(D3DManager* d3D);
 
 	virtual bool Enter();
 	virtual void Exit();
@@ -17,7 +19,10 @@ public:
 	virtual bool Render( float deltaTime );
 	void Clear();
 
+	void SetText(const std::string& text);
+
 private:
+	D3DManager* d3DManager;
 	CEGUI::Window* rootWindow;
 	CEGUI::Window* textWindow;
 };

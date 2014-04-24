@@ -161,6 +161,8 @@ private:
 
 	bool fullyLoaded;
 
+	float lastCamX, lastCamZ;
+
 	std::vector<thread*> workThreads;
 	unsigned int numThreads;
 	bool multiThreadedMeshCreationEnabled;
