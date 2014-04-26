@@ -21,9 +21,6 @@ MarchingCubeChunk::MarchingCubeChunk(XMFLOAT3 startPos, XMFLOAT3 endPos, XMFLOAT
 	centerPosition.x = startPosition.x + extents.x;
 	centerPosition.y = startPosition.y + extents.y;
 	centerPosition.z = startPosition.z + extents.z;
-
-	vegetationCount = rand()%6;
-	bushTransforms.resize(vegetationCount);
 }
 
 MarchingCubeChunk::~MarchingCubeChunk()

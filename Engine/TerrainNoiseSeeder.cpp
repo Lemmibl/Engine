@@ -371,12 +371,12 @@ void TerrainNoiseSeeder::Noise3D(unsigned int startX, unsigned int startY, unsig
 				verts->at(idx).normal.y = ((*verts)[idx - index.sizeY					].density	-	(*verts)[idx + index.sizeY					].density)	* YFactor;
 				verts->at(idx).normal.z = ((*verts)[idx - (index.sizeY * index.sizeZ)	].density	-	(*verts)[idx + (index.sizeY * index.sizeZ)	].density)	* ZFactor;
 
-				////Normalize results.
-				//float vectorLength = sqrt((verts->at(idx).normal.x*verts->at(idx).normal.x) + (verts->at(idx).normal.y*verts->at(idx).normal.y) + (verts->at(idx).normal.z*verts->at(idx).normal.z));
+				//Normalize results.
+				float vectorLength = sqrt((verts->at(idx).normal.x*verts->at(idx).normal.x) + (verts->at(idx).normal.y*verts->at(idx).normal.y) + (verts->at(idx).normal.z*verts->at(idx).normal.z));
 
-				//verts->at(idx).normal.x = verts->at(idx).normal.x/vectorLength;
-				//verts->at(idx).normal.y = verts->at(idx).normal.y/vectorLength;
-				//verts->at(idx).normal.z = verts->at(idx).normal.z/vectorLength;
+				verts->at(idx).normal.x = verts->at(idx).normal.x/vectorLength;
+				verts->at(idx).normal.y = verts->at(idx).normal.y/vectorLength;
+				verts->at(idx).normal.z = verts->at(idx).normal.z/vectorLength;
 
 				//CreateNormal(verts, index, idx);
 			}

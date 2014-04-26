@@ -5,7 +5,7 @@
 
 Fixes:
 
-* Fix all bulletphysics related bugs ...
+* TODO: Instead of a map... Maybe use four 2D vectors. One for -1-1, one for -1 1, one for 1 -1 and one for 1 1 ... should work fine
 
 * Fix whatever is wrong with the trees... terrainmanager? bugged model? loading broken?
 

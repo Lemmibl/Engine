@@ -34,7 +34,7 @@ enum Direction
 static const XMFLOAT3 stepSize(2.0f, 2.0f, 2.0f);
 
 //Needs to be kept at 28, 53, 103 etc, else your position slowly gets out of sync with the culling position. Need to look into this.
-static const XMFLOAT3 stepCount(53.0f, 53.0f, 53.0f);
+static const XMFLOAT3 stepCount(50.0f, 50.0f, 50.0f);
 
 volatile static bool IsRunning = true;
 
@@ -131,7 +131,12 @@ void JobThreadEntryPoint(void* terrainManagerPointer)
 
 			unsigned int tries = 0;
 
-			for(unsigned int i = 0; i < chunk->GetVegetationCount();)
+			//Count of vegetation objects to be rendered on this chunk
+			unsigned int vegetationCount = 1 + rand()%4;
+
+			std::vector<XMFLOAT4X4> tempTransforms;
+
+			for(unsigned int i = 0; i < vegetationCount;)
 			{
 				indexX = rand()%(int)stepCount.x;
 				indexZ = rand()%(int)stepCount.z;
@@ -146,15 +151,23 @@ void JobThreadEntryPoint(void* terrainManagerPointer)
 					resultHeight *= stepSize.y;
 
 					//Scale for the object with some randomization spice
-					float randScale = 2.0f + (float)(rand()%2);
+					float randScale = 3.0f + (float)(rand()%2);
 
-					//360 degrees =	6.28318531 radians. XM Rotation matrices are created from radians
-					//If we've found a proper position, store a scaled, rotated and translated world matrix to this point, into the chunk.
-					XMStoreFloat4x4(	&(chunk->GetBushTransforms()[i]), XMMatrixTranspose(	XMMatrixScaling(randScale, randScale, randScale) * 
-						XMMatrixRotationY((float)(rand()%360)) * 
-						XMMatrixTranslation(randPosX, resultHeight, randPosZ)
-						)
-						);
+					XMFLOAT4X4 tempTransform;
+
+					//If we've found a proper position, create a scaled, rotated and translated world matrix to this point
+					XMStoreFloat4x4(	
+					&tempTransform, 
+					
+										(		
+											XMMatrixScaling(randScale, randScale, randScale) * 
+											XMMatrixRotationY((float)(rand()%360)) * 
+											XMMatrixTranslation(randPosX, resultHeight, randPosZ)
+										)
+					);
+
+					//And insert it into our chunk
+					tempTransforms.push_back(tempTransform);
 
 					//If we found a proper position, increment loop
 					++i;
@@ -164,22 +177,19 @@ void JobThreadEntryPoint(void* terrainManagerPointer)
 					//If we didn't find a proper position, instead increment a counter
 					++tries;
 
-					//If we've tried to find a position 6 times and still haven't found one, just increment anyway
-					if(tries >= 5)
+					//If we've tried to find a position 3 times and still haven't found one...
+					if(tries >= 4)
 					{
+						//Increment and skip
 						++i;
-
-						//Not before reducing the count, because we skipped creating one object...
-						if(chunk->GetVegetationCount() >= 1)
-						{
-							chunk->SetVegetationCount(chunk->GetVegetationCount()-1);
-						}
 
 						//And reset tries variable for next time
 						tries = 0;
 					}
 				}
 			}
+
+			*chunk->GetVegetationTransforms() = tempTransforms;
 
 			terrainManager->GetPostProductionQueue()->Push(chunk);
 		}
@@ -632,6 +642,8 @@ void TerrainManager::QueueChunkForCreation(int startPosX, int startPosZ, int cam
 
 		//See if the key that we're using already exists
 		unsigned int count = GetMap()->count(key);
+
+		assert(count <= 1);
 
 		//If the key doesn't exist, we go about creating the chunk
 		if(count == 0)

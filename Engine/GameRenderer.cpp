@@ -976,58 +976,65 @@ bool GameRenderer::RenderGBuffer( XMMATRIX* viewMatrix, XMMATRIX* baseView, XMMA
 		}
 	}
 
-	////This is where we'll render trees.
-	//auto& objModels = renderableBundle->objModels;
-	//vecSize = renderableBundle->objModels.size();
+	//This is where we'll render trees.
+	auto& objModels = renderableBundle->objModels;
+	vecSize = renderableBundle->objModels.size();
 
-	////Should be temporary ...
-	//bool textureNeedsUpdate = true;
-	//bool materialNeedsUpdate = true;
+	//Should be temporary ...
+	bool textureNeedsUpdate = true;
+	bool materialNeedsUpdate = true;
 
-	//XMMATRIX tempView = XMMatrixTranspose(*viewMatrix);
-	//XMMATRIX tempProj = XMMatrixTranspose(*projectionMatrix);
+	XMMATRIX tempView = XMMatrixTranspose(*viewMatrix);
+	XMMATRIX tempProj = XMMatrixTranspose(*projectionMatrix);
 
-	//auto& model = renderableBundle->objModels[0];
-	//IndexedMesh* tempMesh = meshHandler->GetMesh(model.GetMeshHandle());
+	auto& model = renderableBundle->objModels[0];
+	IndexedMesh* tempMesh = meshHandler->GetMesh(model.GetMeshHandle());
 
-	//for(unsigned int i = 0; i < chunks.size(); ++i)
-	//{
-	//	//Retarded little hack to see viability of rendering many trees
-	//	for(unsigned int k = 0; k < chunks[i]->GetVegetationCount(); ++k)
-	//	{
-	//		worldMatrix = XMLoadFloat4x4(&chunks[i]->GetBushTransforms()[k]); /*XMMatrixTranspose(XMLoadFloat4x4(&(treeMatrices.at(k))));*/
-	//		worldView = smth
-	//		worldViewProj = smth too
-	//		
-	//		objModelShader.UpdateMatrixBuffer(deviceContext, &worldMatrix, &tempView, &tempProj);
+	for(unsigned int i = 0; i < chunks.size(); ++i)
+	{
+		unsigned int bushCount = chunks[i]->GetVegetationTransforms()->size();
+		auto vegTransforms = chunks[i]->GetVegetationTransforms()->data();
 
-	//		for(int j = 0; j < model.GetSubsetCount()-1; ++j)
-	//		{
-	//			//See if we need to update texture
-	//			auto tex = textureHandler.GetTexture(model.GetTextureHandles().at(j));
+		//Retarded little hack to see viability of rendering many trees
+		for(unsigned int k = 0; k < bushCount; ++k)
+		{
+			worldMatrix = XMLoadFloat4x4(&vegTransforms[k]); /*XMMatrixTranspose(XMLoadFloat4x4(&(treeMatrices.at(k))));*/
+			worldView = worldMatrix * (*viewMatrix);
+			worldViewProjMatrix = worldView * (*projectionMatrix);
 
-	//			//See if we need to update material
-	//			auto mat = materialHandler.GetMaterial(model.GetMaterialHandles().at(j));
+			worldMatrix = XMMatrixTranspose(worldMatrix);
+			worldView = XMMatrixTranspose(worldView);
+			worldViewProjMatrix = XMMatrixTranspose(worldViewProjMatrix);
+			
+			objModelShader.UpdateMatrixBuffer(deviceContext, &worldMatrix, &worldView, &worldViewProjMatrix);
 
-	//			if(textureNeedsUpdate)
-	//			{
-	//				objModelShader.SetNewTexture(deviceContext, tex, 1);
-	//			}
+			for(int j = 0; j < model.GetSubsetCount()-1; ++j)
+			{
+				//See if we need to update texture
+				auto tex = textureHandler.GetTexture(model.GetTextureHandles().at(j));
 
-	//			if(materialNeedsUpdate)
-	//			{
-	//				objModelShader.SetNewMaterial(deviceContext, mat);
-	//			}
+				//See if we need to update material
+				auto mat = materialHandler.GetMaterial(model.GetMaterialHandles().at(j));
 
-	//			tempMesh->Render(deviceContext);
+				if(textureNeedsUpdate)
+				{
+					objModelShader.SetNewTexture(deviceContext, tex, 1);
+				}
 
-	//			//This will always work, because when we load in the model we add one last set of index subsets that contains the entire count (the end of the indices, essentially).
-	//			int indexCount = model.GetSubSetIndices().at(j+1) - model.GetSubSetIndices().at(j);
+				if(materialNeedsUpdate)
+				{
+					objModelShader.SetNewMaterial(deviceContext, mat);
+				}
 
-	//			objModelShader.RenderShader(deviceContext, indexCount, model.GetSubSetIndices().at(j));
-	//		}
-	//	}
-	//}
+				tempMesh->Render(deviceContext);
+
+				//This will always work, because when we load in the model we add one last set of index subsets that contains the entire count (the end of the indices, essentially).
+				int indexCount = model.GetSubSetIndices().at(j+1) - model.GetSubSetIndices().at(j);
+
+				objModelShader.RenderShader(deviceContext, indexCount, model.GetSubSetIndices().at(j));
+			}
+		}
+	}
 
 	d3D->GetBlendStateManager()->TurnOnDefaultBlendState();
 	d3D->GetRasterizerStateManager()->SetBackFaceCullingRasterizer();

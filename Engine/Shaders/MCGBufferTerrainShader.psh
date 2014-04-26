@@ -124,7 +124,7 @@ PixelShaderOutput MCGBufferTerrainPixelShader(VertexShaderOutput input)
 
 	//Store an encoded normal in the XY channels. Only two channels! Amazing!
 	//Encode material IDs and hide in normal Z and W channels
-	output.Normal.xy = Encode(normalize(input.ViewNormalAndDepth.xyz)+float3(0.0f, 0.0f, 0.5f)); 
+	output.Normal.xy = Encode(normalize(input.ViewNormalAndDepth.xyz)+float3(0.0f, 0.0f, 0.01f)); 
 	output.Normal.z = material1;
 	output.Normal.w = material2;
 

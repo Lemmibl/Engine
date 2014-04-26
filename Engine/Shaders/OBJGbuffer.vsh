@@ -26,7 +26,7 @@ VertexShaderOutput OBJGbufferVertex(VertexShaderInput input)
 	float4 pos = float4(input.Position, 1.0f);
 
 	//Calculate view position so that we can extract view depth
-	float4 viewPosition = mul(pos, WorldView);
+	//float4 viewPosition = mul(pos, WorldView);
 
 	//Transform pos by WVP to get clip space
 	output.Position = mul(pos, WorldViewProjection);
@@ -35,7 +35,7 @@ VertexShaderOutput OBJGbufferVertex(VertexShaderInput input)
 	output.TexCoord.xy = input.TexCoord;
 
 	//Save view depth in texcoord z channel
-	output.TexCoord.z = viewPosition.z;
+	output.TexCoord.z = output.Position.w;
 
 	//Pass along surface normal, transformed by world matrix
 	output.Normal = normalize(mul(input.Normal, (float3x3)World));

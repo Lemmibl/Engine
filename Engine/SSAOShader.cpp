@@ -391,7 +391,7 @@ void SSAOShader::BuildSamplingRays()
 
 		XMVECTOR tempVector = XMLoadFloat4(&samplingRays[i]);
 
-		tempVector = XMVector4Normalize(tempVector) * distribution;
+		tempVector = XMVector4Normalize(tempVector);// * distribution;
 
 		XMStoreFloat4(&samplingRays[i], tempVector);
 	}

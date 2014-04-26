@@ -58,9 +58,7 @@ public:
 	std::pair<int, int> GetKey() { return key; }
 	void SetKey(int x, int y) { key = std::make_pair<int, int>(x,y); }
 
-	std::vector<XMFLOAT4X4>& GetBushTransforms() { return bushTransforms; }
-	unsigned int GetVegetationCount() { return vegetationCount; }
-	void SetVegetationCount(unsigned int val) { vegetationCount = val; }
+	std::vector<XMFLOAT4X4>* GetVegetationTransforms() { return &vegetationTransforms; }
 
 private:
 	//voxels is sizeX*sizeY*sizeZ big
@@ -95,12 +93,7 @@ private:
 	std::shared_ptr<btTriangleMesh> triMesh;
 	std::shared_ptr<btCollisionShape> collisionShape;
 
-	//Vegetation
-
-	//Count of vegetation objects to be rendered on this chunk
-	unsigned int vegetationCount;
-
-	//and the transforms of these objects
-	std::vector<XMFLOAT4X4> bushTransforms;
+	//Vegetation transform matrices
+	std::vector<XMFLOAT4X4> vegetationTransforms;
 };
 

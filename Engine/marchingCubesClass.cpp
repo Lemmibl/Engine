@@ -333,7 +333,6 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 	MarchingCubesClass::MarchingCubesClass(unsigned int sizeX,  unsigned int sizeY, unsigned int sizeZ)
 		: SettingsDependent(), sizeXAxis(sizeX), sizeYAxis(sizeY), sizeZAxis(sizeZ)
 	{	
-		waterLevel = 0.0f;
 		InitializeSettings(this);								  
 		metaballsIsoValue = 0.2f;
 	}
