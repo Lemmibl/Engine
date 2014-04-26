@@ -529,7 +529,8 @@ void FrustumClass::CalculateFrustumExtents( Lemmi2DAABB* outAABB, XMVECTOR posit
 
 
 	//This is what is being returned
-	*outAABB = Lemmi2DAABB(XMFLOAT2(minX, minZ), XMFLOAT2(maxX, maxZ));
+	outAABB->Resize(fabs(minX - maxX), fabs(minZ - maxZ));
+	outAABB->Move(minX, minZ); // = Lemmi2DAABB(XMFLOAT2(minX, minZ), XMFLOAT2(maxX, maxZ));
 }
 
 /*

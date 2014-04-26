@@ -48,7 +48,7 @@ PixelShaderOutput OBJGbufferPixel(VertexShaderOutput input)
 	output.Color = shaderTexture.Sample(textureSampler, input.TexCoord.xy);
 	
 	//Compress normal into .xy channel
-	output.Normal.xy = Encode(normalize(input.Normal));
+	output.Normal.xy = Encode(normalize(input.Normal)+float3(0.0f, 0.0f, 0.01f));
 
 	//Save material IDs in the zw channel.
 	//materialID < This'll be added later when I have the systems set up for it to work

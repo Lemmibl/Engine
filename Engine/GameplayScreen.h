@@ -41,6 +41,5 @@ private:
 	HWND hwnd;
 	int cpuUsage, fps;
 	float shadowMapWidth, shadowMapHeight, screenWidth, screenHeight, nearClip, farClip;
-	bool temp;
 };
 

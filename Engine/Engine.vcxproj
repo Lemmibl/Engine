@@ -35,6 +35,7 @@
     <ClCompile Include="frustumclass.cpp" />
     <ClCompile Include="FullScreenShaderInterface.cpp" />
     <ClCompile Include="GameplayScreen.cpp" />
+    <ClCompile Include="SSAOBlur.cpp" />
     <ClCompile Include="TextOverlayScreen.cpp" />
     <ClCompile Include="MainMenuScreen.cpp" />
     <ClCompile Include="MaterialHandler.cpp" />
@@ -64,6 +65,7 @@
     <ClCompile Include="TextureHandler.cpp" />
     <ClCompile Include="LSystemBranch.cpp" />
     <ClCompile Include="TurnToSmokeShader.cpp" />
+    <ClCompile Include="UnderwaterFilter.cpp" />
     <ClCompile Include="Utility.cpp" />
     <ClCompile Include="LSystemClass.cpp" />
     <ClCompile Include="VegetationManager.cpp" />
@@ -102,6 +104,7 @@
     <ClInclude Include="cameraclass.h" />
     <ClInclude Include="controllerclass.h" />
     <ClInclude Include="cpumeter.h" />
+    <ClInclude Include="SSAOBlur.h" />
     <ClInclude Include="SSAOShader.h" />
     <ClInclude Include="TerrainStructs.h" />
     <ClInclude Include="d3dmanager.h" />
@@ -157,6 +160,7 @@
     <ClInclude Include="LSystemBranch.h" />
     <ClInclude Include="ThreadsafeQueue.h" />
     <ClInclude Include="TurnToSmokeShader.h" />
+    <ClInclude Include="UnderwaterFilter.h" />
     <ClInclude Include="Utility.h" />
     <ClInclude Include="LSystemClass.h" />
     <ClInclude Include="VegetationShader.h" />
@@ -191,7 +195,7 @@
     <None Include="credits.txt" />
     <None Include="libconfig\libconfig++.dll" />
     <None Include="libconfig\libconfig.h++" />
-    <None Include="Shaders\DRCompose.hlsl" />
+    <None Include="Shaders\DRCompose.psh" />
     <None Include="Shaders\DepthOnlyQuadShader.psh" />
     <None Include="Shaders\DepthOnlyQuadShader.vsh" />
     <None Include="Shaders\DepthOnlyShader.psh" />
@@ -221,11 +225,15 @@
     <None Include="Shaders\OBJGbuffer.vsh" />
     <None Include="Shaders\skysphere.psh" />
     <None Include="Shaders\skysphere.vsh" />
+    <None Include="Shaders\SSAOBlur.psh" />
+    <None Include="Shaders\SSAOBlur.vsh" />
     <None Include="Shaders\SSAOShader.psh" />
     <None Include="Shaders\SSAOShader.vsh" />
     <None Include="Shaders\standard.vsh" />
     <None Include="Shaders\texture.psh" />
     <None Include="Shaders\texture.vsh" />
+    <None Include="Shaders\UnderwaterFilter.psh" />
+    <None Include="Shaders\UnderwaterFilter.vsh" />
     <None Include="Shaders\VegetationQuad.psh" />
     <None Include="Shaders\VegetationQuad.vsh" />
     <None Include="Shaders\WaterAnimationVertexShader.vsh" />

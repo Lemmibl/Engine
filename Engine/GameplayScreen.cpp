@@ -1,7 +1,7 @@
 #include "GameplayScreen.h"
 
 GameplayScreen::GameplayScreen(HWND extHwnd, std::shared_ptr<InputClass> extInput, std::shared_ptr<D3DManager> extD3D) 
-: GenericScreen(), SettingsDependent(), worldRenderer(), fpsMeter(), cpuMeter(), debugHUD()
+	: GenericScreen(), SettingsDependent(), worldRenderer(), fpsMeter(), cpuMeter(), debugHUD()
 {
 	input = extInput;
 	d3D = extD3D;
@@ -11,7 +11,6 @@ GameplayScreen::GameplayScreen(HWND extHwnd, std::shared_ptr<InputClass> extInpu
 	shadowMapHeight = 1024;
 	cpuUsage = 0;
 	fps = 0;
-	temp = false;
 }
 
 
@@ -21,17 +20,14 @@ GameplayScreen::~GameplayScreen()
 
 bool GameplayScreen::Enter()
 {
-	SetActive(true);
-	bool result;
-
 	if(!HasBeenInitialized())
 	{
-		result = Initialize();
-		if(!result)
+		if(!Initialize())
 		{
 			return false;
 		}
 
+		SetActive(true);
 		SetInitializedState(true);
 
 		debugHUD.SetHUDVisibility(false);
@@ -86,7 +82,7 @@ bool GameplayScreen::Initialize()
 bool GameplayScreen::Update(float deltaTime)
 {
 	float deltaTimeMilliseconds = deltaTime*1000.0f;
-	
+
 	fpsMeter.Update();
 	fps = fpsMeter.GetFps();
 
@@ -104,7 +100,6 @@ bool GameplayScreen::Update(float deltaTime)
 
 	//Here. Do world update stuff here.
 	world->Update(deltaTime, deltaTimeMilliseconds);
-
 
 	// Do update renderer.
 	if(!worldRenderer.Update(hwnd, fps, cpuUsage, deltaTimeMilliseconds, deltaTime, world->GetWindDirection()))
@@ -131,7 +126,7 @@ void GameplayScreen::Exit()
 	debugHUD.SetHUDVisibility(false);
 
 	world.reset();
-	
+
 	SetInitializedState(false);
 
 	SetActive(false);

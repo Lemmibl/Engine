@@ -5,16 +5,18 @@
 
 Fixes:
 
-* TODO: Instead of a map... Maybe use four 2D vectors. One for -1-1, one for -1 1, one for 1 -1 and one for 1 1 ... should work fine
+* SSAO Blur.
 
-* Fix whatever is wrong with the trees... terrainmanager? bugged model? loading broken?
+* New GUI system; ditch CEGUI
+
+* TODO: Instead of a map... Maybe use four 2D vectors. One for -1-1, one for -1 1, one for 1 -1 and one for 1 1 ... should work fine
 
 * Options screen...
 
+* Depth only OBJ shader for shadow stage
+
 * Non-simplex/perlin smooth noise
 	-> Using this function, stuff like waves, marble etc will be possible
-
-* Depth only OBJ shader for shadow stage
 
 Features:
 

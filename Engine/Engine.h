@@ -46,9 +46,8 @@ public:
 	LRESULT CALLBACK MessageHandler(HWND, UINT, WPARAM, LPARAM);
 
 private:
-	bool Update();
 	void InitializeWindows(int& screenWidth, int& screenHeight, int& centerPosX, int& centerPosY);
-	void ShutdownWindows();
+	void ShutdownWindow();
 
 private:
 	LPCWSTR applicationName;

@@ -10,6 +10,7 @@ Engine::Engine()
 
 Engine::~Engine()
 {
+	Shutdown();
 }
 
 bool Engine::Initialize()
@@ -60,35 +61,24 @@ void Engine::MainLoop()
 		if(msg.message == WM_QUIT || screenManager.Quitting() == true)
 		{
 			done = true;
+			break;
 		}
 		else
 		{
 			//TODO: http://stackoverflow.com/questions/17785022/game-not-recieving-wm-killfocus-message-while-in-fullscreen
 
 			//Otherwise do the frame processing. If frame processing fails then exit.
-			result = Update();
+			result = screenManager.UpdateActiveScreen();
 			if(!result)
 			{
-				MessageBox(hwnd, L"Main update loop failed.", L"Error", MB_OK);
+				MessageBox(hwnd, L"Active screen update failed. Terminating...", L"Error", MB_OK);
 				done = true;
+				break;
 			}
 		}
 	}
 
 	return;
-}
-
-bool Engine::Update()
-{
-	bool result;
-
-	result = screenManager.UpdateActiveScreen();
-	if(!result)
-	{
-		return false;
-	}
-
-	return true;
 }
 
 LRESULT CALLBACK Engine::MessageHandler(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam)
@@ -213,12 +203,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam)
 void Engine::Shutdown()
 {
 	// Shutdown the window.
-	ShutdownWindows();
+	ShutdownWindow();
 
 	return;
 }
 
-void Engine::ShutdownWindows()
+void Engine::ShutdownWindow()
 {
 	// Show the mouse cursor.
 	ShowCursor(true);

@@ -32,7 +32,7 @@ bool ScreenManager::Initialize(HWND extHwnd, HINSTANCE hInst,int screenWidth, in
 	result = input->Initialize(hInst, hwnd, centerPosX, centerPosY, screenWidth, screenHeight);
 	if(!result)
 	{
-		MessageBox(hwnd, L"Could not initialize the inputmanager. Look in engine.", L"Error", MB_OK);
+		MessageBox(hwnd, L"Could not initialize the Input Manager. Look in engine.", L"Error", MB_OK);
 		return false;
 	}
 
@@ -48,7 +48,7 @@ bool ScreenManager::Initialize(HWND extHwnd, HINSTANCE hInst,int screenWidth, in
 		static_cast<unsigned int>(shadowMapWidth), static_cast<unsigned int>(shadowMapHeight));
 	if(!result)
 	{
-		MessageBox(hwnd, L"Could not initialize Direct3D. Look in engine.", L"Error", MB_OK);
+		MessageBox(hwnd, L"Could not initialize Direct3D. Look in D3DManager.", L"Error", MB_OK);
 		return false;
 	}
 
@@ -233,8 +233,18 @@ bool ScreenManager::UpdateActiveScreen()
 			return false;
 		}
 
-		result = UpdateInputs();
+		//Mostly used by the GUI library to do internal stuff. Also where most events get triggered due to input being processed.
+		result = HandleInputs();
 		if(!result)
+		{
+			return false;
+		}
+
+		//	OK, so this seemingly abundant check is here because events will be triggered from the function above, which updates mouse click inputs and stuff that will trigger the StateChange event.
+		//	If the statechange went wrong, then the screen won't be active. Hence we break.
+		//	You see, the problem is that functions called by events can't really return any values, partly because of how the event system works and partly because of the asynchronous nature of events.
+		//	Hence you need a flag elsewhere to check against to make sure nothing went wrong.
+		if(!currentScreen->IsActive())
 		{
 			return false;
 		}
@@ -280,7 +290,7 @@ void ScreenManager::DrawOverlayText(const std::string& text)
 	overlayTextScreen.Render(0.0f);
 }
 
-bool ScreenManager::UpdateInputs()
+bool ScreenManager::HandleInputs()
 {
 	unsigned int keyPressCount, mouseClickCount;
 
@@ -288,7 +298,7 @@ bool ScreenManager::UpdateInputs()
 	CEGUI::System::getSingleton().injectTimePulse(timer.GetFrameTimeSeconds());
 	CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseMove(input->GetMouseDelta().x, input->GetMouseDelta().y);
 
-	keyPressCount = input->ActiveKeyboardStateCount();
+	//keyPressCount = input->ActiveKeyboardStateCount();
 	mouseClickCount = input->ActiveMouseStateCount();
 
 	//if(keyPressCount > 0)

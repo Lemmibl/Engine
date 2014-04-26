@@ -56,8 +56,8 @@ void JobThreadEntryPoint(void* terrainManagerPointer)
 			float actualPosX, actualPosZ;
 
 			//Calculate start position
-			actualPosX = ((float)chunkKey.first * (stepSize.x*(stepCount.x-3.0f)));
-			actualPosZ = ((float)chunkKey.second * (stepSize.x*(stepCount.x-3.0f)));
+			actualPosX = ((float)chunkKey.first * (stepSize.x*(stepCount.x - 3)));
+			actualPosZ = ((float)chunkKey.second * (stepSize.x*(stepCount.x - 3)));
 
 			//Create shared ptr to chunk
 			std::shared_ptr<MarchingCubeChunk> chunk = std::make_shared<MarchingCubeChunk>
@@ -230,7 +230,7 @@ bool TerrainManager::Initialize(ID3D11Device* device, std::shared_ptr<btDiscrete
 	lastMax = std::make_pair<int, int>(99, 99);
 
 	//Very powerful black magic going on here. Do not disturb.
-	stepScaling = 0.01f;//(stepSize.x*(stepCount.x-3)) / 5000;
+	stepScaling = 1.0f / (stepSize.x*(stepCount.x-3));//(stepSize.x*(stepCount.x-3)) / 5000;
 
 	//I give no shits if this throws a warning, it helps me remember which terraintypes there are and their names.
 	//terrainType = TerrainTypes::Plains;//(TerrainNoiseSeeder::TerrainTypes)(1 + rand()%8); //
@@ -509,13 +509,13 @@ bool TerrainManager::UpdateAgainstAABB(Lemmi2DAABB* aabb, float deltaTime)
 	// I calculate the start and ending indices by dividing the positions by a large amount and casting them to int. 
 	// The amount I divide with is calculated through step size and step scaling.
 	//The *2 in there is ..... because before, the chunks used to be 100x100 units large... ish. Now they're 50x50 large... ish. Hence I needed a magic number offset. Yay!
-	startX =	RoundToNearest(startX*(stepScaling))-2;
-	startZ =	RoundToNearest(startZ*(stepScaling))-2;
-	endX =		RoundToNearest(endX*(stepScaling))+2;
-	endZ =		RoundToNearest(endZ*(stepScaling))+2;
+	startX =	RoundToNearest(startX*(stepScaling))-3;
+	startZ =	RoundToNearest(startZ*(stepScaling))-3;
+	endX =		RoundToNearest(endX*(stepScaling))+3;
+	endZ =		RoundToNearest(endZ*(stepScaling))+3;
 
 	//Instead of checking against like...... 25-30 grids we instead first check if the min and max points have changed.
-	if(lastMin.first != startX || lastMin.second != startZ || lastMax.first != endX || lastMax.second != endZ)
+	if(lastMin.first != startX && lastMin.second != startZ || lastMax.first != endX || lastMax.second != endZ)
 	{
 		//Every few seconds we do a cleanup to remove old chunks
 		if(timePassed >= timeThreshold)

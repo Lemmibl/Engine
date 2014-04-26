@@ -40,7 +40,7 @@ bool DRCompose::Initialize(ID3D11Device* device, HWND hwnd)
 	InitializeSettings(this);
 
 	// Initialize the vertex and pixel shaders.
-	result = InitializeShader(device, hwnd, L"../Engine/Shaders/DRCompose.vsh", L"../Engine/Shaders/DRCompose.hlsl");
+	result = InitializeShader(device, hwnd, L"../Engine/Shaders/DRCompose.vsh", L"../Engine/Shaders/DRCompose.psh");
 	if(!result)
 	{
 		return false;
@@ -87,7 +87,7 @@ bool DRCompose::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 
 	D3D11_BUFFER_DESC vertexMatrixBufferDesc;
 
-	//// Initialize the pointers this function will use to null.
+	// Initialize the pointers this function will use to null.
 	//errorMessage = 0;
 	//vertexShaderBuffer = 0;
 	//pixelShaderBuffer = 0;
@@ -103,7 +103,7 @@ bool DRCompose::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 		// If the shader failed to compile it should have written something to the error message.
 		if(errorMessage)
 		{
-			OutputShaderErrorMessage(errorMessage, hwnd, vsFilename);
+			OutputShaderErrorMessage(errorMessage.p, hwnd, vsFilename);
 		}
 		// If there was nothing in the error message then it simply could not find the shader file itself.
 		else
@@ -122,7 +122,7 @@ bool DRCompose::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilen
 		// If the shader failed to compile it should have written something to the error message.
 		if(errorMessage)
 		{
-			OutputShaderErrorMessage(errorMessage, hwnd, psFilename);
+			OutputShaderErrorMessage(errorMessage.p, hwnd, psFilename);
 		}
 		// If there was nothing in the error message then it simply could not find the file itself.
 		else
@@ -333,9 +333,9 @@ void DRCompose::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WC
 	// Close the file.
 	fout.close();
 
-	// Release the error message.
-	errorMessage->Release();
-	errorMessage = 0;
+	//// Release the error message.
+	//errorMessage->Release();
+	//errorMessage = 0;
 
 	// Pop a message up on the screen to notify the user to check the text file for compile errors.
 	MessageBox(hwnd, L"Error compiling shader.  Check shader-error.txt for message.", shaderFilename, MB_OK);

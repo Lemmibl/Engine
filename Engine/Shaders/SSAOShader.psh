@@ -20,16 +20,16 @@ Texture2D shaderTextures[3] : register(ps_5_0, t0); //0 == depth, 1 == normal, 2
 
 static const int kernelSize = 14;
 
-static const float samplingRadius = 2.5f;
-static const float intensity = 4.0f;
-static const float ssaoCutoffRange = 0.6f;
+static const float samplingRadius = 1.5f;
+static const float intensity = 2.0f;
+static const float ssaoCutoffRange = 0.7f;
 
 static const float2 screenSize = float2(1024.0f, 768.0f);
 static const float2 randomTextureSize = float2(128.0f, 128.0f);
 
 static const float    gOcclusionFadeStart = 0.4f;
 static const float    gOcclusionFadeEnd   = 2.0f;
-static const float    gSurfaceEpsilon     = 0.45f;
+static const float    gSurfaceEpsilon     = 0.6f;
 
 //Decoding of GBuffer Normals
 half3 DecodeNormal(half2 enc)

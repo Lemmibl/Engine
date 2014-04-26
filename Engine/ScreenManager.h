@@ -25,7 +25,7 @@ public:
 	void ChangeState(GameStates::Type state);
 
 	bool UpdateActiveScreen();
-	bool UpdateInputs();
+	bool HandleInputs();
 
 	virtual void OnSettingsReload(Config* cfg);
 

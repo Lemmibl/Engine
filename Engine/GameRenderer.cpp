@@ -548,7 +548,7 @@ bool GameRenderer::Update( HWND hwnd, int fps, int cpuPercentage, float millisec
 	{
 		toggleSSAO++;
 
-		if(toggleSSAO > 1)
+		if(toggleSSAO > 2)
 		{
 			toggleSSAO = 0;
 		}
