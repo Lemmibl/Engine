@@ -467,7 +467,7 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 			if(this->edgeTable[lookupValue] & (1 << i))
 			{
 				//If the bitwise check goes through, then interpolate between the two relevant corners of the cube.
-				verts[i] =	Interpolate(*cube[edgePairs[i].first],	*cube[edgePairs[i].second], metaballsIsoValue);
+				verts[i] =	Interpolate(*cube[edgePairs[i].first], *cube[edgePairs[i].second], metaballsIsoValue);
 			}
 		}
 

@@ -62,6 +62,7 @@
 #include "GeometryShaderGrass.h"
 #include "DRWaterClass.h"
 #include "DRGBuffer.h"
+#include "UnderwaterFilterShader.h"
 
 class GameRenderer : public SettingsDependent
 {
@@ -128,6 +129,7 @@ private:
 	bool RenderPointLight(XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* invertedProjection, XMMATRIX* viewProjection);
 
 	//Post processing
+	bool RenderUnderwaterFilter(UnderwaterFilterShader::WaterFilterInput& input);
 	bool RenderSSAO(SSAOShader::SSAOShaderInput& input);
 	bool RenderComposedScene(DRCompose::ComposeShaderInput& input);
 	bool RenderGUI(XMMATRIX* worldBaseViewOrthoProj);
@@ -174,21 +176,27 @@ private:
 	//Shadow map. it's a R16 G16 because we use variance shadowmapping 
 	RenderTarget2D shadowRT; 
 
-	//Used for blurring shadow map. this one is also R16G16 because it has to mirror shadowRT
-	RenderTarget2D gaussianBlurPingPongRT; 
-
 	//R32, pretty much identical to depth RT in every way
 	RenderTarget2D ssaoRT; 
 
-	 //For blurring ssao map. I can't reuse the gaussianblur pingpongRT because that one is R16G16, this one will be R32
-	RenderTarget2D ssaoPingPongRT;
+	//Used for bouncing shadow map.
+	RenderTarget2D R16G16PingPongRT; 
+
+	 //For bouncing ssao map.
+	RenderTarget2D R32PingPongRT;
+
+	//For bouncing color map
+	RenderTarget2D ARGB8PingPongRT;
 
 	CComPtr<ID3D11RenderTargetView> gbufferRenderTargets[3]; //render targets for GBuffer pass
 	CComPtr<ID3D11RenderTargetView> lightTarget[1];
 	CComPtr<ID3D11RenderTargetView> shadowTarget[1];
-	CComPtr<ID3D11RenderTargetView> gaussianBlurPingPongRTView[1];
-	CComPtr<ID3D11RenderTargetView> ssaoRTView[1];
+	CComPtr<ID3D11RenderTargetView> gaussianBlurTarget[1];
+	CComPtr<ID3D11RenderTargetView> ssaoTarget[1];
+	CComPtr<ID3D11RenderTargetView> waterTarget[1];
 
+	//0 == color, 1 == depth
+	CComPtr<ID3D11ShaderResourceView> waterInputTextures[2];
 	CComPtr<ID3D11ShaderResourceView> gbufferTextures[3];
 	CComPtr<ID3D11ShaderResourceView> dirLightTextures[4];
 	CComPtr<ID3D11ShaderResourceView> finalTextures[4];
@@ -215,6 +223,7 @@ private:
 	MCGBufferTerrainShader mcubeShader;
 	DRObjModelShader objModelShader;
 	SSAOShader ssaoShader;
+	UnderwaterFilterShader underwaterFilterShader;
 
 	/************************************************************************/
 	/* Shader input objects                                                 */
@@ -222,6 +231,7 @@ private:
 	DRDirLight::DirectionalLightInput dirLightInput;
 	DRCompose::ComposeShaderInput composeInput;
 	SSAOShader::SSAOShaderInput ssaoInput;
+	UnderwaterFilterShader::WaterFilterInput waterfilterInput;
 
 	/************************************************************************/
 	/* Light and models                                                     */
@@ -256,6 +266,6 @@ private:
 	XMFLOAT3 camPos, camDir, windDir;
 	UINT shadowMapWidth, shadowMapHeight, screenWidth, screenHeight;
 	int toggleSSAO, toggleColorMode;
-	float xPos, yPos, textureOffsetDeltaTime, fogMinimum, farClip, nearClip, timer, timeOfDay;;
-	bool returning, toggleDebugInfo, toggleTextureShader, toggleOtherPointLights, drawWireFrame;
+	float xPos, yPos, textureOffsetDeltaTime, fogMinimum, farClip, nearClip, timer, timeOfDay, waterLevel;
+	bool returning, toggleDebugInfo, toggleTextureShader, toggleOtherPointLights, drawWireFrame, cameraIsUnderwater;
 };

@@ -65,7 +65,7 @@
     <ClCompile Include="TextureHandler.cpp" />
     <ClCompile Include="LSystemBranch.cpp" />
     <ClCompile Include="TurnToSmokeShader.cpp" />
-    <ClCompile Include="UnderwaterFilter.cpp" />
+    <ClCompile Include="UnderwaterFilterShader.cpp" />
     <ClCompile Include="Utility.cpp" />
     <ClCompile Include="LSystemClass.cpp" />
     <ClCompile Include="VegetationManager.cpp" />
@@ -160,7 +160,7 @@
     <ClInclude Include="LSystemBranch.h" />
     <ClInclude Include="ThreadsafeQueue.h" />
     <ClInclude Include="TurnToSmokeShader.h" />
-    <ClInclude Include="UnderwaterFilter.h" />
+    <ClInclude Include="UnderwaterFilterShader.h" />
     <ClInclude Include="Utility.h" />
     <ClInclude Include="LSystemClass.h" />
     <ClInclude Include="VegetationShader.h" />
@@ -232,8 +232,8 @@
     <None Include="Shaders\standard.vsh" />
     <None Include="Shaders\texture.psh" />
     <None Include="Shaders\texture.vsh" />
-    <None Include="Shaders\UnderwaterFilter.psh" />
-    <None Include="Shaders\UnderwaterFilter.vsh" />
+    <None Include="Shaders\UnderwaterFilterShader.psh" />
+    <None Include="Shaders\UnderwaterFilterShader.vsh" />
     <None Include="Shaders\VegetationQuad.psh" />
     <None Include="Shaders\VegetationQuad.vsh" />
     <None Include="Shaders\WaterAnimationVertexShader.vsh" />
@@ -272,10 +272,9 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\CEGUI\include;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\BulletBuild\src;C:\Program Files %28x86%29\Visual Leak Detector\include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include;C:\Program Files\Microsoft DirectX SDK %28June 2010%29\Include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\CEGUI\lib;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\CEGUI\bin;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Engine\libconfig;C:\Program Files %28x86%29\Visual Leak Detector\lib\Win32;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Lib\x86;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\Engine\Tinythread;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\CEGUI\include;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\BulletBuild\src;C:\Program Files %28x86%29\Visual Leak Detector\include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include;C:\Program Files\Microsoft DirectX SDK %28June 2010%29\Include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\Engine\AntTweakBar\lib;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\CEGUI\lib;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\CEGUI\bin;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Engine\libconfig;C:\Program Files %28x86%29\Visual Leak Detector\lib\Win32;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Lib\x86;$(LibraryPath)</LibraryPath>
     <SourcePath>C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\BulletBuild\src;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\CEGUI\lib;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\CEGUI\bin;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Engine\libconfig;$(SourcePath)</SourcePath>
-    <ReferencePath>C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\CEGUI\bin;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\CEGUI\lib;C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\Engine\libconfig;$(ReferencePath)</ReferencePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LibraryPath>..\BulletBuild\lib;..\BulletBuild\lib\Release;..\CEGUI\lib;$(LibraryPath)</LibraryPath>
@@ -306,8 +305,8 @@
       <StackReserveSize>
       </StackReserveSize>
       <LargeAddressAware>true</LargeAddressAware>
-      <AdditionalLibraryDirectories>..\CEGUI\lib;..\CEGUI\bin;libconfig;..\BulletBuild\lib\Release;..\BulletBuild\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>LinearMath_Debug.lib;BulletDynamics_Debug.lib;BulletCollision_Debug.lib;CEGUIBase-0_d.lib;CEGUICoreWindowRendererSet_d.lib;CEGUIDirect3D11Renderer-0_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\Engine\CEGUI\lib;..\Engine\CEGUI\bin;libconfig;..\AntTweakBar\lib;..\BulletBuild\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>LinearMath_Debug.lib;BulletDynamics_Debug.lib;BulletCollision_Debug.lib;CEGUIBase-0_d.lib;CEGUICoreWindowRendererSet_d.lib;CEGUIDirect3D11Renderer-0_d.lib;AntTweakBar.lib;libconfig++.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
       <AdditionalManifestDependencies>

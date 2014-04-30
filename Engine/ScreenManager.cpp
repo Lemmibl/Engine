@@ -292,7 +292,7 @@ void ScreenManager::DrawOverlayText(const std::string& text)
 
 bool ScreenManager::HandleInputs()
 {
-	unsigned int keyPressCount, mouseClickCount;
+	unsigned int mouseClickCount; //keyPressCount, 
 
 	//Get singleton
 	CEGUI::System::getSingleton().injectTimePulse(timer.GetFrameTimeSeconds());

@@ -83,3 +83,53 @@ Vector3 Slerp(Vector3 start, Vector3 end, float percent)
 	 // The final result.
 	 return ((start*Mathf.Cos(theta)) + (RelativeVec*Mathf.Sin(theta)));
 }
+
+
+TODO: Instead of map, use four 2D vectors?
+enum ChunkDirection
+{
+	NW = 0,
+	NE = 1,
+	SE = 2,
+	SW = 3
+}
+
+void GetChunkIndex(int x, int z, unsigned int& outXIndex, unsigned int& outZIndex) //, ChunkDirection& outDirection
+{
+	//East
+	if(x >= 0)
+	{
+		//North east
+		if(z >= 0)
+		{
+			//outDirection = NE;
+			outXIndex = abs(x);
+			outZIndex = abs(z);
+		}
+		//South east
+		else
+		{
+			//outDirection = SE;
+			outXIndex = abs(x);
+			outZIndex = abs(z)-1;
+		}
+	}
+	//West
+	else 
+	{
+		//North west
+		if(z >= 0)
+		{
+			//outDirection = NW;
+			outXIndex = abs(x)-1;
+			outZIndex = abs(z);
+		}
+		//South west
+		else
+		{
+			//outDirection = SW;
+			outXIndex = abs(x)-1;
+			outZIndex = abs(z)-1;
+		}
+	}
+}

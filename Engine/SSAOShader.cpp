@@ -148,7 +148,7 @@ bool SSAOShader::InitializeShader( ID3D11Device* device, HWND hwnd, WCHAR* verte
 	}
 
 	// Create a texture sampler state description.
-	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -223,9 +223,9 @@ void SSAOShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, W
 	// Close the file.
 	fout.close();
 
-	// Release the error message.
-	errorMessage->Release();
-	errorMessage = 0;
+	//// Release the error message.
+	//errorMessage->Release();
+	//errorMessage = 0;
 
 	// Pop a message up on the screen to notify the user to check the text file for compile errors.
 	MessageBox(hwnd, L"Error compiling shader.  Check shader-error.txt for message.", shaderFilename, MB_OK);
@@ -364,22 +364,22 @@ void SSAOShader::BuildSamplingRays()
 	*/
 
 	// cube corners
-	samplingRays[0] = XMFLOAT4(+1.0f, +1.0f, +1.0f, 0.0f);
-	samplingRays[1] = XMFLOAT4(-1.0f, -1.0f, -1.0f, 0.0f);
-	samplingRays[2] = XMFLOAT4(-1.0f, +1.0f, +1.0f, 0.0f);
-	samplingRays[3] = XMFLOAT4(+1.0f, -1.0f, -1.0f, 0.0f);
-	samplingRays[4] = XMFLOAT4(+1.0f, +1.0f, -1.0f, 0.0f);
-	samplingRays[5] = XMFLOAT4(-1.0f, -1.0f, +1.0f, 0.0f);
-	samplingRays[6] = XMFLOAT4(-1.0f, +1.0f, -1.0f, 0.0f);
-	samplingRays[7] = XMFLOAT4(+1.0f, -1.0f, +1.0f, 0.0f);
+	samplingRays[0] = XMFLOAT4(+1.0f, +1.0f, +1.0f, 1.0f);
+	samplingRays[1] = XMFLOAT4(-1.0f, -1.0f, -1.0f, 1.0f);
+	samplingRays[2] = XMFLOAT4(-1.0f, +1.0f, +1.0f, 1.0f);
+	samplingRays[3] = XMFLOAT4(+1.0f, -1.0f, -1.0f, 1.0f);
+	samplingRays[4] = XMFLOAT4(+1.0f, +1.0f, -1.0f, 1.0f);
+	samplingRays[5] = XMFLOAT4(-1.0f, -1.0f, +1.0f, 1.0f);
+	samplingRays[6] = XMFLOAT4(-1.0f, +1.0f, -1.0f, 1.0f);
+	samplingRays[7] = XMFLOAT4(+1.0f, -1.0f, +1.0f, 1.0f);
 
 	// cube face centers
-	samplingRays[8] =	XMFLOAT4(-1.0f, 0.0f, 0.0f, 0.0f);
-	samplingRays[9] =	XMFLOAT4(+1.0f, 0.0f, 0.0f, 0.0f);
-	samplingRays[10] =	XMFLOAT4(0.0f, -1.0f, 0.0f, 0.0f);
-	samplingRays[11] =	XMFLOAT4(0.0f, +1.0f, 0.0f, 0.0f);
-	samplingRays[12] =	XMFLOAT4(0.0f, 0.0f, -1.0f, 0.0f);
-	samplingRays[13] =	XMFLOAT4(0.0f, 0.0f, +1.0f, 0.0f);
+	samplingRays[8] =	XMFLOAT4(-1.0f, 0.0f, 0.0f, 1.0f);
+	samplingRays[9] =	XMFLOAT4(+1.0f, 0.0f, 0.0f, 1.0f);
+	samplingRays[10] =	XMFLOAT4(0.0f, -1.0f, 0.0f, 1.0f);
+	samplingRays[11] =	XMFLOAT4(0.0f, +1.0f, 0.0f, 1.0f);
+	samplingRays[12] =	XMFLOAT4(0.0f, 0.0f, -1.0f, 1.0f);
+	samplingRays[13] =	XMFLOAT4(0.0f, 0.0f, +1.0f, 1.0f);
 
 	/*
 	since we are not taking a huge number of samples, we want to try to make sure that our samples are not too clumped up.  
@@ -391,7 +391,7 @@ void SSAOShader::BuildSamplingRays()
 
 		XMVECTOR tempVector = XMLoadFloat4(&samplingRays[i]);
 
-		tempVector = XMVector4Normalize(tempVector);// * distribution;
+		tempVector = XMVector4Normalize(tempVector) * distribution;
 
 		XMStoreFloat4(&samplingRays[i], tempVector);
 	}

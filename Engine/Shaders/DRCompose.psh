@@ -54,7 +54,7 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		float3 baseColor = shaderTextures[0].Sample(linearSampler, input.TexCoord).rgb;
 		float4 fogColor = FogColor;
 		float lightIntensity = 1.0f;
-		kiss
+
 		if((cameraHeight-1) <= waterLevel)
 		{
 			//Scaling factor based on how far down into the water we are

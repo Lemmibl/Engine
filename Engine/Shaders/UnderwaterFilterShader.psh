@@ -1,0 +1,53 @@
+struct VertexShaderOutput
+{
+		float4 Position : SV_POSITION;
+		float2 TexCoord : TEXCOORD0;
+};
+
+cbuffer PixelBuffer
+{
+	float4 FogColor					: packoffset(c0.x);	
+	float3 ColorMapDampeningScale	: packoffset(c1.x);
+	float fogStart					: packoffset(c1.w);
+
+	float3 FogColorDampeningScale	: packoffset(c2.x);
+	float fogEnd					: packoffset(c2.w);
+
+	float cameraHeight				: packoffset(c3.x);
+	float waterDepthFogScaling		: packoffset(c3.y);
+	float waterVisionRange			: packoffset(c3.z);
+	float waterMinVisionRange		: packoffset(c3.w);
+
+	float waterMaxVisionRange		: packoffset(c4.x);
+	float farClip					: packoffset(c4.y);
+	float waterLevel				: packoffset(c4.z);
+	float PADDING					: packoffset(c4.w);
+};
+
+SamplerState linearSampler;
+Texture2D shaderTextures[2]; // 0 = color, 1 = depth
+
+float4 UnderwaterFilterPixelShader(VertexShaderOutput input) : SV_Target0
+{
+		float depth = shaderTextures[1].Sample(linearSampler, input.TexCoord);
+		float fogFactor = saturate(((depth*farClip) - fogStart) / (fogEnd - fogStart));
+		//float4 fogColor = FogColor;
+		//float4 baseColor = shaderTextures[0].Sample(linearSampler, input.TexCoord);
+
+		//Scaling factor based on how far down into the water we are. Hooray for the magic numbers.
+		float waterDepth = clamp(1.0f - (waterVisionRange * abs((waterLevel+1) - (cameraHeight-2))), waterMinVisionRange, waterMaxVisionRange);
+
+		//Our vision range is shorter because underwater. abs because if we go down far enough it'll just flip around and go negative, and in that case we just want the fog to cover everything.. so...
+		//fogFactor = abs(1.0f - (waterDepth*waterDepthFogScaling)); //1.0f * waterDepth
+
+		//Everything is darker because we're below the water
+		//baseColor.xyz -= (waterDepth * DepthBaseColorDampening);
+
+		//Make the fog a little darker in the red and green channels too. Not modifying the blue channel to make sure the fog is bluish.
+		//fogColor.xyz = FogColor - (fogFactor * DepthFogColorDampening);
+
+		//Lerp between color map and fog color, with the help of fogFactor
+		return lerp(float4(shaderTextures[0].Sample(linearSampler, input.TexCoord).xyz - (waterDepth * ColorMapDampeningScale), 1.0f), 
+					float4(FogColor.xyz - (fogFactor * FogColorDampeningScale.xyz), 1.0f), 
+					fogFactor);
+}

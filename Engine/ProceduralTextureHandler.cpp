@@ -79,14 +79,14 @@ HRESULT ProceduralTextureHandler::Create2DSSAORandomTexture( ID3D11Device* devic
 	//Don't use utility.Random(). We do not want floats.
 	for(int i = 0; i < textureWidth*textureHeight; ++i)
 	{
-		XMVECTOR tempVector = XMLoadFloat4(&XMFLOAT4(rand()%255, rand()%255, 0.0f, 0.0f));
-		tempVector = (XMVector4Normalize(tempVector *= utility->RandomFloat()));
+		XMVECTOR tempVector = XMLoadFloat4(&XMFLOAT4(rand()%255, rand()%255, 1.0f, 1.0f));
+		tempVector = (XMVector4Normalize(tempVector));
 		XMStoreFloat4(&result, tempVector);
 
 		pixelData[i].x = result.x*255.0f;
 		pixelData[i].y = result.y*255.0f;
 		pixelData[i].z = result.z*255.0f;
-		pixelData[i].w = 0.0f;
+		pixelData[i].w = 1.0f;
 	}
 
 	return texCreator->Build32Bit2DTexture(device, deviceContext, pixelData, textureWidth, textureHeight, srv);

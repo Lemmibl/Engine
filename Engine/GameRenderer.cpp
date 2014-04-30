@@ -179,6 +179,13 @@ bool GameRenderer::InitializeShaders( HWND hwnd )
 		return false;
 	}
 
+	result = underwaterFilterShader.Initialize(d3D->GetDevice(), hwnd);
+	if(!result)
+	{
+		MessageBox(NULL, L"Couldn't initialize underwater filter shader.", L"Error", MB_OK);
+		return false;
+	}
+
 	return true;
 }
 
@@ -367,9 +374,10 @@ bool GameRenderer::InitializeEverythingElse( HWND hwnd )
 	depthRT.Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
 	lightRT.Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
 	shadowRT.Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_FLOAT);
-	gaussianBlurPingPongRT.Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_FLOAT); //Needs to be identical to shadowRT
+	R16G16PingPongRT.Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_FLOAT); //Needs to be identical to shadowRT
 	ssaoRT.Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
-	ssaoPingPongRT.Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
+	R32PingPongRT.Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
+	ARGB8PingPongRT.Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
 
 	//TODO:
 	/*
@@ -563,6 +571,12 @@ bool GameRenderer::Update( HWND hwnd, int fps, int cpuPercentage, float millisec
 	XMStoreFloat3(&dirLight.Direction, XMVector3Normalize(XMVectorSubtract(lookAt, currentLightPos)));//XMLoadFloat3(&dirLight.Position)
 	XMStoreFloat4x4(&dirLight.View, XMMatrixLookAtLH(currentLightPos, lookAt, up)); //Generate light view matrix
 
+	// Generate the view matrix based on the camera's position.
+	camPos = camera->GetPosition();
+	XMStoreFloat3(&camDir, XMVector3Normalize(camera->ForwardVector()));
+
+	cameraIsUnderwater = ((camPos.y-1.5f) <= waterLevel) ? true : false;
+
 	return true;
 }
 
@@ -579,7 +593,9 @@ void GameRenderer::InitializeRenderingSpecifics()
 	shadowTarget[0] = shadowRT.RTView;
 
 	//Name should be pretty self-explanatory
-	gaussianBlurPingPongRTView[0] = gaussianBlurPingPongRT.RTView;
+	gaussianBlurTarget[0] = R16G16PingPongRT.RTView;
+
+	waterTarget[0] = ARGB8PingPongRT.RTView;
 
 	//For gbuffer pass
 	gbufferRenderTargets[0] = colorRT.RTView;
@@ -589,7 +605,7 @@ void GameRenderer::InitializeRenderingSpecifics()
 	//For lighting pass
 	lightTarget[0] = lightRT.RTView; 
 
-	ssaoRTView[0] = ssaoRT.RTView;
+	ssaoTarget[0] = ssaoRT.RTView;
 
 	//For GBuffer pass
 	gbufferTextures[0] = colorRT.SRView; 
@@ -603,18 +619,21 @@ void GameRenderer::InitializeRenderingSpecifics()
 	dirLightTextures[3] = colorRT.SRView;
 
 	//For the the final composition pass
-	finalTextures[0] = colorRT.SRView;
+	finalTextures[0] = ARGB8PingPongRT.SRView;
 	finalTextures[1] = lightRT.SRView;
 	finalTextures[2] = depthRT.SRView;
 	finalTextures[3] = ssaoRT.SRView;
 
-	gaussianBlurTexture[0] = gaussianBlurPingPongRT.SRView;
+	gaussianBlurTexture[0] = R16G16PingPongRT.SRView;
 
 	ssaoView = ssaoRT.SRView;
 
 	ssaoTextures[0] = depthRT.SRView;
 	ssaoTextures[1] = normalRT.SRView;
 	ssaoTextures[2] = *proceduralTextureHandler.GetSSAORandomTexture();
+
+	waterInputTextures[0] = colorRT.SRView;
+	waterInputTextures[1] = depthRT.SRView;
 }
 
 
@@ -622,12 +641,6 @@ bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 {
 	// Clear the scene.
 	d3D->BeginScene(0.1f, 0.1f, 0.45f, 0.0f);
-
-#pragma region Other Preparation
-	// Generate the view matrix based on the camera's position.
-	camPos = camera->GetPosition();
-	XMStoreFloat3(&camDir, XMVector3Normalize(camera->ForwardVector()));
-#pragma endregion
 
 #pragma region Matrix preparations
 	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, viewProjection, invertedViewProjection, invertedView, 
@@ -711,6 +724,12 @@ bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 	dirLightInput.ambienceColor = dayNightCycle.GetAmbientLightColor();
 	dirLightInput.cameraPosition = camPos;
 
+	//Underwater shader
+	waterfilterInput.cameraHeight = camPos.y;
+	waterfilterInput.fogColor = &dayNightCycle.GetAmbientLightColor();
+	waterfilterInput.textureArray = &waterInputTextures[0].p;
+	waterfilterInput.WorldViewProjection = &worldBaseViewOrthoProj;
+
 	//Compose shader
 	composeInput.worldViewProjection = &worldBaseViewOrthoProj;
 	composeInput.worldView = &worldBaseView;
@@ -728,7 +747,7 @@ bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 	ssaoInput.rtTextureArray = &ssaoTextures[0].p;
 	ssaoInput.worldViewProjection = &worldBaseViewOrthoProj;
 	ssaoInput.projection = &XMMatrixTranspose(projectionMatrix); //&orthoMatrix; //
-	ssaoInput.view = &(baseView); //&XMMatrixTranspose(viewMatrix);//&baseView;
+	ssaoInput.view = &XMMatrixTranspose(baseView); //&XMMatrixTranspose(viewMatrix);//&baseView;
 #pragma endregion
 
 	//Send untransposed lightView/lightProj here
@@ -755,6 +774,23 @@ bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 	if(!RenderDirectionalLight(dirLightInput)) 
 	{
 		return false;
+	}
+
+	//OK TODO: First of all make sure to change color render target at start of GBuffer to ColorRT
+	//And in beginning of underwater filter change RT to tempARGB8Target
+
+	if(cameraIsUnderwater)
+	{
+		finalTextures[0] = ARGB8PingPongRT.SRView;
+
+		if(!RenderUnderwaterFilter(waterfilterInput))
+		{
+			return false;
+		}
+	}
+	else
+	{
+		finalTextures[0] = colorRT.SRView;
 	}
 
 	if(!RenderSSAO(ssaoInput))
@@ -846,8 +882,8 @@ bool GameRenderer::RenderTwoPassGaussianBlur(XMMATRIX* worldBaseViewOrthoProj )
 {
 	//Shadow map blur stage
 	//Change render target to prepare for ping-ponging
-	deviceContext->OMSetRenderTargets(1, &gaussianBlurPingPongRTView[0].p, shadowDepthStencil.p);
-	deviceContext->ClearRenderTargetView(gaussianBlurPingPongRTView[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 1.0f));
+	deviceContext->OMSetRenderTargets(1, &gaussianBlurTarget[0].p, shadowDepthStencil.p);
+	deviceContext->ClearRenderTargetView(gaussianBlurTarget[0], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 1.0f));
 	deviceContext->ClearDepthStencilView(shadowDepthStencil.p, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	//Blur shadow map texture horizontally
@@ -892,7 +928,7 @@ bool GameRenderer::RenderGBuffer( XMMATRIX* viewMatrix, XMMATRIX* baseView, XMMA
 	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	deviceContext->ClearRenderTargetView(gbufferRenderTargets[0], D3DXVECTOR4(0.0f, 0.125f, 0.3f, 1.0f));
-	deviceContext->ClearRenderTargetView(gbufferRenderTargets[1], D3DXVECTOR4(0.5f, 0.5f, 0.5f, 0.5f));
+	deviceContext->ClearRenderTargetView(gbufferRenderTargets[1], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 	deviceContext->ClearRenderTargetView(gbufferRenderTargets[2], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 1.0f));
 
 	d3D->GetRasterizerStateManager()->SetNoCullRasterizer();
@@ -922,7 +958,7 @@ bool GameRenderer::RenderGBuffer( XMMATRIX* viewMatrix, XMMATRIX* baseView, XMMA
 	//gbufferShader.Render(deviceContext, renderableBundle->testSphere.mesh.GetIndexCount(), &worldMatrix, &view, &proj, sphereModel.GetTexture(), farClip);
 
 	worldMatrix = XMMatrixIdentity();
-	worldView = XMMatrixTranspose(XMLoadFloat4x4(camera->GetWorldMatrix()) * (*viewMatrix)); //
+	worldView = XMMatrixTranspose(worldMatrix * (*baseView)); //
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 
 	if(drawWireFrame)
@@ -983,9 +1019,6 @@ bool GameRenderer::RenderGBuffer( XMMATRIX* viewMatrix, XMMATRIX* baseView, XMMA
 	//Should be temporary ...
 	bool textureNeedsUpdate = true;
 	bool materialNeedsUpdate = true;
-
-	XMMATRIX tempView = XMMatrixTranspose(*viewMatrix);
-	XMMATRIX tempProj = XMMatrixTranspose(*projectionMatrix);
 
 	auto& model = renderableBundle->objModels[0];
 	IndexedMesh* tempMesh = meshHandler->GetMesh(model.GetMeshHandle());
@@ -1124,16 +1157,37 @@ bool GameRenderer::RenderDirectionalLight(DRDirLight::DirectionalLightInput& inp
 	return true;
 }
 
+bool GameRenderer::RenderUnderwaterFilter(UnderwaterFilterShader::WaterFilterInput& input)
+{
+	//Point light stage
+	deviceContext->OMSetRenderTargets(1, &waterTarget[0].p, depthStencil);
+	deviceContext->ClearRenderTargetView(waterTarget[0].p, D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
+	d3D->GetBlendStateManager()->TurnOnDefaultBlendState();
+	deviceContext->ClearDepthStencilView(depthStencil,  D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	if(!fullScreenQuad.Render(deviceContext, 0, 0))
+	{
+		return false;
+	}
+
+	if(!underwaterFilterShader.Render(deviceContext, fullScreenQuad.GetIndexCount(), waterfilterInput))
+	{
+		return false;
+	}
+
+
+	return true;
+}
+
 bool GameRenderer::RenderSSAO( SSAOShader::SSAOShaderInput& input )
 {
 	//Point light stage
-	deviceContext->OMSetRenderTargets(1, &ssaoRTView[0].p, depthStencil);
-	deviceContext->ClearRenderTargetView(ssaoRTView[0].p, D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
-	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_STENCIL, 1.0f, 0);
+	deviceContext->OMSetRenderTargets(1, &ssaoTarget[0].p, depthStencil);
+	deviceContext->ClearRenderTargetView(ssaoTarget[0].p, D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
+	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	//d3D->GetDepthStencilManager()->SetDefaultDepthStencilView();
-	d3D->GetBlendStateManager()->TurnOnDefaultBlendState();
-	deviceContext->ClearDepthStencilView(depthStencil,  D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+	//d3D->GetBlendStateManager()->TurnOnDefaultBlendState();
 
 	if(!fullScreenQuad.Render(deviceContext, 0, 0))
 	{
@@ -1145,7 +1199,6 @@ bool GameRenderer::RenderSSAO( SSAOShader::SSAOShaderInput& input )
 		return false;
 	}
 
-	//TODO: Gaussian blur
 
 	return true;
 }
@@ -1271,6 +1324,10 @@ void GameRenderer::OnSettingsReload(Config* cfg)
 
 	settings.lookupValue("windowWidth", screenWidth);
 	settings.lookupValue("windowHeight", screenHeight);
+
+	const Setting& waterSettings = cfg->getRoot()["shaders"]["waterShader"];
+
+	waterSettings.lookupValue("waterLevels", waterLevel);
 
 	//result = dayNightCycle.Initialize(500.0f, DAY); //86400.0f/6 <-- This is realistic day/night cycle. 86400 seconds in a day.
 	//if(!result)

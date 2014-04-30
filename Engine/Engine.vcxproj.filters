@@ -243,7 +243,7 @@
     <ClCompile Include="SSAOBlur.cpp">
       <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
     </ClCompile>
-    <ClCompile Include="UnderwaterFilter.cpp">
+    <ClCompile Include="UnderwaterFilterShader.cpp">
       <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
     </ClCompile>
   </ItemGroup>
@@ -525,7 +525,7 @@
     <ClInclude Include="SSAOBlur.h">
       <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
     </ClInclude>
-    <ClInclude Include="UnderwaterFilter.h">
+    <ClInclude Include="UnderwaterFilterShader.h">
       <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
     </ClInclude>
   </ItemGroup>
@@ -659,12 +659,6 @@
     <None Include="Shaders\OBJGbuffer.vsh">
       <Filter>Rendering\Shaders\Deferred shaders</Filter>
     </None>
-    <None Include="Shaders\UnderwaterFilter.vsh">
-      <Filter>Rendering\Shaders\Post processing</Filter>
-    </None>
-    <None Include="Shaders\UnderwaterFilter.psh">
-      <Filter>Rendering\Shaders\Post processing</Filter>
-    </None>
     <None Include="Shaders\SSAOBlur.vsh">
       <Filter>Rendering\Shaders\Post processing</Filter>
     </None>
@@ -672,6 +666,12 @@
       <Filter>Rendering\Shaders\Post processing</Filter>
     </None>
     <None Include="Shaders\DRCompose.psh">
+      <Filter>Rendering\Shaders\Post processing</Filter>
+    </None>
+    <None Include="Shaders\UnderwaterFilterShader.psh">
+      <Filter>Rendering\Shaders\Post processing</Filter>
+    </None>
+    <None Include="Shaders\UnderwaterFilterShader.vsh">
       <Filter>Rendering\Shaders\Post processing</Filter>
     </None>
   </ItemGroup>

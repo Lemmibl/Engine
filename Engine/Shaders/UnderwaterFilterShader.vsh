@@ -15,7 +15,7 @@ struct VertexShaderOutput
 		float2 TexCoord : TEXCOORD0;
 };
 
-VertexShaderOutput ComposeVertexShader(VertexShaderInput input)
+VertexShaderOutput UnderwaterFilterVertexShader(VertexShaderInput input)
 {
 		VertexShaderOutput output;
 
