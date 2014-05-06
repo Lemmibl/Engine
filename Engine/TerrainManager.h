@@ -29,11 +29,13 @@ private:
 	//	return ((v.first + v.second)*(v.first + v.second + 1)/2) + v.second;
 	struct int_pair_hash 
 	{
-		inline std::size_t operator()(const std::pair<int,int>& v) const 
+		inline std::size_t operator()(const std::pair<int,int>& pair) const 
 		{
-			std::size_t hashOne(std::hash<int>()(v.first*31 + (v.second+33)));
+			//std::size_t hashValue(std::hash<int>()(pair.first)*31 + (pair.second << 16));
 
-			return hashOne;//((hashOne+hashTwo) * (hashOne+hashTwo + 1) / 2) + hashTwo;
+			//return hashValue;//((hashOne+hashTwo) * (hashOne+hashTwo + 1) / 2) + hashTwo;
+
+			return (std::hash<int>()(pair.first)*31 + (pair.second << 16));
 		}
 	};
 

@@ -1,11 +1,11 @@
 cbuffer PixelShaderBuffer
 {
-	float4x4 View;
-	float4x4 Projection;
-	float thFOV;
-	float aspectRatio;
-	float2 PADDING;
-	float4 samplingRays[14]; //Sampling kernel
+	float4x4 View : packoffset(c0.x);
+	float4x4 Projection : packoffset(c4.x);
+	float thFOV : packoffset(c8.x);
+	float aspectRatio : packoffset(c8.y);
+	float2 PADDING : packoffset(c8.z);
+	float4 samplingRays[14] : packoffset(c9.x); //Sampling kernel
 }
 
 struct VertexShaderOutput
@@ -20,15 +20,15 @@ Texture2D shaderTextures[3] : register(ps_5_0, t0); //0 == depth, 1 == normal, 2
 
 static const int kernelSize = 14;
 
-static const float samplingRadius = 1.5f;
-static const float intensity = 4.0f;
+static const float samplingRadius = 2.5f;
+static const float intensity = 16.0f;
 
 static const float2 screenSize = float2(1024.0f, 768.0f);
 static const float2 randomTextureSize = float2(128.0f, 128.0f);
 
 static const float    gOcclusionFadeStart = 0.2f;
-static const float    gOcclusionFadeEnd   = 2.0f;
-static const float    gSurfaceEpsilon     = 0.25f;
+static const float    gOcclusionFadeEnd   = 1.0f;
+static const float    gSurfaceEpsilon     = 0.2f;
 
 //Decoding of GBuffer Normals
 half3 DecodeNormal(half2 enc)
@@ -41,6 +41,13 @@ half3 DecodeNormal(half2 enc)
 
 float3 ReconstructViewPositionFromDepth(float3 viewRay, float depth)
 {
+	return viewRay * depth;
+}
+
+float3 GetViewPosFromUV(float2 uv)
+{
+	float3 viewRay = float3((uv.x*2.0f-1.0f) * thFOV * aspectRatio, (uv.y*2.0f-1.0f) * thFOV, 1.0);
+	float depth = shaderTextures[0].Sample(linearSampler, uv);
 	return viewRay * depth;
 }
 
@@ -87,9 +94,16 @@ float SSAOPixelShader(VertexShaderOutput input) : SV_Target0
 {
 	float depth = shaderTextures[0].Sample(linearSampler, input.TexCoord);
 
-	float3 normal = normalize(DecodeNormal(shaderTextures[1].Sample(linearSampler, input.TexCoord).xy));
+	if(depth == 0.0f)
+	{
+		return 1.0f;
+	}
 
-	float3 viewPosition = (input.ViewRay * depth); //input.ViewRay // float3((input.TexCoord.x*2.0f-1.0f) * thFOV * aspectRatio, (input.TexCoord.y*2.0f-1.0f) * thFOV, 1.0)
+	float3 normal = shaderTextures[1].Sample(linearSampler, input.TexCoord); 
+	
+	normal = normalize(DecodeNormal(normal.xy));
+
+	float3 viewPosition = (input.ViewRay * depth); // //  float3((input.TexCoord.x*2.0f-1.0f) * thFOV * aspectRatio, (input.TexCoord.y*2.0f-1.0f) * thFOV, 1.0)
 	float3 randomVector = GetRandomVector(input.TexCoord.xy);
 
 	float occlusion = 0.0f;
@@ -100,17 +114,17 @@ float SSAOPixelShader(VertexShaderOutput input) : SV_Target0
 		normal.x *= -1.0f;
 		offset.x *= -1.0f;
 
-		//normal.z *= -1.0f;
-		//offset.z *= -1.0f;
-
 		//Doing a manual sign because sign might return 0 if the dot == 0
-		float flip = (dot(normal, offset) >= 0.0f) ? 1.0f : -1.0f;
-		float3 q = (viewPosition + (samplingRadius * (flip * offset)));
+		float flip = (dot(normal, offset) > 0.0f) ? 1.0f : -1.0f;
+		float3 q = (viewPosition + (flip * (samplingRadius * offset)));
 
 		float4 projectedCoords = mul(float4(q, 1.0f), Projection);
 		projectedCoords /= projectedCoords.w;
+		//projectedCoords.xy = 0.5f * projectedCoords.xy + 0.5f; 
+		//projectedCoords.y = 1.0f - projectedCoords.y;
 
-
+		//float3 ray = GetViewPosFromUV(projectedCoords.xy);
+		//ray.z = 1.0f - ray.z;
 		float sampleDepth = 1.0f - shaderTextures[0].Sample(linearSampler, projectedCoords.xy);
 		float3 ray = (q.xyz * sampleDepth);
 

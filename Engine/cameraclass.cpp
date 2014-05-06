@@ -52,10 +52,14 @@ void CameraClass::GetProjectionMatrix(XMMATRIX& projMatrix)
 	return;
 }
 
-
 void CameraClass::GetOrthographicProjection( XMMATRIX& orthoMtrx)
 {
 	orthoMtrx = XMLoadFloat4x4(&orthoProjection);
+}
+
+XMFLOAT4X4* CameraClass::GetBaseViewMatrix()
+{
+	return &baseView; 
 }
 
 XMFLOAT4X4* CameraClass::GetWorldMatrix()
@@ -181,6 +185,19 @@ CameraClass::CameraClass(std::shared_ptr<ControllerClass> externalController)
 
 CameraClass::~CameraClass()
 {
+}
+
+bool CameraClass::Initialize()
+{
+	position = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+
+	Update();
+
+	//Save baseView
+	baseView = view;
+
+	return true;
 }
 
 void CameraClass::SetPerspectiveProjection(float screenWidth, float screenHeight, float FOVinRadians, float zNear, float zFar)

@@ -1,0 +1,95 @@
+#ifndef SEPARABLE_BLUR_KERNEL_SIZE
+#define SEPARABLE_BLUR_KERNEL_SIZE 11
+#endif
+
+//Size of this array needs to match SEPARABLE_BLUR_KERNEL_SIZE
+//static const float samplingWeights[5] = { 0.5f, 0.75f, 1.0f, 0.75f, 0.5f };
+static const float samplingWeights[11] = { 0.05f, 0.1f, 0.175f, 0.25f, 0.5f, 1.0f, 0.5f, 0.25f, 0.175f, 0.1f, 0.05f };
+
+static const int BLUR_KERNEL_BEGIN = SEPARABLE_BLUR_KERNEL_SIZE / -2; 
+static const int BLUR_KERNEL_END = SEPARABLE_BLUR_KERNEL_SIZE / 2 + 1;
+static const float FLOAT_BLUR_KERNEL_SIZE = (float)SEPARABLE_BLUR_KERNEL_SIZE;
+
+//TODO.... Move these to cpu side.
+static const float texelWidth = 1.0f / 1024.0f;
+static const float texelHeight = 1.0f / 768.0f;
+
+//How many pixels will we skip with each sampling step. If you don't want to skip, set to 1.;
+static const int pixelStepSize = 1;
+
+cbuffer PixelBuffer
+{
+	int horizontalBlur : packoffset(c0.x);
+	float acceptableNormalDifference : packoffset(c0.y); // = 0.8f
+	float acceptableDepthDifference : packoffset(c0.z); // = 0.2f
+	float averagingOffset : packoffset(c0.w); //0.5f
+}
+
+struct PixelInputType
+{
+	float4      Position	    : SV_Position;		//Position
+	float2      TexCoord	    : TEXCOORD0;		//Texture coordinate
+};
+
+SamplerState linearSampler : register(s0);
+Texture2D shaderTextures[3]; //0 == SSAO texture that we need to blur, 1 == depth, 2 == normal
+
+//Decoding of GBuffer Normals
+half3 DecodeNormal(half2 enc)
+{
+	half2 fenc = enc*4-2;
+	half f = dot(fenc,fenc);
+	half g = sqrt(1-f*0.25);
+	return half3(fenc*g, 1-f*0.5);
+}
+
+float SSAOBlurPS(PixelInputType input) : SV_Target0
+{
+	float centerDepth = shaderTextures[1].Sample(linearSampler, input.TexCoord);
+
+	if(centerDepth == 0.0f)
+	{
+		return 1.0f;
+	}
+
+	float2 texOffset;
+
+	if(horizontalBlur > 0)
+	{
+		texOffset = float2(texelWidth*pixelStepSize, 0.0f);
+	}
+	else
+	{
+		texOffset = float2(0.0f, texelHeight*pixelStepSize);
+	}
+ 
+	float3 centerNormal = normalize(DecodeNormal(shaderTextures[2].Sample(linearSampler, input.TexCoord).xy));
+
+	float occlusion = 0.0f;
+	int samplingIndex = 0;
+
+	[unroll]
+	for(int x = BLUR_KERNEL_BEGIN; x < BLUR_KERNEL_END; ++x) 
+	{
+		float2 offsetTexCoord = input.TexCoord + (x*texOffset);
+
+		float3 normal = normalize(DecodeNormal(shaderTextures[2].Sample(linearSampler, offsetTexCoord).xy));
+		float depth = shaderTextures[1].Sample(linearSampler, offsetTexCoord);
+
+		// If the center value and neighbor values differ too much (either in 
+		// normal or depth), then we assume we are sampling across a discontinuity.
+		// We discard such samples from the blur. If we don't do this, we'll get haloing.	
+		if(dot(centerNormal.xyz, normal.xyz) >= acceptableNormalDifference && abs(centerDepth - depth) <= acceptableDepthDifference)
+		{
+			float weight = samplingWeights[samplingIndex];
+
+			//Add weighted neighbor pixel to blur.
+			occlusion += weight*shaderTextures[0].Sample(linearSampler, offsetTexCoord);
+		}
+
+		++samplingIndex;
+	}
+	
+	//Average it out and return
+	return saturate((occlusion/FLOAT_BLUR_KERNEL_SIZE) + averagingOffset);
+}

@@ -31,6 +31,7 @@ public:
 	XMMATRIX GetView();
 	XMMATRIX GetProj();
 	XMFLOAT4X4* GetWorldMatrix();
+	XMFLOAT4X4* GetBaseViewMatrix();
 
 	XMFLOAT3* GetPositionPtr();
 	XMFLOAT3* GetRotationPtr();
@@ -58,6 +59,7 @@ public:
 	float GetFarClip() { return farClip; };
 	#pragma endregion
 
+	bool Initialize();
 	void Update();
 	void SetPerspectiveProjection(float screenWidth, float screenHeight, float FOVinDegrees, float zNear, float zFar);
 
@@ -71,7 +73,7 @@ private:
 
 	std::shared_ptr<ControllerClass> controller;
 	XMFLOAT3 position, rotation;
-	XMFLOAT4X4 world, view, projection, orthoProjection;
+	XMFLOAT4X4 world, view, projection, orthoProjection, baseView;
 	float yaw, pitch, roll;
 	float screenWidth, screenHeight;
 	float nearClip, farClip;

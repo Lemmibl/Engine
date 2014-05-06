@@ -9,25 +9,10 @@
 #include <stdio.h>
 #include <d3dcompiler.h>
 
+#include "ShaderInputStructs.h"
+
 class DRCompose : public SettingsDependent
 {
-public:
-	struct ComposeShaderInput
-	{
-		XMMATRIX* worldViewProjection; 
-		XMMATRIX* worldView; 
-		XMMATRIX* view; 
-		XMMATRIX* invertedProjection;
-		XMMATRIX* invViewProjection; 
-		XMFLOAT4* fogColor; 
-		ID3D11ShaderResourceView** textureArray; 
-		ID3D11ShaderResourceView* randomTexture; 
-		int toggle;
-		float fogMinimum; 
-		float lightIntensity;
-		float cameraHeight;
-	};
-
 private:
 	struct VertexMatrixBuffer
 	{
@@ -48,11 +33,16 @@ private:
 		float fogStart;
 		float fogEnd;
 		float farClip;
+
 		float waterLevel;
 		float cameraHeight;
 		XMFLOAT2 randomSize;
+
 		XMFLOAT2 screenSize;
-		XMFLOAT2 PADDING;
+		float thFOV;
+		float aspectRatio;
+
+		XMFLOAT4 PADDING;
 	};
 
 
@@ -70,14 +60,14 @@ public:
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
 	void OnSettingsReload(Config* cfg);
-	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, ComposeShaderInput& input);
+	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, ShaderInputStructs::ComposeShaderInput* input);
 
 private:
 	bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
 	void ShutdownShader();
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
 
-	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, ComposeShaderInput& input);
+	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, ShaderInputStructs::ComposeShaderInput* input);
 
 	void RenderShader(ID3D11DeviceContext*, int);
 
@@ -93,4 +83,6 @@ private:
 
 	bool bufferNeedsUpdate;
 	VariableBuffer variables;
+	float thFOV;
+	float aspectRatio;
 };

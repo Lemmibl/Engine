@@ -4,7 +4,7 @@
 #include "DRPointLight.h"
 
 
-DRPointLight::DRPointLight()
+DRPointLightShader::DRPointLightShader()
 {
 	//vertexShader = 0;
 	//pixelShader = 0;
@@ -17,17 +17,17 @@ DRPointLight::DRPointLight()
 }
 
 
-DRPointLight::DRPointLight(const DRPointLight& other)
+DRPointLightShader::DRPointLightShader(const DRPointLightShader& other)
 {
 }
 
 
-DRPointLight::~DRPointLight()
+DRPointLightShader::~DRPointLightShader()
 {
 }
 
 
-bool DRPointLight::Initialize(ID3D11Device* device, HWND hwnd)
+bool DRPointLightShader::Initialize(ID3D11Device* device, HWND hwnd)
 {
 	bool result;
 
@@ -42,7 +42,7 @@ bool DRPointLight::Initialize(ID3D11Device* device, HWND hwnd)
 }
 
 
-void DRPointLight::Shutdown()
+void DRPointLightShader::Shutdown()
 {
 	// Shutdown the vertex and pixel shaders as well as the related objects.
 	ShutdownShader();
@@ -50,7 +50,7 @@ void DRPointLight::Shutdown()
 	return;
 }
 
-bool DRPointLight::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldViewProjection, XMMATRIX* worldView, XMMATRIX* world, XMMATRIX* invertedView, 
+bool DRPointLightShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX* worldViewProjection, XMMATRIX* worldView, XMMATRIX* world, XMMATRIX* invertedView, 
 	XMMATRIX* invertedProjection, PointLight* pointLight, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** materialArray, XMFLOAT3 cameraPosition)
 {
 	bool result;
@@ -68,7 +68,7 @@ bool DRPointLight::Render(ID3D11DeviceContext* deviceContext, int indexCount, XM
 	return true;
 }
 
-bool DRPointLight::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename)
+bool DRPointLightShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename)
 {
 	HRESULT result;
 	CComPtr<ID3D10Blob> errorMessage;
@@ -238,7 +238,7 @@ bool DRPointLight::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFi
 	return true;
 }
 
-void DRPointLight::ShutdownShader()
+void DRPointLightShader::ShutdownShader()
 {	
 	//// Release the light constant buffer.
 	//if(lightBuffer)
@@ -293,7 +293,7 @@ void DRPointLight::ShutdownShader()
 }
 
 
-void DRPointLight::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename)
+void DRPointLightShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename)
 {
 	char* compileErrors;
 	unsigned long bufferSize, i;
@@ -328,7 +328,7 @@ void DRPointLight::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd,
 	return;
 }
 
-bool DRPointLight::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* WorldViewProjection, XMMATRIX* worldView, XMMATRIX* world, XMMATRIX* invertedView, 
+bool DRPointLightShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX* WorldViewProjection, XMMATRIX* worldView, XMMATRIX* world, XMMATRIX* invertedView, 
 	XMMATRIX* invertedProjection, PointLight* pointLight, ID3D11ShaderResourceView** textureArray, ID3D11ShaderResourceView** materialArray, XMFLOAT3 cameraPosition)
 {		
 	HRESULT result;
@@ -418,7 +418,7 @@ bool DRPointLight::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMAT
 	return true;
 }
 
-void DRPointLight::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
+void DRPointLightShader::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
 {
 	// Set the vertex input layout.
 	deviceContext->IASetInputLayout(layout);

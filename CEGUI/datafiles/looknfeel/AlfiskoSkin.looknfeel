@@ -41,6 +41,258 @@
             </Layer>
         </StateImagery>
     </WidgetLook>
+	<WidgetLook name="AlfiskoSkin/WhiteButton">
+        <PropertyDefinition initialValue="CentreAligned" type="VerticalTextFormatting" name="VertLabelFormatting"/>
+        <PropertyDefinition initialValue="CentreAligned" type="HorizontalTextFormatting" name="HorzLabelFormatting"/>
+        <Property name="Size" value="{{0, 96}, {0, 32}}" />
+        <ImagerySection name="label">
+            <TextComponent>
+                <Area>
+                    <Dim type="LeftEdge">
+                        <AbsoluteDim value="2"/>
+                    </Dim>
+                    <Dim type="TopEdge">
+                        <AbsoluteDim value="2"/>
+                    </Dim>
+                </Area>
+                <Colours topLeft="FF000000" bottomLeft="FF000000" topRight="FF000000" bottomRight="FF000000"/>
+                <VertFormatProperty name="VertLabelFormatting"/>
+                <HorzFormatProperty name="HorzLabelFormatting"/>
+            </TextComponent>
+			<TextComponent>
+				<Colours topLeft="FFFFFFFF" bottomLeft="FFFFFFFF" topRight="FFFFFFFF" bottomRight="FFFFFFFF"/>
+                <VertFormatProperty name="VertLabelFormatting"/>
+                <HorzFormatProperty name="HorzLabelFormatting"/>
+            </TextComponent>
+        </ImagerySection>
+		<ImagerySection name="normalText">
+		    <TextComponent>
+                <Area>
+                    <Dim type="LeftEdge">
+                        <AbsoluteDim value="2"/>
+                    </Dim>
+                    <Dim type="TopEdge">
+                        <AbsoluteDim value="2"/>
+                    </Dim>
+                </Area>
+                <Colours topLeft="FFDDDDDD" bottomLeft="FFDDDDDD" topRight="FFDDDDDD" bottomRight="FFDDDDDD"/>
+                <VertFormatProperty name="VertLabelFormatting"/>
+                <HorzFormatProperty name="HorzLabelFormatting"/>
+            </TextComponent>
+			<TextComponent>
+				<Colours topLeft="FF000000" bottomLeft="FF000000" topRight="FF000000" bottomRight="FF000000"/>
+				<VertFormatProperty name="VertLabelFormatting"/>
+				<HorzFormatProperty name="HorzLabelFormatting"/>
+			</TextComponent>
+		</ImagerySection>
+        <ImagerySection name="normal">
+            <FrameComponent>
+                <Image component="TopLeftCorner" name="AlfiskoSkin/ButtonNormalTL"/>
+                <Image component="TopRightCorner" name="AlfiskoSkin/ButtonNormalTR"/>
+                <Image component="BottomLeftCorner" name="AlfiskoSkin/ButtonNormalBL"/>
+                <Image component="BottomRightCorner" name="AlfiskoSkin/ButtonNormalBR"/>
+                <Image component="LeftEdge" name="AlfiskoSkin/ButtonNormalL"/>
+                <Image component="RightEdge" name="AlfiskoSkin/ButtonNormalR"/>
+                <Image component="TopEdge" name="AlfiskoSkin/ButtonNormalT"/>
+                <Image component="BottomEdge" name="AlfiskoSkin/ButtonNormalB"/>
+            </FrameComponent>
+            <ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge">
+                        <ImageDim name="AlfiskoSkin/ButtonNormalL" dimension="Width"/>
+                    </Dim>
+                    <Dim type="TopEdge">
+                        <ImageDim name="AlfiskoSkin/ButtonNormalT" dimension="Height"/>
+                    </Dim>
+                    <Dim type="RightEdge">
+                        <OperatorDim op="Subtract">
+                            <UnifiedDim scale="1" type="Width"/>
+                            <ImageDim name="AlfiskoSkin/ButtonNormalR" dimension="Width"/>
+                        </OperatorDim>
+                    </Dim>
+                    <Dim type="BottomEdge">
+                        <UnifiedDim scale=".5" type="Height"/>
+                    </Dim>
+                </Area>
+                <Image name="AlfiskoSkin/ButtonNormalFill1"/>
+                <VertFormat type="Stretched"/>
+                <HorzFormat type="Stretched"/>
+            </ImageryComponent>
+            <ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge">
+                        <ImageDim name="AlfiskoSkin/ButtonNormalL" dimension="Width"/>
+                    </Dim>
+                    <Dim type="TopEdge">
+                        <UnifiedDim scale=".5" type="Height"/>
+                    </Dim>
+                    <Dim type="RightEdge">
+                        <OperatorDim op="Subtract">
+                            <UnifiedDim scale="1" type="Width"/>
+                            <ImageDim name="AlfiskoSkin/ButtonNormalR" dimension="Width"/>
+                        </OperatorDim>
+                    </Dim>
+                    <Dim type="BottomEdge">
+                        <OperatorDim op="Subtract">
+                            <UnifiedDim scale="1" type="Height"/>
+                            <ImageDim name="AlfiskoSkin/ButtonNormalB" dimension="Height"/>
+                        </OperatorDim>
+                    </Dim>
+                </Area>
+                <Image name="AlfiskoSkin/ButtonNormalFill2"/>
+                <VertFormat type="Stretched"/>
+                <HorzFormat type="Stretched"/>
+            </ImageryComponent>
+        </ImagerySection>
+        <ImagerySection name="hover">
+            <FrameComponent>
+                <Image component="TopLeftCorner" name="AlfiskoSkin/ButtonHoverTL"/>
+                <Image component="TopRightCorner" name="AlfiskoSkin/ButtonHoverTR"/>
+                <Image component="BottomLeftCorner" name="AlfiskoSkin/ButtonHoverBL"/>
+                <Image component="BottomRightCorner" name="AlfiskoSkin/ButtonHoverBR"/>
+                <Image component="LeftEdge" name="AlfiskoSkin/ButtonHoverL"/>
+                <Image component="RightEdge" name="AlfiskoSkin/ButtonHoverR"/>
+                <Image component="TopEdge" name="AlfiskoSkin/ButtonHoverT"/>
+                <Image component="BottomEdge" name="AlfiskoSkin/ButtonHoverB"/>
+            </FrameComponent>
+            <ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge">
+                        <ImageDim name="AlfiskoSkin/ButtonHoverL" dimension="Width"/>
+                    </Dim>
+                    <Dim type="TopEdge">
+                        <ImageDim name="AlfiskoSkin/ButtonHoverT" dimension="Height"/>
+                    </Dim>
+                    <Dim type="RightEdge">
+                        <OperatorDim op="Subtract">
+                            <UnifiedDim scale="1" type="Width"/>
+                            <ImageDim name="AlfiskoSkin/ButtonHoverR" dimension="Width"/>
+                        </OperatorDim>
+                    </Dim>
+                    <Dim type="BottomEdge">
+                        <UnifiedDim scale=".5" type="Height"/>
+                    </Dim>
+                </Area>
+                <Image name="AlfiskoSkin/ButtonHoverFill1"/>
+                <VertFormat type="Stretched"/>
+                <HorzFormat type="Stretched"/>
+            </ImageryComponent>
+            <ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge">
+                        <ImageDim name="AlfiskoSkin/ButtonHoverL" dimension="Width"/>
+                    </Dim>
+                    <Dim type="TopEdge">
+                        <UnifiedDim scale=".5" type="Height"/>
+                    </Dim>
+                    <Dim type="RightEdge">
+                        <OperatorDim op="Subtract">
+                            <UnifiedDim scale="1" type="Width"/>
+                            <ImageDim name="AlfiskoSkin/ButtonHoverR" dimension="Width"/>
+                        </OperatorDim>
+                    </Dim>
+                    <Dim type="BottomEdge">
+                        <OperatorDim op="Subtract">
+                            <UnifiedDim scale="1" type="Height"/>
+                            <ImageDim name="AlfiskoSkin/ButtonHoverB" dimension="Height"/>
+                        </OperatorDim>
+                    </Dim>
+                </Area>
+                <Image name="AlfiskoSkin/ButtonHoverFill2"/>
+                <VertFormat type="Stretched"/>
+                <HorzFormat type="Stretched"/>
+            </ImageryComponent>
+        </ImagerySection>
+        <ImagerySection name="pushed">
+            <FrameComponent>
+                <Image component="TopLeftCorner" name="AlfiskoSkin/ButtonPushedTL"/>
+                <Image component="TopRightCorner" name="AlfiskoSkin/ButtonPushedTR"/>
+                <Image component="BottomLeftCorner" name="AlfiskoSkin/ButtonPushedBL"/>
+                <Image component="BottomRightCorner" name="AlfiskoSkin/ButtonPushedBR"/>
+                <Image component="LeftEdge" name="AlfiskoSkin/ButtonPushedL"/>
+                <Image component="RightEdge" name="AlfiskoSkin/ButtonPushedR"/>
+                <Image component="TopEdge" name="AlfiskoSkin/ButtonPushedT"/>
+                <Image component="BottomEdge" name="AlfiskoSkin/ButtonPushedB"/>
+            </FrameComponent>
+            <ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge">
+                        <ImageDim name="AlfiskoSkin/ButtonPushedL" dimension="Width"/>
+                    </Dim>
+                    <Dim type="TopEdge">
+                        <ImageDim name="AlfiskoSkin/ButtonPushedT" dimension="Height"/>
+                    </Dim>
+                    <Dim type="RightEdge">
+                        <OperatorDim op="Subtract">
+                            <UnifiedDim scale="1" type="Width"/>
+                            <ImageDim name="AlfiskoSkin/ButtonPushedR" dimension="Width"/>
+                        </OperatorDim>
+                    </Dim>
+                    <Dim type="BottomEdge">
+                        <UnifiedDim scale=".5" type="Height"/>
+                    </Dim>
+                </Area>
+                <Image name="AlfiskoSkin/ButtonPushedFill1"/>
+                <VertFormat type="Stretched"/>
+                <HorzFormat type="Stretched"/>
+            </ImageryComponent>
+            <ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge">
+                        <ImageDim name="AlfiskoSkin/ButtonPushedL" dimension="Width"/>
+                    </Dim>
+                    <Dim type="TopEdge">
+                        <UnifiedDim scale=".5" type="Height"/>
+                    </Dim>
+                    <Dim type="RightEdge">
+                        <OperatorDim op="Subtract">
+                            <UnifiedDim scale="1" type="Width"/>
+                            <ImageDim name="AlfiskoSkin/ButtonPushedR" dimension="Width"/>
+                        </OperatorDim>
+                    </Dim>
+                    <Dim type="BottomEdge">
+                        <OperatorDim op="Subtract">
+                            <UnifiedDim scale="1" type="Height"/>
+                            <ImageDim name="AlfiskoSkin/ButtonPushedB" dimension="Height"/>
+                        </OperatorDim>
+                    </Dim>
+                </Area>
+                <Image name="AlfiskoSkin/ButtonPushedFill2"/>
+                <VertFormat type="Stretched"/>
+                <HorzFormat type="Stretched"/>
+            </ImageryComponent>
+        </ImagerySection>
+        <StateImagery name="Normal">
+            <Layer>
+                <Section section="pushed"/>
+                <Section section="normalText"/>
+            </Layer>
+        </StateImagery>
+        <StateImagery name="Hover">
+            <Layer>
+                <Section section="hover"/>
+                <Section section="normalText"/>
+            </Layer>
+        </StateImagery>
+        <StateImagery name="Pushed">
+            <Layer>
+                <Section section="normal"/>
+                <Section section="label"/>
+            </Layer>
+        </StateImagery>
+        <StateImagery name="PushedOff">
+            <Layer>
+                <Section section="pushed"/>
+                <Section section="label"/>
+            </Layer>
+        </StateImagery>
+        <StateImagery name="Disabled">
+            <Layer>
+                <Section section="pushed"/>
+                <Section section="label"/>
+            </Layer>
+        </StateImagery>
+    </WidgetLook>
     <WidgetLook name="AlfiskoSkin/Button">
         <PropertyDefinition initialValue="CentreAligned" type="VerticalTextFormatting" name="VertLabelFormatting"/>
         <PropertyDefinition initialValue="CentreAligned" type="HorizontalTextFormatting" name="HorzLabelFormatting"/>

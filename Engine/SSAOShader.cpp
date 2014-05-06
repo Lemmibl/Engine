@@ -29,7 +29,7 @@ bool SSAOShader::Initialize( ID3D11Device* device, HWND hwnd )
 	return true;
 }
 
-bool SSAOShader::Render( ID3D11DeviceContext* deviceContext, int indexCount, SSAOShaderInput& input )
+bool SSAOShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, ShaderInputStructs::SSAOShaderInput* input )
 {
 	bool result;
 
@@ -232,7 +232,7 @@ void SSAOShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, W
 
 }
 
-bool SSAOShader::SetShaderParameters( ID3D11DeviceContext* deviceContext, SSAOShaderInput& input )
+bool SSAOShader::SetShaderParameters( ID3D11DeviceContext* deviceContext, ShaderInputStructs::SSAOShaderInput* input )
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -250,7 +250,7 @@ bool SSAOShader::SetShaderParameters( ID3D11DeviceContext* deviceContext, SSAOSh
 		T._42 = 0.5f;
 
 
-		XMStoreFloat4x4(&projMatrix, (*input.projection * T)); // 
+		XMStoreFloat4x4(&projMatrix, (*(input->projection) * T)); // 
 
 		matrixCreated = true;
 	}
@@ -267,7 +267,7 @@ bool SSAOShader::SetShaderParameters( ID3D11DeviceContext* deviceContext, SSAOSh
 	// Get a pointer to the data in the constant buffer.
 	dataPtr1 = (VertexShaderBuffer*)mappedResource.pData;
 
-	dataPtr1->worldViewProjection = *input.worldViewProjection;
+	dataPtr1->worldViewProjection = *input->worldViewProjection;
 	dataPtr1->thFOV = thFov;
 	dataPtr1->aspectRatio = aspectRatio;
 
@@ -291,7 +291,7 @@ bool SSAOShader::SetShaderParameters( ID3D11DeviceContext* deviceContext, SSAOSh
 	// Get a pointer to the data in the constant buffer.
 	dataPtr2 = (PixelShaderBuffer*)mappedResource.pData;
 
-	dataPtr2->View = *input.view;
+	dataPtr2->View = *input->view;
 	dataPtr2->Projection = XMLoadFloat4x4(&projMatrix);
 	dataPtr2->thFOV = thFov;
 	dataPtr2->aspectRatio = aspectRatio;
@@ -314,7 +314,7 @@ bool SSAOShader::SetShaderParameters( ID3D11DeviceContext* deviceContext, SSAOSh
 	deviceContext->PSSetSamplers(0, 1, &sampler.p);
 
 	// Set shader texture resource in the pixel shader.
-	deviceContext->PSSetShaderResources(0, 3, input.rtTextureArray);
+	deviceContext->PSSetShaderResources(0, 3, input->rtTextureArray);
 
 	return true;
 }
@@ -341,7 +341,7 @@ void SSAOShader::OnSettingsReload( Config* cfg )
 	const Setting& cameraSettings = cfg->getRoot()["camera"];
 	cameraSettings.lookupValue("fov", thFov);
 
-	thFov = tan(thFov/2);
+	thFov = tan(thFov/2.0f);
 
 	//windowWidth, windowHeight
 	const Setting& renderingSettings = cfg->getRoot()["rendering"];
@@ -364,22 +364,22 @@ void SSAOShader::BuildSamplingRays()
 	*/
 
 	// cube corners
-	samplingRays[0] = XMFLOAT4(+1.0f, +1.0f, +1.0f, 1.0f);
+	samplingRays[0] = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	samplingRays[1] = XMFLOAT4(-1.0f, -1.0f, -1.0f, 1.0f);
-	samplingRays[2] = XMFLOAT4(-1.0f, +1.0f, +1.0f, 1.0f);
-	samplingRays[3] = XMFLOAT4(+1.0f, -1.0f, -1.0f, 1.0f);
-	samplingRays[4] = XMFLOAT4(+1.0f, +1.0f, -1.0f, 1.0f);
-	samplingRays[5] = XMFLOAT4(-1.0f, -1.0f, +1.0f, 1.0f);
-	samplingRays[6] = XMFLOAT4(-1.0f, +1.0f, -1.0f, 1.0f);
-	samplingRays[7] = XMFLOAT4(+1.0f, -1.0f, +1.0f, 1.0f);
+	samplingRays[2] = XMFLOAT4(-1.0f, 1.0f, 1.0f, 1.0f);
+	samplingRays[3] = XMFLOAT4(1.0f, -1.0f, -1.0f, 1.0f);
+	samplingRays[4] = XMFLOAT4(1.0f, 1.0f, -1.0f, 1.0f);
+	samplingRays[5] = XMFLOAT4(-1.0f, -1.0f, 1.0f, 1.0f);
+	samplingRays[6] = XMFLOAT4(-1.0f, 1.0f, -1.0f, 1.0f);
+	samplingRays[7] = XMFLOAT4(1.0f, -1.0f, 1.0f, 1.0f);
 
 	// cube face centers
 	samplingRays[8] =	XMFLOAT4(-1.0f, 0.0f, 0.0f, 1.0f);
-	samplingRays[9] =	XMFLOAT4(+1.0f, 0.0f, 0.0f, 1.0f);
+	samplingRays[9] =	XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
 	samplingRays[10] =	XMFLOAT4(0.0f, -1.0f, 0.0f, 1.0f);
-	samplingRays[11] =	XMFLOAT4(0.0f, +1.0f, 0.0f, 1.0f);
+	samplingRays[11] =	XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
 	samplingRays[12] =	XMFLOAT4(0.0f, 0.0f, -1.0f, 1.0f);
-	samplingRays[13] =	XMFLOAT4(0.0f, 0.0f, +1.0f, 1.0f);
+	samplingRays[13] =	XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
 
 	/*
 	since we are not taking a huge number of samples, we want to try to make sure that our samples are not too clumped up.  
@@ -387,7 +387,7 @@ void SSAOShader::BuildSamplingRays()
 	*/
 	for(int i = 0; i < rayCount; ++i) 
 	{
-		float distribution = RandomFloat(0.5f, 1.0f);
+		float distribution = RandomFloat(0.25f, 1.0f);
 
 		XMVECTOR tempVector = XMLoadFloat4(&samplingRays[i]);
 

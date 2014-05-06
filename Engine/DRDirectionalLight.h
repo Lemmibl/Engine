@@ -8,28 +8,10 @@
 #include <atlcomcli.h>
 #include "SettingsDependent.h"
 
-class DRDirLight : public SettingsDependent
-{
-public:
-	struct DirectionalLightInput
-	{
-		XMMATRIX* worldViewProjection;
-		XMMATRIX* worldView;
-		XMMATRIX* world; 
-		XMMATRIX* view;
-		XMMATRIX* invertedView; 
-		XMMATRIX* invertedProjection; 
-		XMMATRIX* lightView;
-		XMMATRIX* lightProj;
-		XMMATRIX* lightViewProj;
-		XMMATRIX* lightViewAndInvertedCameraView; 
-		DirLight* dirLight; 
-		ID3D11ShaderResourceView** textureArray;
-		ID3D11ShaderResourceView** materialTextureArray; 
-		XMFLOAT4 ambienceColor;
-		XMFLOAT3 cameraPosition; 
-	};
+#include "ShaderInputStructs.h"
 
+class DRDirLightShader : public SettingsDependent
+{
 private:
 	struct PixelMatrixBuffer
 	{
@@ -69,13 +51,13 @@ private:
 	};
 
 public:
-	DRDirLight();
-	DRDirLight(const DRDirLight&);
-	~DRDirLight();
+	DRDirLightShader();
+	DRDirLightShader(const DRDirLightShader&);
+	~DRDirLightShader();
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
-	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, DirectionalLightInput& input);
+	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, ShaderInputStructs::DirectionalLightInput* input);
 
 	void OnSettingsReload(Config* cfg);
 
@@ -84,7 +66,7 @@ private:
 	void ShutdownShader();
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
 
-	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, DirectionalLightInput& input);
+	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, ShaderInputStructs::DirectionalLightInput* input);
 
 	void RenderShader(ID3D11DeviceContext*, int);
 

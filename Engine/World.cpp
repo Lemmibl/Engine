@@ -1,7 +1,18 @@
 #include "World.h"
 
-GameWorld::GameWorld()
-	:	SettingsDependent(), frustum(), renderableBundle(), frustumAABB(XMFLOAT2(-1, -1), XMFLOAT2(1, 1)), weatherSystem(), meshHandler(), terrainManager()
+#include "DebugOverlayHUD.h"
+#include "TerrainManager.h"
+#include "d3dmanager.h"
+#include "cameraclass.h"
+#include "frustumclass.h"
+#include "GameRenderer.h"
+#include "inputclass.h"
+#include "MeshHandler.h"
+#include "WeatherSystem.h"
+#include "RenderableBundle.h"
+#include "controllerclass.h"
+
+GameWorld::GameWorld() : SettingsDependent()
 {
 }
 
@@ -10,9 +21,14 @@ GameWorld::~GameWorld()
 	CleanUp();
 }
 
+XMFLOAT3* GameWorld::GetWindDirection()
+{
+	return weatherSystem->GetWindDirection();
+}
+
 void GameWorld::CleanUp()
 {
-	terrainManager.Shutdown();
+	terrainManager->Shutdown();
 
 	if(dynamicsWorld)
 	{
@@ -26,28 +42,24 @@ void GameWorld::CleanUp()
 	}
 }
 
-bool GameWorld::Initialize( std::shared_ptr<D3DManager> extD3DManager, std::shared_ptr<InputClass> extInput, GameRenderer* gameRenderer, DebugOverlayHUD* debugHud)
+bool GameWorld::Initialize(std::shared_ptr<D3DManager> extD3DManager, std::shared_ptr<InputClass> extInput, std::shared_ptr<GameRenderer> gameRenderer, std::shared_ptr<DebugOverlayHUD> debugHud)
 {
 	inputManager = extInput;
 	d3D = extD3DManager;
 	renderer = gameRenderer;
 	debugHUD = debugHud;
 
-	bool result;
+	bool result = true;
 
 	//Load settings from file
 	InitializeSettings(this);
 
-	result = meshHandler.Initialize(gameRenderer->GetTextureHandler(), gameRenderer->GetMaterialHandler());
-	if(!result)
-	{
-		return false;
-	}
+	weatherSystem = std::make_shared<WeatherSystem>();
 
 	debugHud->AddNewWindowWithoutHandle("Chunks currently being drawn: ", &currentlyActiveChunks, DataTypeEnumMappings::UInt32);
 	debugHud->AddNewWindowWithoutHandle("Chunks currently in production: ", &chunksInProduction, DataTypeEnumMappings::UInt32);
 
-	result = InitializeMiscRenderables();
+	result = InitializeRenderables();
 	if(!result)
 	{
 		return false;
@@ -74,18 +86,20 @@ bool GameWorld::Initialize( std::shared_ptr<D3DManager> extD3DManager, std::shar
 	return true;
 }
 
-bool GameWorld::InitializeMiscRenderables()
+bool GameWorld::InitializeRenderables()
 {
+	renderableBundle = std::make_shared<RenderableBundle>();
+
 	std::wstring objFilepath = L"../Engine/data/Models/";
 	std::wstring treeModelFilepath = objFilepath + L"LushTree.obj";
 
 	OBJModel tempModelPtr;
 
 	//If load succeeds
-	if(meshHandler.LoadModelFromOBJFile(d3D->GetDevice(), treeModelFilepath, &tempModelPtr))
+	if(renderer->GetMeshHandler()->LoadModelFromOBJFile(d3D->GetDevice(), treeModelFilepath, &tempModelPtr))
 	{
-		//Add model by value into renderable bundle... Should just be temporary
-		renderableBundle.objModels.push_back(tempModelPtr);
+		//Add model by value into renderable bundle.
+		renderableBundle->objModels.push_back(tempModelPtr);
 
 		return true;
 	}
@@ -98,14 +112,14 @@ bool GameWorld::InitializeCamera()
 	//Create camera and the camera controller
 	cameraController = std::make_shared<ControllerClass>(dynamicsWorld, inputManager, 0.05f); //0.03f
 	camera = std::make_shared<CameraClass>(cameraController);
-
-	// Initialize a base view matrix with the camera for 2D UI rendering.
-	camera->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
-	camera->Update(); //Call update once at default position to set up matrices properly
+	camera->Initialize();
 
 	camera->SetPosition(XMFLOAT3(0.0f, 25.0f, -100.0f));
 	camera->SetRotation(XMFLOAT3(0.0f, 0.0f, 0.0f));
-	camera->SetPerspectiveProjection(screenWidth, screenHeight, XM_PIDIV2, nearClip, farClip); 
+	camera->SetPerspectiveProjection(screenWidth, screenHeight, XM_PIDIV2, nearClip, farClip);
+
+	debugHUD->AddNewWindowWithoutHandle("Camera position: ", camera->GetPositionPtr(),		DataTypeEnumMappings::Float3);
+	debugHUD->AddNewWindowWithoutHandle("Camera rotation: ", camera->GetRotationPtr(),		DataTypeEnumMappings::Float3);
 
 	return true;
 }
@@ -124,8 +138,11 @@ bool GameWorld::InitializeCollision()
 	dynamicsWorld->setGravity(btVector3(gravity.x, gravity.y,  gravity.z));
 	dynamicsWorld->stepSimulation(bulletTimestepScale, maxSubSteps);
 
+	frustum = std::make_shared<FrustumClass>();
+	frustumAABB = std::make_shared<Lemmi2DAABB>(XMFLOAT2(-1, -1), XMFLOAT2(1, 1));
+
 	//1.77f is 16:9 aspect ratio
-	frustum.SetInternals((float)(screenWidth / screenHeight), XM_PIDIV2, nearClip, farClip);
+	frustum->SetInternals((float)(screenWidth / screenHeight), XM_PIDIV2, nearClip, farClip);
 
 	return true;
 }
@@ -138,7 +155,9 @@ void GameWorld::ResetCamera()
 bool GameWorld::InitializeTerrain()
 {
 	//Initialize terrain manager
-	if(!terrainManager.Initialize(d3D->GetDevice(), dynamicsWorld, d3D->GetHwnd(), camera->GetPosition()))
+	terrainManager = std::make_shared<TerrainManager>();
+
+	if(!terrainManager->Initialize(d3D->GetDevice(), dynamicsWorld, d3D->GetHwnd(), camera->GetPosition()))
 	{
 		return false;
 	}
@@ -148,21 +167,19 @@ bool GameWorld::InitializeTerrain()
 
 void GameWorld::Update( float deltaTimeSeconds, float deltaTimeMilliseconds )
 {
-	chunksInProduction = terrainManager.GetChunkInProductionCount();
-	currentlyActiveChunks = terrainManager.GetActiveChunkCount();
+	chunksInProduction = terrainManager->GetChunkInProductionCount();
+	currentlyActiveChunks = terrainManager->GetActiveChunkCount();
 
 	cameraController->Update(deltaTimeMilliseconds, camera->GetWorldMatrix());
 	camera->Update();
 
 	//Advance bullet world simulation stepping
-
-	//bulletTimestepScale
 	dynamicsWorld->stepSimulation(deltaTimeSeconds, maxSubSteps);
 	dynamicsWorld->clearForces();
 
 
 	//Update wind system, used for wind direction and other fun things.
-	weatherSystem.Update(deltaTimeSeconds);
+	weatherSystem->Update(deltaTimeSeconds);
 
 	HandleInput();
 	UpdateVisibility(deltaTimeSeconds);
@@ -177,65 +194,65 @@ void GameWorld::HandleInput()
 
 	if(inputManager->WasKeyPressed(DIK_N))
 	{
-		terrainManager.ResetTerrain();
+		terrainManager->ResetTerrain();
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD1) || inputManager->WasKeyPressed(DIK_F1))
 	{
-		terrainManager.SetTerrainType(TerrainTypes::SeaBottom);
+		terrainManager->SetTerrainType(TerrainTypes::SeaBottom);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD2) || inputManager->WasKeyPressed(DIK_F2))
 	{
-		terrainManager.SetTerrainType(TerrainTypes::Plains);
+		terrainManager->SetTerrainType(TerrainTypes::Plains);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD3) || inputManager->WasKeyPressed(DIK_F3))
 	{
-		terrainManager.SetTerrainType(TerrainTypes::Hills);
+		terrainManager->SetTerrainType(TerrainTypes::Hills);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD4) || inputManager->WasKeyPressed(DIK_F4))
 	{
-		terrainManager.SetTerrainType(TerrainTypes::Terraces);
+		terrainManager->SetTerrainType(TerrainTypes::Terraces);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD5) || inputManager->WasKeyPressed(DIK_F5))
 	{
-		terrainManager.SetTerrainType(TerrainTypes::DramaticHills);
+		terrainManager->SetTerrainType(TerrainTypes::DramaticHills);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD6) || inputManager->WasKeyPressed(DIK_F6))
 	{
-		terrainManager.SetTerrainType(TerrainTypes::FlyingIslands);
+		terrainManager->SetTerrainType(TerrainTypes::FlyingIslands);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD7) || inputManager->WasKeyPressed(DIK_F7))
 	{
-		terrainManager.SetTerrainType(TerrainTypes::Alien);
+		terrainManager->SetTerrainType(TerrainTypes::Alien);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD8) || inputManager->WasKeyPressed(DIK_F8))
 	{
-		terrainManager.SetTerrainType(TerrainTypes::Fancy);
+		terrainManager->SetTerrainType(TerrainTypes::Fancy);
 	}
 
 	if(inputManager->WasKeyPressed(DIK_NUMPAD9) || inputManager->WasKeyPressed(DIK_F9))
 	{
-		terrainManager.SetTerrainType(TerrainTypes::Cave);
+		terrainManager->SetTerrainType(TerrainTypes::Cave);
 	}
 }
 
 void GameWorld::UpdateVisibility(float deltaTime)
 {
-	frustum.ConstructFrustum(camera->GetFarClip(), &camera->GetProj(), &camera->GetView());
-	frustum.CalculateFrustumExtents(&frustumAABB, XMLoadFloat3(&camera->GetPosition()), camera->ForwardVector(), camera->UpVector());
+	frustum->ConstructFrustum(camera->GetFarClip(), &camera->GetProj(), &camera->GetView());
+	frustum->CalculateFrustumExtents(frustumAABB.get(), XMLoadFloat3(&camera->GetPosition()), camera->ForwardVector(), camera->UpVector());
 
 	//If this function returns false, it means that we haven't moved far enough to have loaded in any new chunks, hence we don't need to clear and regrow the terrainChunks vector
-	if(terrainManager.UpdateAgainstAABB(&frustumAABB, deltaTime))
+	if(terrainManager->UpdateAgainstAABB(frustumAABB.get(), deltaTime))
 	{
-		renderableBundle.terrainChunks.clear();
-		renderableBundle.terrainChunks = terrainManager.GetActiveChunks();
+		renderableBundle->terrainChunks.clear();
+		renderableBundle->terrainChunks = terrainManager->GetActiveChunks();
 	}
 }
 

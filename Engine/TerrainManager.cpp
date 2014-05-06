@@ -584,7 +584,7 @@ bool TerrainManager::UpdateAgainstAABB(Lemmi2DAABB* aabb, float deltaTime)
 				}
 				else
 				{
-					QueueChunkForCreation(neighbourKey.first, neighbourKey.second, lastCamX, lastCamZ);
+					QueueChunkForCreation(neighbourKey.first, neighbourKey.second, static_cast<int>(lastCamX), static_cast<int>(lastCamZ));
 				}
 			}
 		}

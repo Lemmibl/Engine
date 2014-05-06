@@ -8,7 +8,7 @@
 #include <xnamath.h>
 #include <atlcomcli.h>
 
-class DRPointLight
+class DRPointLightShader
 {
 private:
 
@@ -38,9 +38,9 @@ private:
 
 
 public:
-	DRPointLight();
-	DRPointLight(const DRPointLight&);
-	~DRPointLight();
+	DRPointLightShader();
+	DRPointLightShader(const DRPointLightShader&);
+	~DRPointLightShader();
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();

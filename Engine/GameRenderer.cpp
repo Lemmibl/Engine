@@ -1,7 +1,59 @@
+#pragma once
 #include "GameRenderer.h"
 
-GameRenderer::GameRenderer() : SettingsDependent(),
-	noise()
+//Utility
+#include "StructsAndEnums.h"
+#include "inputclass.h"
+#include "timerclass.h"
+#include "controllerclass.h"
+#include "fpsmeter.h"
+#include "textclass.h"
+#include "renderToTextureClass.h"
+#include "DayNightCycle.h"
+#include "DebugOverlayHUD.h"
+
+//Managers
+#include "d3dmanager.h"
+#include "TerrainManager.h"
+#include "TextureHandler.h"
+#include "VegetationManager.h"
+#include "MeshHandler.h"
+
+//Objects
+#include "modelclass.h"
+#include "frustumclass.h"
+#include "debugwindowclass.h"
+#include "SkySphere.h"
+#include "marchingCubesClass.h"
+#include "TerrainNoiseSeeder.h"
+#include "LSystemClass.h"
+#include "NoiseClass.h"
+#include "IndexedMesh.h"
+#include "OBJModel.h"
+#include "cameraclass.h"
+#include "inputclass.h"
+#include "RenderableBundle.h"
+
+//Shaders
+#include "MCGBufferTerrainShader.h"
+#include "textureshaderclass.h"
+#include "VertexShaderOnly.h"
+#include "DepthOnlyShader.h"
+#include "DRCompose.h"
+#include "DRPointLight.h"
+#include "DRObjModelShader.h"
+#include "SSAOShader.h"
+#include "DRDirectionalLight.h"
+#include "fontshaderclass.h"
+#include "DepthOnlyQuadShader.h"
+#include "GaussianBlur.h"
+#include "GeometryShaderGrass.h"
+#include "DRWaterClass.h"
+#include "DRGBuffer.h"
+#include "UnderwaterFilterShader.h"
+#include "SSAOBlur.h"
+
+GameRenderer::GameRenderer() : SettingsDependent()
 {
 	previouslyInitialized = false;
 
@@ -25,8 +77,8 @@ GameRenderer::~GameRenderer()
 }
 
 
-bool GameRenderer::Initialize(HWND hwnd, std::shared_ptr<CameraClass> camera, std::shared_ptr<InputClass> inputManager, std::shared_ptr<D3DManager> d3D, 
-	MeshHandler* extMeshHandler, DebugOverlayHUD* extDebugHUD, UINT screenWidth, UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear)
+bool GameRenderer::Initialize(HWND hwnd, std::shared_ptr<InputClass> inputManager, std::shared_ptr<D3DManager> d3D, 
+	std::shared_ptr<DebugOverlayHUD> extDebugHUD, UINT screenWidth, UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear)
 {
 	bool result;
 
@@ -40,17 +92,13 @@ bool GameRenderer::Initialize(HWND hwnd, std::shared_ptr<CameraClass> camera, st
 	this->farClip = screenFar;
 	this->nearClip = screenNear;
 	this->d3D = d3D;
-	this->camera = camera;
 	debugHUD = extDebugHUD;
-	meshHandler = extMeshHandler;
 
 	toggleSSAO = 0;
 	toggleColorMode = 1;
 	fogMinimum = 1.0f;
 
 	srand((unsigned int)time(NULL));
-
-	XMStoreFloat4x4(&baseViewMatrix, camera->GetView());
 
 	//Break asap, yo. Not before we've assigned external pointers though, because those might have changed
 	if(previouslyInitialized == true)
@@ -95,96 +143,148 @@ bool GameRenderer::InitializeShaders( HWND hwnd )
 {
 	bool result;
 
-	result = pointLightShader.Initialize(d3D->GetDevice(), hwnd);
+	pointLightShader = std::unique_ptr<DRPointLightShader>(new DRPointLightShader);
+
+	result = pointLightShader->Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Pointlight shader couldn't be initialized.", L"Error", MB_OK);
 		return false;
 	}
 
-	result = vertexOnlyShader.Initialize(d3D->GetDevice(), hwnd);
+	vertexOnlyShader = std::unique_ptr<VertexShaderOnly>(new VertexShaderOnly);
+	
+	result = vertexOnlyShader->Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Vertex only shader couldn't be initialized.", L"Error", MB_OK);
 		return false;
 	}
 
-	result = depthOnlyShader.Initialize(d3D->GetDevice(), hwnd);
+	depthOnlyShader = std::unique_ptr<DepthOnlyShader>(new DepthOnlyShader);
+
+	result = depthOnlyShader->Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Depth only shader couldn't be initialized.", L"Error", MB_OK);
 		return false;
 	}
 
-	result = gbufferShader.Initialize(d3D->GetDevice(), hwnd);
+	gbufferShader = std::unique_ptr<DRGBuffer>(new DRGBuffer);
+
+	result = gbufferShader->Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"GBuffer shader couldn't be initialized.", L"Error", MB_OK);
 		return false;
 	}
 
-	result = composeShader.Initialize(d3D->GetDevice(), hwnd);
+	dirLightShader = std::unique_ptr<DRDirLightShader>(new DRDirLightShader);
+
+	result = dirLightShader->Initialize(d3D->GetDevice(), hwnd);
+	if(!result)
+	{
+		MessageBox(hwnd, L"Dir light shader couldn't be initialized.", L"Error", MB_OK);
+		return false;
+	}
+
+	composeShader = std::unique_ptr<DRCompose>(new DRCompose);
+
+	result = composeShader->Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Compose shader couldn't be initialized.", L"Error", MB_OK);
 		return false;
 	}
 
-	result = gaussianBlurShader.Initialize(d3D->GetDevice(), hwnd);
+	gaussianBlurShader = std::unique_ptr<GaussianBlur>(new GaussianBlur);
+
+	result = gaussianBlurShader->Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Gaussian blur shader couldn't be initialized.", L"Error", MB_OK);
 		return false;
 	}
 
-	result = textureShader.Initialize(d3D->GetDevice(), hwnd);
+	textureShader = std::unique_ptr<TextureShaderClass>(new TextureShaderClass);
+
+	result = textureShader->Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Texture shader couldn't be initialized.", L"Error", MB_OK);
 		return false;
 	}
 
-	result = mcubeShader.Initialize(d3D->GetDevice(), hwnd);
+	mcubeShader = std::unique_ptr<MCGBufferTerrainShader>(new MCGBufferTerrainShader);
+
+	result = mcubeShader->Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Marching cubes gbuffer shader couldn't be initialized.", L"Error", MB_OK);
 		return false;
 	}
 
-	result = geometryShaderGrass.Initialize(d3D->GetDevice(), hwnd);
+	geometryShaderGrass = std::unique_ptr<GeometryShaderGrass>(new GeometryShaderGrass);
+
+	result = geometryShaderGrass->Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Geometry shader grass shader couldn't be initialized.", L"Error", MB_OK);
 		return false;
 	}
 
-	result = waterShader.Initialize(d3D->GetDevice(), hwnd);
+	waterShader = std::unique_ptr<DRWaterClass>(new DRWaterClass);
+
+	result = waterShader->Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Water shader couldn't be initialized.", L"Error", MB_OK);
 		return false;
 	}
 
-	result = objModelShader.Initialize(d3D->GetDevice(), hwnd);
+	objModelShader = std::unique_ptr<DRObjModelShader>(new DRObjModelShader);
+
+	result = objModelShader->Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(NULL, L"OBJ Model shader couldn't be initialized.", L"Error", MB_OK);
 		return false;
 	}
 
-	result = ssaoShader.Initialize(d3D->GetDevice(), hwnd);
+	ssaoShader = std::unique_ptr<SSAOShader>(new SSAOShader);
+
+	result = ssaoShader->Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(NULL, L"Couldn't initialize SSAO shader.", L"Error", MB_OK);
 		return false;
 	}
 
-	result = underwaterFilterShader.Initialize(d3D->GetDevice(), hwnd);
+	underwaterFilterShader = std::unique_ptr<UnderwaterFilterShader>(new UnderwaterFilterShader);
+
+	result = underwaterFilterShader->Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		MessageBox(NULL, L"Couldn't initialize underwater filter shader.", L"Error", MB_OK);
 		return false;
 	}
+
+	ssaoBlurShader = std::unique_ptr<SSAOBlur>(new SSAOBlur);
+
+	result = ssaoBlurShader->Initialize(d3D->GetDevice(), hwnd);
+	if(!result)
+	{
+		MessageBox(NULL, L"Couldn't initialize SSAO Blur shader.", L"Error", MB_OK);
+		return false;
+	}
+
+	/************************************************************************/
+	/* Shader inputs                                                        */
+	/************************************************************************/
+	dirLightInput = std::make_shared<ShaderInputStructs::DirectionalLightInput>();
+	ssaoInput = std::make_shared<ShaderInputStructs::SSAOShaderInput>();
+	composeInput = std::make_shared<ShaderInputStructs::ComposeShaderInput>();
+	waterfilterInput = std::make_shared<ShaderInputStructs::WaterFilterInput>();
 
 	return true;
 }
@@ -192,8 +292,6 @@ bool GameRenderer::InitializeShaders( HWND hwnd )
 
 bool GameRenderer::InitializeLights( HWND hwnd )
 {
-	bool result;
-
 #pragma region Point light initialization
 	float x, y, z, red, green, blue;
 	x = 2.0f;
@@ -202,18 +300,17 @@ bool GameRenderer::InitializeLights( HWND hwnd )
 
 	for(int i = 0; i < 100; i++)
 	{
-		red = utility.RandomFloat();
-		green = utility.RandomFloat();
-		blue = utility.RandomFloat();
+		red = utility->RandomFloat();
+		green = utility->RandomFloat();
+		blue = utility->RandomFloat();
 		// pointLights[i].Position = XMFLOAT3(2.0f+(x * 176.0f), 15.0f, 2.0f + (y * 176.0f));
 
-		PointLight pointLight;
-		pointLights.push_back(pointLight);
+		pointLights.push_back(std::unique_ptr<PointLight>(new PointLight));
 
-		pointLights[i].Color = XMFLOAT3(red, green, blue);
-		pointLights[i].Position = XMFLOAT3(x, y, z);
-		pointLights[i].Radius = 4.0f + (2.0f*utility.RandomFloat()); //Used to both scale the actual point light model and is a factor in the attenuation
-		pointLights[i].Intensity = 30.0f + (10.0f*utility.RandomFloat()); //Is used to control the attenuation
+		pointLights[i]->Color = XMFLOAT3(red, green, blue);
+		pointLights[i]->Position = XMFLOAT3(x, y, z);
+		pointLights[i]->Radius = 4.0f + (2.0f*utility->RandomFloat()); //Used to both scale the actual point light model and is a factor in the attenuation
+		pointLights[i]->Intensity = 30.0f + (10.0f*utility->RandomFloat()); //Is used to control the attenuation
 
 		x += 18.0f;
 
@@ -230,41 +327,31 @@ bool GameRenderer::InitializeLights( HWND hwnd )
 			y += 8.0f;
 		}
 
-		XMMATRIX tempScale = XMMatrixScaling(pointLights[0].Radius, pointLights[0].Radius, pointLights[0].Radius);
-		XMMATRIX tempTranslation = XMMatrixTranslation(pointLights[i].Position.x, pointLights[i].Position.y, pointLights[i].Position.z);
-		XMStoreFloat4x4(&pointLights[i].World, (tempScale * tempTranslation));
+		XMMATRIX tempScale = XMMatrixScaling(pointLights[0]->Radius, pointLights[0]->Radius, pointLights[0]->Radius);
+		XMMATRIX tempTranslation = XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z);
+		XMStoreFloat4x4(&pointLights[i]->World, (tempScale * tempTranslation));
 	}
 
 #pragma endregion
 
 #pragma region Directional light initialization
 	// Create the directional light.
-	dirLight = DirLight();
+	dirLight = std::make_shared<DirLight>();
 
-	dirLightShader = DRDirLight();
-
-
-	result = dirLightShader.Initialize(d3D->GetDevice(), hwnd);
-	if(!result)
-	{
-		MessageBox(hwnd, L"Dir light shader couldn't be initialized.", L"Error", MB_OK);
-		return false;
-	}
-
-	XMVECTOR lookAt = XMLoadFloat3(&camera->GetPosition());//LookAt for dir light. We always want this to be (0,0,0), because it's the easiest to visualize.
+	XMVECTOR lookAt = XMLoadFloat3(&XMFLOAT3(0.0f, 0.0f, 0.0f));
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 
 	// Initialize the directional light.
-	dirLight.Color = XMFLOAT4(0.6f, 0.4f, 0.4f, 1.0f);
-	dirLight.Intensity = 1.5f;
-	XMStoreFloat3(&dirLight.Position, (lookAt + XMVectorSet(50.0f, 150.0f, 0.0f, 0.0f)));
+	dirLight->Color = XMFLOAT4(0.6f, 0.4f, 0.4f, 1.0f);
+	dirLight->Intensity = 1.5f;
+	XMStoreFloat3(&dirLight->Position, (lookAt + XMVectorSet(50.0f, 150.0f, 0.0f, 0.0f)));
 
-	XMVECTOR direction = XMVector3Normalize(XMVectorSubtract(lookAt, XMLoadFloat3(&dirLight.Position)));
-	XMStoreFloat3(&dirLight.Direction, direction);
+	XMVECTOR direction = XMVector3Normalize(XMVectorSubtract(lookAt, XMLoadFloat3(&dirLight->Position)));
+	XMStoreFloat3(&dirLight->Direction, direction);
 
 	//XMStoreFloat4x4(&dirLight.Projection, XMMatrixPerspectiveFovLH(XM_PIDIV4, 1.0f, 5.0f, 500.0f));	//Generate PERSPECTIVE light projection matrix and store it as float4x4
-	XMStoreFloat4x4(&dirLight.Projection, XMMatrixOrthographicLH(400.0f, 400.0f, 10.0f, 500.0f));					//Generate ORTHOGONAL light projection matrix and store it as float4x4
-	XMStoreFloat4x4(&dirLight.View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight.Position), lookAt, up));				//Generate light view matrix and store it as float4x4.
+	XMStoreFloat4x4(&dirLight->Projection, XMMatrixOrthographicLH(400.0f, 400.0f, 10.0f, 500.0f));					//Generate ORTHOGONAL light projection matrix and store it as float4x4
+	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(XMLoadFloat3(&dirLight->Position), lookAt, up));				//Generate light view matrix and store it as float4x4.
 #pragma endregion
 
 	return true;
@@ -275,13 +362,15 @@ bool GameRenderer::InitializeModels( HWND hwnd )
 {
 	bool result;
 
-	result = skySphere.Initialize(d3D->GetDevice(), hwnd);
+	skySphere = std::make_shared<Skysphere>();
+
+	result = skySphere->Initialize(d3D->GetDevice(), hwnd);
 	if(!result)
 	{
 		return false;
 	}
 
-	result = textureHandler.Load2DCubemapTextureFromFile(d3D->GetDevice(), L"../Engine/data/cloudCubeMap3.dds", skySphere.GetCloudTexturePP());
+	result = textureHandler->Load2DCubemapTextureFromFile(d3D->GetDevice(), L"../Engine/data/cloudCubeMap3.dds", skySphere->GetCloudTexturePP());
 	if(!result)
 	{
 		return false;
@@ -293,14 +382,16 @@ bool GameRenderer::InitializeModels( HWND hwnd )
 	//	return false;
 	//}
 
-	result = textureHandler.Load2DCubemapTextureFromFile(d3D->GetDevice(), L"../Engine/data/starCubemap.dds", skySphere.GetStarTexturePP());
+	result = textureHandler->Load2DCubemapTextureFromFile(d3D->GetDevice(), L"../Engine/data/starCubemap.dds", skySphere->GetStarTexturePP());
 	if(!result)
 	{
 		return false;
 	}
 
+	sphereModel = std::make_shared<ModelClass>();
+
 	// Initialize the model object. It really doesn't matter what textures it has because it's only used for point light volume culling.
-	result = sphereModel.Initialize(d3D->GetDevice(), "../Engine/data/skydome.txt", L"../Engine/data/dirt.dds", L"../Engine/data/dirt.dds", L"../Engine/data/dirt.dds");
+	result = sphereModel->Initialize(d3D->GetDevice(), "../Engine/data/skydome.txt", L"../Engine/data/dirt.dds", L"../Engine/data/dirt.dds", L"../Engine/data/dirt.dds");
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
@@ -314,7 +405,7 @@ bool GameRenderer::InitializeModels( HWND hwnd )
 		XMFLOAT4X4 temp;
 
 		//Order of operations should be Scaling * Rotation * Translation
-		XMStoreFloat4x4(&temp, (XMMatrixRotationY(utility.RandomFloat()*360.0f) * XMMatrixTranslation(utility.RandomFloat()*100.0f, 15.0f, utility.RandomFloat()*100.0f)));
+		XMStoreFloat4x4(&temp, (XMMatrixRotationY(utility->RandomFloat()*360.0f) * XMMatrixTranslation(utility->RandomFloat()*100.0f, 15.0f, utility->RandomFloat()*100.0f)));
 
 		treeMatrices.push_back(temp);
 	}
@@ -327,34 +418,49 @@ bool GameRenderer::InitializeDebugText()
 {
 	debugHUD->AddNewWindowWithoutHandle("DeltaTime: ", &timer, DataTypeEnumMappings::Float);
 
-	debugHUD->AddNewWindowWithoutHandle("Directional light position: ", &dirLight.Position, DataTypeEnumMappings::Float3);
-	debugHUD->AddNewWindowWithoutHandle("Camera position: ", camera->GetPositionPtr(),		DataTypeEnumMappings::Float3);
-	debugHUD->AddNewWindowWithoutHandle("Camera rotation: ", camera->GetRotationPtr(),		DataTypeEnumMappings::Float3);
-
+	debugHUD->AddNewWindowWithoutHandle("Directional light position: ", &dirLight->Position, DataTypeEnumMappings::Float3);
 	debugHUD->AddNewWindowWithoutHandle("Point lights are turned on: ", &toggleOtherPointLights,		DataTypeEnumMappings::Bool);
-	debugHUD->AddNewWindowWithoutHandle("Point light #1: ", &pointLights[0].Position.y,		DataTypeEnumMappings::Float);
+	debugHUD->AddNewWindowWithoutHandle("Point light #1: ", &pointLights[0]->Position.y,		DataTypeEnumMappings::Float);
+
+	debugHUD->AddNewWindowWithoutHandle("SSAO mode: ", &toggleSSAO,		DataTypeEnumMappings::Int32);
 
 	return true;
 }
 
 
+//TODO:Fix name and split it up...
 bool GameRenderer::InitializeEverythingElse( HWND hwnd )
 {
 	bool result;
 
-	result = textureHandler.Initialize(d3D->GetDevice(), d3D->GetDeviceContext());
+	noise = std::make_shared<NoiseClass>();
+
+	textureCreator = std::make_shared<TextureCreator>();
+
+	textureHandler = std::make_shared<TextureHandler>();
+	result = textureHandler->Initialize(d3D->GetDevice(), d3D->GetDeviceContext());
 	if(!result)
 	{
 		return false;
 	}
 
-	result = materialHandler.Initialize(d3D->GetDevice(), d3D->GetDeviceContext(), &textureCreator, &noise);
+	materialHandler = std::make_shared<MaterialHandler>();
+	result = materialHandler->Initialize(d3D->GetDevice(), d3D->GetDeviceContext(), textureCreator.get(), noise.get());
 
-	result = proceduralTextureHandler.Initialize(d3D->GetDevice(), d3D->GetDeviceContext(), &textureCreator, &noise, &utility);
+	proceduralTextureHandler = std::make_shared<ProceduralTextureHandler>();
+	result = proceduralTextureHandler->Initialize(d3D->GetDevice(), d3D->GetDeviceContext(), textureCreator.get(), noise.get(), utility.get());
+	proceduralTextureHandler->SetupWindtextures(d3D->GetDevice(), d3D->GetDeviceContext(), 0, 0, 1024, 1024, 0.6f);
 
-	proceduralTextureHandler.SetupWindtextures(d3D->GetDevice(), d3D->GetDeviceContext(), 0, 0, 1024, 1024, 0.6f);
+	meshHandler = std::make_shared<MeshHandler>();
 
-	result = dayNightCycle.Initialize(DAY); //86400.0f/6 <-- This is realistic day/night cycle. 86400 seconds in a day.
+	result = meshHandler->Initialize(textureHandler.get(), materialHandler.get());
+	if(!result)
+	{
+		return false;
+	}
+
+	dayNightCycle = std::make_shared<DayNightCycle>();
+	result = dayNightCycle->Initialize(DAY); //86400.0f/6 <-- This is realistic day/night cycle. 86400 seconds in a day.
 	if(!result)
 	{
 		return false;
@@ -364,20 +470,33 @@ bool GameRenderer::InitializeEverythingElse( HWND hwnd )
 
 	for(int i = 0; i < 7; i++)
 	{
-		debugWindows[i].Initialize(d3D->GetDevice(), screenWidth, screenHeight, 200, 200);
+		debugWindows.push_back(std::unique_ptr<DebugWindowClass>(new DebugWindowClass));
+		debugWindows[i]->Initialize(d3D->GetDevice(), screenWidth, screenHeight, 200, 200);
 	}
 
-	fullScreenQuad.Initialize(d3D->GetDevice(), screenWidth, screenHeight, screenWidth, screenHeight);
+	fullScreenQuad = std::unique_ptr<DebugWindowClass>(new DebugWindowClass);
 
-	colorRT.Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
-	normalRT.Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
-	depthRT.Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
-	lightRT.Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
-	shadowRT.Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_FLOAT);
-	R16G16PingPongRT.Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_FLOAT); //Needs to be identical to shadowRT
-	ssaoRT.Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
-	R32PingPongRT.Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
-	ARGB8PingPongRT.Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
+	fullScreenQuad->Initialize(d3D->GetDevice(), screenWidth, screenHeight, screenWidth, screenHeight);
+
+	colorRT = std::unique_ptr<RenderTarget2D>(new RenderTarget2D);
+	normalRT = std::unique_ptr<RenderTarget2D>(new RenderTarget2D);
+	depthRT = std::unique_ptr<RenderTarget2D>(new RenderTarget2D);
+	lightRT = std::unique_ptr<RenderTarget2D>(new RenderTarget2D);
+	shadowRT = std::unique_ptr<RenderTarget2D>(new RenderTarget2D);
+	R16G16PingPongRT = std::unique_ptr<RenderTarget2D>(new RenderTarget2D);
+	ssaoRT = std::unique_ptr<RenderTarget2D>(new RenderTarget2D);
+	R32PingPongRT = std::unique_ptr<RenderTarget2D>(new RenderTarget2D);
+	ARGB8PingPongRT = std::unique_ptr<RenderTarget2D>(new RenderTarget2D);
+
+	colorRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
+	normalRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
+	depthRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
+	lightRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
+	shadowRT->Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_FLOAT);
+	R16G16PingPongRT->Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_FLOAT); //Needs to be identical to shadowRT
+	ssaoRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
+	R32PingPongRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
+	ARGB8PingPongRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
 
 	//TODO:
 	/*
@@ -446,7 +565,7 @@ bool GameRenderer::InitializeEverythingElse( HWND hwnd )
 }
 
 
-bool GameRenderer::Update( HWND hwnd, int fps, int cpuPercentage, float millisecondDeltaTime, float secondDeltaTime, XMFLOAT3* windDirection )
+bool GameRenderer::Update( HWND hwnd, int fps, int cpuPercentage, float millisecondDeltaTime, float secondDeltaTime, XMFLOAT3* windDirection, std::shared_ptr<CameraClass> camera)
 {
 	//Speed up the change of day
 	if(inputManager->IsKeyPressed(DIK_1))
@@ -484,26 +603,26 @@ bool GameRenderer::Update( HWND hwnd, int fps, int cpuPercentage, float millisec
 	//Move all point lights upward
 	if(inputManager->IsKeyPressed(DIK_R))
 	{
-		XMMATRIX tempScale = XMMatrixScaling(pointLights[0].Radius, pointLights[0].Radius, pointLights[0].Radius);
+		XMMATRIX tempScale = XMMatrixScaling(pointLights[0]->Radius, pointLights[0]->Radius, pointLights[0]->Radius);
 
 		for(int i = 0; i < (int)(pointLights.size()); i++)
 		{
-			pointLights[i].Position.y += millisecondDeltaTime*0.01f;
+			pointLights[i]->Position.y += millisecondDeltaTime*0.01f;
 
-			XMStoreFloat4x4(&pointLights[i].World, (tempScale*XMMatrixTranslation(pointLights[i].Position.x, pointLights[i].Position.y, pointLights[i].Position.z)));
+			XMStoreFloat4x4(&pointLights[i]->World, (tempScale*XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z)));
 		}
 	}
 
 	//Move all point lights downward
 	if(inputManager->IsKeyPressed(DIK_F))
 	{
-		XMMATRIX tempScale = XMMatrixScaling(pointLights[0].Radius, pointLights[0].Radius, pointLights[0].Radius);
+		XMMATRIX tempScale = XMMatrixScaling(pointLights[0]->Radius, pointLights[0]->Radius, pointLights[0]->Radius);
 
 		for(int i = 0; i < (int)(pointLights.size()); i++)
 		{
-			pointLights[i].Position.y -= millisecondDeltaTime*0.01f;
+			pointLights[i]->Position.y -= millisecondDeltaTime*0.01f;
 
-			XMStoreFloat4x4(&pointLights[i].World, (tempScale*XMMatrixTranslation(pointLights[i].Position.x, pointLights[i].Position.y, pointLights[i].Position.z)));
+			XMStoreFloat4x4(&pointLights[i]->World, (tempScale*XMMatrixTranslation(pointLights[i]->Position.x, pointLights[i]->Position.y, pointLights[i]->Position.z)));
 		}
 	}
 
@@ -562,14 +681,14 @@ bool GameRenderer::Update( HWND hwnd, int fps, int cpuPercentage, float millisec
 		}
 	}
 
-	timeOfDay = dayNightCycle.Update(secondDeltaTime, &dirLight, &skySphere, &camera->GetPosition());
+	timeOfDay = dayNightCycle->Update(secondDeltaTime, dirLight.get(), skySphere.get(), &camera->GetPosition());
 
 	XMVECTOR lookAt = XMLoadFloat3(&camera->GetPosition());//XMVectorSet(30.0f, 20.0f, 30.0f, 1.0f);//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition());//XMLoadFloat3(&camera->GetPosition())+(camera->ForwardVector()*30.0f);//XMLoadFloat3(&camera->GetPosition());//
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
-	XMVECTOR currentLightPos = XMLoadFloat3(&dirLight.Position);//XMLoadFloat3(&camera->GetPosition())-(camera->ForwardVector()*30.0f);
+	XMVECTOR currentLightPos = XMLoadFloat3(&dirLight->Position);//XMLoadFloat3(&camera->GetPosition())-(camera->ForwardVector()*30.0f);
 
-	XMStoreFloat3(&dirLight.Direction, XMVector3Normalize(XMVectorSubtract(lookAt, currentLightPos)));//XMLoadFloat3(&dirLight.Position)
-	XMStoreFloat4x4(&dirLight.View, XMMatrixLookAtLH(currentLightPos, lookAt, up)); //Generate light view matrix
+	XMStoreFloat3(&dirLight->Direction, XMVector3Normalize(XMVectorSubtract(lookAt, currentLightPos)));//XMLoadFloat3(&dirLight.Position)
+	XMStoreFloat4x4(&dirLight->View, XMMatrixLookAtLH(currentLightPos, lookAt, up)); //Generate light view matrix
 
 	// Generate the view matrix based on the camera's position.
 	camPos = camera->GetPosition();
@@ -590,54 +709,63 @@ void GameRenderer::InitializeRenderingSpecifics()
 	depthStencil = d3D->GetDepthStencilManager()->GetDepthStencilView();
 
 	//For shadow pre-gbuffer pass
-	shadowTarget[0] = shadowRT.RTView;
+	shadowTarget[0] = shadowRT->RTView;
 
 	//Name should be pretty self-explanatory
-	gaussianBlurTarget[0] = R16G16PingPongRT.RTView;
+	gaussianBlurTarget[0] = R16G16PingPongRT->RTView;
 
-	waterTarget[0] = ARGB8PingPongRT.RTView;
+	//For underwater filter pass
+	waterTarget[0] = ARGB8PingPongRT->RTView;
 
 	//For gbuffer pass
-	gbufferRenderTargets[0] = colorRT.RTView;
-	gbufferRenderTargets[1] = normalRT.RTView;
-	gbufferRenderTargets[2] = depthRT.RTView;
+	gbufferRenderTargets[0] = colorRT->RTView;
+	gbufferRenderTargets[1] = normalRT->RTView;
+	gbufferRenderTargets[2] = depthRT->RTView;
 
 	//For lighting pass
-	lightTarget[0] = lightRT.RTView; 
+	lightTarget[0] = lightRT->RTView; 
 
-	ssaoTarget[0] = ssaoRT.RTView;
+	//For SSAO pass
+	ssaoTarget[0] = R32PingPongRT->RTView;
+	ssaoTarget[1] = ssaoRT->RTView;
 
 	//For GBuffer pass
-	gbufferTextures[0] = colorRT.SRView; 
-	gbufferTextures[1] = normalRT.SRView;
-	gbufferTextures[2] = depthRT.SRView;
+	gbufferTextures[0] = colorRT->SRView; 
+	gbufferTextures[1] = normalRT->SRView;
+	gbufferTextures[2] = depthRT->SRView;
 
 	//For directional light pass
-	dirLightTextures[0] = normalRT.SRView;
-	dirLightTextures[1] = depthRT.SRView;
-	dirLightTextures[2] = shadowRT.SRView;
-	dirLightTextures[3] = colorRT.SRView;
+	dirLightTextures[0] = normalRT->SRView;
+	dirLightTextures[1] = depthRT->SRView;
+	dirLightTextures[2] = shadowRT->SRView;
+	dirLightTextures[3] = colorRT->SRView;
 
 	//For the the final composition pass
-	finalTextures[0] = ARGB8PingPongRT.SRView;
-	finalTextures[1] = lightRT.SRView;
-	finalTextures[2] = depthRT.SRView;
-	finalTextures[3] = ssaoRT.SRView;
+	finalTextures[0] = ARGB8PingPongRT->SRView;
+	finalTextures[1] = lightRT->SRView;
+	finalTextures[2] = depthRT->SRView;
+	finalTextures[3] = ssaoRT->SRView;
+	finalTextures[4] = normalRT->SRView;
 
-	gaussianBlurTexture[0] = R16G16PingPongRT.SRView;
+	gaussianBlurTexture[0] = R16G16PingPongRT->SRView;
 
-	ssaoView = ssaoRT.SRView;
+	ssaoView = ssaoRT->SRView;
 
-	ssaoTextures[0] = depthRT.SRView;
-	ssaoTextures[1] = normalRT.SRView;
-	ssaoTextures[2] = *proceduralTextureHandler.GetSSAORandomTexture();
+	ssaoTextures[0] = depthRT->SRView;
+	ssaoTextures[1] = normalRT->SRView;
+	ssaoTextures[2] = *proceduralTextureHandler->GetSSAORandomTexture();
 
-	waterInputTextures[0] = colorRT.SRView;
-	waterInputTextures[1] = depthRT.SRView;
+	ssaoBlurTextures[0] = ssaoRT->SRView;
+	ssaoBlurTextures[1] = depthRT->SRView;
+	ssaoBlurTextures[2] = normalRT->SRView;
+
+
+	waterInputTextures[0] = colorRT->SRView;
+	waterInputTextures[1] = depthRT->SRView;
 }
 
 
-bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
+bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle, std::shared_ptr<CameraClass> camera)
 {
 	// Clear the scene.
 	d3D->BeginScene(0.1f, 0.1f, 0.45f, 0.0f);
@@ -659,9 +787,9 @@ bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 	camera->GetOrthographicProjection(orthoMatrix);
 	camera->GetViewMatrix(viewMatrix);
 	camera->GetProjectionMatrix(projectionMatrix);
-	baseView = XMLoadFloat4x4(&baseViewMatrix);
-	lightView = XMLoadFloat4x4(&dirLight.View);
-	lightProj = XMLoadFloat4x4(&dirLight.Projection);
+	baseView = XMLoadFloat4x4(camera->GetBaseViewMatrix());
+	lightView = XMLoadFloat4x4(&dirLight->View);
+	lightProj = XMLoadFloat4x4(&dirLight->Projection);
 
 	lightViewProj = lightView * lightProj;
 
@@ -708,50 +836,49 @@ bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 
 #pragma region Prepare input structs...
 	//Directional light
-	dirLightInput.worldViewProjection = &worldBaseViewOrthoProj;
-	dirLightInput.worldView = &worldBaseView;
-	dirLightInput.world = &XMMatrixTranspose(XMMatrixIdentity());
-	dirLightInput.view = &XMMatrixTranspose(viewMatrix);
-	dirLightInput.invertedView = &invertedView;
-	dirLightInput.invertedProjection = &invertedProjection;
-	dirLightInput.lightViewAndInvertedCameraView = &lightViewAndInvertedCameraView;
-	dirLightInput.lightView = &lightView;
-	dirLightInput.lightProj = &lightProj;
-	dirLightInput.lightViewProj = &lightViewProj;
-	dirLightInput.dirLight = &dirLight;
-	dirLightInput.textureArray = &dirLightTextures[0].p;
-	dirLightInput.materialTextureArray = materialHandler.GetMaterialTextureArray();
-	dirLightInput.ambienceColor = dayNightCycle.GetAmbientLightColor();
-	dirLightInput.cameraPosition = camPos;
+	dirLightInput->worldViewProjection = &worldBaseViewOrthoProj;
+	dirLightInput->worldView = &worldBaseView;
+	dirLightInput->world = &XMMatrixTranspose(XMMatrixIdentity());
+	dirLightInput->view = &XMMatrixTranspose(viewMatrix);
+	dirLightInput->invertedView = &invertedView;
+	dirLightInput->invertedProjection = &invertedProjection;
+	dirLightInput->lightViewAndInvertedCameraView = &lightViewAndInvertedCameraView;
+	dirLightInput->lightView = &lightView;
+	dirLightInput->lightProj = &lightProj;
+	dirLightInput->lightViewProj = &lightViewProj;
+	dirLightInput->dirLight = dirLight.get();
+	dirLightInput->textureArray = &dirLightTextures[0].p;
+	dirLightInput->materialTextureArray = materialHandler->GetMaterialTextureArray();
+	dirLightInput->ambienceColor = dayNightCycle->GetAmbientLightColor();
+	dirLightInput->cameraPosition = camPos;
 
 	//Underwater shader
-	waterfilterInput.cameraHeight = camPos.y;
-	waterfilterInput.fogColor = &dayNightCycle.GetAmbientLightColor();
-	waterfilterInput.textureArray = &waterInputTextures[0].p;
-	waterfilterInput.WorldViewProjection = &worldBaseViewOrthoProj;
+	waterfilterInput->cameraHeight = camPos.y;
+	waterfilterInput->fogColor = &dayNightCycle->GetAmbientLightColor();
+	waterfilterInput->textureArray = &waterInputTextures[0].p;
+	waterfilterInput->WorldViewProjection = &worldBaseViewOrthoProj;
 
 	//Compose shader
-	composeInput.worldViewProjection = &worldBaseViewOrthoProj;
-	composeInput.worldView = &worldBaseView;
-	composeInput.view = &baseView; 
-	composeInput.invertedProjection = &invertedProjection;
-	composeInput.invViewProjection = &invertedViewProjection;
-	composeInput.fogColor = &dayNightCycle.GetAmbientLightColor();
-	composeInput.fogMinimum = fogMinimum;
-	composeInput.textureArray = &finalTextures[0].p;
-	composeInput.randomTexture = *proceduralTextureHandler.GetSSAORandomTexture();
-	composeInput.toggle = toggleSSAO;
-	composeInput.lightIntensity = dirLight.Intensity;
-	composeInput.cameraHeight = camPos.y;
+	composeInput->worldViewProjection = &worldBaseViewOrthoProj;
+	composeInput->worldView = &worldBaseView;
+	composeInput->view = &baseView; 
+	composeInput->invertedProjection = &invertedProjection;
+	composeInput->invViewProjection = &invertedViewProjection;
+	composeInput->fogColor = &dayNightCycle->GetAmbientLightColor();
+	composeInput->fogMinimum = fogMinimum;
+	composeInput->textureArray = &finalTextures[0].p;
+	composeInput->toggle = toggleSSAO;
+	composeInput->lightIntensity = dirLight->Intensity;
+	composeInput->cameraHeight = camPos.y;
 
-	ssaoInput.rtTextureArray = &ssaoTextures[0].p;
-	ssaoInput.worldViewProjection = &worldBaseViewOrthoProj;
-	ssaoInput.projection = &XMMatrixTranspose(projectionMatrix); //&orthoMatrix; //
-	ssaoInput.view = &XMMatrixTranspose(baseView); //&XMMatrixTranspose(viewMatrix);//&baseView;
+	ssaoInput->rtTextureArray = &ssaoTextures[0].p;
+	ssaoInput->worldViewProjection = &worldBaseViewOrthoProj;
+	ssaoInput->projection = &XMMatrixTranspose(projectionMatrix); //&orthoMatrix; //
+	ssaoInput->view = &XMMatrixTranspose(baseView); //&XMMatrixTranspose(viewMatrix);//&baseView;
 #pragma endregion
 
 	//Send untransposed lightView/lightProj here
-	if(!RenderShadowmap(&lightWorldViewProj, &lightWorldView, &XMLoadFloat4x4(&dirLight.View), &XMLoadFloat4x4(&dirLight.Projection), renderableBundle))
+	if(!RenderShadowmap(&lightWorldViewProj, &lightWorldView, &XMLoadFloat4x4(&dirLight->View), &XMLoadFloat4x4(&dirLight->Projection), renderableBundle))
 	{
 		return false;
 	}
@@ -771,7 +898,7 @@ bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 		return false;
 	}
 
-	if(!RenderDirectionalLight(dirLightInput)) 
+	if(!RenderDirectionalLight(dirLightInput.get())) 
 	{
 		return false;
 	}
@@ -781,24 +908,24 @@ bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 
 	if(cameraIsUnderwater)
 	{
-		finalTextures[0] = ARGB8PingPongRT.SRView;
+		finalTextures[0] = ARGB8PingPongRT->SRView;
 
-		if(!RenderUnderwaterFilter(waterfilterInput))
+		if(!RenderUnderwaterFilter(waterfilterInput.get()))
 		{
 			return false;
 		}
 	}
 	else
 	{
-		finalTextures[0] = colorRT.SRView;
+		finalTextures[0] = colorRT->SRView;
 	}
 
-	if(!RenderSSAO(ssaoInput))
+	if(!RenderSSAO(ssaoInput.get()))
 	{	
 		return false;
 	}
 
-	if(!RenderComposedScene(composeInput))
+	if(!RenderComposedScene(composeInput.get()))
 	{
 		return false;
 	}
@@ -812,7 +939,7 @@ bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle)
 }
 
 
-bool GameRenderer::RenderShadowmap( XMMATRIX* lightWorldViewProj, XMMATRIX* lightWorldView, XMMATRIX* lightView, XMMATRIX* lightProj, RenderableBundle* renderableBundle )
+bool GameRenderer::RenderShadowmap(XMMATRIX* lightWorldViewProj, XMMATRIX* lightWorldView, XMMATRIX* lightView, XMMATRIX* lightProj, RenderableBundle* renderableBundle )
 {
 	XMMATRIX world, WVP, WV;
 
@@ -835,7 +962,7 @@ bool GameRenderer::RenderShadowmap( XMMATRIX* lightWorldViewProj, XMMATRIX* ligh
 	{	
 		renderableBundle->terrainChunks[i]->GetTerrainMesh()->Render(deviceContext);
 
-		if(!depthOnlyShader.Render(deviceContext, renderableBundle->terrainChunks[i]->GetTerrainMesh()->GetIndexCount(), 0, lightWorldViewProj, lightWorldView))
+		if(!depthOnlyShader->Render(deviceContext, renderableBundle->terrainChunks[i]->GetTerrainMesh()->GetIndexCount(), 0, lightWorldViewProj, lightWorldView))
 		{
 			return false;
 		}
@@ -887,12 +1014,12 @@ bool GameRenderer::RenderTwoPassGaussianBlur(XMMATRIX* worldBaseViewOrthoProj )
 	deviceContext->ClearDepthStencilView(shadowDepthStencil.p, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	//Blur shadow map texture horizontally
-	if(!fullScreenQuad.Render(deviceContext, 0, 0))
+	if(!fullScreenQuad->Render(deviceContext, 0, 0))
 	{
 		return false;
 	}
 
-	if(!gaussianBlurShader.RenderBlurX(deviceContext, fullScreenQuad.GetIndexCount(), worldBaseViewOrthoProj, &dirLightTextures[2].p))
+	if(!gaussianBlurShader->RenderBlurX(deviceContext, fullScreenQuad->GetIndexCount(), worldBaseViewOrthoProj, &dirLightTextures[2].p))
 	{
 		return false;
 	}
@@ -902,12 +1029,12 @@ bool GameRenderer::RenderTwoPassGaussianBlur(XMMATRIX* worldBaseViewOrthoProj )
 	deviceContext->ClearDepthStencilView(shadowDepthStencil.p, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	//Blur shadow map texture vertically
-	if(!fullScreenQuad.Render(deviceContext, 0, 0))
+	if(!fullScreenQuad->Render(deviceContext, 0, 0))
 	{
 		return false;
 	}
 
-	if(!gaussianBlurShader.RenderBlurY(deviceContext, fullScreenQuad.GetIndexCount(), worldBaseViewOrthoProj, &gaussianBlurTexture[0].p))
+	if(!gaussianBlurShader->RenderBlurY(deviceContext, fullScreenQuad->GetIndexCount(), worldBaseViewOrthoProj, &gaussianBlurTexture[0].p))
 	{
 		return false;
 	}
@@ -925,11 +1052,11 @@ bool GameRenderer::RenderGBuffer( XMMATRIX* viewMatrix, XMMATRIX* baseView, XMMA
 
 	//depthStencil.p = d3D->GetDepthStencilManager()->GetDepthStencilView();
 	deviceContext->OMSetRenderTargets(3, &gbufferRenderTargets[0].p, depthStencil);
-	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.0f, 0);
 
 	deviceContext->ClearRenderTargetView(gbufferRenderTargets[0], D3DXVECTOR4(0.0f, 0.125f, 0.3f, 1.0f));
 	deviceContext->ClearRenderTargetView(gbufferRenderTargets[1], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
-	deviceContext->ClearRenderTargetView(gbufferRenderTargets[2], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 1.0f));
+	deviceContext->ClearRenderTargetView(gbufferRenderTargets[2], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 
 	d3D->GetRasterizerStateManager()->SetNoCullRasterizer();
 	d3D->GetDepthStencilManager()->SetDepthDisabledStencilState();
@@ -940,7 +1067,7 @@ bool GameRenderer::RenderGBuffer( XMMATRIX* viewMatrix, XMMATRIX* baseView, XMMA
 	worldViewProjMatrix = (XMMatrixScaling(5.0f, 5.0f, 5.0f) * worldMatrix) * ((*viewMatrix) * (*projectionMatrix));
 	worldViewProjMatrix = XMMatrixTranspose(worldViewProjMatrix);
 
-	skySphere.Render(deviceContext, &worldMatrix, &worldViewProjMatrix, camPos.y, &dayNightCycle.GetAmbientLightColor(), timeOfDay, dayNightCycle.GetCurrentStageOfDay(), dirLight.Intensity);
+	skySphere->Render(deviceContext, &worldMatrix, &worldViewProjMatrix, camPos.y, &dayNightCycle->GetAmbientLightColor(), timeOfDay, dayNightCycle->GetCurrentStageOfDay(), dirLight->Intensity);
 
 	d3D->GetDepthStencilManager()->SetDefaultDepthStencilView();
 	d3D->GetRasterizerStateManager()->SetBackFaceCullingRasterizer();
@@ -974,8 +1101,8 @@ bool GameRenderer::RenderGBuffer( XMMATRIX* viewMatrix, XMMATRIX* baseView, XMMA
 	{	
 		chunks[i]->GetTerrainMesh()->Render(deviceContext);
 
-		if(!mcubeShader.Render(d3D->GetDeviceContext(),  chunks[i]->GetTerrainMesh()->GetIndexCount(), &worldMatrix, &worldView, 
-			identityWorldViewProj, textureHandler.GetTerrainTextureArray(), materialHandler.GetMaterialLookupTexture(), toggleColorMode))
+		if(!mcubeShader->Render(d3D->GetDeviceContext(),  chunks[i]->GetTerrainMesh()->GetIndexCount(), &worldMatrix, &worldView, 
+			identityWorldViewProj, textureHandler->GetTerrainTextureArray(), materialHandler->GetMaterialLookupTexture(), toggleColorMode))
 		{
 			return false;
 		}
@@ -989,8 +1116,8 @@ bool GameRenderer::RenderGBuffer( XMMATRIX* viewMatrix, XMMATRIX* baseView, XMMA
 	{	
 		chunks[i]->GetWaterMesh()->Render(deviceContext);
 
-		if(!waterShader.Render(d3D->GetDeviceContext(),  chunks[i]->GetWaterMesh()->GetIndexCount(), &worldMatrix, &worldView, identityWorldViewProj, 
-			textureHandler.GetVegetationTextureArray(), proceduralTextureHandler.GetWindTexture(), proceduralTextureHandler.GetWindNormalMap(), 
+		if(!waterShader->Render(d3D->GetDeviceContext(),  chunks[i]->GetWaterMesh()->GetIndexCount(), &worldMatrix, &worldView, identityWorldViewProj, 
+			textureHandler->GetVegetationTextureArray(), proceduralTextureHandler->GetWindTexture(), proceduralTextureHandler->GetWindNormalMap(), 
 			textureOffsetDeltaTime, &windDir))
 		{
 			return false;
@@ -1004,9 +1131,9 @@ bool GameRenderer::RenderGBuffer( XMMATRIX* viewMatrix, XMMATRIX* baseView, XMMA
 	{	
 		chunks[i]->GetTerrainMesh()->Render(deviceContext);
 
-		if(!geometryShaderGrass.Render(d3D->GetDeviceContext(),  chunks[i]->GetTerrainMesh()->GetIndexCount(), &worldMatrix, &worldView, 
-			identityWorldViewProj, textureHandler.GetVegetationTextureArray(), materialHandler.GetMaterialLookupTexture(), 
-			proceduralTextureHandler.GetWindTexture(), toggleColorMode, textureOffsetDeltaTime, &windDir))
+		if(!geometryShaderGrass->Render(d3D->GetDeviceContext(),  chunks[i]->GetTerrainMesh()->GetIndexCount(), &worldMatrix, &worldView, 
+			identityWorldViewProj, textureHandler->GetVegetationTextureArray(), materialHandler->GetMaterialLookupTexture(), 
+			proceduralTextureHandler->GetWindTexture(), toggleColorMode, textureOffsetDeltaTime, &windDir))
 		{
 			return false;
 		}
@@ -1039,24 +1166,24 @@ bool GameRenderer::RenderGBuffer( XMMATRIX* viewMatrix, XMMATRIX* baseView, XMMA
 			worldView = XMMatrixTranspose(worldView);
 			worldViewProjMatrix = XMMatrixTranspose(worldViewProjMatrix);
 			
-			objModelShader.UpdateMatrixBuffer(deviceContext, &worldMatrix, &worldView, &worldViewProjMatrix);
+			objModelShader->UpdateMatrixBuffer(deviceContext, &worldMatrix, &worldView, &worldViewProjMatrix);
 
 			for(int j = 0; j < model.GetSubsetCount()-1; ++j)
 			{
 				//See if we need to update texture
-				auto tex = textureHandler.GetTexture(model.GetTextureHandles().at(j));
+				auto tex = textureHandler->GetTexture(model.GetTextureHandles().at(j));
 
 				//See if we need to update material
-				auto mat = materialHandler.GetMaterial(model.GetMaterialHandles().at(j));
+				auto mat = materialHandler->GetMaterial(model.GetMaterialHandles().at(j));
 
 				if(textureNeedsUpdate)
 				{
-					objModelShader.SetNewTexture(deviceContext, tex, 1);
+					objModelShader->SetNewTexture(deviceContext, tex, 1);
 				}
 
 				if(materialNeedsUpdate)
 				{
-					objModelShader.SetNewMaterial(deviceContext, mat);
+					objModelShader->SetNewMaterial(deviceContext, mat);
 				}
 
 				tempMesh->Render(deviceContext);
@@ -1064,7 +1191,7 @@ bool GameRenderer::RenderGBuffer( XMMATRIX* viewMatrix, XMMATRIX* baseView, XMMA
 				//This will always work, because when we load in the model we add one last set of index subsets that contains the entire count (the end of the indices, essentially).
 				int indexCount = model.GetSubSetIndices().at(j+1) - model.GetSubSetIndices().at(j);
 
-				objModelShader.RenderShader(deviceContext, indexCount, model.GetSubSetIndices().at(j));
+				objModelShader->RenderShader(deviceContext, indexCount, model.GetSubSetIndices().at(j));
 			}
 		}
 	}
@@ -1091,7 +1218,7 @@ bool GameRenderer::RenderPointLight(XMMATRIX* view, XMMATRIX* invertedView, XMMA
 	{
 		for(unsigned int i = 0; i < pointLights.size(); i++)
 		{	
-			world = XMLoadFloat4x4(&pointLights[i].World);
+			world = XMLoadFloat4x4(&pointLights[i]->World);
 			worldView = world * (*view);
 			worldViewProj =  world * (*viewProjection);
 
@@ -1103,9 +1230,9 @@ bool GameRenderer::RenderPointLight(XMMATRIX* view, XMMATRIX* invertedView, XMMA
 			d3D->GetDepthStencilManager()->SetLightStencilMethod1Phase1();
 			d3D->GetRasterizerStateManager()->SetNoCullRasterizer();
 
-			sphereModel.Render(deviceContext);
+			sphereModel->Render(deviceContext);
 
-			if(!vertexOnlyShader.Render(deviceContext, sphereModel.GetIndexCount(), &worldViewProj))
+			if(!vertexOnlyShader->Render(deviceContext, sphereModel->GetIndexCount(), &worldViewProj))
 			{
 				return false;
 			}
@@ -1114,10 +1241,10 @@ bool GameRenderer::RenderPointLight(XMMATRIX* view, XMMATRIX* invertedView, XMMA
 			d3D->GetDepthStencilManager()->SetLightStencilMethod1Phase2();
 			d3D->GetRasterizerStateManager()->SetFrontFaceCullingRasterizer();
 
-			sphereModel.Render(deviceContext);
+			sphereModel->Render(deviceContext);
 
-			if(!pointLightShader.Render(deviceContext, sphereModel.GetIndexCount(), &worldViewProj, &worldView, &world, invertedView, 
-				invertedProjection, &pointLights[i], &gbufferTextures[0].p, materialHandler.GetMaterialTextureArray(), camPos))
+			if(!pointLightShader->Render(deviceContext, sphereModel->GetIndexCount(), &worldViewProj, &worldView, &world, invertedView, 
+				invertedProjection, pointLights[i].get(), &gbufferTextures[0].p, materialHandler->GetMaterialTextureArray(), camPos))
 			{
 				return false;
 			}
@@ -1135,7 +1262,7 @@ bool GameRenderer::RenderPointLight(XMMATRIX* view, XMMATRIX* invertedView, XMMA
 }
 
 
-bool GameRenderer::RenderDirectionalLight(DRDirLight::DirectionalLightInput& input)
+bool GameRenderer::RenderDirectionalLight(ShaderInputStructs::DirectionalLightInput* input)
 {
 	//Directional light stage
 	/*TODO: Create a directional light stencilstate that does a NOTEQUAL==0 stencil check.*/
@@ -1144,12 +1271,12 @@ bool GameRenderer::RenderDirectionalLight(DRDirLight::DirectionalLightInput& inp
 
 	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	if(!fullScreenQuad.Render(deviceContext, 0, 0))
+	if(!fullScreenQuad->Render(deviceContext, 0, 0))
 	{
 		return false;
 	}
 
-	if(!dirLightShader.Render(deviceContext, fullScreenQuad.GetIndexCount(), input))
+	if(!dirLightShader->Render(deviceContext, fullScreenQuad->GetIndexCount(), input))
 	{
 		return false;
 	}
@@ -1157,20 +1284,18 @@ bool GameRenderer::RenderDirectionalLight(DRDirLight::DirectionalLightInput& inp
 	return true;
 }
 
-bool GameRenderer::RenderUnderwaterFilter(UnderwaterFilterShader::WaterFilterInput& input)
+bool GameRenderer::RenderUnderwaterFilter(ShaderInputStructs::WaterFilterInput* input)
 {
-	//Point light stage
 	deviceContext->OMSetRenderTargets(1, &waterTarget[0].p, depthStencil);
 	deviceContext->ClearRenderTargetView(waterTarget[0].p, D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 	d3D->GetBlendStateManager()->TurnOnDefaultBlendState();
-	deviceContext->ClearDepthStencilView(depthStencil,  D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	if(!fullScreenQuad.Render(deviceContext, 0, 0))
+	if(!fullScreenQuad->Render(deviceContext, 0, 0))
 	{
 		return false;
 	}
 
-	if(!underwaterFilterShader.Render(deviceContext, fullScreenQuad.GetIndexCount(), waterfilterInput))
+	if(!underwaterFilterShader->Render(deviceContext, fullScreenQuad->GetIndexCount(), waterfilterInput.get()))
 	{
 		return false;
 	}
@@ -1179,22 +1304,53 @@ bool GameRenderer::RenderUnderwaterFilter(UnderwaterFilterShader::WaterFilterInp
 	return true;
 }
 
-bool GameRenderer::RenderSSAO( SSAOShader::SSAOShaderInput& input )
+bool GameRenderer::RenderSSAO(ShaderInputStructs::SSAOShaderInput* input )
 {
-	//Point light stage
+	//First, set render target to real target
+	deviceContext->OMSetRenderTargets(1, &ssaoTarget[1].p, depthStencil);
+	deviceContext->ClearRenderTargetView(ssaoTarget[1].p, D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
+
+	if(!fullScreenQuad->Render(deviceContext, 0, 0))
+	{
+		return false;
+	}
+
+	//Write SSAO to real target
+	if(!ssaoShader->Render(deviceContext, fullScreenQuad->GetIndexCount(), input))
+	{
+		return false;
+	}
+
+	//Change target to our bounce target, because we'll be using the other target to read from while blurring
 	deviceContext->OMSetRenderTargets(1, &ssaoTarget[0].p, depthStencil);
 	deviceContext->ClearRenderTargetView(ssaoTarget[0].p, D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
-	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	//d3D->GetDepthStencilManager()->SetDefaultDepthStencilView();
-	//d3D->GetBlendStateManager()->TurnOnDefaultBlendState();
+	//Change what resource to sample from
+	ssaoBlurTextures[0] = ssaoRT->SRView;
 
-	if(!fullScreenQuad.Render(deviceContext, 0, 0))
+	if(!fullScreenQuad->Render(deviceContext, 0, 0))
 	{
 		return false;
 	}
 
-	if(!ssaoShader.Render(deviceContext, fullScreenQuad.GetIndexCount(), input))
+	if(!ssaoBlurShader->RenderBlurX(deviceContext, fullScreenQuad->GetIndexCount(), input->worldViewProjection, &ssaoBlurTextures[0].p))
+	{
+		return false;
+	}
+
+	//Aaaand... Set RT back to real target again to render out final result
+	deviceContext->OMSetRenderTargets(1, &ssaoTarget[1].p, depthStencil);
+	deviceContext->ClearRenderTargetView(ssaoTarget[1].p, D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
+
+	//Change what resource to sample from
+	ssaoBlurTextures[0] = R32PingPongRT->SRView;
+
+	if(!fullScreenQuad->Render(deviceContext, 0, 0))
+	{
+		return false;
+	}
+
+	if(!ssaoBlurShader->RenderBlurY(deviceContext, fullScreenQuad->GetIndexCount(), input->worldViewProjection, &ssaoBlurTextures[0].p))
 	{
 		return false;
 	}
@@ -1203,7 +1359,7 @@ bool GameRenderer::RenderSSAO( SSAOShader::SSAOShaderInput& input )
 	return true;
 }
 
-bool GameRenderer::RenderComposedScene(DRCompose::ComposeShaderInput& input)
+bool GameRenderer::RenderComposedScene(ShaderInputStructs::ComposeShaderInput* input)
 {
 	//Render final composed scene that is the sum of all the previous scene
 	d3D->ResetBackBufferRenderTarget();
@@ -1212,12 +1368,12 @@ bool GameRenderer::RenderComposedScene(DRCompose::ComposeShaderInput& input)
 	d3D->GetBlendStateManager()->TurnOnDefaultBlendState();
 	deviceContext->ClearDepthStencilView(depthStencil,  D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	if(!fullScreenQuad.Render(deviceContext, 0, 0))
+	if(!fullScreenQuad->Render(deviceContext, 0, 0))
 	{
 		return false;
 	}
 
-	if(!composeShader.Render(deviceContext, fullScreenQuad.GetIndexCount(), input))
+	if(!composeShader->Render(deviceContext, fullScreenQuad->GetIndexCount(), input))
 	{
 		return false;
 	}
@@ -1244,46 +1400,46 @@ bool GameRenderer::RenderGUI(XMMATRIX* worldBaseViewOrthoProj )
 
 		for(int i = 0; i < 3; i++)
 		{
-			if(!debugWindows[i].Render(deviceContext, 200+200*i, 0))
+			if(!debugWindows[i]->Render(deviceContext, 200+200*i, 0))
 			{
 				return false;
 			}
 
-			if(!textureShader.Render(deviceContext, debugWindows[i].GetIndexCount(), 
+			if(!textureShader->Render(deviceContext, debugWindows[i]->GetIndexCount(), 
 				worldBaseViewOrthoProj, gbufferTextures[i]))
 			{
 				return false;
 			}
 		}
 
-		if(!debugWindows[4].Render(deviceContext, 800, 0))
+		if(!debugWindows[4]->Render(deviceContext, 800, 0))
 		{
 			return false;
 		}
 
-		if(!textureShader.Render(deviceContext, debugWindows[4].GetIndexCount(), 
-			worldBaseViewOrthoProj, shadowRT.SRView))
+		if(!textureShader->Render(deviceContext, debugWindows[4]->GetIndexCount(), 
+			worldBaseViewOrthoProj, shadowRT->SRView))
 		{
 			return false;
 		}
 
-		if(!debugWindows[3].Render(deviceContext, 200, 200))
+		if(!debugWindows[3]->Render(deviceContext, 200, 200))
 		{
 			return false;
 		}
 
-		if(!textureShader.Render(deviceContext, debugWindows[3].GetIndexCount(), 
-			worldBaseViewOrthoProj, lightRT.SRView))
+		if(!textureShader->Render(deviceContext, debugWindows[3]->GetIndexCount(), 
+			worldBaseViewOrthoProj, lightRT->SRView))
 		{
 			return false;
 		}
 
-		if(!debugWindows[6].Render(deviceContext, 400, 200))
+		if(!debugWindows[6]->Render(deviceContext, 400, 200))
 		{
 			return false;
 		}
 
-		if(!textureShader.Render(deviceContext, debugWindows[6].GetIndexCount(), 
+		if(!textureShader->Render(deviceContext, debugWindows[6]->GetIndexCount(), 
 			worldBaseViewOrthoProj, ssaoView.p))
 		{
 			return false;

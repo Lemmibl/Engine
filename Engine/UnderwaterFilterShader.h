@@ -9,19 +9,10 @@
 #include <stdio.h>
 #include <d3dcompiler.h>
 
+#include "ShaderInputStructs.h"
+
 class UnderwaterFilterShader : public SettingsDependent
 {
-public:
-	//TODO: Input struct
-	struct WaterFilterInput
-	{
-		ID3D11ShaderResourceView** textureArray;
-		XMMATRIX* WorldViewProjection;
-		XMFLOAT4* fogColor;
-		float cameraHeight;
-	};
-
-
 private:
 	struct VertexMatrixBuffer
 	{
@@ -63,14 +54,14 @@ public:
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
 	void OnSettingsReload(Config* cfg);
-	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, WaterFilterInput& input);
+	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, ShaderInputStructs::WaterFilterInput* input);
 
 private:
 	bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
 	void ShutdownShader();
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
 
-	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, WaterFilterInput& input);
+	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, ShaderInputStructs::WaterFilterInput* input);
 
 	void RenderShader(ID3D11DeviceContext*, int);
 

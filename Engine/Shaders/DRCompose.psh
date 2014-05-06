@@ -8,8 +8,7 @@ struct VertexShaderOutput
 };
 
 SamplerState linearSampler;
-Texture2D randomTexture : register(ps_5_0, t0);
-Texture2D shaderTextures[4] : register(ps_5_0, t1); // 0 = color, 1 = light, 2 = depth, 3 = SSAO
+Texture2D shaderTextures[5]; // 0 = color, 1 = light, 2 = depth, 3 = SSAO, 4 == normal
 
 cbuffer PixelMatrixBufferType
 {
@@ -32,7 +31,9 @@ cbuffer VariableBuffer
 	float cameraHeight	: packoffset(c1.y);
 	float2 randomSize	: packoffset(c1.z);
 	float2 screenSize	: packoffset(c2.x);
-	float2 PADDING		: packoffset(c2.z);
+	float thFOV		: packoffset(c2.z);
+	float aspectRatio : packoffset(c2.w);
+	float4 PADDING : packoffset(c3.x);
 };
 
 //Decoding of GBuffer Normals
@@ -44,42 +45,23 @@ half3 DecodeNormal(half2 enc)
 	return half3(fenc*g, 1-f/2);
 }
 
+float3 GetViewPosFromUV(float2 uv)
+{
+	float3 viewRay = float3((2.0f * uv.x - 1.0f) * thFOV * aspectRatio, ((2.0f * uv.y - 1.0f) * thFOV), 1.0);
+	float depth = shaderTextures[2].Sample(linearSampler, uv);
+	return viewRay * depth;
+}
+
 float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 {
-		
 		float depth = shaderTextures[2].Sample(linearSampler, input.TexCoord);
 		float fogFactor = saturate(((depth*farClip) - fogStart) / (fogEnd - fogStart));
 
 		//These are all variables that need to be predeclared because they might be relevant in case we become underwater
 		float3 baseColor = shaderTextures[0].Sample(linearSampler, input.TexCoord).rgb;
-		float4 fogColor = FogColor;
-		float lightIntensity = 1.0f;
-
-		if((cameraHeight-1) <= waterLevel)
-		{
-			//Scaling factor based on how far down into the water we are
-			float waterDepth = clamp(1.0f - (0.04f * abs(waterLevel - cameraHeight)), 0.2f, 1.0f);
-
-			//Light intensity diminishes the further down we go
-			lightIntensity *= waterDepth;
-			
-			//Our vision range is shorter because underwater. abs because if we go down far enough it'll just flip around and go negative, and in that case we just want the fog to cover everything.. so...
-			fogFactor = abs(1.0f - (waterDepth*0.3f));
-
-			//Everything is darker because we're below the water
-			baseColor.xyz -= (lightIntensity * float3(0.15f, 0.1f, 0.0f));
-
-			//Make the fog a little darker too.
-			fogColor.xyz -= (fogFactor * float3(0.3f, 0.3f, 0.0f));
-		}
-		else if(depth == 0.0f) 
-		{	//Skip as early as possible if this pixel isn't supposed to be lit or affected by anything. (Skysphere for example.) 
-			//Exception being if we're underwater, then don't treat skysphere specially, because we're viewing everything through water.
-			return float4(baseColor, 1.0f);
-		}
 
 		//specular intensity is stored in the color map's alpha channel.
-		float4 light = shaderTextures[1].Sample(linearSampler, input.TexCoord) * lightIntensity;
+		float4 light = shaderTextures[1].Sample(linearSampler, input.TexCoord);
 		float3 diffuseLight = light.rgb;
 		float specularLight = light.a;
 		float ao = shaderTextures[3].Sample(linearSampler, input.TexCoord);
@@ -87,16 +69,16 @@ float4 ComposePixelShader(VertexShaderOutput input) : SV_Target0
 		if(toggleSSAO == 0)
 		{
 			//Default case with normal light, affected by ambient occlusion
-			return lerp((float4((baseColor.xyz) * (ao * (diffuseLight + specularLight)), 1.0f)),  fogColor, fogFactor);
+			return saturate(lerp((float4((baseColor.xyz) * (ao * (diffuseLight + specularLight)), 1.0f)),  FogColor, fogFactor));
 		}
 		else if(toggleSSAO == 1)
 		{
 			//Only AO. For debugging purposes.
-			return float4(ao, ao, ao, 1.0f);
+			return saturate(float4(ao, ao, ao, 1.0f));
 		}
 		else
 		{
 			//Scene without any ambient occlusion.
-			return lerp(float4((baseColor.xyz) * (diffuseLight + specularLight), 1.0f),  fogColor, fogFactor);
+			return saturate(lerp(float4((baseColor.xyz) * (diffuseLight + specularLight), 1.0f),  FogColor, fogFactor));
 		}
 }

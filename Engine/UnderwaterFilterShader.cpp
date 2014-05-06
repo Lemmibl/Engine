@@ -39,7 +39,7 @@ void UnderwaterFilterShader::Shutdown()
 	return;
 }
 
-bool UnderwaterFilterShader::Render( ID3D11DeviceContext* deviceContext, int indexCount, WaterFilterInput& input)
+bool UnderwaterFilterShader::Render( ID3D11DeviceContext* deviceContext, int indexCount, ShaderInputStructs::WaterFilterInput* input)
 {
 	bool result;
 
@@ -300,7 +300,7 @@ void UnderwaterFilterShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, 
 	return;
 }
 
-bool UnderwaterFilterShader::SetShaderParameters( ID3D11DeviceContext* deviceContext, WaterFilterInput& input)
+bool UnderwaterFilterShader::SetShaderParameters( ID3D11DeviceContext* deviceContext, ShaderInputStructs::WaterFilterInput* input)
 {		
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -321,7 +321,7 @@ bool UnderwaterFilterShader::SetShaderParameters( ID3D11DeviceContext* deviceCon
 	// Get a pointer to the data in the constant buffer.
 	dataPtr1 = (VertexMatrixBuffer*)mappedResource.pData;
 
-	dataPtr1->WorldViewProjection = *input.WorldViewProjection;
+	dataPtr1->WorldViewProjection = *input->WorldViewProjection;
 	deviceContext->Unmap(vertexMatrixBuffer, 0);
 
 	// Set the position of the constant buffer in the vertex shader.
@@ -342,8 +342,8 @@ bool UnderwaterFilterShader::SetShaderParameters( ID3D11DeviceContext* deviceCon
 	// Get a pointer to the data in the constant buffer.
 	dataPtr2 = (PixelBuffer*)mappedResource.pData;
 
-	dataPtr2->FogColor = XMFLOAT4(input.fogColor->x, input.fogColor->y, input.fogColor->z, 1.0f);
-	dataPtr2->cameraHeight = input.cameraHeight;
+	dataPtr2->FogColor = XMFLOAT4(input->fogColor->x, input->fogColor->y, input->fogColor->z, 1.0f);
+	dataPtr2->cameraHeight = input->cameraHeight;
 	dataPtr2->ColorMapDampeningScale = ColorMapDampeningScale;
 	dataPtr2->FogColorDampeningScale = FogColorDampeningScale;
 	dataPtr2->farClip = farClip;
@@ -365,7 +365,7 @@ bool UnderwaterFilterShader::SetShaderParameters( ID3D11DeviceContext* deviceCon
 	// Assorted shit
 
 	// Set shader texture resource in the pixel shader.
-	deviceContext->PSSetShaderResources(0, 2, input.textureArray);
+	deviceContext->PSSetShaderResources(0, 2, input->textureArray);
 
 	return true;
 }

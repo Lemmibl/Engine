@@ -1,15 +1,20 @@
 #pragma once
 #include <functional>
-#include "MainMenuScreen.h"
-#include "GameplayScreen.h"
 #include "SettingsDependent.h"
-#include "inputclass.h"
+
 #include "timerclass.h"
+#include "GameStates.h"
 #include <map>
+
 #include "CEGUI/CEGUI.h"
 #include "CEGUI/RendererModules/Direct3D11/Renderer.h"
-#include "GameStates.h"
-#include "TextOverlayScreen.h"
+
+class InputClass;
+class D3DManager;
+class MainMenuScreen;
+class GameplayScreen;
+class TextOverlayScreen;
+class GenericScreen;
 
 class ScreenManager : public SettingsDependent
 {
@@ -18,7 +23,8 @@ public:
 	~ScreenManager();
 
 	bool Initialize(HWND extHwnd, HINSTANCE hInst, int screenWidth, int screenHeight, int centerPosX, int centerPosY, bool vsyncEnabled, bool fullScreen);
-	void InitializeCEGUI();
+	void InitializeGUI();
+
 	void AddNewScreen(std::shared_ptr<GenericScreen> screen, GameStates::Type gameState, std::wstring name);
 
 	//Provides smooth transition out of current state and into new state
@@ -53,7 +59,7 @@ private:
 
 	std::map<GameStates::Type, std::wstring> stateNames;
 	std::map<GameStates::Type, std::shared_ptr<GenericScreen>> stateToScreenMap;
-	TextOverlayScreen overlayTextScreen;
+	std::shared_ptr<TextOverlayScreen> textOverlayScreen;
 
 	bool isQuitting, showCursor, paused;
 };

@@ -6,43 +6,53 @@
         <Property name="MaxSize" value="{{1.2,0},{1.2,0}}" />
         <Property name="VerticalAlignment" value="Centre" />
         <Property name="HorizontalAlignment" value="Centre" />
-        <Window type="TaharezLook/Button" name="Exit Game" >
+        <Window type="AlfiskoSkin/WhiteButton" name="Exit Game" >
             <Property name="Area" value="{{0,0},{0,75},{0,150},{0,125}}" />
             <Property name="Font" value="DejaVuSans-12" />
             <Property name="Text" value="Exit Game" />
             <Property name="AlwaysOnTop" value="True" />
             <Property name="ClippedByParent" value="False" />
-            <Property name="HoverTextColour" value="tl:FFFFFF00 tr:FFFFFFFF bl:FFFFFFFF br:FFFFFFFF" />
             <Property name="VerticalAlignment" value="Centre" />
             <Property name="HorizontalAlignment" value="Centre" />
             <Property name="AutoRenderingSurface" value="True" />
+            <Property name="WantsMultiClickEvents" value="False" />
         </Window>
-        <Window type="TaharezLook/Button" name="Start Game" >
+        <Window type="AlfiskoSkin/WhiteButton" name="Start Game" >
             <Property name="Area" value="{{0,0},{0,-75},{0,150},{0,-25}}" />
             <Property name="Font" value="DejaVuSans-12" />
             <Property name="Text" value="Start Game" />
             <Property name="AlwaysOnTop" value="True" />
-            <Property name="DisabledImage" value="TaharezLook/ButtonHoverFill2" />
             <Property name="ClippedByParent" value="False" />
-            <Property name="HoverTextColour" value="tl:FFFFFF00 tr:FFFFFFFF bl:FFFFFFFF br:FFFFFFFF" />
             <Property name="VerticalAlignment" value="Centre" />
             <Property name="HorizontalAlignment" value="Centre" />
             <Property name="AutoRenderingSurface" value="True" />
+            <Property name="WantsMultiClickEvents" value="False" />
         </Window>
-        <Window type="TaharezLook/Button" name="Options" >
+        <Window type="AlfiskoSkin/WhiteButton" name="Options" >
             <Property name="Area" value="{{0,0},{0,0},{0,150},{0,50}}" />
             <Property name="Font" value="DejaVuSans-12" />
             <Property name="Text" value="Options" />
             <Property name="AlwaysOnTop" value="True" />
             <Property name="ClippedByParent" value="False" />
-            <Property name="HoverTextColour" value="tl:FFFFFF00 tr:FFFFFFFF bl:FFFFFFFF br:FFFFFFFF" />
             <Property name="VerticalAlignment" value="Centre" />
             <Property name="HorizontalAlignment" value="Centre" />
             <Property name="AutoRenderingSurface" value="True" />
+            <Property name="WantsMultiClickEvents" value="False" />
         </Window>
-        <Window type="TaharezLook/StaticImage" name="StaticImage" >
-            <Property name="Area" value="{{0.013507,0},{0.0565354,0},{0.956959,128},{1.03626,128}}" />
-            <Property name="MaxSize" value="{{1.5,0},{1.5,0}}" />
+        <Window type="TaharezLook/FrameWindow" name="FrameWindow" >
+            <Property name="Area" value="{{0,-87},{0,-59},{0.3,931},{0.3,641}}" />
+            <Property name="PixelAligned" value="False" />
+            <Property name="RollUpEnabled" value="False" />
+            <Property name="TitlebarEnabled" value="False" />
+            <Property name="ClientAreaColour" value="tl:FF4B7DC8 tr:FF4B7DC8 bl:FF64AF4B br:FF64AF4B" />
+            <Property name="DragMovingEnabled" value="False" />
+            <Property name="CloseButtonEnabled" value="False" />
+            <Property name="RiseOnClickEnabled" value="False" />
+            <Property name="TextParsingEnabled" value="False" />
+            <Property name="WantsMultiClickEvents" value="False" />
+            <AutoWindow namePath="__auto_titlebar__" >
+                <Property name="DraggingEnabled" value="False" />
+            </AutoWindow>
         </Window>
     </Window>
 </GUILayout>

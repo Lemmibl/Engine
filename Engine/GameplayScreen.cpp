@@ -30,7 +30,7 @@ bool GameplayScreen::Enter()
 		SetActive(true);
 		SetInitializedState(true);
 
-		debugHUD.SetHUDVisibility(false);
+		debugHUD->SetHUDVisibility(false);
 	}
 
 	return true;
@@ -43,24 +43,28 @@ bool GameplayScreen::Initialize()
 	//Load settings from file
 	InitializeSettings(this);
 
-	result = debugHUD.Initialize(0.0f, 0.0f);
-	if(!result)
-	{
-		return false;
-	}
+	debugHUD = std::make_shared<DebugOverlayHUD>();
 
-	world.reset(new GameWorld());
-
-	//Initialize world
-	result = world->Initialize(d3D, input, &worldRenderer, &debugHUD);
+	result = debugHUD->Initialize(0.0f, 0.0f);
 	if(!result)
 	{
 		return false;
 	}
 
 	// Initialize the renderer.
-	result = worldRenderer.Initialize(hwnd, world->GetCamera(), input, d3D, world->GetMeshHandler(), &debugHUD, (unsigned int)screenWidth, (unsigned int)screenHeight, 
+	worldRenderer = std::make_shared<GameRenderer>();
+
+	result = worldRenderer->Initialize(hwnd, input, d3D, debugHUD, (unsigned int)screenWidth, (unsigned int)screenHeight, 
 		(unsigned int)shadowMapWidth, (unsigned int)shadowMapHeight, nearClip, farClip);
+	if(!result)
+	{
+		return false;
+	}
+
+	//Initialize world
+	world = std::make_shared<GameWorld>();
+
+	result = world->Initialize(d3D, input, worldRenderer, debugHUD);
 	if(!result)
 	{
 		return false;
@@ -69,11 +73,11 @@ bool GameplayScreen::Initialize()
 	fpsMeter.Initialize();
 	cpuMeter.Initialize();
 
-	debugHUD.SetHUDVisibility(true);
+	debugHUD->SetHUDVisibility(true);
 
-	debugHUD.AddNewWindow("FPS ", &fps, DataTypeEnumMappings::Int32, fpsDebugHandle);
-	debugHUD.AddNewWindow("CPU Usage % ", &cpuUsage, DataTypeEnumMappings::Int32, cpuDebugHandle);
-	debugHUD.AddNewWindowWithoutHandle("Wind direction ", world->GetWindDirection(), DataTypeEnumMappings::Float3);
+	debugHUD->AddNewWindow("FPS ", &fps, DataTypeEnumMappings::Int32, fpsDebugHandle);
+	debugHUD->AddNewWindow("CPU Usage % ", &cpuUsage, DataTypeEnumMappings::Int32, cpuDebugHandle);
+	debugHUD->AddNewWindowWithoutHandle("Wind direction ", world->GetWindDirection(), DataTypeEnumMappings::Float3);
 
 	return true;
 }
@@ -102,7 +106,7 @@ bool GameplayScreen::Update(float deltaTime)
 	world->Update(deltaTime, deltaTimeMilliseconds);
 
 	// Do update renderer.
-	if(!worldRenderer.Update(hwnd, fps, cpuUsage, deltaTimeMilliseconds, deltaTime, world->GetWindDirection()))
+	if(!worldRenderer->Update(hwnd, fps, cpuUsage, deltaTimeMilliseconds, deltaTime, world->GetWindDirection(), world->GetCamera()))
 	{
 		return false;
 	}
@@ -113,7 +117,7 @@ bool GameplayScreen::Update(float deltaTime)
 bool GameplayScreen::Render(float deltaTime)
 {
 	// Finally render the graphics to the screen.
-	if(!worldRenderer.Render(hwnd, world->GetRenderableBundle()))
+	if(!worldRenderer->Render(hwnd, world->GetRenderableBundle(), world->GetCamera()))
 	{
 		return false;
 	}
@@ -123,7 +127,7 @@ bool GameplayScreen::Render(float deltaTime)
 
 void GameplayScreen::Exit()
 {
-	debugHUD.SetHUDVisibility(false);
+	debugHUD->SetHUDVisibility(false);
 
 	world.reset();
 

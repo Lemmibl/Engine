@@ -4,7 +4,7 @@
 #include "DRDirectionalLight.h"
 #include "SettingsManager.h"
 
-DRDirLight::DRDirLight() : SettingsDependent()
+DRDirLightShader::DRDirLightShader() : SettingsDependent()
 {
 	//vertexShader = 0;
 	//pixelShader = 0;
@@ -20,17 +20,17 @@ DRDirLight::DRDirLight() : SettingsDependent()
 }
 
 
-DRDirLight::DRDirLight(const DRDirLight& other)
+DRDirLightShader::DRDirLightShader(const DRDirLightShader& other)
 {
 }
 
 
-DRDirLight::~DRDirLight()
+DRDirLightShader::~DRDirLightShader()
 {
 }
 
 
-bool DRDirLight::Initialize(ID3D11Device* device, HWND hwnd)
+bool DRDirLightShader::Initialize(ID3D11Device* device, HWND hwnd)
 {
 	bool result;
 
@@ -48,7 +48,7 @@ bool DRDirLight::Initialize(ID3D11Device* device, HWND hwnd)
 }
 
 
-void DRDirLight::Shutdown()
+void DRDirLightShader::Shutdown()
 {
 	// Shutdown the vertex and pixel shaders as well as the related objects.
 	ShutdownShader();
@@ -56,7 +56,7 @@ void DRDirLight::Shutdown()
 	return;
 }
 
-bool DRDirLight::Render( ID3D11DeviceContext* deviceContext, int indexCount, DirectionalLightInput& input)
+bool DRDirLightShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, ShaderInputStructs::DirectionalLightInput* input)
 {
 	bool result;
 
@@ -73,7 +73,7 @@ bool DRDirLight::Render( ID3D11DeviceContext* deviceContext, int indexCount, Dir
 	return true;
 }
 
-bool DRDirLight::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename)
+bool DRDirLightShader::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename)
 {
 	HRESULT result;
 	CComPtr<ID3D10Blob> errorMessage;
@@ -302,7 +302,7 @@ bool DRDirLight::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFile
 	return true;
 }
 
-void DRDirLight::ShutdownShader()
+void DRDirLightShader::ShutdownShader()
 {	
 	//// Release the light constant buffer.
 	//if(lightBuffer)
@@ -377,7 +377,7 @@ void DRDirLight::ShutdownShader()
 }
 
 
-void DRDirLight::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename)
+void DRDirLightShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename)
 {
 	char* compileErrors;
 	unsigned long bufferSize, i;
@@ -410,7 +410,7 @@ void DRDirLight::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, W
 	return;
 }
 
-bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, DirectionalLightInput& input)
+bool DRDirLightShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, ShaderInputStructs::DirectionalLightInput* input)
 {		
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -433,9 +433,9 @@ bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, Direct
 	// Get a pointer to the data in the constant buffer.
 	dataPtr1 = (VertexMatrixBuffer*)mappedResource.pData;
 
-	dataPtr1->WorldViewProjection = *input.worldViewProjection;
-	dataPtr1->WorldView = *input.worldView;
-	dataPtr1->InvertedProjection = *input.invertedProjection;
+	dataPtr1->WorldViewProjection = *input->worldViewProjection;
+	dataPtr1->WorldView = *input->worldView;
+	dataPtr1->InvertedProjection = *input->invertedProjection;
 	dataPtr1->aspectRatio = aspectRatio;
 	dataPtr1->thFOV = thFOV;
 	//dataPtr1->WorldView = *worldView;
@@ -462,8 +462,8 @@ bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, Direct
 	// Get a pointer to the data in the constant buffer.
 	dataPtr2 = (PositionalBuffer*)mappedResource.pData;
 
-	dataPtr2->LightDirection = XMFLOAT4(input.dirLight->Direction.x, input.dirLight->Direction.y, input.dirLight->Direction.z, input.dirLight->Intensity);
-	dataPtr2->CameraPosition = XMFLOAT4(input.cameraPosition.x, input.cameraPosition.y, input.cameraPosition.z, cameraFarClip);
+	dataPtr2->LightDirection = XMFLOAT4(input->dirLight->Direction.x, input->dirLight->Direction.y, input->dirLight->Direction.z, input->dirLight->Intensity);
+	dataPtr2->CameraPosition = XMFLOAT4(input->cameraPosition.x, input->cameraPosition.y, input->cameraPosition.z, cameraFarClip);
 
 	deviceContext->Unmap(positionalBuffer, 0);
 
@@ -482,10 +482,10 @@ bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, Direct
 
 	dataPtr3 = (PixelMatrixBuffer*)mappedResource.pData;
 
-	dataPtr3->InvertedView = *input.invertedView;
-	dataPtr3->View = *input.view;
-	dataPtr3->LightViewProj = *input.lightViewProj;
-	dataPtr3->LightView = *input.lightView;
+	dataPtr3->InvertedView = *input->invertedView;
+	dataPtr3->View = *input->view;
+	dataPtr3->LightViewProj = *input->lightViewProj;
+	dataPtr3->LightView = *input->lightView;
 
 	deviceContext->Unmap(pixelMatrixBuffer, 0);
 
@@ -507,8 +507,8 @@ bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, Direct
 	dataPtr4 = (LightBuffer*)mappedResource.pData;
 
 	// Copy the lighting variables into the constant buffer.
-	dataPtr4->DiffuseColor = input.dirLight->Color;
-	dataPtr4->AmbienceColor = input.ambienceColor;
+	dataPtr4->DiffuseColor = input->dirLight->Color;
+	dataPtr4->AmbienceColor = input->ambienceColor;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(lightBuffer, 0);
@@ -520,13 +520,13 @@ bool DRDirLight::SetShaderParameters( ID3D11DeviceContext* deviceContext, Direct
 	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &lightBuffer.p);
 
 	// Set shader texture resources in the pixel shader.
-	deviceContext->PSSetShaderResources(0, 1, input.materialTextureArray);
-	deviceContext->PSSetShaderResources(1, 4, input.textureArray);
+	deviceContext->PSSetShaderResources(0, 1, input->materialTextureArray);
+	deviceContext->PSSetShaderResources(1, 4, input->textureArray);
 
 	return true;
 }
 
-void DRDirLight::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
+void DRDirLightShader::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
 {
 	// Set the vertex input layout.
 	deviceContext->IASetInputLayout(layout);
@@ -546,7 +546,7 @@ void DRDirLight::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount
 	return;
 }
 
-void DRDirLight::OnSettingsReload(Config* cfg)
+void DRDirLightShader::OnSettingsReload(Config* cfg)
 {
 	const Setting& settings = cfg->getRoot()["rendering"];
 

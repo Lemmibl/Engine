@@ -104,6 +104,8 @@
     <ClInclude Include="cameraclass.h" />
     <ClInclude Include="controllerclass.h" />
     <ClInclude Include="cpumeter.h" />
+    <ClInclude Include="RenderableBundle.h" />
+    <ClInclude Include="ShaderInputStructs.h" />
     <ClInclude Include="SSAOBlur.h" />
     <ClInclude Include="SSAOShader.h" />
     <ClInclude Include="TerrainStructs.h" />
@@ -226,7 +228,6 @@
     <None Include="Shaders\skysphere.psh" />
     <None Include="Shaders\skysphere.vsh" />
     <None Include="Shaders\SSAOBlur.psh" />
-    <None Include="Shaders\SSAOBlur.vsh" />
     <None Include="Shaders\SSAOShader.psh" />
     <None Include="Shaders\SSAOShader.vsh" />
     <None Include="Shaders\standard.vsh" />

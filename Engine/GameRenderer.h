@@ -1,7 +1,5 @@
 #pragma once
 
-//TODO: Just delete all of these and #include back the ones that are needed...
-
 //System includes
 #include <stdlib.h>
 #include <time.h>
@@ -12,104 +10,82 @@
 #include <iosfwd>
 #include <string>
 #include <cassert>
+#include <memory>
+#include <vector>
 
 //Utility
-#include "Utility.h"
-#include "StructsAndEnums.h"
-#include "inputclass.h"
-#include "timerclass.h"
-#include "controllerclass.h"
-#include "fpsmeter.h"
-#include "textclass.h"
-#include "renderToTextureClass.h"
-#include "DayNightCycle.h"
 #include "SettingsDependent.h"
-#include "DebugOverlayHUD.h"
+#include "Utility.h"
 
 //Managers
-#include "d3dmanager.h"
-#include "TerrainManager.h"
-#include "TextureHandler.h"
-#include "VegetationManager.h"
-#include "MeshHandler.h"
+class CameraClass;
+class D3DManager;
+class InputClass;
+
+//Systems
+class DayNightCycle;
+class TextureHandler;
+class TextureCreator;
+class ProceduralTextureHandler;
+class MaterialHandler;
+class MeshHandler;
 
 //Objects
-#include "modelclass.h"
-#include "cameraclass.h"
-#include "frustumclass.h"
-#include "debugwindowclass.h"
-#include "SkySphere.h"
-#include "marchingCubesClass.h"
-#include "TerrainNoiseSeeder.h"
-#include "LSystemClass.h"
-#include "NoiseClass.h"
-#include "IndexedMesh.h"
-#include "OBJModel.h"
+class OBJModel;
+class IndexedMesh;
+class MarchingCubeChunk;
+class ModelClass;
+class Skysphere;
+struct DirLight;
+struct RenderableBundle;
+
+//Debugging/GUI stuff
+class DebugOverlayHUD;
+struct DebugWindowHandle;
+class DebugWindowClass;
 
 //Shaders
-#include "MCGBufferTerrainShader.h"
-#include "textureshaderclass.h"
-#include "VertexShaderOnly.h"
-#include "DepthOnlyShader.h"
-#include "DRCompose.h"
-#include "DRPointLight.h"
-#include "DRObjModelShader.h"
-#include "SSAOShader.h"
-#include "DRDirectionalLight.h"
-#include "fontshaderclass.h"
-#include "DepthOnlyQuadShader.h"
-#include "GaussianBlur.h"
-#include "GeometryShaderGrass.h"
-#include "DRWaterClass.h"
-#include "DRGBuffer.h"
-#include "UnderwaterFilterShader.h"
+class DRDirLightShader;
+class DRGBuffer;
+class DRWaterClass;
+class DRObjModelShader;
+class DRDirLightShader;
+class DRPointLightShader;
+class GeometryShaderGrass;
+class MCGBufferTerrainShader;
+
+class UnderwaterFilterShader;
+class SSAOShader;
+class SSAOBlur;
+class DRCompose;
+class GaussianBlur;
+class TextureShaderClass;
+class VertexShaderOnly;
+class DepthOnlyShader;
+
+//Shader inputs
+#include "ShaderInputStructs.h"
 
 class GameRenderer : public SettingsDependent
 {
-public:
-
-	struct TestSphere
-	{
-		IndexedMesh mesh;
-		XMFLOAT4X4 world;
-	};
-
-	struct RenderableBundle
-	{
-		std::vector<IndexedMesh> indexedMeshes;
-		//std::vector<IndexedInstancedMesh> indexedInstancedMeshes;
-		std::vector<OBJModel> objModels;
-
-		std::vector<MarchingCubeChunk*> terrainChunks;
-		TestSphere testSphere; //temp.
-	};
-
 public:
 	GameRenderer();
 	~GameRenderer();
 
 	void Shutdown();
 
-	bool Initialize(HWND hwnd, std::shared_ptr<CameraClass> camera, std::shared_ptr<InputClass> inputManager, std::shared_ptr<D3DManager> d3D, MeshHandler* meshHandler, DebugOverlayHUD* debugHUD, 
+	bool Initialize(HWND hwnd, std::shared_ptr<InputClass> inputManager, std::shared_ptr<D3DManager> d3D, std::shared_ptr<DebugOverlayHUD> debugHUD, 
 		UINT screenWidth, UINT screenHeight, UINT shadowmapWidth, UINT shadowmapHeight, float screenFar, float screenNear);
 
-	bool Update(HWND hwnd, int fps, int cpuPercentage, float millisecondDeltaTime, float secondDeltaTime, XMFLOAT3* windDirection);
-	bool Render(HWND hwnd, RenderableBundle* renderableBundle);
+	bool Update(HWND hwnd, int fps, int cpuPercentage, float millisecondDeltaTime, float secondDeltaTime, XMFLOAT3* windDirection, std::shared_ptr<CameraClass> camera);
+	bool Render(HWND hwnd, RenderableBundle* renderableBundle, std::shared_ptr<CameraClass> camera);
 
-	TextureHandler* GetTextureHandler() { return &textureHandler; }
-	MaterialHandler* GetMaterialHandler() { return &materialHandler; }
-
-	void SetCamera(CameraClass* cam)
-	{
-		camera.reset(cam);
-	}
-
-	void SetMeshHandler(MeshHandler* handler)
-	{
-		meshHandler = handler;
-	}
+	TextureHandler* GetTextureHandler() { return textureHandler.get(); }
+	MaterialHandler* GetMaterialHandler() { return materialHandler.get(); }
 
 	virtual void OnSettingsReload(Config* cfg);
+
+	std::shared_ptr<MeshHandler> GetMeshHandler() { return meshHandler; }
 
 private:
 	bool InitializeShaders(HWND hwnd);
@@ -125,13 +101,13 @@ private:
 	bool RenderGBuffer(XMMATRIX* viewMatrix, XMMATRIX* baseView, XMMATRIX* projectionMatrix, XMMATRIX* identityWorldViewProj, RenderableBundle* renderableBundle);
 
 	//Light rendering
-	bool RenderDirectionalLight(DRDirLight::DirectionalLightInput& input);
+	bool RenderDirectionalLight(ShaderInputStructs::DirectionalLightInput* input);
 	bool RenderPointLight(XMMATRIX* view, XMMATRIX* invertedView, XMMATRIX* invertedProjection, XMMATRIX* viewProjection);
 
 	//Post processing
-	bool RenderUnderwaterFilter(UnderwaterFilterShader::WaterFilterInput& input);
-	bool RenderSSAO(SSAOShader::SSAOShaderInput& input);
-	bool RenderComposedScene(DRCompose::ComposeShaderInput& input);
+	bool RenderUnderwaterFilter(ShaderInputStructs::WaterFilterInput* input);
+	bool RenderSSAO(ShaderInputStructs::SSAOShaderInput* input);
+	bool RenderComposedScene(ShaderInputStructs::ComposeShaderInput* input);
 	bool RenderGUI(XMMATRIX* worldBaseViewOrthoProj);
 
 private:
@@ -147,61 +123,62 @@ private:
 	std::shared_ptr<D3DManager> d3D;
 	std::shared_ptr<CameraClass> camera;
 	std::shared_ptr<InputClass> inputManager;
-	MeshHandler* meshHandler;
+	std::shared_ptr<MeshHandler> meshHandler;
 
-	TextureCreator textureCreator;
-	TextureHandler textureHandler;
-	MaterialHandler materialHandler;
-	ProceduralTextureHandler proceduralTextureHandler;	
-	DayNightCycle dayNightCycle;
-	NoiseClass noise;
-	Utility utility;
+	std::shared_ptr<TextureCreator> textureCreator;
+	std::shared_ptr<TextureHandler> textureHandler;
+	std::shared_ptr<MaterialHandler> materialHandler;
+	std::shared_ptr<ProceduralTextureHandler> proceduralTextureHandler;	
+	std::shared_ptr<DayNightCycle> dayNightCycle;
+	std::shared_ptr<NoiseClass> noise;
+	std::shared_ptr<Utility> utility;
 
 	/************************************************************************/
 	/* Render targets and necessary rendering states and objects            */
 	/************************************************************************/
 	// render target for storing color. R8G8B8A8. Stores a... lerp value in alpha channel, used in case I want to lerp between two materials in lighting stage.
-	RenderTarget2D colorRT;
+	std::unique_ptr<RenderTarget2D> colorRT;
 	
 	// render target for storing depth. it's a R32
-	RenderTarget2D depthRT;
+	std::unique_ptr<RenderTarget2D> depthRT;
 	
 	//render target for storing normals. R8G8B8A8. 
 	// I use a compression algorithm for my normals, so only the .xy channels are used when storing normals. the .zw channels are used for material IDs
-	RenderTarget2D normalRT; 
+	std::unique_ptr<RenderTarget2D> normalRT; 
 
 	//light rendertarget. R8G8B8A8
-	RenderTarget2D lightRT;
+	std::unique_ptr<RenderTarget2D> lightRT;
 	
 	//Shadow map. it's a R16 G16 because we use variance shadowmapping 
-	RenderTarget2D shadowRT; 
+	std::unique_ptr<RenderTarget2D> shadowRT; 
 
 	//R32, pretty much identical to depth RT in every way
-	RenderTarget2D ssaoRT; 
+	std::unique_ptr<RenderTarget2D> ssaoRT; 
 
 	//Used for bouncing shadow map.
-	RenderTarget2D R16G16PingPongRT; 
+	std::unique_ptr<RenderTarget2D> R16G16PingPongRT; 
 
 	 //For bouncing ssao map.
-	RenderTarget2D R32PingPongRT;
+	std::unique_ptr<RenderTarget2D> R32PingPongRT;
 
 	//For bouncing color map
-	RenderTarget2D ARGB8PingPongRT;
+	std::unique_ptr<RenderTarget2D> ARGB8PingPongRT;
 
 	CComPtr<ID3D11RenderTargetView> gbufferRenderTargets[3]; //render targets for GBuffer pass
 	CComPtr<ID3D11RenderTargetView> lightTarget[1];
 	CComPtr<ID3D11RenderTargetView> shadowTarget[1];
 	CComPtr<ID3D11RenderTargetView> gaussianBlurTarget[1];
-	CComPtr<ID3D11RenderTargetView> ssaoTarget[1];
+	CComPtr<ID3D11RenderTargetView> ssaoTarget[2];
 	CComPtr<ID3D11RenderTargetView> waterTarget[1];
 
 	//0 == color, 1 == depth
 	CComPtr<ID3D11ShaderResourceView> waterInputTextures[2];
 	CComPtr<ID3D11ShaderResourceView> gbufferTextures[3];
 	CComPtr<ID3D11ShaderResourceView> dirLightTextures[4];
-	CComPtr<ID3D11ShaderResourceView> finalTextures[4];
+	CComPtr<ID3D11ShaderResourceView> finalTextures[5];
 	CComPtr<ID3D11ShaderResourceView> gaussianBlurTexture[1];
 	CComPtr<ID3D11ShaderResourceView> lightMap;
+	CComPtr<ID3D11ShaderResourceView> ssaoBlurTextures[3];
 
 	//0 == depth, 1 == normal, 2 == random vectors
 	CComPtr<ID3D11ShaderResourceView> ssaoView;
@@ -213,56 +190,64 @@ private:
 	/************************************************************************/
 	/* Shaders                                                              */
 	/************************************************************************/
-	VertexShaderOnly vertexOnlyShader;
-	DepthOnlyShader depthOnlyShader;
-	DRGBuffer gbufferShader;
-	DRCompose composeShader;
-	GaussianBlur gaussianBlurShader;
-	GeometryShaderGrass geometryShaderGrass;
-	DRWaterClass waterShader;
-	MCGBufferTerrainShader mcubeShader;
-	DRObjModelShader objModelShader;
-	SSAOShader ssaoShader;
-	UnderwaterFilterShader underwaterFilterShader;
+
+	//GBuffer pass shaders
+	std::unique_ptr<DRGBuffer> gbufferShader;
+	std::unique_ptr<GeometryShaderGrass> geometryShaderGrass;
+	std::unique_ptr<DRWaterClass> waterShader;
+	std::unique_ptr<MCGBufferTerrainShader> mcubeShader;
+	std::unique_ptr<DRObjModelShader> objModelShader;
+
+	//Light pass shaders
+	std::unique_ptr<DRDirLightShader> dirLightShader;
+	std::unique_ptr<DRPointLightShader> pointLightShader;
+
+	//Post processing shaders
+	std::unique_ptr<UnderwaterFilterShader> underwaterFilterShader;
+	std::unique_ptr<SSAOShader> ssaoShader;
+	std::unique_ptr<SSAOBlur> ssaoBlurShader;
+	std::unique_ptr<DRCompose> composeShader;
+	std::unique_ptr<GaussianBlur> gaussianBlurShader;
+
+	//Misc shaders
+	std::unique_ptr<TextureShaderClass> textureShader;
+	std::unique_ptr<VertexShaderOnly> vertexOnlyShader;
+	std::unique_ptr<DepthOnlyShader> depthOnlyShader;
+
 
 	/************************************************************************/
 	/* Shader input objects                                                 */
 	/************************************************************************/
-	DRDirLight::DirectionalLightInput dirLightInput;
-	DRCompose::ComposeShaderInput composeInput;
-	SSAOShader::SSAOShaderInput ssaoInput;
-	UnderwaterFilterShader::WaterFilterInput waterfilterInput;
+	std::shared_ptr<ShaderInputStructs::DirectionalLightInput> dirLightInput;
+	std::shared_ptr<ShaderInputStructs::ComposeShaderInput> composeInput;
+	std::shared_ptr<ShaderInputStructs::SSAOShaderInput> ssaoInput;
+	std::shared_ptr<ShaderInputStructs::WaterFilterInput> waterfilterInput;
 
 	/************************************************************************/
 	/* Light and models                                                     */
 	/************************************************************************/
-	DebugWindowClass fullScreenQuad;
+	std::unique_ptr<DebugWindowClass> fullScreenQuad;
 
 	std::vector<XMFLOAT4X4> treeMatrices;
 	int numtrees;
 
-	DRPointLight pointLightShader;
-	std::vector<PointLight> pointLights;
+	std::vector<std::unique_ptr<PointLight>> pointLights;
 
-	DRDirLight dirLightShader;
-	DirLight dirLight;
+	std::shared_ptr<DirLight> dirLight;
 
-	ModelClass sphereModel;
-	Skysphere skySphere;
+	std::shared_ptr<ModelClass> sphereModel;
+	std::shared_ptr<Skysphere> skySphere;
 
 	/************************************************************************/
 	/* Debug data                                                           */
 	/************************************************************************/
-	TextureShaderClass textureShader;
-	DebugWindowClass debugWindows[7];
-
-	DebugOverlayHUD* debugHUD;
-	std::vector<DebugWindowHandle> debugWindowHandles;
+	std::shared_ptr<DebugOverlayHUD> debugHUD;
+	std::vector<std::unique_ptr<DebugWindowClass>> debugWindows;
+	std::vector<std::unique_ptr<DebugWindowHandle>> debugWindowHandles;
 
 	/************************************************************************/
 	/* Miscellaneous                                                        */
 	/************************************************************************/
-	XMFLOAT4X4 baseViewMatrix;
 	XMFLOAT3 camPos, camDir, windDir;
 	UINT shadowMapWidth, shadowMapHeight, screenWidth, screenHeight;
 	int toggleSSAO, toggleColorMode;

@@ -1,6 +1,13 @@
 #include "ScreenManager.h"
 
-ScreenManager::ScreenManager() : SettingsDependent(), timer(), stateToScreenMap(), overlayTextScreen()
+#include "d3dmanager.h"
+#include "TextOverlayScreen.h"
+#include "MainMenuScreen.h"
+#include "GameplayScreen.h"
+#include "inputclass.h"
+#include "GenericScreen.h"
+
+ScreenManager::ScreenManager() : SettingsDependent(), timer(), stateToScreenMap()
 {
 	InitializeSettings(this);
 	isQuitting = false;	
@@ -60,9 +67,10 @@ bool ScreenManager::Initialize(HWND extHwnd, HINSTANCE hInst,int screenWidth, in
 		return false;
 	}
 
-	InitializeCEGUI();
+	InitializeGUI();
 
-	overlayTextScreen.Initialize(d3D.get());
+	textOverlayScreen = std::make_shared<TextOverlayScreen>();
+	textOverlayScreen->Initialize(d3D.get());
 
 	std::shared_ptr<GameplayScreen> gameplayScreen = std::make_shared<GameplayScreen>(hwnd, input, d3D);
 	AddNewScreen(gameplayScreen, GameStates::GameScreen, L"Gameplay screen");
@@ -81,7 +89,7 @@ bool ScreenManager::Initialize(HWND extHwnd, HINSTANCE hInst,int screenWidth, in
 	return true;
 }
 
-void ScreenManager::InitializeCEGUI()
+void ScreenManager::InitializeGUI()
 {
 	// http://static.cegui.org.uk/docs/current/rendering_tutorial.html
 
@@ -112,6 +120,7 @@ void ScreenManager::InitializeCEGUI()
 	// create (load) the TaharezLook scheme file
 	// (this auto-loads the TaharezLook looknfeel and imageset files)
 	CEGUI::SchemeManager::getSingleton().createFromFile("TaharezLook.scheme" );
+	CEGUI::SchemeManager::getSingleton().createFromFile("AlfiskoSkin.scheme" );
 
 	// create (load) a font.
 	// The first font loaded automatically becomes the default font, but note
@@ -199,7 +208,7 @@ void ScreenManager::ChangeState(GameStates::Type newState)
 				}
 
 				//Then clear the text (hide it), so that when we've finished loading, it won't show up
-				overlayTextScreen.Clear();
+				textOverlayScreen->Clear();
 			}
 		}
 	}
@@ -217,7 +226,7 @@ bool ScreenManager::UpdateActiveScreen()
 		if(paused)
 		{
 			//Then clear the overlay text (hide it), so that when we've finished loading, it won't show up
-			overlayTextScreen.Clear();
+			textOverlayScreen->Clear();
 
 			currentScreen->Enter();
 			
@@ -284,10 +293,10 @@ bool ScreenManager::UpdateActiveScreen()
 
 void ScreenManager::DrawOverlayText(const std::string& text)
 {
-	overlayTextScreen.SetText(text);
+	textOverlayScreen->SetText(text);
 
 	//Just do a quick pass to render loading screen text
-	overlayTextScreen.Render(0.0f);
+	textOverlayScreen->Render(0.0f);
 }
 
 bool ScreenManager::HandleInputs()

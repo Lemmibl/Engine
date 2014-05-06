@@ -1,7 +1,7 @@
 #pragma once
 #include "SchladetschEvents.h"
-#include "inputclass.h"
 #include "GameStates.h"
+//#include "inputclass.h"
 
 class GenericScreen
 {

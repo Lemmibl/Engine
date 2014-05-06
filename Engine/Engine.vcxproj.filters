@@ -528,6 +528,12 @@
     <ClInclude Include="UnderwaterFilterShader.h">
       <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
     </ClInclude>
+    <ClInclude Include="ShaderInputStructs.h">
+      <Filter>Rendering\Shader wrappers\Shader input structs</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderableBundle.h">
+      <Filter>Rendering\Rendering utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\GeometryShaderGrass.gsh">
@@ -658,9 +664,6 @@
     </None>
     <None Include="Shaders\OBJGbuffer.vsh">
       <Filter>Rendering\Shaders\Deferred shaders</Filter>
-    </None>
-    <None Include="Shaders\SSAOBlur.vsh">
-      <Filter>Rendering\Shaders\Post processing</Filter>
     </None>
     <None Include="Shaders\SSAOBlur.psh">
       <Filter>Rendering\Shaders\Post processing</Filter>
@@ -801,6 +804,9 @@
     </Filter>
     <Filter Include="Rendering\Shader wrappers\Deferred rendering wrappers\Lighting">
       <UniqueIdentifier>{938f22ed-f852-4c01-869d-5b5504714088}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shader wrappers\Shader input structs">
+      <UniqueIdentifier>{fb042562-9cfd-45b1-b1bd-d5310e97e1da}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

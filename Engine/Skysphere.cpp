@@ -165,7 +165,7 @@ bool Skysphere::LoadModel(char* filename)
 		fin >> model[i].texcoords.x >> model[i].texcoords.y;
 		fin >> model[i].normal.x	>> model[i].normal.y	>> model[i].normal.z;
 
-		 model[i].texcoords.z = faceID;
+		 model[i].texcoords.z = static_cast<float>(faceID);
 
 		counter++;
 	}

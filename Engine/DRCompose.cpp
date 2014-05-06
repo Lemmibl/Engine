@@ -58,7 +58,7 @@ void DRCompose::Shutdown()
 	return;
 }
 
-bool DRCompose::Render( ID3D11DeviceContext* deviceContext, int indexCount, ComposeShaderInput& input)
+bool DRCompose::Render( ID3D11DeviceContext* deviceContext, int indexCount, ShaderInputStructs::ComposeShaderInput* input)
 {
 	bool result;
 
@@ -343,7 +343,7 @@ void DRCompose::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WC
 	return;
 }
 
-bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, ComposeShaderInput& input)
+bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, ShaderInputStructs::ComposeShaderInput* input)
 {		
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -365,8 +365,8 @@ bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, Compose
 	// Get a pointer to the data in the constant buffer.
 	dataPtr1 = (VertexMatrixBuffer*)mappedResource.pData;
 
-	dataPtr1->WorldViewProjection = *input.worldViewProjection;
-	dataPtr1->WorldView = *input.worldView;
+	dataPtr1->WorldViewProjection = *input->worldViewProjection;
+	dataPtr1->WorldView = *input->worldView;
 
 	deviceContext->Unmap(vertexMatrixBuffer, 0);
 
@@ -388,9 +388,9 @@ bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, Compose
 	// Get a pointer to the data in the constant buffer.
 	dataPtr2 = (PixelMatrixBuffer*)mappedResource.pData;
 
-	dataPtr2->View = *input.view;
-	dataPtr2->InvertedProjection = *input.invertedProjection;
-	dataPtr2->FogColor = XMFLOAT4(input.fogColor->x, input.fogColor->y, input.fogColor->z, input.fogMinimum);
+	dataPtr2->View = *input->view;
+	dataPtr2->InvertedProjection = *input->invertedProjection;
+	dataPtr2->FogColor = XMFLOAT4(input->fogColor->x, input->fogColor->y, input->fogColor->z, input->fogMinimum);
 
 	deviceContext->Unmap(pixelMatrixBuffer, 0);
 
@@ -407,7 +407,7 @@ bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, Compose
 	/////////////#3
 	//if(bufferNeedsUpdate)
 	//{
-		variables.toggleSSAO = input.toggle;
+		variables.toggleSSAO = input->toggle;
 
 		// Lock the vertex constant buffer so it can be written to.
 		result = deviceContext->Map(variableBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -429,8 +429,10 @@ bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, Compose
 		dataPtr3->toggleSSAO	=	variables.toggleSSAO;
 		dataPtr3->randomSize	=	variables.randomSize;
 		dataPtr3->screenSize	=	variables.screenSize;
-		dataPtr3->cameraHeight  =	input.cameraHeight;
+		dataPtr3->cameraHeight  =	input->cameraHeight;
 		dataPtr3->waterLevel    =   variables.waterLevel;
+		dataPtr3->thFOV = thFOV;
+		dataPtr3->aspectRatio = aspectRatio;
 
 		deviceContext->Unmap(variableBuffer, 0);
 
@@ -445,8 +447,7 @@ bool DRCompose::SetShaderParameters( ID3D11DeviceContext* deviceContext, Compose
 	///////// Assorted shit
 
 	// Set shader texture resource in the pixel shader.
-	deviceContext->PSSetShaderResources(0, 1, &input.randomTexture);
-	deviceContext->PSSetShaderResources(1, 4, input.textureArray);
+	deviceContext->PSSetShaderResources(0, 5, input->textureArray);
 
 	return true;
 }
@@ -498,4 +499,18 @@ void DRCompose::OnSettingsReload(Config* cfg)
 
 	settings3.lookupValue("ssaoNoiseTextureWidth", variables.randomSize.x);
 	settings3.lookupValue("ssaoNoiseTextureHeight", variables.randomSize.y);
+
+	float screenWidth, screenHeight;
+
+	const Setting& cameraSettings = cfg->getRoot()["camera"];
+	cameraSettings.lookupValue("fov", thFOV);
+
+	thFOV = tan(thFOV/2.0f);
+
+	//windowWidth, windowHeight
+	const Setting& renderingSettings = cfg->getRoot()["rendering"];
+	renderingSettings.lookupValue("windowWidth", screenWidth);
+	renderingSettings.lookupValue("windowHeight", screenHeight);
+
+	aspectRatio = (screenWidth / screenHeight);
 }

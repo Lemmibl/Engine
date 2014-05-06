@@ -3,16 +3,22 @@
 
 #include <btBulletDynamicsCommon.h>
 #include <memory>
-#include "TerrainNoiseSeeder.h"
-#include "TerrainManager.h"
-#include "d3dmanager.h"
-#include "cameraclass.h"
-#include "frustumclass.h"
-#include "GameRenderer.h"
-#include "Lemmi2DAABB.h"
-#include "MeshHandler.h"
-#include "WeatherSystem.h"
 #include "SettingsDependent.h"
+#include <windows.h>
+#include <xnamath.h>
+
+class Lemmi2DAABB;
+class TerrainManager;
+class D3DManager;
+class CameraClass;
+class FrustumClass;
+class GameRenderer;
+class WeatherSystem;
+class DebugOverlayHUD;
+class ControllerClass;
+class InputClass;
+
+struct RenderableBundle;
 
 class GameWorld : public SettingsDependent
 {
@@ -22,7 +28,7 @@ public:
 
 	void CleanUp();
 
-	bool Initialize(std::shared_ptr<D3DManager> extD3DManager, std::shared_ptr<InputClass> extInput, GameRenderer* gameRenderer, DebugOverlayHUD* debugHud);
+	bool Initialize(std::shared_ptr<D3DManager> extD3DManager, std::shared_ptr<InputClass> extInput, std::shared_ptr<GameRenderer> gameRenderer, std::shared_ptr<DebugOverlayHUD> debugHud);
 
 	void Update(float deltaTimeSeconds, float deltaTimeMilliseconds);
 	void OnSettingsReload(Config* cfg);
@@ -30,14 +36,12 @@ public:
 	void ResetCamera();
 	bool InitializeTerrain();
 
-	MeshHandler* GetMeshHandler() { return &meshHandler; }
-
-	GameRenderer::RenderableBundle* GetRenderableBundle() {  return &renderableBundle; };
+	RenderableBundle* GetRenderableBundle() {  return renderableBundle.get(); };
 	std::shared_ptr<CameraClass> GetCamera() { return camera; }
-	XMFLOAT3* GetWindDirection() { return weatherSystem.GetWindDirection(); }
+	XMFLOAT3* GetWindDirection();
 
 private:
-	bool InitializeMiscRenderables();
+	bool InitializeRenderables();
 	bool InitializeCollision();
 	bool InitializeCamera();
 	
@@ -52,7 +56,7 @@ private:
 	float bulletTimestepScale;
 	int maxSubSteps;
 
-	DebugOverlayHUD* debugHUD;
+	std::shared_ptr<DebugOverlayHUD> debugHUD;
 
 	//Collision classes
 	std::shared_ptr<btBroadphaseInterface> broadphase;
@@ -61,18 +65,17 @@ private:
 	std::shared_ptr<btSequentialImpulseConstraintSolver> solver;
 	std::shared_ptr<btDiscreteDynamicsWorld> dynamicsWorld;
 
-	FrustumClass frustum;
-	Lemmi2DAABB frustumAABB;
+	std::shared_ptr<FrustumClass> frustum;
+	std::shared_ptr<Lemmi2DAABB> frustumAABB;
 
 	//Terrain related objects
 
 	//TODO: pointer? delete it when shutdown ..
-	TerrainManager terrainManager;
-	WeatherSystem weatherSystem;
+	std::shared_ptr<TerrainManager> terrainManager;
+	std::shared_ptr<WeatherSystem> weatherSystem;
 
 	//Rendering
-	MeshHandler meshHandler;
-	GameRenderer::RenderableBundle renderableBundle;
+	std::shared_ptr<RenderableBundle> renderableBundle;
 	float nearClip, farClip, screenWidth, screenHeight;
 	unsigned int currentlyActiveChunks, chunksInProduction; 
 
@@ -81,7 +84,7 @@ private:
 	std::shared_ptr<CameraClass> camera;
 	std::shared_ptr<InputClass> inputManager;
 	std::shared_ptr<D3DManager> d3D;
-	GameRenderer* renderer;
+	std::shared_ptr<GameRenderer> renderer;
 };
 
 

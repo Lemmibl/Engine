@@ -10,17 +10,10 @@
 #include <d3dcompiler.h>
 #include <vector>
 
+#include "ShaderInputStructs.h"
+
 class SSAOShader : public SettingsDependent
 {
-public:
-	struct SSAOShaderInput
-	{
-		ID3D11ShaderResourceView** rtTextureArray;
-		XMMATRIX* worldViewProjection;
-		XMMATRIX* view;
-		XMMATRIX* projection;
-	};
-
 private:
 	struct VertexShaderBuffer
 	{
@@ -47,13 +40,13 @@ public:
 	virtual void OnSettingsReload(Config* cfg);
 
 	bool Initialize(ID3D11Device* device, HWND hwnd);
-	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, SSAOShaderInput& input);
+	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, ShaderInputStructs::SSAOShaderInput* input);
 
 private:
 	bool InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vertexShaderName, WCHAR* pixelShaderName);
 	void OutputShaderErrorMessage(ID3D10Blob* blob, HWND hwnd, WCHAR* filename);
 
-	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, SSAOShaderInput& input);
+	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, ShaderInputStructs::SSAOShaderInput* input);
 
 	void RenderShader(ID3D11DeviceContext*, int);
 
