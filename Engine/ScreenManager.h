@@ -25,8 +25,6 @@ public:
 	bool Initialize(HWND extHwnd, HINSTANCE hInst, int screenWidth, int screenHeight, int centerPosX, int centerPosY, bool vsyncEnabled, bool fullScreen);
 	void InitializeGUI();
 
-	void AddNewScreen(std::shared_ptr<GenericScreen> screen, GameStates::Type gameState, std::wstring name);
-
 	//Provides smooth transition out of current state and into new state
 	void ChangeState(GameStates::Type state);
 
@@ -39,13 +37,15 @@ public:
 
 	//Returns true if escape was pressed this frame
 	bool Quitting() { return isQuitting; }
-	void Quit() { isQuitting = true; }
-
-	GameStates::Type GetCurrentState() { return currentState; }
 
 private:
 	void DrawOverlayText(const std::string& text);
 
+	void AddNewScreen(std::shared_ptr<GenericScreen> screen, GameStates::Type gameState, std::wstring name);
+	void Quit() { isQuitting = true; }
+
+
+private:
 	HWND hwnd;
 	float nearClip, farClip, shadowMapWidth, shadowMapHeight;
 

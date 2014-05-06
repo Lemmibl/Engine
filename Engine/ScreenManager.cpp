@@ -120,6 +120,8 @@ void ScreenManager::InitializeGUI()
 	// create (load) the TaharezLook scheme file
 	// (this auto-loads the TaharezLook looknfeel and imageset files)
 	CEGUI::SchemeManager::getSingleton().createFromFile("TaharezLook.scheme" );
+
+	//Aaaaand.. Alfisko scheme too
 	CEGUI::SchemeManager::getSingleton().createFromFile("AlfiskoSkin.scheme" );
 
 	// create (load) a font.
@@ -198,10 +200,7 @@ void ScreenManager::ChangeState(GameStates::Type newState)
 				//Call enter
 				if(!currentScreen->Enter())
 				{
-					std::wstring errorMessage = L"Couldn't enter state: ";
-					errorMessage += (stateNames.find(newState)->second); //This will always be viable, because we've already passed the other find function
-					errorMessage += L". Terminating...";
-
+					std::wstring errorMessage = L"Couldn't enter state: " + (stateNames.find(newState)->second) + L". Terminating...";
 					MessageBox(NULL, errorMessage.c_str(), L"Error", MB_OK);
 
 					Quit();
