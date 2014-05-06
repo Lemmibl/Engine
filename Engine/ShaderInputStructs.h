@@ -32,8 +32,6 @@ namespace ShaderInputStructs
 
 	struct DirectionalLightInput
 	{
-
-
 		XMMATRIX* worldViewProjection;
 		XMMATRIX* worldView;
 		XMMATRIX* world; 

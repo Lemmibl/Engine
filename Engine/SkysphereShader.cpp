@@ -370,8 +370,9 @@ bool SkysphereShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XM
 	if(currentStage == EVENING)
 	{
 		textureOpacity += (time*0.01f);
-
-		textureOpacity = min(textureOpacity, 1.0f);
+		
+		//Cap at 1.0f
+		textureOpacity = (textureOpacity > 1.0f) ? 1.0f : textureOpacity;
 	}
 	else if(currentStage == NIGHT)
 	{
@@ -380,8 +381,9 @@ bool SkysphereShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XM
 	else if(currentStage == DAWN)
 	{
 		textureOpacity -= (time*0.01f);
-
-		textureOpacity = max(textureOpacity, 0.0f);
+		
+		//Cap at 0.0f
+		textureOpacity = (textureOpacity > 0.0f) ? textureOpacity : 0.0f;
 	}
 	else
 	{

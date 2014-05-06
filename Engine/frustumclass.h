@@ -59,6 +59,10 @@ public:
 	void CalculateFrustumExtents(Lemmi2DAABB* outAABB, XMVECTOR position, XMVECTOR lookAt, XMVECTOR up);
 
 private:
+	float minVal(float a, float b) { return (a > b) ? b : a; }
+	float maxVal(float a, float b) { return (a > b) ? a : b; }
+
+private:
 	D3DXPLANE planes[6];
 	float aspectRatio, angle, nearZ, farZ;
 	float nearHeight, nearWidth, farHeight, farWidth;

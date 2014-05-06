@@ -1,13 +1,13 @@
 #pragma once
+#include "CEGUI/CEGUI.h"
+#include "CEGUI/RendererModules/Direct3D11/Renderer.h"
+
 #include <functional>
 #include "SettingsDependent.h"
 
 #include "timerclass.h"
 #include "GameStates.h"
 #include <map>
-
-#include "CEGUI/CEGUI.h"
-#include "CEGUI/RendererModules/Direct3D11/Renderer.h"
 
 class InputClass;
 class D3DManager;

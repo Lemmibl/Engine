@@ -407,8 +407,8 @@ bool FrustumClass::Check2DAABB(Lemmi2DAABB* aabb)
 
 	//We need to make sure that "maxPoint" actually is the farthest away from the camera, 
 	//it gets weird if we rotate camera 180 degrees the wrong way
-	minPoint = XMFLOAT2(min(min(nearLeft.x, nearRight.x), min(farRight.x, farLeft.x)), min(min(nearLeft.y, nearRight.y), min(farRight.y, farLeft.y)));
-	maxPoint = XMFLOAT2(max(max(nearLeft.x, nearRight.x), max(farRight.x, farLeft.x)), max(max(nearLeft.y, nearRight.y), max(farRight.y, farLeft.y)));
+	minPoint = XMFLOAT2(minVal(minVal(nearLeft.x, nearRight.x), minVal(farRight.x, farLeft.x)), minVal(minVal(nearLeft.y, nearRight.y), minVal(farRight.y, farLeft.y)));
+	maxPoint = XMFLOAT2(maxVal(maxVal(nearLeft.x, nearRight.x), maxVal(farRight.x, farLeft.x)), maxVal(maxVal(nearLeft.y, nearRight.y), maxVal(farRight.y, farLeft.y)));
 
 	Lemmi2DAABB thisAABB = Lemmi2DAABB(minPoint, maxPoint);
 
@@ -521,11 +521,11 @@ void FrustumClass::CalculateFrustumExtents( Lemmi2DAABB* outAABB, XMVECTOR posit
 
 	float minX, minZ, maxX, maxZ;
 
-	minX = min(min(farBottomLeft.x, farBottomRight.x), min(nearBottomLeft.x, nearBottomRight.x));
-	minZ = min(min(farBottomLeft.z, farBottomRight.z), min(nearBottomLeft.z, nearBottomRight.z));
+	minX = minVal(minVal(farBottomLeft.x, farBottomRight.x), minVal(nearBottomLeft.x, nearBottomRight.x));
+	minZ = minVal(minVal(farBottomLeft.z, farBottomRight.z), minVal(nearBottomLeft.z, nearBottomRight.z));
 
-	maxX = max(max(farBottomLeft.x, farBottomRight.x), max(nearBottomLeft.x, nearBottomRight.x));
-	maxZ = max(max(farBottomLeft.z, farBottomRight.z), max(nearBottomLeft.z, nearBottomRight.z));
+	maxX = maxVal(maxVal(farBottomLeft.x, farBottomRight.x), maxVal(nearBottomLeft.x, nearBottomRight.x));
+	maxZ = maxVal(maxVal(farBottomLeft.z, farBottomRight.z), maxVal(nearBottomLeft.z, nearBottomRight.z));
 
 
 	//This is what is being returned

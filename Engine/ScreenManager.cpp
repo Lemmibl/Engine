@@ -174,7 +174,7 @@ void ScreenManager::ChangeState(GameStates::Type newState)
 	else
 	{
 		// Else we smoothly handle a transition between two states. 
-		if(currentState != newState)
+		if(newState != currentState)
 		{
 			//Look for the new screen to see if it actually exists in the map
 			auto& screen = stateToScreenMap.find(newState);
@@ -189,7 +189,7 @@ void ScreenManager::ChangeState(GameStates::Type newState)
 				previousState = currentState;
 
 				//Set new state
-				currentState = newState;
+				currentState = screen->first;
 
 				//Change current screen to the new screen related to new state
 				currentScreen = screen->second;
