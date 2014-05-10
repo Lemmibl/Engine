@@ -6,6 +6,7 @@
 #include "GameplayScreen.h"
 #include "inputclass.h"
 #include "GenericScreen.h"
+#include "ChatRoomScreen.h"
 
 ScreenManager::ScreenManager() : SettingsDependent(), timer(), stateToScreenMap()
 {
@@ -69,23 +70,6 @@ bool ScreenManager::Initialize(HWND extHwnd, HINSTANCE hInst,int screenWidth, in
 
 	InitializeGUI();
 
-	textOverlayScreen = std::make_shared<TextOverlayScreen>();
-	textOverlayScreen->Initialize(d3D.get());
-
-	std::shared_ptr<GameplayScreen> gameplayScreen = std::make_shared<GameplayScreen>(hwnd, input, d3D);
-	AddNewScreen(gameplayScreen, GameStates::GameScreen, L"Gameplay screen");
-
-
-	std::shared_ptr<MainMenuScreen> mainMenuScreen = std::make_shared<MainMenuScreen>(input);
-	AddNewScreen(mainMenuScreen, GameStates::MainMenuScreen, L"Main menu");
-
-
-	previousState = currentState = GameStates::MainMenuScreen;
-
-	//Decide upon current screen and enter it.
-	currentScreen = stateToScreenMap[currentState];
-	currentScreen->Enter();
-
 	return true;
 }
 
@@ -117,12 +101,12 @@ void ScreenManager::InitializeGUI()
 
 	// http://static.cegui.org.uk/docs/current/datafile_tutorial.html
 
-	// create (load) the TaharezLook scheme file
-	// (this auto-loads the TaharezLook looknfeel and imageset files)
-	CEGUI::SchemeManager::getSingleton().createFromFile("TaharezLook.scheme" );
-
-	//Aaaaand.. Alfisko scheme too
-	CEGUI::SchemeManager::getSingleton().createFromFile("AlfiskoSkin.scheme" );
+	// create (load) the scheme files
+	// (this auto-loads the looknfeel and imageset files)
+	CEGUI::SchemeManager::getSingleton().createFromFile("TaharezLook.scheme");
+	CEGUI::SchemeManager::getSingleton().createFromFile("AlfiskoSkin.scheme");
+	CEGUI::SchemeManager::getSingleton().createFromFile("VanillaSkin.scheme");
+	CEGUI::SchemeManager::getSingleton().createFromFile("VanillaCommonDialogs.scheme");
 
 	// create (load) a font.
 	// The first font loaded automatically becomes the default font, but note
@@ -142,6 +126,25 @@ void ScreenManager::InitializeGUI()
 	// It is actually possible to set this on a per-window basis, though this is not normally required, and is beyond the scope of this introductory tutorial. 
 	// The code to set the default tool tip window type for the initial, default GUIContext looks like this:
 	CEGUI::System::getSingleton().getDefaultGUIContext().setDefaultTooltipType("TaharezLook/Tooltip");
+
+
+	textOverlayScreen = std::make_shared<TextOverlayScreen>();
+	textOverlayScreen->Initialize(d3D.get());
+
+	std::shared_ptr<GameplayScreen> gameplayScreen = std::make_shared<GameplayScreen>(hwnd, input, d3D);
+	AddNewScreen(gameplayScreen, GameStates::GameScreen, L"Gameplay screen");
+
+	std::shared_ptr<MainMenuScreen> mainMenuScreen = std::make_shared<MainMenuScreen>(input);
+	AddNewScreen(mainMenuScreen, GameStates::MainMenuScreen, L"Main menu");
+
+	std::shared_ptr<ChatRoomScreen> chatRoomScreen = std::make_shared<ChatRoomScreen>(input);
+	AddNewScreen(chatRoomScreen, GameStates::ChatRoom, L"Chat room");
+
+	previousState = currentState = GameStates::MainMenuScreen;
+
+	//Decide upon current screen and enter it.
+	currentScreen = stateToScreenMap[currentState];
+	currentScreen->Enter();
 }
 
 //Inserts a new screen into the map, together with its' corresponding gameState key.
@@ -214,7 +217,7 @@ void ScreenManager::ChangeState(GameStates::Type newState)
 }
 
 //This is pretty much our core game loop... Heh.
-bool ScreenManager::UpdateActiveScreen()
+bool ScreenManager::Update()
 {
 	bool result;
 
@@ -228,7 +231,7 @@ bool ScreenManager::UpdateActiveScreen()
 			textOverlayScreen->Clear();
 
 			currentScreen->Enter();
-			
+
 			paused = false;
 		}
 
@@ -274,7 +277,7 @@ bool ScreenManager::UpdateActiveScreen()
 
 		d3D->PresentFrame();
 	}
-	else
+	else			//Else we draw a "Paused" message on the screen   
 	{
 		//Using paused as a flag to make sure we only set overlay text once. No need to constantly send in the same string...
 		if(!paused)
@@ -290,6 +293,79 @@ bool ScreenManager::UpdateActiveScreen()
 	return true;
 }
 
+/*
+*
+* Setup: *
+//http://msdn.microsoft.com/en-us/library/windows/hardware/ff543477(v=vs.85).aspx
+#ifndef HID_USAGE_PAGE_GENERIC
+#define HID_USAGE_PAGE_GENERIC         ((USHORT)0x01)
+#endif
+#ifndef HID_USAGE_GENERIC_MOUSE
+#define HID_USAGE_GENERIC_MOUSE        ((USHORT)0x02)
+#endif
+#ifndef HID_USAGE_GENERIC_KEYBOARD
+#define HID_USAGE_GENERIC_KEYBOARD        ((USHORT)0x06)
+#endif
+
+RAWINPUTDEVICE Rid[2];
+Rid[0].usUsagePage = HID_USAGE_PAGE_GENERIC; 
+Rid[0].usUsage = HID_USAGE_GENERIC_MOUSE; 
+Rid[0].dwFlags = RIDEV_INPUTSINK;   
+Rid[0].hwndTarget = hWnd;
+
+Rid[1].usUsagePage = HID_USAGE_PAGE_GENERIC; 
+Rid[1].usUsage = HID_USAGE_GENERIC_KEYBOARD; 
+Rid[1].dwFlags = RIDEV_INPUTSINK;   
+Rid[1].hwndTarget = hWnd;
+
+RegisterRawInputDevices(Rid, 2, sizeof(Rid[0]);
+
+* Handling: *
+
+case WM_INPUT: 
+{
+UINT dwSize = 40;
+static BYTE lpb[40];
+
+GetRawInputData((HRAWINPUT)lParam, RID_INPUT, 
+lpb, &dwSize, sizeof(RAWINPUTHEADER));
+
+RAWINPUT* raw = (RAWINPUT*)lpb;
+
+if(raw->header.dwType == RIM_TYPEMOUSE) 
+{
+int xPosRelative = raw->data.mouse.lLastX;
+int yPosRelative = raw->data.mouse.lLastY;
+} 
+else if(raw->header.dwType == RIM_TYPEKEYBOARD)
+{
+//Handle keyboard stuff...
+}
+
+break;
+}
+*/
+
+void ScreenManager::HandleMessages( HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam )
+{
+	switch(umsg)
+	{
+	case WM_CHAR:
+		{
+			CEGUI::System::getSingleton().getDefaultGUIContext().injectChar(static_cast<CEGUI::utf32>(wparam));
+			break;
+		}
+	case WM_MOUSEWHEEL:
+		{
+			//mouse wheel delta, scaled down...
+			float zDelta = GET_WHEEL_DELTA_WPARAM(wparam) / 160.0f;
+
+			CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseWheelChange(zDelta);
+			break;
+		}
+	}
+}
+
 void ScreenManager::DrawOverlayText(const std::string& text)
 {
 	textOverlayScreen->SetText(text);
@@ -300,36 +376,38 @@ void ScreenManager::DrawOverlayText(const std::string& text)
 
 bool ScreenManager::HandleInputs()
 {
-	unsigned int mouseClickCount; //keyPressCount, 
+	unsigned int mouseClickCount, keyPressCount;
+	bool result = false;
 
 	//Get singleton
 	CEGUI::System::getSingleton().injectTimePulse(timer.GetFrameTimeSeconds());
+
 	CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseMove(input->GetMouseDelta().x, input->GetMouseDelta().y);
 
-	//keyPressCount = input->ActiveKeyboardStateCount();
+	keyPressCount = input->ActiveKeyboardStateCount();
 	mouseClickCount = input->ActiveMouseStateCount();
 
-	//if(keyPressCount > 0)
-	//{
-	//	auto keyArray = input->GetActiveKeyboardStates();
+	if(keyPressCount > 0)
+	{
+		auto keyArray = input->GetActiveKeyboardStates();
 
-	//	for(int i = 0; i < keyPressCount; i++)
-	//	{
-	//		result = CEGUI::System::getSingleton().getDefaultGUIContext().injectChar((unsigned int)(keyArray[i].second)); //static_cast<CEGUI::utf32>
+		for(int i = 0; i < keyPressCount; i++)
+		{
+			result = false;
 
-	//		switch(keyArray[i].first)
-	//		{
-	//		case InputClass::KeyDown:
-	//			result = CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyDown((CEGUI::Key::Scan)keyArray[i].second);
-	//			break;
+			switch(keyArray[i].first)
+			{
+			case InputClass::KeyDown:
+				result = CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyDown(static_cast<CEGUI::Key::Scan>(keyArray[i].second));
+				break;
 
-	//		case InputClass::KeyUp:
-	//			result = CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyUp((CEGUI::Key::Scan)(keyArray[i].second));
-	//			break;
+			case InputClass::KeyUp:
+				result = CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyUp(static_cast<CEGUI::Key::Scan>(keyArray[i].second));
+				break;
 
-	//		};
-	//	}
-	//}
+			};
+		}
+	}
 
 	if(mouseClickCount > 0)
 	{
@@ -378,105 +456,6 @@ bool ScreenManager::HandleInputs()
 	return true;
 }
 
-//TODO: move this function to some more appropriate place
-CEGUI::utf32 ScreenManager::KeycodeToUTF32( unsigned int scanCode )
-{
-	CEGUI::utf32 utf = 0;
-
-	BYTE keyboardState[256];
-	unsigned char ucBuffer[3];
-	static WCHAR deadKey = '\0';
-
-	// Retrieve the keyboard layout in order to perform the necessary convertions
-	HKL hklKeyboardLayout = GetKeyboardLayout(0); // 0 means current thread 
-	// This seemingly cannot fail 
-	// If this value is cached then the application must respond to WM_INPUTLANGCHANGE 
-
-	// Retrieve the keyboard state
-	// Handles CAPS-lock and SHIFT states
-	if (GetKeyboardState(keyboardState) == FALSE)
-		return utf;
-
-	/* 0. Convert virtual-key code into a scan code
-	1. Convert scan code into a virtual-key code
-	Does not distinguish between left- and right-hand keys.
-	2. Convert virtual-key code into an unshifted character value
-	in the low order word of the return value. Dead keys (diacritics)
-	are indicated by setting the top bit of the return value.
-	3. Windows NT/2000/XP: Convert scan code into a virtual-key
-	Distinguishes between left- and right-hand keys.*/
-	UINT virtualKey = MapVirtualKeyEx(scanCode, 3, hklKeyboardLayout);
-	if (virtualKey == 0) // No translation possible
-		return utf;
-
-	/* Parameter 5:
-	0. No menu is active
-	1. A menu is active
-	Return values:
-	Negative. Returned a dead key
-	0. No translation available
-	1. A translation exists 
-	2. Dead-key could not be combined with character 	*/
-	int ascii = ToAsciiEx(virtualKey, scanCode, keyboardState, (LPWORD) ucBuffer, 0, hklKeyboardLayout);
-	if(deadKey != '\0' && ascii == 1)
-	{
-		// A dead key is stored and we have just converted a character key
-		// Combine the two into a single character
-		WCHAR wcBuffer[3];
-		WCHAR out[3];
-		wcBuffer[0] = ucBuffer[0];
-		wcBuffer[1] = deadKey;
-		wcBuffer[2] = '\0';
-		if( FoldStringW(MAP_PRECOMPOSED, (LPWSTR) wcBuffer, 3, (LPWSTR) out, 3) )
-			utf = out[0];
-		else
-		{
-			// FoldStringW failed
-			DWORD dw = GetLastError();
-			switch(dw)
-			{
-			case ERROR_INSUFFICIENT_BUFFER:
-			case ERROR_INVALID_FLAGS:
-			case ERROR_INVALID_PARAMETER:
-				break;
-			}
-		}
-		deadKey = '\0';
-	}
-	else if (ascii == 1)
-	{
-		// We have a single character
-		utf = ucBuffer[0];
-		deadKey = '\0';
-	}
-	else
-	{
-		// Convert a non-combining diacritical mark into a combining diacritical mark
-		switch(ucBuffer[0])
-		{
-		case 0x5E: // Circumflex accent: â
-			deadKey = 0x302;
-			break;
-		case 0x60: // Grave accent: � 
-			deadKey = 0x300;
-			break;
-		case 0xA8: // Diaeresis: ü
-			deadKey = 0x308;
-			break;
-		case 0xB4: // Acute accent: é
-			deadKey = 0x301;
-			break;
-		case 0xB8: // Cedilla: ç
-			deadKey = 0x327;
-			break;
-		default:
-			deadKey = ucBuffer[0];
-		}
-	}
-
-	return utf;
-}
-
 void ScreenManager::OnSettingsReload( Config* cfg )
 {
 	const Setting& settings = cfg->getRoot()["rendering"];
@@ -487,3 +466,103 @@ void ScreenManager::OnSettingsReload( Config* cfg )
 	settings.lookupValue("shadowmapWidth", shadowMapWidth);
 	settings.lookupValue("shadowmapHeight", shadowMapHeight);
 }
+
+/*
+CEGUI::utf32 ScreenManager::KeycodeToUTF32( unsigned int scanCode )
+{
+CEGUI::utf32 utf = 0;
+
+BYTE keyboardState[256];
+unsigned char ucBuffer[3];
+static WCHAR deadKey = '\0';
+
+// Retrieve the keyboard layout in order to perform the necessary convertions
+HKL hklKeyboardLayout = GetKeyboardLayout(0); // 0 means current thread 
+// This seemingly cannot fail 
+// If this value is cached then the application must respond to WM_INPUTLANGCHANGE 
+
+// Retrieve the keyboard state
+// Handles CAPS-lock and SHIFT states
+if (GetKeyboardState(keyboardState) == FALSE)
+return utf;
+
+//0. Convert virtual-key code into a scan code
+//1. Convert scan code into a virtual-key code
+//Does not distinguish between left- and right-hand keys.
+//2. Convert virtual-key code into an unshifted character value
+//in the low order word of the return value. Dead keys (diacritics)
+//are indicated by setting the top bit of the return value.
+//3. Windows NT/2000/XP: Convert scan code into a virtual-key
+//Distinguishes between left- and right-hand keys.
+UINT virtualKey = MapVirtualKeyEx(scanCode, 3, hklKeyboardLayout);
+if (virtualKey == 0) // No translation possible
+return utf;
+
+//Parameter 5:
+//0. No menu is active
+//1. A menu is active
+//Return values:
+//Negative. Returned a dead key
+//0. No translation available
+//1. A translation exists 
+//2. Dead-key could not be combined with character
+int ascii = ToAsciiEx(virtualKey, scanCode, keyboardState, (LPWORD) ucBuffer, 0, hklKeyboardLayout);
+if(deadKey != '\0' && ascii == 1)
+{
+// A dead key is stored and we have just converted a character key
+// Combine the two into a single character
+WCHAR wcBuffer[3];
+WCHAR out[3];
+wcBuffer[0] = ucBuffer[0];
+wcBuffer[1] = deadKey;
+wcBuffer[2] = '\0';
+if( FoldStringW(MAP_PRECOMPOSED, (LPWSTR) wcBuffer, 3, (LPWSTR) out, 3) )
+utf = out[0];
+else
+{
+// FoldStringW failed
+DWORD dw = GetLastError();
+switch(dw)
+{
+case ERROR_INSUFFICIENT_BUFFER:
+case ERROR_INVALID_FLAGS:
+case ERROR_INVALID_PARAMETER:
+break;
+}
+}
+deadKey = '\0';
+}
+else if (ascii == 1)
+{
+// We have a single character
+utf = ucBuffer[0];
+deadKey = '\0';
+}
+else
+{
+// Convert a non-combining diacritical mark into a combining diacritical mark
+switch(ucBuffer[0])
+{
+case 0x5E: // Circumflex accent: â
+deadKey = 0x302;
+break;
+case 0x60: // Grave accent: � 
+deadKey = 0x300;
+break;
+case 0xA8: // Diaeresis: ü
+deadKey = 0x308;
+break;
+case 0xB4: // Acute accent: é
+deadKey = 0x301;
+break;
+case 0xB8: // Cedilla: ç
+deadKey = 0x327;
+break;
+default:
+deadKey = ucBuffer[0];
+}
+}
+
+return utf;
+}
+*/

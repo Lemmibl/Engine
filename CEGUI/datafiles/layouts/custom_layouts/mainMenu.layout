@@ -28,10 +28,10 @@
             <Property name="AutoRenderingSurface" value="True" />
             <Property name="WantsMultiClickEvents" value="False" />
         </Window>
-        <Window type="AlfiskoSkin/WhiteButton" name="Options" >
+        <Window type="AlfiskoSkin/WhiteButton" name="Chat Room" >
             <Property name="Area" value="{{0,0},{0,0},{0,150},{0,50}}" />
             <Property name="Font" value="DejaVuSans-12" />
-            <Property name="Text" value="Options" />
+            <Property name="Text" value="Chat Room" />
             <Property name="AlwaysOnTop" value="True" />
             <Property name="ClippedByParent" value="False" />
             <Property name="VerticalAlignment" value="Centre" />
@@ -40,7 +40,8 @@
             <Property name="WantsMultiClickEvents" value="False" />
         </Window>
         <Window type="TaharezLook/FrameWindow" name="FrameWindow" >
-            <Property name="Area" value="{{0,-87},{0,-59},{0.3,931},{0.3,641}}" />
+            <Property name="Area" value="{{0,-63},{0,15},{0.3,955},{0.3,1006}}" />
+            <Property name="Text" value="Chat Room" />
             <Property name="PixelAligned" value="False" />
             <Property name="RollUpEnabled" value="False" />
             <Property name="TitlebarEnabled" value="False" />

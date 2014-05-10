@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<GUILayout version="4" >
+    <Window type="TaharezLook/Tree" name="Root" >
+        <Property name="Area" value="{{0,0},{0,-4},{0,1024},{0,769}}" />
+        <Window type="TaharezLook/StaticText" name="StaticText" >
+            <Property name="Area" value="{{0,0},{0,0},{0,201},{0,415}}" />
+            <Property name="MaxSize" value="{{1,0},{1,0}}" />
+            <Property name="HorzScrollPageSize" value="188.2" />
+            <Property name="VertScrollPageSize" value="402.2" />
+        </Window>
+    </Window>
+</GUILayout>

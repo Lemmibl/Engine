@@ -3,6 +3,16 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "Engine.h"
 
+#ifndef HID_USAGE_PAGE_GENERIC
+#define HID_USAGE_PAGE_GENERIC		((USHORT)0x01)
+#endif
+#ifndef HID_USAGE_GENERIC_MOUSE
+#define HID_USAGE_GENERIC_MOUSE		((USHORT)0x02)
+#endif
+#ifndef HID_USAGE_GENERIC_KEYBOARD
+#define HID_USAGE_GENERIC_KEYBOARD	((USHORT)0x06)
+#endif
+
 Engine::Engine()
 	: SettingsDependent(), screenManager()
 {
@@ -15,7 +25,7 @@ Engine::~Engine()
 
 bool Engine::Initialize()
 {
-	bool result;
+	bool result = true;
 
 	// Initialize values.
 	screenWidth = 0;
@@ -26,6 +36,24 @@ bool Engine::Initialize()
 
 	//Load settings from file
 	InitializeSettings(this);
+
+	//RAWINPUTDEVICE Rid[2];
+	//Rid[0].usUsagePage = HID_USAGE_PAGE_GENERIC; 
+	//Rid[0].usUsage = HID_USAGE_GENERIC_MOUSE; 
+	//Rid[0].dwFlags = RIDEV_INPUTSINK;   
+	//Rid[0].hwndTarget = hwnd;
+
+	//Rid[1].usUsagePage = HID_USAGE_PAGE_GENERIC; 
+	//Rid[1].usUsage = HID_USAGE_GENERIC_KEYBOARD; 
+	//Rid[1].dwFlags = RIDEV_INPUTSINK;   
+	//Rid[1].hwndTarget = hwnd;
+
+	//result = RegisterRawInputDevices(Rid, 2, sizeof(Rid[0]));
+	//if(!result)
+	//{
+	//	MessageBox(hwnd, L"Could not register raw input devices.", L"Error", MB_OK);
+	//	return false;
+	//}
 
 	result = screenManager.Initialize(hwnd, hinstance, screenWidth, screenHeight, windowCenterPosX, windowCenterPosY, VSYNC_ENABLED, FULL_SCREEN);
 	if(!result)
@@ -68,7 +96,7 @@ void Engine::MainLoop()
 			//TODO: http://stackoverflow.com/questions/17785022/game-not-recieving-wm-killfocus-message-while-in-fullscreen
 
 			//Otherwise do the frame processing. If frame processing fails then exit.
-			result = screenManager.UpdateActiveScreen();
+			result = screenManager.Update();
 			if(!result)
 			{
 				MessageBox(hwnd, L"Active screen update failed. Terminating...", L"Error", MB_OK);
@@ -83,6 +111,8 @@ void Engine::MainLoop()
 
 LRESULT CALLBACK Engine::MessageHandler(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam)
 {
+	screenManager.HandleMessages(hwnd, umsg, wparam, lparam);
+
 	return DefWindowProc(hwnd, umsg, wparam, lparam);
 }
 

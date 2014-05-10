@@ -127,7 +127,7 @@ bool InputClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenStartPosX,
 	//Just initialize to default (empty) values
 	for(int i = 0; i < 100; i++)
 	{
-		activeKeyStates[i] = std::make_pair<KeyState, unsigned char>(Null, 0);
+		activeKeyStates[i] = std::make_pair<KeyState, unsigned int>(Null, 0);
 	}
 
 	//Just initialize to default (empty) values
@@ -194,6 +194,43 @@ bool InputClass::Update(HWND hwnd)
 	return true;
 }
 
+/*
+void Win32AppHelper::doDirectInputEvents(const Win32AppHelper::DirectInputState& dis)
+{
+// handle direct input based inputs
+DIDEVICEOBJECTDATA devDat;
+DWORD itemCount = 1;
+
+HRESULT res = dis.keyboardDevice->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), &devDat, &itemCount, 0);
+
+if (SUCCEEDED(res))
+{
+if (itemCount > 0)
+{
+if (LOBYTE(devDat.dwData) & 0x80)
+{
+s_samplesFramework->injectKeyDown((CEGUI::Key::Scan)devDat.dwOfs);
+}
+else
+{
+s_samplesFramework->injectKeyUp((CEGUI::Key::Scan)devDat.dwOfs);
+}
+
+}
+}
+else
+{
+// try to re-acquire device if that was the cause of the error.
+if ((res == DIERR_NOTACQUIRED) || (res == DIERR_INPUTLOST))
+{
+dis.keyboardDevice->Acquire();
+}
+
+}
+
+}
+*/
+
 bool InputClass::ReadKeyboard(HWND hwnd)
 {
 	if (!keyboard)
@@ -211,34 +248,43 @@ bool InputClass::ReadKeyboard(HWND hwnd)
 	previousKeyStates.swap(currentKeyStates);
 
 	//Assign new values to currentKeyStates
-	if(FAILED(keyboard->GetDeviceState(256, keyStates)))
+	if(FAILED(keyboard->GetDeviceState(sizeof(keyStates), (LPVOID)&keyStates)))
 	{
 		if (FAILED(keyboard->Acquire())) return false;
 	}
 
+
 	//Convert keystates to uint for use with CEGUI
 	//Also record any actual events
-	for(int i = 0; i < 256; i++)
+	for(int i = 0; i < 256; ++i)
 	{
 		currentKeyStates[i] = keyStates[i];
 
-		if(currentKeyStates[i] & 0x80)
-		{			
-			//If key is currently pressed down, add it as an active state
-			activeKeyStates[amountOfActiveKeyboardstates].first = KeyDown;
-			activeKeyStates[amountOfActiveKeyboardstates].second = currentKeyStates[i];
-
-			//Increment in case we get more active key states
-			amountOfActiveKeyboardstates++;
-		}
-		else if(!(currentKeyStates[i] & 0x80) && previousKeyStates[i] & 0x80)
+		if(amountOfActiveKeyboardstates < 100)
 		{
-			//OK, so if you've reached this part, it means that the first if failed, meaning that the key isn't currently pressed down. But if previous key state WAS pressed down it means that the key was just released.
-			activeKeyStates[amountOfActiveKeyboardstates].first = KeyUp;
-			activeKeyStates[amountOfActiveKeyboardstates].second = currentKeyStates[i];
 
-			//Increment in case we get more active key states
-			amountOfActiveKeyboardstates++;
+			if(currentKeyStates[i] & 0x80)
+			{			
+				//If key is currently pressed down, add it as an active state
+				activeKeyStates[amountOfActiveKeyboardstates].first = KeyDown;
+
+				//Apparently the CEGUI key enums are straight up mapped to the DI8 enums, so I just cast the array index i to a CEGUI key code. Works well.
+				activeKeyStates[amountOfActiveKeyboardstates].second = static_cast<unsigned int>(i);
+
+				//Increment in case we get more active key states
+				++amountOfActiveKeyboardstates;
+			}
+			else if(!(currentKeyStates[i] & 0x80) && previousKeyStates[i] & 0x80)
+			{
+				//OK, so if you've reached this part, it means that the first if failed, meaning that the key isn't currently pressed down. But if previous key state WAS pressed down it means that the key was just released.
+				activeKeyStates[amountOfActiveKeyboardstates].first = KeyUp;
+
+				//Apparently the CEGUI key enums are straight up mapped to the DI8 enums, so I just cast the array index i to a CEGUI key code. Works well.
+				activeKeyStates[amountOfActiveKeyboardstates].second = static_cast<unsigned int>(i);
+
+				//Increment in case we get more active key states
+				++amountOfActiveKeyboardstates;
+			}	
 		}
 	}
 
@@ -277,7 +323,7 @@ bool InputClass::ReadMouse()
 		if(currentMouseState.rgbButtons[i] & 0x80)
 		{
 			activeMouseStates[amountOfActiveMousestates].first = KeyDown;
-			
+
 			//Cast index to mouse button, because they conveniently line up correctly
 			activeMouseStates[amountOfActiveMousestates].second = static_cast<CEGUI::MouseButton>(i);
 
@@ -292,7 +338,7 @@ bool InputClass::ReadMouse()
 
 			amountOfActiveMousestates++;
 		}
-		
+
 		//Mouse was clicked
 		// 
 		//if(previousMouseState.rgbButtons[i] & 0x80 && !(currentMouseState.rgbButtons[i] & 0x80))
@@ -387,5 +433,5 @@ UINT InputClass::WndProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 XMFLOAT2 InputClass::GetMouseDelta()
 {
-	return XMFLOAT2((float)mouseX - prevMouseX, (float)mouseY - prevMouseY);
+	return XMFLOAT2((float)mouseX - (float)prevMouseX, (float)mouseY - (float)prevMouseY);
 }

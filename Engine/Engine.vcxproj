@@ -15,6 +15,7 @@
     <ClCompile Include="bitmapclass.cpp" />
     <ClCompile Include="BlendStateManager.cpp" />
     <ClCompile Include="cameraclass.cpp" />
+    <ClCompile Include="ChatRoomScreen.cpp" />
     <ClCompile Include="ChunkFactory.cpp" />
     <ClCompile Include="controllerclass.cpp" />
     <ClCompile Include="cpumeter.cpp" />
@@ -31,9 +32,11 @@
     <ClCompile Include="DRObjModelShader.cpp" />
     <ClCompile Include="DRWaterClass.cpp" />
     <ClCompile Include="fontshaderclass.cpp" />
+    <ClCompile Include="FormattedListboxTextItem.cpp" />
     <ClCompile Include="fpsmeter.cpp" />
     <ClCompile Include="frustumclass.cpp" />
     <ClCompile Include="FullScreenShaderInterface.cpp" />
+    <ClCompile Include="GameConsoleWindow.cpp" />
     <ClCompile Include="GameplayScreen.cpp" />
     <ClCompile Include="SSAOBlur.cpp" />
     <ClCompile Include="TextOverlayScreen.cpp" />
@@ -97,6 +100,7 @@
   <ItemGroup>
     <ClInclude Include="..\Tinythread\fast_mutex.h" />
     <ClInclude Include="..\Tinythread\tinythread.h" />
+    <ClInclude Include="ChatRoomScreen.h" />
     <ClInclude Include="ChunkFactory.h" />
     <ClInclude Include="DebugOverlayHUDHandle.h" />
     <ClInclude Include="bitmapclass.h" />
@@ -104,6 +108,8 @@
     <ClInclude Include="cameraclass.h" />
     <ClInclude Include="controllerclass.h" />
     <ClInclude Include="cpumeter.h" />
+    <ClInclude Include="FormattedListboxTextItem.h" />
+    <ClInclude Include="GameConsoleWindow.h" />
     <ClInclude Include="RenderableBundle.h" />
     <ClInclude Include="ShaderInputStructs.h" />
     <ClInclude Include="SSAOBlur.h" />

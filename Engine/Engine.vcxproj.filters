@@ -246,6 +246,15 @@
     <ClCompile Include="UnderwaterFilterShader.cpp">
       <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
     </ClCompile>
+    <ClCompile Include="FormattedListboxTextItem.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="GameConsoleWindow.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="ChatRoomScreen.cpp">
+      <Filter>State machines and menus\Screens</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cpumeter.h">
@@ -534,6 +543,15 @@
     <ClInclude Include="RenderableBundle.h">
       <Filter>Rendering\Rendering utility</Filter>
     </ClInclude>
+    <ClInclude Include="FormattedListboxTextItem.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GameConsoleWindow.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="ChatRoomScreen.h">
+      <Filter>State machines and menus\Screens</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\GeometryShaderGrass.gsh">
@@ -807,6 +825,9 @@
     </Filter>
     <Filter Include="Rendering\Shader wrappers\Shader input structs">
       <UniqueIdentifier>{fb042562-9cfd-45b1-b1bd-d5310e97e1da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GUI">
+      <UniqueIdentifier>{f4369cf8-bf3c-4ea1-9733-7a6bf436134b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

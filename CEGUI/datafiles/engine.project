@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project CEGUIDefaultResolution="1280x720" CEGUIVersion="1.0" baseDirectory="." fontsPath="fonts" imagesetsPath="imagesets" layoutsPath="layouts" looknfeelsPath="looknfeel" schemesPath="schemes" version="CEED Project 1" xmlSchemasPath="xml_schemas">
     <Items>
-        <Item path="layouts/mainMenu.layout" type="file" />
-        <Item path="layouts/debugHUD.layout" type="file" />
+        <Item path="layouts/custom_layouts/chatRoom.layout" type="file" />
+        <Item path="layouts/custom_layouts/debugHUD.layout" type="file" />
+        <Item path="layouts/custom_layouts/mainMenu.layout" type="file" />
     </Items>
 </Project>

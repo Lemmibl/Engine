@@ -109,7 +109,7 @@ public:
 	XMFLOAT2 GetMouseDelta();
 
 	//This is an array. You can find the active count through ActiveKeyboardStateCount()
-	std::pair<KeyState, unsigned char>* GetActiveKeyboardStates() { return activeKeyStates; }
+	std::pair<KeyState, unsigned int>* GetActiveKeyboardStates() { return activeKeyStates; }
 	unsigned int ActiveKeyboardStateCount() { return amountOfActiveKeyboardstates; }
 
 	//This is an array. You can find the active count through ActiveMouseStateCount()
@@ -130,7 +130,7 @@ private:
 	//TODO: Mouse button... http://www.two-kings.de/tutorials/dinput/dinput03.html
 
 	unsigned char keyStates[256];
-	std::pair<KeyState, unsigned char> activeKeyStates[100];
+	std::pair<KeyState, unsigned int> activeKeyStates[100];
 	std::pair<KeyState, CEGUI::MouseButton> activeMouseStates[10];
 	std::vector<unsigned char> currentKeyStates;
 	std::vector<unsigned char> previousKeyStates;

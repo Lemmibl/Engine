@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<GUILayout version="4" >
+    <Window type="TaharezLook/GroupBox" name="GroupBox" >
+        <Property name="Area" value="{{0,0},{0,0},{1.05098,0},{0.563021,498}}" />
+        <Property name="MaxSize" value="{{1.2,0},{1.2,0}}" />
+        <Property name="VerticalAlignment" value="Centre" />
+        <Property name="HorizontalAlignment" value="Centre" />
+        <Window type="TaharezLook/FrameWindow" name="FrameWindow" >
+            <Property name="Area" value="{{0,-63},{0,15},{0.3,955},{0.3,1006}}" />
+            <Property name="Text" value="Chat Room" />
+            <Property name="PixelAligned" value="False" />
+            <Property name="RollUpEnabled" value="False" />
+            <Property name="TitlebarEnabled" value="False" />
+            <Property name="ClientAreaColour" value="tl:FF000000 tr:FF000000 bl:FF000000 br:FF000000" />
+            <Property name="DragMovingEnabled" value="False" />
+            <Property name="CloseButtonEnabled" value="False" />
+            <Property name="RiseOnClickEnabled" value="False" />
+            <Property name="TextParsingEnabled" value="False" />
+            <Property name="WantsMultiClickEvents" value="False" />
+            <AutoWindow namePath="__auto_titlebar__" >
+                <Property name="DraggingEnabled" value="False" />
+            </AutoWindow>
+        </Window>
+    </Window>
+</GUILayout>

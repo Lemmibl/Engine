@@ -8,16 +8,19 @@
 #include "timerclass.h"
 #include "GameStates.h"
 #include <map>
+#include <string>
 
 class InputClass;
 class D3DManager;
-class MainMenuScreen;
-class GameplayScreen;
+
 class TextOverlayScreen;
 class GenericScreen;
 
 class ScreenManager : public SettingsDependent
 {
+private:
+//#define GET_WHEEL_DELTA_WPARAM(wParam) ((short)HIWORD(wParam));
+
 public:
 	ScreenManager();
 	~ScreenManager();
@@ -28,12 +31,14 @@ public:
 	//Provides smooth transition out of current state and into new state
 	void ChangeState(GameStates::Type state);
 
-	bool UpdateActiveScreen();
+	bool Update();
+	void HandleMessages(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam);
+
 	bool HandleInputs();
 
 	virtual void OnSettingsReload(Config* cfg);
 
-	CEGUI::utf32 KeycodeToUTF32(unsigned int scanCode);
+	//CEGUI::utf32 KeycodeToUTF32(unsigned int scanCode);
 
 	//Returns true if escape was pressed this frame
 	bool Quitting() { return isQuitting; }

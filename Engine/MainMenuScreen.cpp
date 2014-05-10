@@ -53,7 +53,7 @@ void MainMenuScreen::Exit()
 bool MainMenuScreen::Initialize()
 {
 	//Load the layout for this menu
-	rootWindow = CEGUI::WindowManager::getSingleton().loadLayoutFromFile("mainMenu.layout");
+	rootWindow = CEGUI::WindowManager::getSingleton().loadLayoutFromFile("custom_layouts/mainMenu.layout");
 	if(!rootWindow)
 	{
 		return false;
@@ -78,21 +78,21 @@ bool MainMenuScreen::Initialize()
 	startGame->subscribeEvent(CEGUI::Window::EventMouseClick, CEGUI::SubscriberSlot::SubscriberSlot(startGameFunction));
 
 	//Set up open options function and bind it to the Options button
-	auto& openOptionsFunction = 
+	auto& openChatRoomFunction = 
 		[&](const CEGUI::EventArgs& args) -> bool
 	{
 		//Throws an event that will be caught by screenManager, signalling to change to options menu
-		stateChangeEvent(GameStates::OptionsScreen);
+		stateChangeEvent(GameStates::ChatRoom);
 
 		return true;
 	};
 
-	CEGUI::Window* optionsMenu = rootWindow->getChild("Options");
-	if(!optionsMenu)
+	CEGUI::Window* chatRoom = rootWindow->getChild("Chat Room");
+	if(!chatRoom)
 	{
 		return false;
 	}
-	optionsMenu->subscribeEvent(CEGUI::Window::EventMouseClick, CEGUI::SubscriberSlot::SubscriberSlot(openOptionsFunction));
+	chatRoom->subscribeEvent(CEGUI::Window::EventMouseClick, CEGUI::SubscriberSlot::SubscriberSlot(openChatRoomFunction));
 
 
 	//Set up quit function and bind it to Exit Game button event

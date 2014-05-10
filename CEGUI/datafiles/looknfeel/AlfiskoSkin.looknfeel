@@ -41,7 +41,7 @@
             </Layer>
         </StateImagery>
     </WidgetLook>
-	<WidgetLook name="AlfiskoSkin/WhiteButton">
+	 <WidgetLook name="AlfiskoSkin/WhiteButton">
         <PropertyDefinition initialValue="CentreAligned" type="VerticalTextFormatting" name="VertLabelFormatting"/>
         <PropertyDefinition initialValue="CentreAligned" type="HorizontalTextFormatting" name="HorzLabelFormatting"/>
         <Property name="Size" value="{{0, 96}, {0, 32}}" />
@@ -59,32 +59,11 @@
                 <VertFormatProperty name="VertLabelFormatting"/>
                 <HorzFormatProperty name="HorzLabelFormatting"/>
             </TextComponent>
-			<TextComponent>
-				<Colours topLeft="FFFFFFFF" bottomLeft="FFFFFFFF" topRight="FFFFFFFF" bottomRight="FFFFFFFF"/>
+            <TextComponent>
                 <VertFormatProperty name="VertLabelFormatting"/>
                 <HorzFormatProperty name="HorzLabelFormatting"/>
             </TextComponent>
         </ImagerySection>
-		<ImagerySection name="normalText">
-		    <TextComponent>
-                <Area>
-                    <Dim type="LeftEdge">
-                        <AbsoluteDim value="2"/>
-                    </Dim>
-                    <Dim type="TopEdge">
-                        <AbsoluteDim value="2"/>
-                    </Dim>
-                </Area>
-                <Colours topLeft="FFDDDDDD" bottomLeft="FFDDDDDD" topRight="FFDDDDDD" bottomRight="FFDDDDDD"/>
-                <VertFormatProperty name="VertLabelFormatting"/>
-                <HorzFormatProperty name="HorzLabelFormatting"/>
-            </TextComponent>
-			<TextComponent>
-				<Colours topLeft="FF000000" bottomLeft="FF000000" topRight="FF000000" bottomRight="FF000000"/>
-				<VertFormatProperty name="VertLabelFormatting"/>
-				<HorzFormatProperty name="HorzLabelFormatting"/>
-			</TextComponent>
-		</ImagerySection>
         <ImagerySection name="normal">
             <FrameComponent>
                 <Image component="TopLeftCorner" name="AlfiskoSkin/ButtonNormalTL"/>
@@ -264,31 +243,31 @@
         </ImagerySection>
         <StateImagery name="Normal">
             <Layer>
-                <Section section="pushed"/>
-                <Section section="normalText"/>
+                <Section section="normal"/>
+                <Section section="label"/>
             </Layer>
         </StateImagery>
         <StateImagery name="Hover">
             <Layer>
                 <Section section="hover"/>
-                <Section section="normalText"/>
+                <Section section="label"/>
             </Layer>
         </StateImagery>
         <StateImagery name="Pushed">
             <Layer>
-                <Section section="normal"/>
+                <Section section="pushed"/>
                 <Section section="label"/>
             </Layer>
         </StateImagery>
         <StateImagery name="PushedOff">
             <Layer>
-                <Section section="pushed"/>
+                <Section section="normal"/>
                 <Section section="label"/>
             </Layer>
         </StateImagery>
         <StateImagery name="Disabled">
             <Layer>
-                <Section section="pushed"/>
+                <Section section="normal"/>
                 <Section section="label"/>
             </Layer>
         </StateImagery>

@@ -12,6 +12,7 @@ namespace GameStates
 		GameScreen,
 		LoadingScreen,
 		OptionsScreen,
+		ChatRoom,
 		QuitGame,
 		GAMESTATES_LIST_SIZE //Always keep last
 	};
