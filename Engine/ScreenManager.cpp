@@ -14,6 +14,7 @@ ScreenManager::ScreenManager() : SettingsDependent(), timer(), stateToScreenMap(
 	isQuitting = false;	
 	showCursor = true;
 	paused = false;
+	clickUpdateTimer = 0.0f;
 }
 
 
@@ -237,6 +238,8 @@ bool ScreenManager::Update()
 
 		timer.Update();
 
+		clickUpdateTimer += timer.GetFrameTimeSeconds();
+
 		// Do the input frame processing.
 		result = input->Update(hwnd);
 		if(!result)
@@ -409,8 +412,10 @@ bool ScreenManager::HandleInputs()
 		}
 	}
 
-	if(mouseClickCount > 0)
+	if(mouseClickCount > 0 && clickUpdateTimer >= 0.1f)
 	{
+		clickUpdateTimer = 0.0f;
+
 		auto mouseArray = input->GetActiveMouseStates();
 
 		for(unsigned int i = 0; i < mouseClickCount; i++)
@@ -422,16 +427,13 @@ bool ScreenManager::HandleInputs()
 
 			case InputClass::KeyUp:
 				CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonUp(mouseArray[i].second);
-
-				//case InputClass::MouseClick:
-				//	CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonClick(mouseArray[i].second);
 			}
 
 			if(mouseArray[i].second == CEGUI::RightButton)
 			{
-				//If right click was pressed then toggle the drawing of the mouse cursor.
-				if(mouseArray[i].first == InputClass::KeyUp)
-				{
+				////If right click was pressed then toggle the drawing of the mouse cursor.
+				//if(mouseArray[i].first == InputClass::KeyUp)
+				//{
 					showCursor = !showCursor;
 
 					//Retarded hack to toggle hiding and showing of mouse cursor.
@@ -449,7 +451,7 @@ bool ScreenManager::HandleInputs()
 						ShowCursor(FALSE);
 					}
 				}
-			}
+			//}
 		}
 	}
 

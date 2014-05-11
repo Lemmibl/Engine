@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<GUILayout version="4" >
+    <Window type="TaharezLook/FrameWindow" name="RootWindow" >
+        <Property name="Area" value="{{0,-25},{0,-25},{1,25},{1,25}}" />
+        <Property name="MaxSize" value="{{4,0},{4,0}}" />
+        <Property name="MinSize" value="{{0.05,0},{0.05,0}}" />
+        <Property name="ClientAreaColour" value="tl:FF4B7DC8 tr:FF4B7DC8 bl:FF4B7DC8 br:FF4B7DC8" />
+        <Window type="TaharezLook/FrameWindow" name="Console" >
+            <Property name="Area" value="{{0.42,0},{0.02,0},{0.97,10},{0.92,20}}" />
+            <Property name="MaxSize" value="{{1,0},{1,0}}" />
+            <Property name="MinSize" value="{{0.2,0},{0.2,0}}" />
+            <Property name="AlwaysOnTop" value="True" />
+            <Property name="CloseButtonEnabled" value="False" />
+            <Window type="TaharezLook/Button" name="Submit" >
+                <Property name="ID" value="1" />
+                <Property name="Area" value="{{0,-7},{0,-5},{0.25,-7},{0,25}}" />
+                <Property name="Text" value="Send" />
+                <Property name="MaxSize" value="{{1,0},{1,0}}" />
+                <Property name="VerticalAlignment" value="Bottom" />
+                <Property name="HorizontalAlignment" value="Right" />
+            </Window>
+            <Window type="TaharezLook/Editbox" name="Editbox" >
+                <Property name="ID" value="2" />
+                <Property name="Area" value="{{0,7},{0,-5},{0.75,-15},{0,25}}" />
+                <Property name="MaxSize" value="{{1,0},{1,0}}" />
+                <Property name="VerticalAlignment" value="Bottom" />
+            </Window>
+            <Window type="TaharezLook/Listbox" name="History" >
+                <Property name="ID" value="3" />
+                <Property name="Area" value="{{0,7},{0,7},{1,-8},{1,-43}}" />
+                <Property name="MaxSize" value="{{1,0},{1,0}}" />
+            </Window>
+        </Window>
+        <Window type="TaharezLook/FrameWindow" name="SideMenu" >
+            <Property name="Area" value="{{0.01,0},{-0.05,0},{0.41,0},{1.05,0}}" />
+            <Property name="Text" value="Select your text color" />
+            <Property name="MaxSize" value="{{1.5,0},{1.5,0}}" />
+            <Property name="MinSize" value="{{0.05,0},{0.05,0}}" />
+            <Property name="SizingEnabled" value="False" />
+            <Property name="TitlebarEnabled" value="False" />
+            <Property name="ClientAreaColour" value="tl:FF4B7DC8 tr:FF4B7DC8 bl:FF4B7DC8 br:FF4B7DC8" />
+            <Property name="DragMovingEnabled" value="False" />
+            <Property name="CloseButtonEnabled" value="False" />
+            <Property name="SizingBorderThickness" value="0" />
+            <AutoWindow namePath="__auto_titlebar__" >
+                <Property name="DraggingEnabled" value="False" />
+            </AutoWindow>
+            <Window type="TaharezLook/Editbox" name="NameEditbox" >
+                <Property name="Area" value="{{0.42,0},{0.05,0},{0.92,0},{0.09,0}}" />
+                <Property name="Text" value="A Noob" />
+            </Window>
+            <Window type="TaharezLook/Label" name="NameLabel" >
+                <Property name="Area" value="{{0.05,0},{0.05,0},{0.4,0},{0.09,0}}" />
+                <Property name="Text" value="Your nickname:" />
+                <Property name="MaxSize" value="{{1,0},{1,0}}" />
+            </Window>
+            <Window type="TaharezLook/Label" name="IPLabel" >
+                <Property name="Area" value="{{0.05,0},{0.85,0},{0.4,0},{0.89,0}}" />
+                <Property name="Text" value="IP to connect to:" />
+                <Property name="MaxSize" value="{{1,0},{1,0}}" />
+            </Window>
+            <Window type="TaharezLook/Editbox" name="IPEditBox" >
+                <Property name="Area" value="{{0.42,0},{0.85,0},{0.92,0},{0.89,0}}" />
+                <Property name="Text" value="127.0.0.1" />
+            </Window>
+            <Window type="TaharezLook/Label" name="ColorSelectionWidget" >
+                <Property name="Area" value="{{0.05,0},{0.1,0},{0.4,0},{0.14,0}}" />
+                <Property name="Text" value="Your text color:" />
+                <Property name="MaxSize" value="{{1,0},{1,0}}" />
+            </Window>
+        </Window>
+    </Window>
+</GUILayout>

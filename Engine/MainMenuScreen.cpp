@@ -53,7 +53,7 @@ void MainMenuScreen::Exit()
 bool MainMenuScreen::Initialize()
 {
 	//Load the layout for this menu
-	rootWindow = CEGUI::WindowManager::getSingleton().loadLayoutFromFile("custom_layouts/mainMenu.layout");
+	rootWindow = CEGUI::WindowManager::getSingleton().loadLayoutFromFile("customLayouts/mainMenu.layout");
 	if(!rootWindow)
 	{
 		return false;

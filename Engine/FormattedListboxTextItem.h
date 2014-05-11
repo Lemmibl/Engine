@@ -9,6 +9,7 @@ class FormattedListboxTextItem : public ListboxTextItem
 public:
 	//! Constructor
 	FormattedListboxTextItem(const String& text,
+					const Colour textColour = Colour(1.0f,1.0f,1.0f),
 					const HorizontalTextFormatting format = HTF_LEFT_ALIGNED,
 					const uint item_id = 0,
 					void* const item_data = 0,
@@ -37,7 +38,7 @@ public:
 protected:
 	//! Helper to create a FormattedRenderedString of an appropriate type.
 	void setupStringFormatter() const;
-
+	
 	//! Current formatting set
 	HorizontalTextFormatting d_formatting;
 

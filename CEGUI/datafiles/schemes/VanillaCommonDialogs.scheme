@@ -3,8 +3,6 @@
      Note: Currently to use this you must also load the VanillaSkin.scheme.
      Eventually it will be possible to 'include' one scheme from another, but
      we're not quite there yet.
-	 
-	 <WindowSet filename="CEGUICommonDialogs" />
 -->
 
 <GUIScheme version="5" name="VanillaCommonDialogs">

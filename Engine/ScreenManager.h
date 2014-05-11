@@ -52,7 +52,7 @@ private:
 
 private:
 	HWND hwnd;
-	float nearClip, farClip, shadowMapWidth, shadowMapHeight;
+	float nearClip, farClip, shadowMapWidth, shadowMapHeight, clickUpdateTimer;
 
 	std::shared_ptr<D3DManager> d3D;
 	std::shared_ptr<InputClass> input;

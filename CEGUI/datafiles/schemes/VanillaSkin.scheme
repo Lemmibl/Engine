@@ -24,3 +24,4 @@
 	<FalagardMapping windowType="Vanilla/RadioButton" targetType="CEGUI/RadioButton" renderer="Core/ToggleButton" lookNFeel="Vanilla/RadioButton" />
     <FalagardMapping windowType="Vanilla/Tooltip" targetType="CEGUI/Tooltip" renderer="Core/Tooltip" lookNFeel="Vanilla/Tooltip" />
 </GUIScheme>
+

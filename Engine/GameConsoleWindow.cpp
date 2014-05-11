@@ -1,6 +1,9 @@
 #include "GameConsoleWindow.h"
 
 #include "FormattedListboxTextItem.h"
+#include "CEGUI/WindowFactoryManager.h"
+#include "CEGUI/CommonDialogs/ColourPicker/ColourPicker.h"
+#include "CEGUI/CommonDialogs/ColourPicker/Controls.h"
 
 int GameConsoleWindow::iInstanceNumber;            // Don't forget this declaration
 
@@ -10,6 +13,9 @@ GameConsoleWindow::GameConsoleWindow()
 	m_ConsoleWindow = NULL;       // Always good practice to initialize a pointer to a NULL value, helps when switching to Release Builds.
 	iInstanceNumber = 0;
 	sNamePrefix = CEGUI::String("");
+	userName = CEGUI::String("");
+	textColour = CEGUI::Colour(1.0f, 1.0f, 1.0f);
+	colourPicker = nullptr;
 }
 
 GameConsoleWindow::~GameConsoleWindow()
@@ -29,9 +35,7 @@ void GameConsoleWindow::CreateCEGUIWindow(CEGUI::Window** rootWindow)
 	// Now that we can ensure that we have a safe prefix, and won't have any naming conflicts lets create the window
 	// and assign it to our member window pointer m_ConsoleWindow
 	// inLayoutName is the name of your layout file (for example "console.layout"), don't forget to rename inLayoutName by our layout file
-	CEGUI::String inLayoutName = "custom_layouts/chatRoom.layout";
-
-	m_ConsoleWindow = pWindowManager->loadLayoutFromFile(inLayoutName);
+	m_ConsoleWindow = pWindowManager->loadLayoutFromFile("customLayouts/ChatRoom.layout");
 
 	// Being a good programmer, its a good idea to ensure that we got a valid window back. 
 	if(m_ConsoleWindow)
@@ -50,6 +54,23 @@ void GameConsoleWindow::CreateCEGUIWindow(CEGUI::Window** rootWindow)
 			//Copy root so that we can show/hide this window from outside of the class etc.
 			*rootWindow = m_ConsoleWindow;
 		}
+
+		auto* sideMenu = m_ConsoleWindow->getChild(sNamePrefix + "SideMenu");
+
+		CEGUI::WindowFactoryManager::addWindowType<CEGUI::ColourPicker>();
+		CEGUI::WindowFactoryManager::addWindowType<CEGUI::ColourPickerControls>();
+
+		colourPicker = static_cast<CEGUI::ColourPicker*>(CEGUI::WindowManager::getSingleton().createWindow("Vanilla/ColourPicker"));
+		colourPicker->setPosition(CEGUI::UVector2(CEGUI::UDim(0.42f, 0.0f), CEGUI::UDim(0.1f, 0.0f)));
+		colourPicker->setSize(CEGUI::USize(CEGUI::UDim(0.5f, 0.0f), CEGUI::UDim(0.04f, 0.0f)));
+		static_cast<CEGUI::ColourPicker*>(colourPicker)->setColour(CEGUI::Colour(1.0f, 1.0f, 1.0f));
+		colourPicker->activate();
+		colourPicker->setVisible(true);
+
+		sideMenu->addChild(colourPicker);
+
+		//Set default username to.... Whatever is in the EditBox at start.
+		userName = sideMenu->getChild("NameEditbox")->getText();
 
 		// Now register the handlers for the events (Clicking, typing, etc)
 		RegisterHandlers();
@@ -81,6 +102,11 @@ void GameConsoleWindow::RegisterHandlers()
 		CEGUI::PushButton::EventClicked,
 		CEGUI::Event::Subscriber(&GameConsoleWindow::Handle_SendButtonPressed, this)); // Call Handle_SendButtonPressed member of GameConsoleWindow using (this) instance we're in right now
 
+	//Hook up the name edit box with an event so that the user name gets updated when a new name is input.
+	m_ConsoleWindow->getChild(sNamePrefix + "SideMenu/NameEditbox")->subscribeEvent(CEGUI::Editbox::EventTextAccepted, CEGUI::Event::Subscriber(&GameConsoleWindow::Handle_UserNameChanged, this));
+
+	//Subscribe to colour accepted event, call Handle_TextColourChanged when event is thrown.
+	colourPicker->subscribeEvent(CEGUI::ColourPicker::EventAcceptedColour, CEGUI::Event::Subscriber(&GameConsoleWindow::Handle_TextColourChanged, this));
 
 	//Get ptr to the vertical scrollbar on the history window
 	CEGUI::Scrollbar* scrollBar = static_cast<CEGUI::Listbox*>(m_ConsoleWindow->getChild(sNamePrefix + "Console/History"))->getVertScrollbar();
@@ -94,6 +120,22 @@ void GameConsoleWindow::RegisterHandlers()
 	const float scrollStepSize = 0.01f;
 
 	scrollBar->setConfig(0, 0, &scrollStepSize, 0, 0);
+}
+
+bool GameConsoleWindow::Handle_TextColourChanged(const CEGUI::EventArgs &e)
+{
+	textColour = static_cast<CEGUI::ColourPicker*>(colourPicker)->getColour().getARGB();
+
+	return true;
+}
+
+bool GameConsoleWindow::Handle_UserNameChanged(const CEGUI::EventArgs &e)
+{
+	const CEGUI::WindowEventArgs* args = static_cast<const CEGUI::WindowEventArgs*>(&e);
+
+	userName = 	args->window->getText();
+
+	return true;
 }
 
 bool GameConsoleWindow::Handle_TextSubmitted(const CEGUI::EventArgs &e)
@@ -139,7 +181,8 @@ void GameConsoleWindow::ParseText(CEGUI::String inMsg)
 		{
 			std::string::size_type commandEnd = inString.find(" ", 1);
 			std::string command = inString.substr(1, commandEnd - 1);
-			std::string commandArgs = inString.substr(commandEnd + 1, inString.length() - (commandEnd + 1));
+			//std::string commandArgs = inString.substr(commandEnd + 1, inString.length() - (commandEnd + 1));
+
 			//convert command to lower case
 			for(std::string::size_type i=0; i < command.length(); i++)
 			{
@@ -148,35 +191,36 @@ void GameConsoleWindow::ParseText(CEGUI::String inMsg)
 
 			// Begin processing
 
-			if (command == "say")
-			{
-				//"Optimal" way to replace the /say command with a "You:"
-				inString[0] = 'Y';
-				inString[1] = 'o';
-				inString[2] = 'u';
-				inString[3] = ':';
+			//if (command == "say")
+			//{
+			//	////"Optimal" way to replace the /say command with a "You:"
+			//	//inString[0] = 'Y';
+			//	//inString[1] = 'o';
+			//	//inString[2] = 'u';
+			//	//inString[3] = ':';
 
-				std::string outString = inString; //"You: " + inString.substr(4); // Create a new string with your "name" and only add the part of the string that isn't a command
-				OutputText(outString);
-			}
-			else if (command == "quit")
+			//	CEGUI::String outString = userName + ": " + inString.substr(4); // Create a new string with your "name" and only add the part of the string that isn't a command
+			//	OutputText(outString, textColour);
+			//}
+			//else 
+			if (command == "help")
 			{
-				// do a /quit 
+				OutputText("Do you want help? There is none! Despair!",  CEGUI::Colour(0.0f,1.0f,0.0f));
 			}
-			else if (command == "help")
+			else if (command == "yell")
 			{
-				std::string outString = "Do you want help? There is none! Despair!"; // Append our 'name' to the message we'll display in the list
-				OutputText(outString);
+				OutputText("You: AIEEEEEE!", textColour);
 			}
 			else
 			{
 				std::string outString = "<" + inString + "> is an invalid command.";
-				OutputText(outString,CEGUI::Colour(1.0f,0.0f,0.0f)); // With red ANGRY colors!
+				OutputText(outString, CEGUI::Colour(1.0f,0.0f,0.0f)); // With red ANGRY colors!
 			}
 		} // End if /
 		else
 		{
-			OutputText(inString); // no commands, just output what they wrote
+			CEGUI::String outString = userName + ": " + inString; // Create a new string with your "name" and only add the part of the string that isn't a command
+			OutputText(outString, textColour); // no commands, just output what was written
 		}
 	} 
 }
@@ -189,8 +233,7 @@ void GameConsoleWindow::OutputText(CEGUI::String inMsg, CEGUI::Colour colour)
 
 	CEGUI::FormattedListboxTextItem* newItem=0; // This will hold the actual text and will be the listbox segment / item
 
-	newItem = new CEGUI::FormattedListboxTextItem(inMsg); // instance new item
-	newItem->setTextColours(colour); // Set the text color
+	newItem = new CEGUI::FormattedListboxTextItem(inMsg, colour); // instance new item with colour
 	outputWindow->addItem(newItem); // Add the new FormattedListBoxTextItem to the ListBox
 }
 

@@ -641,12 +641,6 @@
     <None Include="Shaders\OBJGbuffer.psh">
       <Filter>Rendering\Shaders\Deferred shaders</Filter>
     </None>
-    <None Include="libconfig\libconfig.h++">
-      <Filter>Libraries\Libconfig</Filter>
-    </None>
-    <None Include="libconfig\libconfig++.dll">
-      <Filter>Libraries\Libconfig</Filter>
-    </None>
     <None Include="Shaders\WaterShader.vsh">
       <Filter>Rendering\Shaders\Deferred shaders\Water</Filter>
     </None>
@@ -694,6 +688,21 @@
     </None>
     <None Include="Shaders\UnderwaterFilterShader.vsh">
       <Filter>Rendering\Shaders\Post processing</Filter>
+    </None>
+    <None Include="libconfig\libconfig.h++">
+      <Filter>Libraries\Libconfig</Filter>
+    </None>
+    <None Include="libconfig\libconfig++.dll">
+      <Filter>Libraries\Libconfig</Filter>
+    </None>
+    <None Include="libconfig\libconfig_d.dll">
+      <Filter>Libraries\Libconfig</Filter>
+    </None>
+    <None Include="libconfig\libconfig++_d.dll">
+      <Filter>Libraries\Libconfig</Filter>
+    </None>
+    <None Include="libconfig\libconfig.dll">
+      <Filter>Libraries\Libconfig</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -802,9 +811,6 @@
     <Filter Include="Libraries\Tinythread">
       <UniqueIdentifier>{d6dd0404-b07f-4bd0-8ed8-7600bfcdc15b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Libraries\Libconfig">
-      <UniqueIdentifier>{16c9de94-ad7d-4ca3-b322-4222b7152371}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Terrain and procedural generation\Chunk Creation">
       <UniqueIdentifier>{f49b9e6b-4a1e-4562-bb93-eacc1859a033}</UniqueIdentifier>
     </Filter>
@@ -829,9 +835,15 @@
     <Filter Include="GUI">
       <UniqueIdentifier>{f4369cf8-bf3c-4ea1-9733-7a6bf436134b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Libraries\Libconfig">
+      <UniqueIdentifier>{2b40901e-0f02-44f3-b6cf-65198e187e2a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Library Include="libconfig\libconfig++.lib">
+      <Filter>Libraries\Libconfig</Filter>
+    </Library>
+    <Library Include="libconfig\libconfig.lib">
       <Filter>Libraries\Libconfig</Filter>
     </Library>
   </ItemGroup>

@@ -87,7 +87,7 @@ setting CMake options and regenerating, rather than editing directly.
 // event that we do not have control over)
 //////////////////////////////////////////////////////////////////////////
 #define CEGUI_BUILD_LUA_MODULE
-/* #undef CEGUI_BUILD_PYTHON_MODULES */
+#define CEGUI_BUILD_PYTHON_MODULES
 
 #endif
 
