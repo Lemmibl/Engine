@@ -255,6 +255,9 @@
     <ClCompile Include="ChatRoomScreen.cpp">
       <Filter>State machines and menus\Screens</Filter>
     </ClCompile>
+    <ClCompile Include="NetworkManager.cpp">
+      <Filter>Networking</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cpumeter.h">
@@ -552,6 +555,9 @@
     <ClInclude Include="ChatRoomScreen.h">
       <Filter>State machines and menus\Screens</Filter>
     </ClInclude>
+    <ClInclude Include="NetworkManager.h">
+      <Filter>Networking</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\GeometryShaderGrass.gsh">
@@ -837,6 +843,9 @@
     </Filter>
     <Filter Include="Libraries\Libconfig">
       <UniqueIdentifier>{2b40901e-0f02-44f3-b6cf-65198e187e2a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Networking">
+      <UniqueIdentifier>{3634a078-c756-427e-aa4b-d73d1e871a70}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

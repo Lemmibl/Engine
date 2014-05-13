@@ -20,6 +20,8 @@ GameConsoleWindow::GameConsoleWindow()
 
 GameConsoleWindow::~GameConsoleWindow()
 {
+	colourPicker = nullptr;
+	m_ConsoleWindow = nullptr;
 }
 
 void GameConsoleWindow::CreateCEGUIWindow(CEGUI::Window** rootWindow)
@@ -61,11 +63,10 @@ void GameConsoleWindow::CreateCEGUIWindow(CEGUI::Window** rootWindow)
 		CEGUI::WindowFactoryManager::addWindowType<CEGUI::ColourPickerControls>();
 
 		colourPicker = static_cast<CEGUI::ColourPicker*>(CEGUI::WindowManager::getSingleton().createWindow("Vanilla/ColourPicker"));
-		colourPicker->setPosition(CEGUI::UVector2(CEGUI::UDim(0.42f, 0.0f), CEGUI::UDim(0.1f, 0.0f)));
+		colourPicker->setPosition(CEGUI::UVector2(CEGUI::UDim(0.05f, 0.0f), CEGUI::UDim(0.1f, 0.0f)));
 		colourPicker->setSize(CEGUI::USize(CEGUI::UDim(0.5f, 0.0f), CEGUI::UDim(0.04f, 0.0f)));
 		static_cast<CEGUI::ColourPicker*>(colourPicker)->setColour(CEGUI::Colour(1.0f, 1.0f, 1.0f));
-		colourPicker->activate();
-		colourPicker->setVisible(true);
+		
 
 		sideMenu->addChild(colourPicker);
 
@@ -115,7 +116,8 @@ void GameConsoleWindow::RegisterHandlers()
 	scrollBar->setEndLockEnabled(true);
 
 	//These settings control how far you scroll every time you push the up/down buttons
-	scrollBar->setOverlapSize(50.0f);
+	//scrollBar->setOverlapSize(100.0f);
+	scrollBar->setStepSize(5.0f);
 
 	const float scrollStepSize = 0.01f;
 
@@ -133,7 +135,9 @@ bool GameConsoleWindow::Handle_UserNameChanged(const CEGUI::EventArgs &e)
 {
 	const CEGUI::WindowEventArgs* args = static_cast<const CEGUI::WindowEventArgs*>(&e);
 
-	userName = 	args->window->getText();
+	//Retrieve text that was just entered
+	userName = args->window->getText();
+
 
 	return true;
 }

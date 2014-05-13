@@ -15,6 +15,7 @@ ScreenManager::ScreenManager() : SettingsDependent(), timer(), stateToScreenMap(
 	showCursor = true;
 	paused = false;
 	clickUpdateTimer = 0.0f;
+	keypressUpdateTimer = 0.0f;
 }
 
 
@@ -114,11 +115,11 @@ void ScreenManager::InitializeGUI()
 	// that the scheme might have already loaded a font, so there may already
 	// be a default set - if we want the "DejaVuSans-10" font to definitely
 	// be the default, we should set the default explicitly afterwards.
-	CEGUI::FontManager::getSingleton().createFromFile("DejaVuSans-10.font");
+	CEGUI::FontManager::getSingleton().createFromFile("DejaVuSans-12-NoScale.font");
 
 	//The FontManager automatically sets the first loaded font as the system default. If this is not the default font you require, 
 	// or if you can not guarantee the order fonts are loaded, you should set the default explicitly, as in this code:
-	CEGUI::System::getSingleton().getDefaultGUIContext().setDefaultFont("DejaVuSans-10");
+	CEGUI::System::getSingleton().getDefaultGUIContext().setDefaultFont("DejaVuSans-12-NoScale");
 
 	//This uses the TaharezLook imageset which was loaded as part of the TaharezLook scheme we loaded above.
 	CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().setDefaultImage("TaharezLook/MouseArrow");
@@ -239,6 +240,7 @@ bool ScreenManager::Update()
 		timer.Update();
 
 		clickUpdateTimer += timer.GetFrameTimeSeconds();
+		keypressUpdateTimer += timer.GetFrameTimeSeconds();
 
 		// Do the input frame processing.
 		result = input->Update(hwnd);
@@ -358,6 +360,24 @@ void ScreenManager::HandleMessages( HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
 			CEGUI::System::getSingleton().getDefaultGUIContext().injectChar(static_cast<CEGUI::utf32>(wparam));
 			break;
 		}
+	//case WM_KEYDOWN:
+	//	{
+	//		replace inputclass???
+	//		inputClass->setKeyDown(wparam as keycode);
+	//		inputClass->storeKeydownEvent(wparam as keycode);
+	//		
+	//		break;
+	//	}
+	
+	//case WM_KEYUP
+	//	{
+	//		replace inputclass???
+	//		inputClass->setKeyUp(wparam as keycode);
+	//		inputClass->storeKeypressedEvent(wparam as keycode);  //<<<< the keypressed event will become consumed from the..... linked list? idk
+	//		
+	//		break;
+	//	}
+
 	case WM_MOUSEWHEEL:
 		{
 			//mouse wheel delta, scaled down...
@@ -390,8 +410,10 @@ bool ScreenManager::HandleInputs()
 	keyPressCount = input->ActiveKeyboardStateCount();
 	mouseClickCount = input->ActiveMouseStateCount();
 
-	if(keyPressCount > 0)
+	if(keyPressCount > 0 && keypressUpdateTimer >= KeyboardInputUpdateRate)
 	{
+		keypressUpdateTimer = 0.0f;
+
 		auto keyArray = input->GetActiveKeyboardStates();
 
 		for(int i = 0; i < keyPressCount; i++)
@@ -412,7 +434,7 @@ bool ScreenManager::HandleInputs()
 		}
 	}
 
-	if(mouseClickCount > 0 && clickUpdateTimer >= 0.1f)
+	if(mouseClickCount > 0 && clickUpdateTimer >= MouseInputUpdateRate)
 	{
 		clickUpdateTimer = 0.0f;
 

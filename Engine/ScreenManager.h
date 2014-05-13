@@ -19,7 +19,9 @@ class GenericScreen;
 class ScreenManager : public SettingsDependent
 {
 private:
-//#define GET_WHEEL_DELTA_WPARAM(wParam) ((short)HIWORD(wParam));
+//How often we'll update mouse input
+#define MouseInputUpdateRate 0.2f
+#define KeyboardInputUpdateRate 0.1f
 
 public:
 	ScreenManager();
@@ -52,7 +54,7 @@ private:
 
 private:
 	HWND hwnd;
-	float nearClip, farClip, shadowMapWidth, shadowMapHeight, clickUpdateTimer;
+	float nearClip, farClip, shadowMapWidth, shadowMapHeight, clickUpdateTimer, keypressUpdateTimer;
 
 	std::shared_ptr<D3DManager> d3D;
 	std::shared_ptr<InputClass> input;

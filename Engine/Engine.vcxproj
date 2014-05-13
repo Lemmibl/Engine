@@ -38,6 +38,7 @@
     <ClCompile Include="FullScreenShaderInterface.cpp" />
     <ClCompile Include="GameConsoleWindow.cpp" />
     <ClCompile Include="GameplayScreen.cpp" />
+    <ClCompile Include="NetworkManager.cpp" />
     <ClCompile Include="SSAOBlur.cpp" />
     <ClCompile Include="TextOverlayScreen.cpp" />
     <ClCompile Include="MainMenuScreen.cpp" />
@@ -110,6 +111,7 @@
     <ClInclude Include="cpumeter.h" />
     <ClInclude Include="FormattedListboxTextItem.h" />
     <ClInclude Include="GameConsoleWindow.h" />
+    <ClInclude Include="NetworkManager.h" />
     <ClInclude Include="RenderableBundle.h" />
     <ClInclude Include="ShaderInputStructs.h" />
     <ClInclude Include="SSAOBlur.h" />
@@ -283,7 +285,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\Lemmi\Documents\Visual Studio 2010\Projects\Engine\Engine\CEGUI\include;..\Engine\libconfig;..\CEGUI\include;..\Engine\CEGUI\include;..\Tinythread;..\BulletBuild\src;C:\Program Files %28x86%29\Visual Leak Detector\include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include;C:\Program Files\Microsoft DirectX SDK %28June 2010%29\Include;$(IncludePath)</IncludePath>
+    <IncludePath>..\Engine\libconfig;..\CEGUI\include;..\Engine\CEGUI\include;..\Tinythread;..\BulletBuild\src;C:\Program Files %28x86%29\Visual Leak Detector\include;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include;C:\Program Files\Microsoft DirectX SDK %28June 2010%29\Include;$(IncludePath)</IncludePath>
     <LibraryPath>..\CEGUI\lib;..\Engine\CEGUI\lib;..\CEGUI\bin;..\Engine\CEGUI\bin;..\Engine\libconfig;C:\Program Files %28x86%29\Visual Leak Detector\lib\Win32;C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Lib\x86;$(LibraryPath)</LibraryPath>
     <SourcePath>..\BulletBuild\src;..\CEGUI\include;..\CEGUI\lib;..\CEGUI\bin;..\Engine\libconfig;$(SourcePath)</SourcePath>
   </PropertyGroup>
@@ -313,7 +315,7 @@
       </StackReserveSize>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalLibraryDirectories>..\Engine\libconfig;..\Engine\CEGUI\bin;..\Engine\CEGUI\lib;..CEGUI\lib;..CEGUI\bin;..\BulletBuild\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>LinearMath_Debug.lib;BulletDynamics_Debug.lib;BulletCollision_Debug.lib;CEGUIBase-0_d.lib;CEGUICoreWindowRendererSet_d.lib;CEGUIDirect3D11Renderer-0_d.lib;CEGUICommonDialogs-0_d.lib;libconfig++.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>LinearMath_Debug.lib;BulletDynamics_Debug.lib;BulletCollision_Debug.lib;CEGUIBase-0_d.lib;CEGUICoreWindowRendererSet_d.lib;CEGUIDirect3D11Renderer-0_d.lib;CEGUICommonDialogs-0_d.lib;libconfig++.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
       <AdditionalManifestDependencies>
