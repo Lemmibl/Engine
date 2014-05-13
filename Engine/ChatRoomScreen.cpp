@@ -48,6 +48,11 @@ bool ChatRoomScreen::Initialize()
 	consoleWindow = std::make_shared<GameConsoleWindow>();
 	consoleWindow->CreateCEGUIWindow(&rootWindow);
 
+	auto* ipBox = rootWindow->getChild("SideMenu/IPEditBox");
+
+	//Subscribe to event thrown by ip editbox. We want to receive any updates from this box.
+	ipBox->subscribeEvent(CEGUI::Editbox::EventTextAccepted, CEGUI::Event::Subscriber(&ChatRoomScreen::Handle_IPAddressUpdated, this));
+
 	consoleWindow->setVisible(true);
 
 	return true;
@@ -78,6 +83,18 @@ bool ChatRoomScreen::Update( float deltaTime )
 bool ChatRoomScreen::Render( float deltaTime )
 {
 	//rootWindow->render();
+
+	return true;
+}
+
+bool ChatRoomScreen::Handle_IPAddressUpdated( const CEGUI::EventArgs &e )
+{
+	const CEGUI::WindowEventArgs* args = static_cast<const CEGUI::WindowEventArgs*>(&e);
+
+	//Retreive text that was just entered
+	CEGUI::String temp = args->window->getText();
+
+	//networkManager->UpdateTargetIPAddress(e->getText());
 
 	return true;
 }

@@ -10,6 +10,7 @@ InputClass::InputClass()
 	mouse = 0;
 	amountOfActiveKeyboardstates = 0;
 	amountOfActiveMousestates = 0;
+	lockMouseCursor = false;
 }
 
 
@@ -28,9 +29,11 @@ bool InputClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenStartPosX,
 
 	lastChar = NULL;
 
+	screenCenter = std::make_pair<int,int>((screenStartPosX + screenWidth/2), (screenStartPosY + screenHeight/2));
+
 	// Initialize the location of the mouse on the screen.
-	mouseX = (screenStartPosX + screenWidth/2);
-	mouseY = (screenStartPosY + screenHeight/2);
+	mouseX = screenCenter.first;
+	mouseY = screenCenter.second;
 
 	prevMouseX = mouseX;
 	prevMouseY = mouseY;
@@ -316,6 +319,12 @@ bool InputClass::ReadMouse()
 		}
 	}
 
+	//Reset mouse positions 
+	if(lockMouseCursor)
+	{
+		SetCursorPos(screenCenter.first, screenCenter.second);
+	}
+
 	//Read first three inputs (m1, m2, m3)
 	for(unsigned int i = 0; i < 3; i++)
 	{
@@ -410,13 +419,6 @@ bool InputClass::WasKeyPressed(unsigned char key)
 
 	return false;
 };
-
-void InputClass::GetMouseLocation(int& mouseX, int& mouseY)
-{
-	mouseX = this->mouseX;
-	mouseY = this->mouseY;
-	return;
-}
 
 XMFLOAT2 InputClass::GetMousePos()
 {

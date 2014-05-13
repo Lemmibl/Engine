@@ -466,11 +466,13 @@ bool ScreenManager::HandleInputs()
 					{
 						ShowCursor(TRUE);
 						ShowCursor(TRUE);
+						input->UnlockMouseCursor();
 					}
 					else
 					{
 						ShowCursor(FALSE);
 						ShowCursor(FALSE);
+						input->LockMouseCursor();
 					}
 				}
 			//}

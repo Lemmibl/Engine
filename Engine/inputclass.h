@@ -104,7 +104,6 @@ public:
 	UINT WndProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	char GetLastChar();
 
-	void GetMouseLocation(int&, int&);
 	XMFLOAT2 GetMousePos();
 	XMFLOAT2 GetMouseDelta();
 
@@ -115,6 +114,10 @@ public:
 	//This is an array. You can find the active count through ActiveMouseStateCount()
 	std::pair<KeyState, CEGUI::MouseButton>* GetActiveMouseStates() { return activeMouseStates; }
 	unsigned int ActiveMouseStateCount() { return amountOfActiveMousestates; }
+
+	//If mouse cursor is "locked" it will always be on the middle of the screen. This is needed because else the windows mousecursor will move outside of the screen and we lose focus if we click...
+	void LockMouseCursor() { lockMouseCursor = true; }
+	void UnlockMouseCursor() { lockMouseCursor = false; }
 
 private:
 	bool ReadKeyboard(HWND hwnd);
@@ -127,8 +130,6 @@ private:
 	IDirectInputDevice8* mouse;
 	DIMOUSESTATE2 currentMouseState, previousMouseState;
 
-	//TODO: Mouse button... http://www.two-kings.de/tutorials/dinput/dinput03.html
-
 	unsigned char keyStates[256];
 	std::pair<KeyState, unsigned int> activeKeyStates[100];
 	std::pair<KeyState, CEGUI::MouseButton> activeMouseStates[10];
@@ -136,8 +137,10 @@ private:
 	std::vector<unsigned char> previousKeyStates;
 
 	unsigned char lastChar;
-	int amountOfActiveKeyboardstates, amountOfActiveMousestates;
+	bool lockMouseCursor;
 
+	int amountOfActiveKeyboardstates, amountOfActiveMousestates;
+	std::pair<int,int> screenCenter;
 	int screenWidth, screenHeight;
 	int mouseX, mouseY, prevMouseX, prevMouseY;
 };

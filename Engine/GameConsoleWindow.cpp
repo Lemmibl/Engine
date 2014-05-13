@@ -14,8 +14,11 @@ GameConsoleWindow::GameConsoleWindow()
 	iInstanceNumber = 0;
 	sNamePrefix = CEGUI::String("");
 	userName = CEGUI::String("");
-	textColour = CEGUI::Colour(1.0f, 1.0f, 1.0f);
 	colourPicker = nullptr;
+
+	textColour = CEGUI::Colour(1.0f, 1.0f, 1.0f); //Default to white
+	errorColour = CEGUI::Colour(1.0f, 0.0f, 0.0f);
+	systemColour = CEGUI::Colour(0.0f, 1.0f, 0.0f);
 }
 
 GameConsoleWindow::~GameConsoleWindow()
@@ -173,6 +176,14 @@ bool GameConsoleWindow::Handle_SendButtonPressed(const CEGUI::EventArgs &e)
 	return true;
 }
 
+
+void GameConsoleWindow::PrintText(CEGUI::String inMsg)
+{
+	//Pass through string to internal function, and we use the "internal system" colour!
+	OutputText(inMsg, systemColour);
+}
+
+
 void GameConsoleWindow::ParseText(CEGUI::String inMsg)
 {
 
@@ -209,7 +220,7 @@ void GameConsoleWindow::ParseText(CEGUI::String inMsg)
 			//else 
 			if (command == "help")
 			{
-				OutputText("Do you want help? There is none! Despair!",  CEGUI::Colour(0.0f,1.0f,0.0f));
+				OutputText("Do you want help? There is none! Despair!",  systemColour);
 			}
 			else if (command == "yell")
 			{
@@ -218,7 +229,7 @@ void GameConsoleWindow::ParseText(CEGUI::String inMsg)
 			else
 			{
 				std::string outString = "<" + inString + "> is an invalid command.";
-				OutputText(outString, CEGUI::Colour(1.0f,0.0f,0.0f)); // With red ANGRY colors!
+				OutputText(outString, errorColour); // With red ANGRY colors!
 			}
 		} // End if /
 		else
