@@ -33,7 +33,7 @@
             </Window>
         </Window>
         <Window type="TaharezLook/FrameWindow" name="SideMenu" >
-            <Property name="Area" value="{{0.01,0},{-0.05,0},{0.41,0},{1.05,0}}" />
+            <Property name="Area" value="{{0.02,0},{-0.05,0},{0.42,0},{1.05,0}}" />
             <Property name="Text" value="Select your text color" />
             <Property name="MaxSize" value="{{1.5,0},{1.5,0}}" />
             <Property name="MinSize" value="{{0.05,0},{0.05,0}}" />
@@ -47,27 +47,44 @@
                 <Property name="DraggingEnabled" value="False" />
             </AutoWindow>
             <Window type="TaharezLook/Editbox" name="NameEditbox" >
-                <Property name="Area" value="{{0.42,0},{0.05,0},{0.92,0},{0.09,0}}" />
+                <Property name="Area" value="{{0.38,0},{0.05,0},{0.88,0},{0.09,0}}" />
                 <Property name="Text" value="A Noob" />
+                <Property name="BlinkCaret" value="True" />
             </Window>
             <Window type="TaharezLook/Label" name="NameLabel" >
-                <Property name="Area" value="{{0.05,0},{0.05,0},{0.4,0},{0.09,0}}" />
+                <Property name="Area" value="{{-0.01,0},{0.05,0},{0.34,0},{0.09,0}}" />
                 <Property name="Text" value="Your nickname:" />
                 <Property name="MaxSize" value="{{1,0},{1,0}}" />
+                <Property name="HorzFormatting" value="RightAligned" />
             </Window>
             <Window type="TaharezLook/Label" name="IPLabel" >
-                <Property name="Area" value="{{0.05,0},{0.85,0},{0.4,0},{0.89,0}}" />
+                <Property name="Area" value="{{-0.01,0},{0.8,0},{0.37,0},{0.84,0}}" />
                 <Property name="Text" value="IP to connect to:" />
                 <Property name="MaxSize" value="{{1,0},{1,0}}" />
+                <Property name="HorzFormatting" value="RightAligned" />
             </Window>
             <Window type="TaharezLook/Editbox" name="IPEditBox" >
-                <Property name="Area" value="{{0.42,0},{0.85,0},{0.92,0},{0.89,0}}" />
+                <Property name="Area" value="{{0.38,0},{0.8,0},{0.68,0},{0.84,0}}" />
                 <Property name="Text" value="127.0.0.1" />
+                <Property name="BlinkCaret" value="True" />
             </Window>
             <Window type="TaharezLook/Label" name="ColorSelectionWidget" >
-                <Property name="Area" value="{{0.05,0},{0.1,0},{0.4,0},{0.14,0}}" />
+                <Property name="Area" value="{{-0.01,0},{0.1,0},{0.34,0},{0.14,0}}" />
                 <Property name="Text" value="Your text color:" />
                 <Property name="MaxSize" value="{{1,0},{1,0}}" />
+                <Property name="HorzFormatting" value="RightAligned" />
+            </Window>
+            <Window type="TaharezLook/Button" name="ConnectButton" >
+                <Property name="Area" value="{{0.34,0},{0.32,0},{0.64,0},{0.36,0}}" />
+                <Property name="Text" value="Connect" />
+                <Property name="VerticalAlignment" value="Centre" />
+                <Property name="HorizontalAlignment" value="Centre" />
+            </Window>
+            <Window type="TaharezLook/Label" name="Port" >
+                <Property name="Area" value="{{0,0},{0.75,0},{0.75,0},{0.79,0}}" />
+                <Property name="Text" value="Port is currently locked to 22222" />
+                <Property name="MaxSize" value="{{1,0},{1,0}}" />
+                <Property name="HorizontalAlignment" value="Centre" />
             </Window>
         </Window>
     </Window>

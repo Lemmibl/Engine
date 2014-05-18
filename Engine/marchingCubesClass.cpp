@@ -349,13 +349,13 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 		// Stores the eight corners of each cube that we march through
 		MarchingCubeVoxel* cube[8];
 
+		unsigned int indexX, indexY, indexZ;
 		unsigned int index = 0;
 		unsigned int vertexCounter = 0;
-
 		unsigned int lookup = 0;
 		bool createWater = false;
 
-		unsigned int indexX, indexY, indexZ;
+		float highestPoint = 0.0f;
 
 		for (indexY = 0; indexY < sizeYAxis; ++indexY)
 		{
@@ -373,10 +373,12 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 					CalculateLookupValue(&lookup, cube);
 
 					//Core of the algorithm. Takes the calculated lookup value and applies the specific case from the lookup table to the cube we've extracted from the voxel field.
-					ProcessCube(lookup, vertexCounter, verts, cube, chunk, sizeXAxis, sizeYAxis, sizeZAxis, indexX, indexY, indexZ);
+					ProcessCube(lookup, vertexCounter, verts, cube, chunk, sizeXAxis, sizeYAxis, sizeZAxis, indexX, indexY, indexZ, highestPoint);
 				}
 			}
 		}
+
+		chunk->SetHighestPoint(highestPoint);
 
 		////Create the terrain mesh
 		//CreateMesh(device, chunk->GetTerrainMesh(), chunk->GetIndices(), vertices, indexCounter, vertexCounter);
@@ -447,7 +449,7 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 	}
 
 	void MarchingCubesClass::ProcessCube(unsigned int lookupValue, unsigned int& vertexCounter, MarchingCubeVoxel* verts, MarchingCubeVoxel** cube, std::shared_ptr<MarchingCubeChunk> chunk, 
-		unsigned int sizeX, unsigned int sizeY, unsigned int sizeZ, unsigned int indexX, unsigned int indexY, unsigned int indexZ)
+		unsigned int sizeX, unsigned int sizeY, unsigned int sizeZ, unsigned int indexX, unsigned int indexY, unsigned int indexZ, float& highestPoint)
 	{
 		if(lookupValue == 0)
 		{
@@ -499,6 +501,11 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 
 					//ANY triangle in this mesh is below waterlevel, we want to create water.
 					float yPos = verts[tritableLookupValue].position.y;
+
+					if(yPos > highestPoint)
+					{
+						highestPoint = yPos;
+					}
 
 					//TODO: Save lowest yPos of the chunk in the chunk. Each chunk will then do a if(currentWaterLevel > lowestYPosForThisChunk){ DrawThisWaterMesh(); } 
 					//.. Also.... Maybe reuse the same mesh for every chunk? Instancing? GeomShader should still work just fine

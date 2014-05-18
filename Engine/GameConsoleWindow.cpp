@@ -66,7 +66,7 @@ void GameConsoleWindow::CreateCEGUIWindow(CEGUI::Window** rootWindow)
 		CEGUI::WindowFactoryManager::addWindowType<CEGUI::ColourPickerControls>();
 
 		colourPicker = static_cast<CEGUI::ColourPicker*>(CEGUI::WindowManager::getSingleton().createWindow("Vanilla/ColourPicker"));
-		colourPicker->setPosition(CEGUI::UVector2(CEGUI::UDim(0.05f, 0.0f), CEGUI::UDim(0.1f, 0.0f)));
+		colourPicker->setPosition(CEGUI::UVector2(CEGUI::UDim(0.38f, 0.0f), CEGUI::UDim(0.1f, 0.0f)));
 		colourPicker->setSize(CEGUI::USize(CEGUI::UDim(0.5f, 0.0f), CEGUI::UDim(0.04f, 0.0f)));
 		static_cast<CEGUI::ColourPicker*>(colourPicker)->setColour(CEGUI::Colour(1.0f, 1.0f, 1.0f));
 		
@@ -94,20 +94,20 @@ void GameConsoleWindow::RegisterHandlers()
 	// Alright now we need to register the handlers.  We mentioned above we want to acknowledge when the user presses Enter, and 
 	// when they click the 'Send' button.  So we need to register each of those events
 
-	// Now for the TextSubmitted, we will be registering the event on the edit box, which is where the users cursor will be when   
-	//they press Enter.  I'm not going to break this down as much, because I believe that is very ugly to read, but was a good  
-	//way of expressing it.  Here is the function call.
-	m_ConsoleWindow->getChild(sNamePrefix + "Console/Editbox")->subscribeEvent(CEGUI::Editbox::EventTextAccepted,
-		CEGUI::Event::Subscriber(&GameConsoleWindow::Handle_TextSubmitted,this));
+	//// Now for the TextSubmitted, we will be registering the event on the edit box, which is where the users cursor will be when   
+	////they press Enter.  I'm not going to break this down as much, because I believe that is very ugly to read, but was a good  
+	////way of expressing it.  Here is the function call.
+	//m_ConsoleWindow->getChild(sNamePrefix + "Console/Editbox")->subscribeEvent(CEGUI::Editbox::EventTextAccepted,
+	//	CEGUI::Event::Subscriber(&GameConsoleWindow::Handle_TextSubmitted,this));
 
-	// First lets register the Send button.  Our buttons name is "ConsoleRoot/SendButton", but don't forget we prepended a name to      
-	// all the windows which were loaded.  So we need to take that into account here.
-	m_ConsoleWindow->getChild(sNamePrefix + "Console/Submit")->subscribeEvent(
-		CEGUI::PushButton::EventClicked,
-		CEGUI::Event::Subscriber(&GameConsoleWindow::Handle_SendButtonPressed, this)); // Call Handle_SendButtonPressed member of GameConsoleWindow using (this) instance we're in right now
+	//// First lets register the Send button.  Our buttons name is "ConsoleRoot/SendButton", but don't forget we prepended a name to      
+	//// all the windows which were loaded.  So we need to take that into account here.
+	//m_ConsoleWindow->getChild(sNamePrefix + "Console/Submit")->subscribeEvent(
+	//	CEGUI::PushButton::EventClicked,
+	//	CEGUI::Event::Subscriber(&GameConsoleWindow::Handle_SendButtonPressed, this)); // Call Handle_SendButtonPressed member of GameConsoleWindow using (this) instance we're in right now
 
 	//Hook up the name edit box with an event so that the user name gets updated when a new name is input.
-	m_ConsoleWindow->getChild(sNamePrefix + "SideMenu/NameEditbox")->subscribeEvent(CEGUI::Editbox::EventTextAccepted, CEGUI::Event::Subscriber(&GameConsoleWindow::Handle_UserNameChanged, this));
+	m_ConsoleWindow->getChild(sNamePrefix + "SideMenu/NameEditbox")->subscribeEvent(CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber(&GameConsoleWindow::Handle_UserNameChanged, this));
 
 	//Subscribe to colour accepted event, call Handle_TextColourChanged when event is thrown.
 	colourPicker->subscribeEvent(CEGUI::ColourPicker::EventAcceptedColour, CEGUI::Event::Subscriber(&GameConsoleWindow::Handle_TextColourChanged, this));
@@ -141,6 +141,11 @@ bool GameConsoleWindow::Handle_UserNameChanged(const CEGUI::EventArgs &e)
 	//Retrieve text that was just entered
 	userName = args->window->getText();
 
+	//To prevent "empty" names. Why? Because I want to.
+	if(userName.size() == 0)
+	{
+		userName = "A Noob";
+	}
 
 	return true;
 }
@@ -160,7 +165,7 @@ bool GameConsoleWindow::Handle_TextSubmitted(const CEGUI::EventArgs &e)
 	// Since we have that string, lets send it to the TextParser which will handle it from here
 	ParseText(Msg);
 
-	// Now that we've finished with the text, we need to ensure that we clear out the Editbox.  This is what we would expect
+	// Now that we've finished with the text, we need to ensure that we clear out the Editbox. This is what we would expect
 	// To happen after we press enter
 	m_ConsoleWindow->getChild(sNamePrefix + "Console/Editbox")->setText("");
 
@@ -176,7 +181,6 @@ bool GameConsoleWindow::Handle_SendButtonPressed(const CEGUI::EventArgs &e)
 	return true;
 }
 
-
 void GameConsoleWindow::PrintText(CEGUI::String inMsg)
 {
 	//Pass through string to internal function, and we use the "internal system" colour!
@@ -186,7 +190,6 @@ void GameConsoleWindow::PrintText(CEGUI::String inMsg)
 
 void GameConsoleWindow::ParseText(CEGUI::String inMsg)
 {
-
 	// I personally like working with std::string. So i'm going to convert it here.
 	std::string inString = inMsg.c_str();
 
@@ -248,6 +251,7 @@ void GameConsoleWindow::OutputText(CEGUI::String inMsg, CEGUI::Colour colour)
 
 	CEGUI::FormattedListboxTextItem* newItem=0; // This will hold the actual text and will be the listbox segment / item
 
+	//Don't worry, FormattedListboxTextItem is self-deleting... I hope
 	newItem = new CEGUI::FormattedListboxTextItem(inMsg, colour); // instance new item with colour
 	outputWindow->addItem(newItem); // Add the new FormattedListBoxTextItem to the ListBox
 }

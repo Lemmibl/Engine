@@ -255,7 +255,13 @@
     <ClCompile Include="ChatRoomScreen.cpp">
       <Filter>State machines and menus\Screens</Filter>
     </ClCompile>
-    <ClCompile Include="NetworkManager.cpp">
+    <ClCompile Include="NetworkClient.cpp">
+      <Filter>Networking</Filter>
+    </ClCompile>
+    <ClCompile Include="NetworkServices.cpp">
+      <Filter>Networking</Filter>
+    </ClCompile>
+    <ClCompile Include="NetworkServer.cpp">
       <Filter>Networking</Filter>
     </ClCompile>
   </ItemGroup>
@@ -555,7 +561,16 @@
     <ClInclude Include="ChatRoomScreen.h">
       <Filter>State machines and menus\Screens</Filter>
     </ClInclude>
-    <ClInclude Include="NetworkManager.h">
+    <ClInclude Include="NetworkClient.h">
+      <Filter>Networking</Filter>
+    </ClInclude>
+    <ClInclude Include="NetworkServices.h">
+      <Filter>Networking</Filter>
+    </ClInclude>
+    <ClInclude Include="NetworkServer.h">
+      <Filter>Networking</Filter>
+    </ClInclude>
+    <ClInclude Include="NetworkData.h">
       <Filter>Networking</Filter>
     </ClInclude>
   </ItemGroup>

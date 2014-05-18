@@ -323,6 +323,11 @@ bool InputClass::ReadMouse()
 	if(lockMouseCursor)
 	{
 		SetCursorPos(screenCenter.first, screenCenter.second);
+		ShowCursor(false);
+	}
+	else
+	{
+		ShowCursor(true);
 	}
 
 	//Read first three inputs (m1, m2, m3)

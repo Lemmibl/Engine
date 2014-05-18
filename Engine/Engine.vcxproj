@@ -38,7 +38,9 @@
     <ClCompile Include="FullScreenShaderInterface.cpp" />
     <ClCompile Include="GameConsoleWindow.cpp" />
     <ClCompile Include="GameplayScreen.cpp" />
-    <ClCompile Include="NetworkManager.cpp" />
+    <ClCompile Include="NetworkClient.cpp" />
+    <ClCompile Include="NetworkServer.cpp" />
+    <ClCompile Include="NetworkServices.cpp" />
     <ClCompile Include="SSAOBlur.cpp" />
     <ClCompile Include="TextOverlayScreen.cpp" />
     <ClCompile Include="MainMenuScreen.cpp" />
@@ -111,7 +113,10 @@
     <ClInclude Include="cpumeter.h" />
     <ClInclude Include="FormattedListboxTextItem.h" />
     <ClInclude Include="GameConsoleWindow.h" />
-    <ClInclude Include="NetworkManager.h" />
+    <ClInclude Include="NetworkClient.h" />
+    <ClInclude Include="NetworkData.h" />
+    <ClInclude Include="NetworkServer.h" />
+    <ClInclude Include="NetworkServices.h" />
     <ClInclude Include="RenderableBundle.h" />
     <ClInclude Include="ShaderInputStructs.h" />
     <ClInclude Include="SSAOBlur.h" />
@@ -315,7 +320,7 @@
       </StackReserveSize>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalLibraryDirectories>..\Engine\libconfig;..\Engine\CEGUI\bin;..\Engine\CEGUI\lib;..CEGUI\lib;..CEGUI\bin;..\BulletBuild\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>LinearMath_Debug.lib;BulletDynamics_Debug.lib;BulletCollision_Debug.lib;CEGUIBase-0_d.lib;CEGUICoreWindowRendererSet_d.lib;CEGUIDirect3D11Renderer-0_d.lib;CEGUICommonDialogs-0_d.lib;libconfig++.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>LinearMath_Debug.lib;BulletDynamics_Debug.lib;BulletCollision_Debug.lib;CEGUIBase-0_d.lib;CEGUICoreWindowRendererSet_d.lib;CEGUICommonDialogs-0_d.lib;CEGUIDirect3D11Renderer-0_d.lib;libconfig++.lib;ws2_32.lib;Mswsock.lib;AdvApi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
       <AdditionalManifestDependencies>

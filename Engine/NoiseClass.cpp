@@ -78,19 +78,22 @@ NoiseClass::NoiseClass()
 
 void NoiseClass::ReseedRandom()
 {
+	std::default_random_engine generator;
+	std::uniform_int_distribution<unsigned int> distribution(1, 255);
+
 	//Reseed based on time. Pretty much guaranteed to be a fresh seed.
-	srand(static_cast<unsigned int>(time(0)));
+	srand(static_cast<unsigned int>(time(NULL)));
 
 	//260 instead of 256 to avoid out of bounds errors that appear.
 	for(int i=0; i<260; i++)
 	{
 		//0-250 instead of 0-256 to again avoid out of bounds errors. I don't even fucking know.
-		p[i] = (rand() % 250);
+		p[i] = distribution(generator);
 	}
 
 	for(int i=0; i<512; i++)
 	{
-		perm[i] = 1+(rand() % 255);
+		perm[i] = distribution(generator);
 	}
 
 	for(int i=0; i<512; i++)

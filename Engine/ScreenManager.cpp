@@ -12,7 +12,7 @@ ScreenManager::ScreenManager() : SettingsDependent(), timer(), stateToScreenMap(
 {
 	InitializeSettings(this);
 	isQuitting = false;	
-	showCursor = true;
+	showCursor = false;
 	paused = false;
 	clickUpdateTimer = 0.0f;
 	keypressUpdateTimer = 0.0f;
@@ -44,6 +44,11 @@ bool ScreenManager::Initialize(HWND extHwnd, HINSTANCE hInst,int screenWidth, in
 	{
 		MessageBox(hwnd, L"Could not initialize the Input Manager. Look in engine.", L"Error", MB_OK);
 		return false;
+	}
+
+	if(!showCursor)
+	{
+		input->LockMouseCursor();
 	}
 
 	//Create shared pointer containing a d3dmanager
@@ -360,23 +365,23 @@ void ScreenManager::HandleMessages( HWND hwnd, UINT umsg, WPARAM wparam, LPARAM 
 			CEGUI::System::getSingleton().getDefaultGUIContext().injectChar(static_cast<CEGUI::utf32>(wparam));
 			break;
 		}
-	//case WM_KEYDOWN:
-	//	{
-	//		replace inputclass???
-	//		inputClass->setKeyDown(wparam as keycode);
-	//		inputClass->storeKeydownEvent(wparam as keycode);
-	//		
-	//		break;
-	//	}
-	
-	//case WM_KEYUP
-	//	{
-	//		replace inputclass???
-	//		inputClass->setKeyUp(wparam as keycode);
-	//		inputClass->storeKeypressedEvent(wparam as keycode);  //<<<< the keypressed event will become consumed from the..... linked list? idk
-	//		
-	//		break;
-	//	}
+		//case WM_KEYDOWN:
+		//	{
+		//		replace inputclass???
+		//		inputClass->setKeyDown(wparam as keycode);
+		//		inputClass->storeKeydownEvent(wparam as keycode);
+		//		
+		//		break;
+		//	}
+
+		//case WM_KEYUP
+		//	{
+		//		replace inputclass???
+		//		inputClass->setKeyUp(wparam as keycode);
+		//		inputClass->storeKeypressedEvent(wparam as keycode);  //<<<< the keypressed event will become consumed from the..... linked list? idk
+		//		
+		//		break;
+		//	}
 
 	case WM_MOUSEWHEEL:
 		{
@@ -456,25 +461,25 @@ bool ScreenManager::HandleInputs()
 				////If right click was pressed then toggle the drawing of the mouse cursor.
 				//if(mouseArray[i].first == InputClass::KeyUp)
 				//{
-					showCursor = !showCursor;
+				showCursor = !showCursor;
 
-					//Retarded hack to toggle hiding and showing of mouse cursor.
-					//Apparently the showCursor uses some sort of internal reference  counter, where each false decrements it with 1 and every true increments it with one.
-					//If the program started with cursor showing, it'll be set to +1. You need to be -1 or lower for it to hide........ So Every toggle needs to change it with 2.
-					//http://us.generation-nt.com/answer/showcursor-false-should-hide-cursor-help-10591742.html
-					if(showCursor)
-					{
-						ShowCursor(TRUE);
-						ShowCursor(TRUE);
-						input->UnlockMouseCursor();
-					}
-					else
-					{
-						ShowCursor(FALSE);
-						ShowCursor(FALSE);
-						input->LockMouseCursor();
-					}
+				//Retarded hack to toggle hiding and showing of mouse cursor.
+				//Apparently the showCursor uses some sort of internal reference  counter, where each false decrements it with 1 and every true increments it with one.
+				//If the program started with cursor showing, it'll be set to +1. You need to be -1 or lower for it to hide........ So Every toggle needs to change it with 2.
+				//http://us.generation-nt.com/answer/showcursor-false-should-hide-cursor-help-10591742.html
+				if(showCursor)
+				{
+					//ShowCursor(TRUE);
+					//ShowCursor(TRUE);
+					input->UnlockMouseCursor();
 				}
+				else
+				{
+					//ShowCursor(FALSE);
+					//ShowCursor(FALSE);
+					input->LockMouseCursor();
+				}
+			}
 			//}
 		}
 	}

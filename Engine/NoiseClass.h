@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <random>
 
 // The gradients are the midpoints of the vertices of a hypercube.
 static const int grad4[32][4]= {

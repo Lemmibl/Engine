@@ -31,10 +31,10 @@ enum Direction
 	WEST = 3
 };
 
-static const XMFLOAT3 stepSize(2.0f, 2.0f, 2.0f);
+static const XMFLOAT3 stepSize(4.0f, 4.0f, 4.0f);
 
 //Needs to be kept at 28, 53, 103 etc, else your position slowly gets out of sync with the culling position. Need to look into this.
-static const XMFLOAT3 stepCount(50.0f, 50.0f, 50.0f);
+static const XMFLOAT3 stepCount(25.0f, 25.0f, 25.0f);
 
 volatile static bool IsRunning = true;
 
@@ -57,7 +57,7 @@ void JobThreadEntryPoint(void* terrainManagerPointer)
 
 			//Calculate start position
 			actualPosX = ((float)chunkKey.first * (stepSize.x*(stepCount.x - 3)));
-			actualPosZ = ((float)chunkKey.second * (stepSize.x*(stepCount.x - 3)));
+			actualPosZ = ((float)chunkKey.second * (stepSize.z*(stepCount.z - 3)));
 
 			//Create shared ptr to chunk
 			std::shared_ptr<MarchingCubeChunk> chunk = std::make_shared<MarchingCubeChunk>
@@ -134,57 +134,59 @@ void JobThreadEntryPoint(void* terrainManagerPointer)
 			//Count of vegetation objects to be rendered on this chunk
 			unsigned int vegetationCount = 1 + rand()%4;
 
-			std::vector<XMFLOAT4X4> tempTransforms;
+			std::vector<XMFLOAT4X4> tempTransforms(0);
 
-			for(unsigned int i = 0; i < vegetationCount;)
+			if(!chunk->IsUnderWater())
 			{
-				indexX = rand()%(int)stepCount.x;
-				indexZ = rand()%(int)stepCount.z;
-
-				randPosX = actualPosX + (indexX*stepSize.x);
-				randPosZ = actualPosZ + (indexZ*stepSize.z);
-
-				//Get the height position of this coordinate
-				if(terrainManager->GetTerrainNoiser().GetHighestPositionOfCoordinate(indexX, indexZ, chunk.get(), &voxels, &resultHeight))
+				for(unsigned int i = 0; i < vegetationCount;)
 				{
-					//We scale the result height with stepping size (since the placement algorithm just returns the Y index of the voxel that we'll be placing the object on)
-					resultHeight *= stepSize.y;
+					indexX = rand()%(int)stepCount.x;
+					indexZ = rand()%(int)stepCount.z;
 
-					//Scale for the object with some randomization spice
-					float randScale = 3.0f + (float)(rand()%2);
+					randPosX = actualPosX + (indexX*stepSize.x);
+					randPosZ = actualPosZ + (indexZ*stepSize.z);
 
-					XMFLOAT4X4 tempTransform;
-
-					//If we've found a proper position, create a scaled, rotated and translated world matrix to this point
-					XMStoreFloat4x4(	
-					&tempTransform, 
-					
-										(		
-											XMMatrixScaling(randScale, randScale, randScale) * 
-											XMMatrixRotationY((float)(rand()%360)) * 
-											XMMatrixTranslation(randPosX, resultHeight, randPosZ)
-										)
-					);
-
-					//And insert it into our chunk
-					tempTransforms.push_back(tempTransform);
-
-					//If we found a proper position, increment loop
-					++i;
-				}
-				else
-				{
-					//If we didn't find a proper position, instead increment a counter
-					++tries;
-
-					//If we've tried to find a position 3 times and still haven't found one...
-					if(tries >= 4)
+					//Get the height position of this coordinate by stepping through chunk
+					if(terrainManager->GetTerrainNoiser().GetHighestPositionOfCoordinate(indexX, indexZ, chunk.get(), &voxels, &resultHeight))
 					{
-						//Increment and skip
-						++i;
+						//We scale the result height with stepping size (since the placement algorithm just returns the Y index of the voxel that we'll be placing the object on)
+						resultHeight *= stepSize.y;
 
-						//And reset tries variable for next time
-						tries = 0;
+						//Scale for the object with some randomization spice
+						float randScale = 3.0f + (float)(rand()%2);
+
+						XMFLOAT4X4 tempTransform;
+
+						//If we've found a proper position, create a scaled, rotated and translated world matrix to this point
+						XMStoreFloat4x4(	
+							&tempTransform, 
+							(		
+							XMMatrixScaling(randScale, randScale, randScale) * 
+							XMMatrixRotationY((float)(rand()%360)) * 
+							XMMatrixTranslation(randPosX, resultHeight, randPosZ)
+							)
+							);
+
+						//And insert it into our chunk
+						tempTransforms.push_back(tempTransform);
+
+						//If we found a proper position, increment loop
+						++i;
+					}
+					else
+					{
+						//If we didn't find a proper position, instead increment a counter
+						++tries;
+
+						//If we've tried to find a position 3 times and still haven't found one...
+						if(tries >= 3)
+						{
+							//Increment and skip
+							++i;
+
+							//And reset tries variable for next time
+							tries = 0;
+						}
 					}
 				}
 			}

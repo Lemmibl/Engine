@@ -37,7 +37,7 @@ private:
 
 	//Triangulate the cube that was extracted before, with the help of our lookup value
 	void ProcessCube(unsigned int lookupValue, unsigned int& vertexCounter, MarchingCubeVoxel* verts, MarchingCubeVoxel** cube, std::shared_ptr<MarchingCubeChunk> chunk, 
-		unsigned int sizeX, unsigned int sizeY, unsigned int sizeZ, unsigned int indexX, unsigned int indexY, unsigned int indexZ);
+		unsigned int sizeX, unsigned int sizeY, unsigned int sizeZ, unsigned int indexX, unsigned int indexY, unsigned int indexZ, float& highestPoint);
 
 	//Create vertex and index buffers from the data that we've created
 	void CreateMesh(ID3D11Device* device, IndexedMesh* mesh, std::vector<unsigned int>* indices, std::vector<MarchingCubeVectors>* vertices, unsigned int indexCount, unsigned int vertexCount);

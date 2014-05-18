@@ -72,6 +72,7 @@ bool DebugOverlayHUD::CreateDebugWindow(std::string identifier, DebugWindowHandl
 		widget->ceguiWindow->setPixelAligned(false);
 		widget->ceguiWindow->setInheritsAlpha(true);
 		widget->ceguiWindow->setAlpha(1.0f);
+		widget->ceguiWindow->setProperty("NormalTextColour", "FF00FF00");
 		widget->ceguiWindow->setProperty("HorzFormatting", "LeftAligned");
 		widget->ceguiWindow->setProperty("VertFormatting", "TopAligned");
 		widget->ceguiWindow->setWidth(CEGUI::UDim(5.0f, 0.0f));

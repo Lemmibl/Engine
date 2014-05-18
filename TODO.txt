@@ -3,22 +3,18 @@
 /*						TODO AND THINGS OF THAT SORT							*/
 /********************************************************************************/
 
-Fixes:
+Features:
 
-* SSAO Blur.
-
-* New GUI system; ditch CEGUI
+* Split GameConsoleWindow up into two types. Have one ... ChatRoom? That inherits from ConsoleWindow. 
+	-> ConsoleWindow will only have the text parsing/printing stuff. ChatRoom will have all the namechanging and colourchanging and shit as well.
+	-> Meaning that you can have a console window that only renders text that you send to it, without any of the naming/colouring stuff.
 
 * TODO: Instead of a map... Maybe use four 2D vectors. One for -1-1, one for -1 1, one for 1 -1 and one for 1 1 ... should work fine
-
-* Options screen...
 
 * Depth only OBJ shader for shadow stage
 
 * Non-simplex/perlin smooth noise
 	-> Using this function, stuff like waves, marble etc will be possible
-
-Features:
 
 * Simple rain or snow screen shader
 
