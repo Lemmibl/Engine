@@ -139,6 +139,10 @@ private:
 	// render target for storing color. R8G8B8A8. Stores a... lerp value in alpha channel, used in case I want to lerp between two materials in lighting stage.
 	std::unique_ptr<RenderTarget2D> colorRT;
 	
+	//has enough channels to hold 2 material IDs... and a lerp between them?
+	//DXGI_FORMAT_R10G10B10A2_UINT
+	std::unique_ptr<RenderTarget2D> materialRT;
+
 	// render target for storing depth. it's a R32
 	std::unique_ptr<RenderTarget2D> depthRT;
 	

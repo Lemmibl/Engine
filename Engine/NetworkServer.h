@@ -4,13 +4,13 @@
 #include "NetworkData.h"
 #include <ws2tcpip.h>
 #include <unordered_map>
+#include <CEGUI/CEGUI.h>
 
 class GameConsoleWindow;
 
 class NetworkServer
 {
 private:
-
 //Port number that is unlikely to be used on client computers. Also easy to remember.
 //http://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers
 #define DEFAULT_PORT "22222"
@@ -35,7 +35,11 @@ public:
 	//See if any client has sent any data since last time
 	void PollAllClients();
 
-	void ReadStringData(unsigned int client_id, char* receivingBuffer);
+	//Returns true on success
+	bool ReadDataHeader(unsigned int client_id, char* receivingBuffer, DataPacketType* outType, unsigned int* outSize);
+
+	void ReadStringData(unsigned int client_id, char* receivingBuffer, unsigned int bufferSize);
+	void ReadUserData(unsigned int client_id, char* receivingBuffer, unsigned int bufferSize);
 
 	// send data to all clients
 	void SendToAllClients(char * packets, int totalSize, int flag = 0);
@@ -51,6 +55,7 @@ private:
 
 	// data buffer
 	char network_data[MAX_PACKET_SIZE];
+	char packet_header[DataPacketHeader::sizeOfStruct];
 
 	// Socket to listen for new connections
 	SOCKET listenSocket;
@@ -59,11 +64,11 @@ private:
 	SOCKET clientSocket;
 
 	// for error checking return values
-	int iResult;
+	int iResult, iFlag;
 	unsigned int clientId;
 
 	// table to keep track of each client's socket
-	std::unordered_map<unsigned int, SOCKET> sessions;
-	std::vector<std::unordered_map<unsigned int, SOCKET>::iterator> sessionsToDelete;
+	std::unordered_map<unsigned int, UserData> sessions;
+	std::vector<std::unordered_map<unsigned int, UserData>::iterator> sessionsToDelete;
 };
 

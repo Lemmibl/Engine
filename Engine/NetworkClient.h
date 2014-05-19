@@ -8,6 +8,7 @@
 #include "NetworkServices.h"
 #include "NetworkData.h"
 
+class NetworkServer;
 class GameConsoleWindow;
 
 class NetworkClient
@@ -25,13 +26,14 @@ public:
 	~NetworkClient();
 
 	//Connect function, with default ip and port in case nothing is entered
-	bool Connect(CEGUI::String ip = DEFAULT_IP, CEGUI::String port = DEFAULT_PORT);
+	bool Connect(UserData& userData, CEGUI::String ip = DEFAULT_IP, CEGUI::String port = DEFAULT_PORT);
 	bool Update();
 	
 	int ReceivePackets(char* receivingBuffer);
 	bool ReadPackets(int packetSize, char* receivedBuffer);
 
 	void SendTextPacket(std::string text);
+	void SendUserDataPacket(UserData& userData);
 
 	//Should be temporary
 	void SendDummyPacket();
@@ -48,8 +50,9 @@ private:
 
 	//Socket that this client uses...
 	SOCKET connectionSocket;
-	//char receivingBuffer[DEFAULT_BUFLEN];
+
 	char network_data[MAX_PACKET_SIZE];
+	char header_data[DataPacketHeader::sizeOfStruct];
 
 	int receivingBufferLength;
 	int outFlags, iResult;

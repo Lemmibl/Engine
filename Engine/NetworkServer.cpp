@@ -4,7 +4,8 @@
 #include "GameConsoleWindow.h"
 
 NetworkServer::NetworkServer(GameConsoleWindow* window)
-	: clientId(0)
+	: clientId(0),
+	  iFlag(0)
 {
 	consoleWindow = window;
 }
@@ -106,7 +107,7 @@ void NetworkServer::Update()
 	// get new clients
 	if(AcceptNewClient(clientId))
 	{
-		consoleWindow->PrintText("Client has been connected to the server. Client ID is: " + static_cast<unsigned char>(clientId)); 
+		consoleWindow->PrintText("Client has been connected to the server. Client ID is: " + std::to_string((long long)clientId)); 
 		clientId++;
 	}
 
@@ -134,8 +135,13 @@ bool NetworkServer::AcceptNewClient(unsigned int& outId)
 		char value = 1;
 		setsockopt(clientSocket, IPPROTO_TCP, TCP_NODELAY, &value, sizeof(value));
 
+		UserData newUser;
+		newUser.clientSocket = clientSocket;
+		newUser.textColor = CEGUI::Colour(1.0f, 1.0f, 1.0f, 1.0f);
+		newUser.userName = "/";
+
 		// insert new client into session id table
-		sessions.insert(std::pair<unsigned int, SOCKET>(outId, clientSocket) );
+		sessions.insert(std::pair<unsigned int, UserData>(outId, newUser) );
 
 		return true;
 	}
@@ -152,6 +158,12 @@ void NetworkServer::RemoveClient( unsigned int id )
 	if(it != sessions.end())
 	{
 		//Remove it
+		int result = closesocket(it->second.clientSocket);
+		if(result > 0)
+		{
+			consoleWindow->PrintText("Client was successfully disconnected.");
+		}
+
 		sessions.erase(it);
 	}
 }
@@ -163,46 +175,43 @@ void NetworkServer::PollAllClients()
 
 	ZeroMemory(network_data, MAX_PACKET_SIZE);
 
+	unsigned int dataSize = 0;
+	DataPacketType type = TypeNONE;
+
+	ZeroMemory(packet_header, DataPacketHeader::sizeOfStruct);
+
 	for(auto iter = sessions.begin(); iter != sessions.end(); ++iter)
 	{
-		ReadStringData(iter->first, network_data);
+		iFlag = 0;
 
-		//int i = 0;
+		if(ReadDataHeader(iter->first, network_data, &type, &dataSize))
+		{
+			switch(type)
+			{
+				case TypeSTRING:
+				{
+					ReadStringData(iter->first, network_data, dataSize);
+					break;
+				}
 
-		////While packet still contains information
-		//while (i < (unsigned int)data_length) 
-		//{
-		//	//We deserialize data
-		//	packet.Deserialize(&(network_data[i]));
-		//	i += sizeof(EventPacket);
+				case TypeUSERDATA:
+				{
+					ReadUserData(iter->first, network_data, dataSize);
+					break;
+				}
 
-		//	switch (packet.packet_type) 
-		//	{
-		//	case INIT_CONNECTION:
-		//		{
-		//			consoleWindow->PrintText("Server received init packet from client.");
-		//			SendDummyPackets();
-		//			break;
-		//		}
-		//	case ACTION_EVENT:
-		//		{
-		//			consoleWindow->PrintText("Server received action event packet from client.");
-		//			SendDummyPackets();
-		//			break;
-		//		}
-		//	case DISCONNECT_EVENT:
-		//		{
-		//			consoleWindow->PrintText("Server received disconnect event packet from client. Removing client.");	
-		//			sessionsToDelete.push_back(iter);
-		//			break;
-		//		}
-		//	default:
-		//		{
-		//			consoleWindow->PrintText("Error in packet types.");
-		//			break;
-		//		}
-		//	}
-		//}
+				case TypeDISCONNECT:
+				{
+					sessionsToDelete.push_back(iter);
+					break;
+				}
+
+				default:
+				{
+					break;
+				}
+			}
+		}
 	}
 
 	//Potential cleanup
@@ -216,10 +225,9 @@ int NetworkServer::ReceiveData(unsigned int client_id, char* receivingBuffer)
 {
 	if( sessions.find(client_id) != sessions.end() )
 	{
-		int inFlag = 0;
-		SOCKET currentSocket = sessions[client_id];
+		SOCKET currentSocket = sessions[client_id].clientSocket;
 
-		iResult = NetworkServices::ReceiveMessage(currentSocket, receivingBuffer, MAX_PACKET_SIZE, inFlag);
+		iResult = NetworkServices::ReceiveMessage(currentSocket, receivingBuffer, MAX_PACKET_SIZE, iFlag);
 		if (iResult == 0)
 		{
 			consoleWindow->PrintText("Connection closed.");
@@ -239,7 +247,7 @@ void NetworkServer::SendToAllClients(char* packets, int totalSize, int flag)
 
 	for(auto iter = sessions.begin(); iter != sessions.end(); ++iter)
 	{
-		currentSocket = iter->second;
+		currentSocket = iter->second.clientSocket;
 		iSendResult = NetworkServices::SendMessage(currentSocket, packets, totalSize);
 
 		if (iSendResult == SOCKET_ERROR) 
@@ -263,35 +271,63 @@ void NetworkServer::SendDummyPackets()
 	SendToAllClients(packet_data, packet_size);
 }
 
-void NetworkServer::ReadStringData(unsigned int client_id, char* receivingBuffer)
+void NetworkServer::ReadStringData(unsigned int client_id, char* receivingBuffer, unsigned int bufferSize)
 {
-	if(sessions.find(client_id) != sessions.end() )
+	auto it = sessions.find(client_id);
+	if(it != sessions.end())
 	{
-		int inFlag = 0;
-		SOCKET currentSocket = sessions[client_id];
+		NetworkServices::ReceiveMessage(it->second.clientSocket, receivingBuffer, bufferSize, iFlag);
 
-		// recv
-		int flag = 0;
-		int len = MAX_PACKET_SIZE;
-		char* p = receivingBuffer;
-		int n = NetworkServices::ReceiveMessage(currentSocket, p, len, flag);
+		CEGUI::String text(receivingBuffer, bufferSize);
 
-		if(n > 0)
+		consoleWindow->PrintText(it->second.userName + ": " + text, it->second.textColor);
+	}
+}
+
+void NetworkServer::ReadUserData(unsigned int client_id, char* receivingBuffer, unsigned int bufferSize)
+{
+	auto it = sessions.find(client_id);
+	if(it != sessions.end() )
+	{
+		//Read in the data in the form that was described by header
+		NetworkServices::ReceiveMessage(it->second.clientSocket, receivingBuffer, bufferSize, iFlag);
+
+		auto& userData = it->second;		//read in data equal to bufferSize minus the colour part
+		unsigned int calculatedTextSize = (bufferSize-sizeof(CEGUI::argb_t));
+		std::vector<char> tempContainer(calculatedTextSize);
+		CEGUI::argb_t tempColour;
+
+		memcpy(&tempColour, receivingBuffer, sizeof(CEGUI::argb_t));
+								   //Offset by sizeof colour			  //rest of buffersize will consist of string data
+		memcpy(tempContainer.data(), receivingBuffer+sizeof(CEGUI::argb_t), calculatedTextSize);
+
+		userData.textColor = CEGUI::Colour(tempColour);
+		userData.userName = CEGUI::String(tempContainer.data(), tempContainer.size());
+
+		consoleWindow->PrintText("Server has now received new user data.");
+		consoleWindow->PrintText("User name is: " + userData.userName);
+	}
+}
+
+bool NetworkServer::ReadDataHeader( unsigned int client_id, char* receivingBuffer, DataPacketType* outType, unsigned int* outSize )
+{
+	auto it = sessions.find(client_id);
+	if(it != sessions.end() )
+	{
+		ZeroMemory(packet_header, DataPacketHeader::sizeOfStruct);
+
+		iResult = NetworkServices::ReceiveMessage(it->second.clientSocket, packet_header, DataPacketHeader::sizeOfStruct, iFlag);
+		if(iResult == 0)
 		{
-			while (len > 0 && (n = NetworkServices::ReceiveMessage(currentSocket, p, len, flag)) > 0 ) 
-			{
-				p += n;
-				len -= n;
-			}
-
-			if ( len > 0 || n < 0 ) 
-			{
-				// oops, something went wrong
-			}
-
-			std::string text(p);
-
-			consoleWindow->PrintText("Server received text: " + text);
+			consoleWindow->PrintText("Something went wrong when trying to read data packet header.");
+			return false;
+		}
+		else if(iResult > 0)
+		{
+			DataPacketHeader::Deserialize(packet_header, outType, outSize);
+			return true;
 		}
 	}
+
+	return false;
 }

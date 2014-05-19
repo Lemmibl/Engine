@@ -137,7 +137,12 @@ bool ChatRoomScreen::Handle_ConnectButtonPressed( const CEGUI::EventArgs &e )
 		rootWindow->getChild("SideMenu/ConnectButton")->setText("Disconnect");
 
 		//Temp without IP.
-		connectionActive = netClient->Connect();
+		UserData userData;
+		userData.clientSocket = 0;
+		userData.textColor = consoleWindow->GetUserTextColour();
+		userData.userName = consoleWindow->GetUserNameString();
+
+		connectionActive = netClient->Connect(userData);
 	}
 
 	return true;

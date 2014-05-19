@@ -17,7 +17,7 @@ NetworkClient::~NetworkClient()
 	Shutdown();
 }
 
-bool NetworkClient::Connect(CEGUI::String ip, CEGUI::String port)
+bool NetworkClient::Connect(UserData& userData, CEGUI::String ip, CEGUI::String port)
 {
 	WSADATA wsaData;
 	struct addrinfo *result = NULL, *ptr = NULL, hints;
@@ -118,14 +118,8 @@ bool NetworkClient::Connect(CEGUI::String ip, CEGUI::String port)
 	//closesocket(connectionSocket);
 	//WSACleanup();
 
-	EventPacket packet;
-
-	//TODO: future flags...
-	int flags = 0;
-	packet.packet_type = INIT_CONNECTION;
-	packet.Serialize(packet_data);
-
-	NetworkServices::SendMessage(connectionSocket, packet_data, packet_size, flags);
+	//Send a first initializing packet, filled with user data like user name and user text colour
+	SendUserDataPacket(userData);
 
 	return true;
 }
@@ -204,19 +198,49 @@ bool NetworkClient::ReadPackets(int packetSize, char* receivedBuffer )
 
 void NetworkClient::SendTextPacket(std::string text)
 {
-	// send
 	size_t len = text.length();
-	const char *p = text.c_str();
-	size_t n;
-	while ( len > 0 && (n=	NetworkServices::SendMessage(connectionSocket, p, len, 0)) > 0 ) 
+
+	//We don't send if it's an empty message.....
+	if(len > 0)
 	{
-		p += n;
-		len -= (size_t)n;
+		//Init header.
+		ZeroMemory(header_data, DataPacketHeader::sizeOfStruct);
+
+		//Create and serialize data header packet
+		DataPacketHeader::Serialize(header_data, TypeSTRING, len);
+
+		//Send header
+		NetworkServices::SendMessage(connectionSocket, header_data, DataPacketHeader::sizeOfStruct);
+
+		//Prepare and send data packet
+		const char* p = text.c_str();
+		NetworkServices::SendMessage(connectionSocket, p, len);
 	}
-	if ( len > 0 || n < 0 ) 
-	{
-		// oops, something went wrong
-	}
+}
+
+void NetworkClient::SendUserDataPacket( UserData& userData)
+{
+	unsigned int textLength = (sizeof(char) * userData.userName.length());
+	const unsigned int structLength = (textLength + sizeof(CEGUI::argb_t));
+
+	//Init header.
+	ZeroMemory(header_data, DataPacketHeader::sizeOfStruct);
+
+	//Create and serialize data header packet
+	DataPacketHeader::Serialize(header_data, TypeUSERDATA, structLength);
+
+	//Send header
+	NetworkServices::SendMessage(connectionSocket, header_data, DataPacketHeader::sizeOfStruct);
+
+	//Setup a dynamic array to hold data because I'm ultra lazy and cowardly
+	std::vector<char> userDataVec(structLength);
+	CEGUI::argb_t tempColor = userData.textColor.getARGB();
+
+	//Put textColor in first ..... four? bytes. Text in rest.
+	memcpy(userDataVec.data(), &tempColor, sizeof(CEGUI::argb_t));
+	memcpy(userDataVec.data()+sizeof(CEGUI::argb_t), &(*userData.userName.c_str()), textLength);
+
+	NetworkServices::SendMessage(connectionSocket, userDataVec.data(), structLength);
 }
 
 void NetworkClient::SendDummyPacket()
@@ -233,20 +257,18 @@ void NetworkClient::SendDummyPacket()
 	NetworkServices::SendMessage(connectionSocket, packet_data, packet_size);
 }
 
-
 void NetworkClient::SendDisconnectPacket()
 {
-	// send action packet
-	const unsigned int packet_size = sizeof(EventPacket);
-	char packet_data[packet_size];
+	//Init header.
+	ZeroMemory(header_data, DataPacketHeader::sizeOfStruct);
 
-	EventPacket packet;
-	packet.packet_type = DISCONNECT_EVENT;
+	//Create and serialize data header packet
+	DataPacketHeader::Serialize(header_data, TypeDISCONNECT, 0);
 
-	packet.Serialize(packet_data);
+	//Send header
+	NetworkServices::SendMessage(connectionSocket, header_data, DataPacketHeader::sizeOfStruct);
 
-	NetworkServices::SendMessage(connectionSocket, packet_data, packet_size);
-
+	//Disconnect locally.
 	Disconnect();
 }
 
@@ -267,3 +289,4 @@ void NetworkClient::Shutdown()
 
 	WSACleanup();
 }
+

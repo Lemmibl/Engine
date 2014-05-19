@@ -6,6 +6,10 @@ class ColourPicker;
 
 class GameConsoleWindow
 {
+private:
+	#define SystemColour CEGUI::Colour(0xFF00FF00) //Colour used by the system itself. Used for stuff like: /help
+	#define ErrorColour CEGUI::Colour(0xFFFF0000) //Generally an angry red to denote that something is WRONG. Used for stuff like: "<" + inString + "> is an invalid command.";
+
 public:
 	GameConsoleWindow();                   // Constructor
 	~GameConsoleWindow();				   // Destructor
@@ -14,8 +18,11 @@ public:
 
 	void CreateCEGUIWindow(CEGUI::Window** rootWindow = nullptr);	// The function which will load in the CEGUI Window and register event handlers
 
-	//Print external text
-	void PrintText(CEGUI::String inMsg);
+	//Print external text. Alternatively with colour. Default is system colours.
+	void PrintText(CEGUI::String inMsg, CEGUI::Colour textColour = SystemColour);
+
+	CEGUI::String GetUserNameString() { return userName; }
+	CEGUI::Colour GetUserTextColour() { return userTextColour; }
 
 private:
 	void RegisterHandlers();                                   // Register our handler functions
@@ -25,13 +32,11 @@ private:
 	bool Handle_UserNameChanged(const CEGUI::EventArgs &e);
 	
 	void ParseText(CEGUI::String inMsg);	// Parse the text the user submitted.
-	void OutputText(CEGUI::String inMsg, CEGUI::Colour colour = CEGUI::Colour( 0xFFFFFFFF)); // Post the message to the ChatHistory listbox with white as default text colo(u)r
+	void OutputText(CEGUI::String inMsg, CEGUI::Colour colour = SystemColour); // Post the message to the ChatHistory listbox with white as default text colo(u)r
 
 	CEGUI::Window* colourPicker;
 	CEGUI::Window* m_ConsoleWindow;								// This will be a pointer to the ConsoleRoot window.
-	CEGUI::Colour textColour;									//Text colour being the colour that the user can choose themselves
-	CEGUI::Colour errorColour;			//Generally an angry red to denote that something is WRONG. Used for stuff like: "<" + inString + "> is an invalid command.";
-	CEGUI::Colour systemColour;			//Colour used by the system itself. Used for stuff like: /help
+	CEGUI::Colour userTextColour;									//Text colour being the colour that the user can choose themselves
 	CEGUI::String sNamePrefix;                                  // This will be the prefix name we give the layout
 	CEGUI::String userName;
 	static int iInstanceNumber;                                 // This will be the instance number for this class.

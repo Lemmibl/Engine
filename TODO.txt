@@ -3,11 +3,32 @@
 /*						TODO AND THINGS OF THAT SORT							*/
 /********************************************************************************/
 
+TODO prio list:
+	1. Implement packets so that you can be represented by name and have your own text colour.
+		-> make sure disconnect works properly
+	2. Fix SSAO. Possibly change the way normals are stored and add a new RT for 2 materials + lerp value between them
+
+
 Features:
+* Make different sorts of packets for things. NameChange, ColourChange. Etc. PlayerData struct? Server map is <uint, PlayerData>. Socket will be contained in PlayerData.
+	-> http://content.gpwiki.org/Binary_Packet_Code
+	-> http://www.gamedev.net/index.php?app=forums&module=forums&section=rules&f=15 Q15
 
 * Split GameConsoleWindow up into two types. Have one ... ChatRoom? That inherits from ConsoleWindow. 
 	-> ConsoleWindow will only have the text parsing/printing stuff. ChatRoom will have all the namechanging and colourchanging and shit as well.
 	-> Meaning that you can have a console window that only renders text that you send to it, without any of the naming/colouring stuff.
+
+									//R and G can each hold 1024 distinct values. The B channel can hold potential lerp value between these two.
+* ... Use one more RT for materials. DXGI_FORMAT_R10G10B10A2_UNORM?
+
+* In the future, it would probably be relevant to try and implement texture ID per vertex. One uint, two IDs bitshifted into each 16 bits. To blend between them you'd use some form of noise map.
+	if(id >= 16 bits of value)
+	{
+		//Means that the second part of the uint contains something, so we blend
+		get id2 by bitshifting
+
+		blend between two ids by using some form of seamless noise map
+	}
 
 * TODO: Instead of a map... Maybe use four 2D vectors. One for -1-1, one for -1 1, one for 1 -1 and one for 1 1 ... should work fine
 

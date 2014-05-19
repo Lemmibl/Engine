@@ -16,9 +16,7 @@ GameConsoleWindow::GameConsoleWindow()
 	userName = CEGUI::String("");
 	colourPicker = nullptr;
 
-	textColour = CEGUI::Colour(1.0f, 1.0f, 1.0f); //Default to white
-	errorColour = CEGUI::Colour(1.0f, 0.0f, 0.0f);
-	systemColour = CEGUI::Colour(0.0f, 1.0f, 0.0f);
+	userTextColour = CEGUI::Colour(1.0f, 1.0f, 1.0f); //Default to white
 }
 
 GameConsoleWindow::~GameConsoleWindow()
@@ -129,7 +127,7 @@ void GameConsoleWindow::RegisterHandlers()
 
 bool GameConsoleWindow::Handle_TextColourChanged(const CEGUI::EventArgs &e)
 {
-	textColour = static_cast<CEGUI::ColourPicker*>(colourPicker)->getColour().getARGB();
+	userTextColour = static_cast<CEGUI::ColourPicker*>(colourPicker)->getColour().getARGB();
 
 	return true;
 }
@@ -181,10 +179,10 @@ bool GameConsoleWindow::Handle_SendButtonPressed(const CEGUI::EventArgs &e)
 	return true;
 }
 
-void GameConsoleWindow::PrintText(CEGUI::String inMsg)
+void GameConsoleWindow::PrintText(CEGUI::String inMsg, CEGUI::Colour textColour)
 {
 	//Pass through string to internal function, and we use the "internal system" colour!
-	OutputText(inMsg, systemColour);
+	OutputText(inMsg, textColour);
 }
 
 
@@ -223,22 +221,22 @@ void GameConsoleWindow::ParseText(CEGUI::String inMsg)
 			//else 
 			if (command == "help")
 			{
-				OutputText("Do you want help? There is none! Despair!",  systemColour);
+				OutputText("Do you want help? There is none! Despair!",  SystemColour);
 			}
 			else if (command == "yell")
 			{
-				OutputText("You: AIEEEEEE!", textColour);
+				OutputText("You: AIEEEEEE!", userTextColour);
 			}
 			else
 			{
 				std::string outString = "<" + inString + "> is an invalid command.";
-				OutputText(outString, errorColour); // With red ANGRY colors!
+				OutputText(outString, ErrorColour); // With red ANGRY colors!
 			}
 		} // End if /
 		else
 		{
 			CEGUI::String outString = userName + ": " + inString; // Create a new string with your "name" and only add the part of the string that isn't a command
-			OutputText(outString, textColour); // no commands, just output what was written
+			OutputText(outString, userTextColour); // no commands, just output what was written
 		}
 	} 
 }
