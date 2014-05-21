@@ -4,7 +4,7 @@
 #include <string.h>
 #include <CEGUI/CEGUI.h>
 
-#define MAX_PACKET_SIZE 4096
+#define MAX_PACKET_SIZE 1024
 
 struct UserData
 {
@@ -13,20 +13,29 @@ struct UserData
 	CEGUI::Colour textColor;
 };
 
-enum PacketTypes 
-{
-	INIT_CONNECTION = 0,
-	ACTION_EVENT = 1,
-	DISCONNECT_EVENT = 2
-}; 
-
 enum DataPacketType
 {
 	TypeNONE = 0,
-	TypeSTRING = 1,
-	TypeFLOAT = 2,
-	TypeUSERDATA = 3,
-	TypeDISCONNECT = 4
+	TypeSTRING,
+	TypeCOLOUREDSTRING,
+	TypeFLOAT,
+	TypeUSERDATA,
+	TypeCONNECT,
+	TypeDISCONNECT
+};
+
+//Struct to contain the actual data that will be sent after a DataPacketHeader
+struct DataPacket
+{
+	DataPacket()
+	: dataVector(0),
+	dataType(TypeNONE)
+	{
+	}
+
+	//Might as well keep it in a vector. Also contains size of the data that we're going to send through size().
+	std::vector<char> dataVector;
+	DataPacketType dataType;
 };
 
 //This datapacket is supposed to be a precursor to sending the real data.
@@ -67,39 +76,3 @@ struct DataPacketHeader
 		*outSize = ntohs(*outSize);
 	}
 };
-
-struct EventPacket 
-{
-	unsigned int packet_type;
-
-	void Serialize(char* data) 
-	{
-		memcpy(data, this, sizeof(EventPacket));
-	}
-
-	void Deserialize(char* data) 
-	{
-		memcpy(this, data, sizeof(EventPacket));
-	}
-};
-
-//struct StringPacket
-//{
-//	unsigned int stringSize;
-//	char* stringData;
-//
-//	void Serialize(unsigned int size, char* data) 
-//	{
-//		stringSize = size;
-//		memcpy(data, stringData, sizeof(char)*size);
-//	}
-//
-//	unsigned int Deserialize(char* data) 
-//	{
-//		memcpy(&stringSize, data, sizeof(unsigned int));
-//							//Offset by size of one unsigned int
-//		memcpy(&stringData, data+sizeof(unsigned int), sizeof(char)*(stringSize-1));
-//
-//		return stringSize;
-//	}
-//};

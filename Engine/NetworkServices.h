@@ -6,7 +6,6 @@
 class NetworkServices
 {
 public:
-	static int SendMessage(SOCKET currentSocket, const char* sendingBuffer, int bufferSize, int flags = 0);
-	static int ReceiveMessage(SOCKET currentSocket, char* receivingBuffer, int bufferSize, int& inFlags);
+	static int SendData(const SOCKET currentSocket, const char* sendingBuffer, const int bufferSize, const int flag = 0);
+	static int ReceiveData(SOCKET currentSocket, char* receivingBuffer, int bufferSize, int flag = 0);
 };
-

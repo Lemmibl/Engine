@@ -179,7 +179,7 @@ bool GameConsoleWindow::Handle_SendButtonPressed(const CEGUI::EventArgs &e)
 	return true;
 }
 
-void GameConsoleWindow::PrintText(CEGUI::String inMsg, CEGUI::Colour textColour)
+void GameConsoleWindow::PrintText(CEGUI::String inMsg, CEGUI::Colour& textColour)
 {
 	//Pass through string to internal function, and we use the "internal system" colour!
 	OutputText(inMsg, textColour);
@@ -241,7 +241,7 @@ void GameConsoleWindow::ParseText(CEGUI::String inMsg)
 	} 
 }
 
-void GameConsoleWindow::OutputText(CEGUI::String inMsg, CEGUI::Colour colour)
+void GameConsoleWindow::OutputText(CEGUI::String inMsg, CEGUI::Colour& colour)
 {
 
 	// Get a pointer to the ChatBox so we don't have to use this ugly getChild function everytime.

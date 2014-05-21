@@ -1,14 +1,19 @@
 #include "NetworkClient.h"
 
+#include "NetworkServices.h"
 #include "GameConsoleWindow.h"
 #include "NetworkData.h"
 
-NetworkClient::NetworkClient(GameConsoleWindow* console)
-	:	receivingBufferLength(DEFAULT_BUFLEN),
-	outFlags(1),
-	iResult(1)
+NetworkClient::NetworkClient( GameConsoleWindow* console )
+	: receivingBufferLength(DEFAULT_BUFLEN),
+	outFlags(0),
+	iResult(0)
 {
 	consoleWindow = console;
+
+	//Clear header data
+	ZeroMemory(header_data, DataPacketHeader::sizeOfStruct);
+	ZeroMemory(network_data, MAX_PACKET_SIZE);
 }
 
 
@@ -21,20 +26,6 @@ bool NetworkClient::Connect(UserData& userData, CEGUI::String ip, CEGUI::String 
 {
 	WSADATA wsaData;
 	struct addrinfo *result = NULL, *ptr = NULL, hints;
-	char* sendbuf = "This is a test";
-	char* serverName = nullptr;
-
-	//initial packet data
-	const unsigned int packet_size = sizeof(EventPacket);
-	char packet_data[packet_size];
-
-
-	/*
-	To execute the client, compile the complete client source code and run the executable file. 
-	The client application requires that name of the computer or IP address of the computer where the server application 
-	is running is passed as a command-line parameter when the client is executed. 
-	If the client and server are executed on the sample computer, the client can be started as follows:
-	*/
 
 	consoleWindow->PrintText("Now trying to connect to IP: " + ip + " Port: " + port);
 
@@ -114,10 +105,6 @@ bool NetworkClient::Connect(UserData& userData, CEGUI::String ip, CEGUI::String 
 	//char value = 1;
 	//setsockopt(connectionSocket, IPPROTO_TCP, TCP_NODELAY, &value, sizeof(value));
 
-	//// cleanup
-	//closesocket(connectionSocket);
-	//WSACleanup();
-
 	//Send a first initializing packet, filled with user data like user name and user text colour
 	SendUserDataPacket(userData);
 
@@ -126,72 +113,150 @@ bool NetworkClient::Connect(UserData& userData, CEGUI::String ip, CEGUI::String 
 
 bool NetworkClient::Update()
 {
-	int data_length = ReceivePackets(network_data);
+	//Read to see if we've received any data
+	int packetSize = NetworkServices::ReceiveData(connectionSocket, network_data, MAX_PACKET_SIZE);
 
-	//We have received data if data_length > 0
-	if (data_length > 0) 
+	//Extract all the data
+	ReceiveDataFromServer(packetSize);
+
+	//Then we send all data back to server...
+	SendDataToServer();
+
+	return true;
+}
+
+bool NetworkClient::ReceiveDataFromServer(int packetSize, int packetIndex)
+{
+	if(packetSize > 0)
 	{
-		//Read packets received. If function returns false, it means the packet was a "disconnect event" and we should break update.
-		if(!ReadPackets(data_length, network_data))
+		//Move network data into header data array
+		memcpy(header_data, network_data+packetIndex, DataPacketHeader::sizeOfStruct);
+
+		//Extract data from header
+		DataPacketType dataType;
+		unsigned int dataSize;
+		DataPacketHeader::Deserialize(header_data, &dataType, &dataSize);
+
+		//Move packet index forward and subtract from packetSize
+		packetIndex += DataPacketHeader::sizeOfStruct;
+		packetSize -= DataPacketHeader::sizeOfStruct;
+
+		//Act upon data
+		switch(dataType)
 		{
-			return false;
+		case TypeSTRING:
+			{
+				ReadStringData(dataSize, packetIndex, false);
+				break;
+			}
+
+		case TypeCOLOUREDSTRING:
+			{
+				ReadStringData(dataSize, packetIndex, true);
+				break;
+			}
+
+		case TypeUSERDATA:
+			{
+				ReadUserData(dataSize, packetIndex);
+				break;
+			}
+
+		case TypeCONNECT:
+			{
+				break;
+			}
+
+		case TypeDISCONNECT:
+			{
+				break;
+			}
+
+		default:
+			{
+				break;
+			}
 		}
+
+		//Move index forward again and subtract size again
+		packetIndex += dataSize;
+		packetSize -= dataSize;
+
+
+		//Call again
+		ReceiveDataFromServer(packetSize, packetIndex);
 	}
 
 	return true;
 }
 
-int NetworkClient::ReceivePackets(char* recvBuffer) 
+void NetworkClient::ReadStringData(unsigned int dataSize, unsigned int dataIndex, bool extractColor)
 {
-	int iFlag = 0;
-	iResult = NetworkServices::ReceiveMessage(connectionSocket, recvBuffer, MAX_PACKET_SIZE, iFlag);
+	//If we are extracting color, it means that we have a 4 byte portion of the data at the end that is colour, not text.
+	int textSizePortion = extractColor ? dataSize-sizeof(CEGUI::argb_t) : dataSize;
 
-	if(iResult == 0)
+	//Create array of right size..
+	std::vector<char> tempContainer(textSizePortion);
+
+	//Copy data from the right index and of the right size into the array
+	memcpy(tempContainer.data(), network_data+dataIndex, textSizePortion);
+
+	//Create the string
+	CEGUI::String tempString(tempContainer.data(), textSizePortion);
+
+	if(extractColor)
 	{
-		consoleWindow->PrintText("Connection closed.");
-		closesocket(connectionSocket);
-		WSACleanup();
-		exit(1);
-	}
+		CEGUI::argb_t argbVal = 0;
+		memcpy(&argbVal, network_data+dataIndex+textSizePortion, sizeof(CEGUI::argb_t));
+		CEGUI::Colour color(argbVal);
 
-	return iResult;
+		consoleWindow->PrintText(tempString, color);
+	}
+	else
+	{
+		consoleWindow->PrintText(tempString);
+	}
 }
 
-bool NetworkClient::ReadPackets(int packetSize, char* receivedBuffer )
+void NetworkClient::ReadDisconnectData(unsigned int dataSize, unsigned int dataIndex)
 {
-	EventPacket packet;
-	int i = 0;
+	//TODO... Potentially
+}
 
-	//While there's still more data in the packet...
-	while(i < (unsigned int)packetSize) 
+void NetworkClient::ReadUserData(unsigned int dataSize, unsigned int dataIndex)
+{
+
+}
+
+bool NetworkClient::SendDataToServer()
+{
+	for(auto iter = dataToSend.begin(); iter != dataToSend.end(); ++iter)
 	{
-		packet.Deserialize(&(receivedBuffer[i]));
-		i += sizeof(EventPacket);
+		//Create and serialize data header packet
+		DataPacketHeader::Serialize(header_data, iter->dataType, iter->dataVector.size());
 
-		switch (packet.packet_type) 
+		//Send header
+		NetworkServices::SendData(connectionSocket, header_data, DataPacketHeader::sizeOfStruct);
+
+		//Then if it's a type of packet that actually contains something, we send the body
+		switch(iter->dataType)
 		{
-		case ACTION_EVENT:
+		case TypeSTRING:
 			{
-				consoleWindow->PrintText("Received action event packet from server.");
-
-				//Send back the same type of packet
-				//SendDummyPacket();	
+				NetworkServices::SendData(connectionSocket, iter->dataVector.data(), iter->dataVector.size());
 				break;
 			}
 
-		case DISCONNECT_EVENT:
+		case TypeUSERDATA:
 			{
-				consoleWindow->PrintText("Connection was closed.");
-				Shutdown();
-				return false;
-			}
-		default:
-			{
-				consoleWindow->PrintText("Error in packet types.");
+				NetworkServices::SendData(connectionSocket, iter->dataVector.data(), iter->dataVector.size());
 				break;
 			}
+
 		}
 	}
+
+	dataToSend.clear();
 
 	return true;
 }
@@ -203,78 +268,48 @@ void NetworkClient::SendTextPacket(std::string text)
 	//We don't send if it's an empty message.....
 	if(len > 0)
 	{
-		//Init header.
-		ZeroMemory(header_data, DataPacketHeader::sizeOfStruct);
+		//Will contain the data that we're sending
+		DataPacket outPacket;
+		outPacket.dataType = TypeSTRING;
 
-		//Create and serialize data header packet
-		DataPacketHeader::Serialize(header_data, TypeSTRING, len);
+		//So this will both set vector size to right size and preallocate everything to nice default value (0 in the case of char)
+		outPacket.dataVector.resize(len);
 
-		//Send header
-		NetworkServices::SendMessage(connectionSocket, header_data, DataPacketHeader::sizeOfStruct);
+		//Then we move it into the vector...
+		std::memcpy(outPacket.dataVector.data(), text.c_str(), len);
 
-		//Prepare and send data packet
-		const char* p = text.c_str();
-		NetworkServices::SendMessage(connectionSocket, p, len);
+		//And move it into this list
+		dataToSend.push_back(std::move(outPacket));
 	}
 }
 
-void NetworkClient::SendUserDataPacket( UserData& userData)
+void NetworkClient::SendUserDataPacket(UserData& userData)
 {
-	unsigned int textLength = (sizeof(char) * userData.userName.length());
+	const unsigned int textLength = (sizeof(char) * userData.userName.length());
 	const unsigned int structLength = (textLength + sizeof(CEGUI::argb_t));
 
-	//Init header.
-	ZeroMemory(header_data, DataPacketHeader::sizeOfStruct);
-
-	//Create and serialize data header packet
-	DataPacketHeader::Serialize(header_data, TypeUSERDATA, structLength);
-
-	//Send header
-	NetworkServices::SendMessage(connectionSocket, header_data, DataPacketHeader::sizeOfStruct);
-
-	//Setup a dynamic array to hold data because I'm ultra lazy and cowardly
-	std::vector<char> userDataVec(structLength);
+	DataPacket outPacket;
 	CEGUI::argb_t tempColor = userData.textColor.getARGB();
 
-	//Put textColor in first ..... four? bytes. Text in rest.
-	memcpy(userDataVec.data(), &tempColor, sizeof(CEGUI::argb_t));
-	memcpy(userDataVec.data()+sizeof(CEGUI::argb_t), &(*userData.userName.c_str()), textLength);
+	//Initialize char array of the right size, with all values to default (in case of char, that's: 0)
+	outPacket.dataVector.resize(structLength);
+	outPacket.dataType = TypeUSERDATA;
 
-	NetworkServices::SendMessage(connectionSocket, userDataVec.data(), structLength);
-}
+	//Text in first
+	memcpy(outPacket.dataVector.data(),				userData.userName.c_str(),		textLength);
 
-void NetworkClient::SendDummyPacket()
-{
-	// send action packet
-	const unsigned int packet_size = sizeof(EventPacket);
-	char packet_data[packet_size];
+	//Append color to the end. Offset with textLength
+	memcpy(outPacket.dataVector.data()+textLength,	&tempColor,						sizeof(CEGUI::argb_t));
 
-	EventPacket packet;
-	packet.packet_type = ACTION_EVENT;
-
-	packet.Serialize(packet_data);
-
-	NetworkServices::SendMessage(connectionSocket, packet_data, packet_size);
-}
-
-void NetworkClient::SendDisconnectPacket()
-{
-	//Init header.
-	ZeroMemory(header_data, DataPacketHeader::sizeOfStruct);
-
-	//Create and serialize data header packet
-	DataPacketHeader::Serialize(header_data, TypeDISCONNECT, 0);
-
-	//Send header
-	NetworkServices::SendMessage(connectionSocket, header_data, DataPacketHeader::sizeOfStruct);
-
-	//Disconnect locally.
-	Disconnect();
+	//Insert packet
+	dataToSend.push_back(std::move(outPacket));
 }
 
 void NetworkClient::Disconnect()
 {
 	int result = 1;
+
+	SendDisconnectPacket();
 
 	// shutdown the connection since no more data will be sent or read
 	result = shutdown(connectionSocket, SD_SEND);
@@ -283,10 +318,19 @@ void NetworkClient::Disconnect()
 	closesocket(connectionSocket);
 }
 
+void NetworkClient::SendDisconnectPacket()
+{
+	//Create and serialize data header packet
+	DataPacketHeader::Serialize(header_data, TypeDISCONNECT, 0);
+
+	//Send header
+	NetworkServices::SendData(connectionSocket, header_data, DataPacketHeader::sizeOfStruct);
+}
+
+
 void NetworkClient::Shutdown()
 {
 	Disconnect();
 
 	WSACleanup();
 }
-

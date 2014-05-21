@@ -19,7 +19,7 @@ public:
 	void CreateCEGUIWindow(CEGUI::Window** rootWindow = nullptr);	// The function which will load in the CEGUI Window and register event handlers
 
 	//Print external text. Alternatively with colour. Default is system colours.
-	void PrintText(CEGUI::String inMsg, CEGUI::Colour textColour = SystemColour);
+	void PrintText(CEGUI::String inMsg, CEGUI::Colour& textColour = SystemColour);
 
 	CEGUI::String GetUserNameString() { return userName; }
 	CEGUI::Colour GetUserTextColour() { return userTextColour; }
@@ -32,7 +32,7 @@ private:
 	bool Handle_UserNameChanged(const CEGUI::EventArgs &e);
 	
 	void ParseText(CEGUI::String inMsg);	// Parse the text the user submitted.
-	void OutputText(CEGUI::String inMsg, CEGUI::Colour colour = SystemColour); // Post the message to the ChatHistory listbox with white as default text colo(u)r
+	void OutputText(CEGUI::String inMsg, CEGUI::Colour& colour = SystemColour); // Post the message to the ChatHistory listbox with white as default text colo(u)r
 
 	CEGUI::Window* colourPicker;
 	CEGUI::Window* m_ConsoleWindow;								// This will be a pointer to the ConsoleRoot window.

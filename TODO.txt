@@ -4,8 +4,18 @@
 /********************************************************************************/
 
 TODO prio list:
-	1. Implement packets so that you can be represented by name and have your own text colour.
-		-> make sure disconnect works properly
+	0. Remove old and unnecessary functions.
+		-> Add a "ReceiveData()" and "SendData()" function for both server and client. move all relevant data to those, and call both those functions in order inside Update.
+
+	1. Make server pingback all text you write to it.
+		-> Server has the receive stuff from clients phase.
+		-> Server parses data. Adds it to a "sendback" buffer, if necessary.
+		-> Server then has a sendback phase, where it will send all data back to clients.
+
+		-> All clients have a "Receive stuff from server" phase as first thing in their update.
+			-> When server sends text back, maybe it also sends text colour and username
+		-> Then all clients have a normal send stuff phase.
+
 	2. Fix SSAO. Possibly change the way normals are stored and add a new RT for 2 materials + lerp value between them
 
 
@@ -37,7 +47,7 @@ Features:
 * Non-simplex/perlin smooth noise
 	-> Using this function, stuff like waves, marble etc will be possible
 
-* Simple rain or snow screen shader
+* Simple rain or snow screen shader 
 
 * Spotlight shader
 

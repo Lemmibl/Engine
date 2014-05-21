@@ -1,11 +1,11 @@
 #include "NetworkServices.h"
 
-int NetworkServices::SendMessage(SOCKET curSocket, const char* sendingBuffer, int bufferSize, int flags)
+int NetworkServices::SendData(const SOCKET curSocket, const char* sendingBuffer, const int bufferSize, const int flag)
 {
-	return send(curSocket, sendingBuffer, bufferSize, flags);
+	return send(curSocket, sendingBuffer, bufferSize, flag);
 }
 
-int NetworkServices::ReceiveMessage(SOCKET curSocket, char* receivingBuffer, int bufferSize, int& inFlags)
+int NetworkServices::ReceiveData(SOCKET curSocket, char* receivingBuffer, int bufferSize, int flag)
 {
-	return recv(curSocket, receivingBuffer, bufferSize, inFlags);
+	return recv(curSocket, receivingBuffer, bufferSize, flag);
 }

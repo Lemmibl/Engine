@@ -3,9 +3,9 @@
 #pragma once
 #include <ws2tcpip.h>
 #include <ctime>
-#include "CEGUI/String.h"
+#include <list>
 
-#include "NetworkServices.h"
+#include "CEGUI/String.h"
 #include "NetworkData.h"
 
 class NetworkServer;
@@ -14,12 +14,11 @@ class GameConsoleWindow;
 class NetworkClient
 {
 private:
-#define DEFAULT_IP "127.0.0.1"
-
 //Port number that is unlikely to be used on client computers. Also easy to remember.
 //http://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers
 #define DEFAULT_PORT "22222"
 #define DEFAULT_BUFLEN 512
+#define DEFAULT_IP "127.0.0.1"
 
 public:
 	NetworkClient(GameConsoleWindow* console);
@@ -28,21 +27,31 @@ public:
 	//Connect function, with default ip and port in case nothing is entered
 	bool Connect(UserData& userData, CEGUI::String ip = DEFAULT_IP, CEGUI::String port = DEFAULT_PORT);
 	bool Update();
-	
-	int ReceivePackets(char* receivingBuffer);
-	bool ReadPackets(int packetSize, char* receivedBuffer);
+
+	void Disconnect();
+	void Shutdown();
 
 	void SendTextPacket(std::string text);
 	void SendUserDataPacket(UserData& userData);
 
-	//Should be temporary
-	void SendDummyPacket();
+private:
+	//Recursive function to get all data from server
+	bool ReceiveDataFromServer(int packetSize = 0, int packetIndex = 0);
+
+	//Size defines how much data we'll read and index defines where to start reading
+	void ReadStringData(unsigned int dataSize, unsigned int dataIndex, bool extractColor);
+
+	//Size defines how much data we'll read and index defines where to start reading
+	void ReadDisconnectData(unsigned int dataSize, unsigned int dataIndex);
+
+	//Size defines how much data we'll read and index defines where to start reading
+	void ReadUserData(unsigned int dataSize, unsigned int dataIndex);
+
+	//Send functions
+	bool SendDataToServer();
 
 	//TODO: Name this just disconnect and make sure everything is logical about the function
 	void SendDisconnectPacket();
-
-	void Disconnect();
-	void Shutdown();
 
 private:
 	//Just for debugging purposes...?
@@ -53,6 +62,9 @@ private:
 
 	char network_data[MAX_PACKET_SIZE];
 	char header_data[DataPacketHeader::sizeOfStruct];
+
+	//Container for things to send when Update comes around
+	std::list<DataPacket> dataToSend;
 
 	int receivingBufferLength;
 	int outFlags, iResult;

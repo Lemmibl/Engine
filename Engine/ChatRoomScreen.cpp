@@ -129,7 +129,7 @@ bool ChatRoomScreen::Handle_ConnectButtonPressed( const CEGUI::EventArgs &e )
 	{
 		rootWindow->getChild("SideMenu/ConnectButton")->setText("Connect");
 
-		netClient->SendDisconnectPacket();
+		netClient->Disconnect();
 		connectionActive = false;
 	}
 	else

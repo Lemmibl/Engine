@@ -1,13 +1,20 @@
 #include "NetworkServer.h"
 
+#include "NetworkServices.h"
 #include "NetworkData.h"
 #include "GameConsoleWindow.h"
 
 NetworkServer::NetworkServer(GameConsoleWindow* window)
 	: clientId(0),
-	  iFlag(0)
+	iFlag(0),
+	serverColour(1.0f, 0.0f, 1.0f, 1.0f)
 {
 	consoleWindow = window;
+
+	//Init and zero all containers.
+	ZeroMemory(network_data, MAX_PACKET_SIZE);
+	ZeroMemory(packet_header, DataPacketHeader::sizeOfStruct);
+
 }
 
 NetworkServer::~NetworkServer()
@@ -32,7 +39,7 @@ bool NetworkServer::Initialize(const ServerSettings& settings)
 	iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
 	if (iResult != 0) 
 	{
-		consoleWindow->PrintText("WSAStartup failed with error: " + iResult);
+		consoleWindow->PrintText("WSAStartup failed with error: " + iResult, serverColour);
 		return false;
 	}
 
@@ -48,7 +55,7 @@ bool NetworkServer::Initialize(const ServerSettings& settings)
 
 	if ( iResult != 0 ) 
 	{
-		consoleWindow->PrintText("getaddrinfo failed with error: " + iResult);
+		consoleWindow->PrintText("getaddrinfo failed with error: " + iResult, serverColour);
 		Shutdown();
 		return false;
 	}
@@ -58,7 +65,7 @@ bool NetworkServer::Initialize(const ServerSettings& settings)
 
 	if (listenSocket == INVALID_SOCKET) 
 	{
-		consoleWindow->PrintText("socket failed with error: " + WSAGetLastError());
+		consoleWindow->PrintText("socket failed with error: " + WSAGetLastError(), serverColour);
 		freeaddrinfo(result);
 		Shutdown();
 		return false;
@@ -70,7 +77,7 @@ bool NetworkServer::Initialize(const ServerSettings& settings)
 
 	if (iResult == SOCKET_ERROR) 
 	{
-		consoleWindow->PrintText("ioctlsocket failed with error: " + WSAGetLastError());
+		consoleWindow->PrintText("ioctlsocket failed with error: " + WSAGetLastError(), serverColour);
 		Shutdown();
 		return false;
 	}
@@ -80,7 +87,7 @@ bool NetworkServer::Initialize(const ServerSettings& settings)
 
 	if (iResult == SOCKET_ERROR) 
 	{
-		consoleWindow->PrintText("bind failed with error: " + WSAGetLastError());
+		consoleWindow->PrintText("bind failed with error: " + WSAGetLastError(), serverColour);
 		freeaddrinfo(result);
 		Shutdown();
 		return false;
@@ -94,24 +101,12 @@ bool NetworkServer::Initialize(const ServerSettings& settings)
 
 	if (iResult == SOCKET_ERROR) 
 	{
-		consoleWindow->PrintText("listen failed with error: " + WSAGetLastError());
+		consoleWindow->PrintText("listen failed with error: " + WSAGetLastError(), serverColour);
 		Shutdown();
 		return false;
 	}
 
 	return true;
-}
-
-void NetworkServer::Update()
-{
-	// get new clients
-	if(AcceptNewClient(clientId))
-	{
-		consoleWindow->PrintText("Client has been connected to the server. Client ID is: " + std::to_string((long long)clientId)); 
-		clientId++;
-	}
-
-	PollAllClients();
 }
 
 void NetworkServer::Shutdown()
@@ -124,7 +119,7 @@ void NetworkServer::Shutdown()
 	WSACleanup();
 }
 
-bool NetworkServer::AcceptNewClient(unsigned int& outId)
+bool NetworkServer::AddClient(unsigned int& outId)
 {
 	//If we get a new client waiting, accept the connection and save the socket
 	clientSocket = accept(listenSocket, NULL, NULL);
@@ -135,10 +130,11 @@ bool NetworkServer::AcceptNewClient(unsigned int& outId)
 		char value = 1;
 		setsockopt(clientSocket, IPPROTO_TCP, TCP_NODELAY, &value, sizeof(value));
 
+		//Give some default values
 		UserData newUser;
 		newUser.clientSocket = clientSocket;
 		newUser.textColor = CEGUI::Colour(1.0f, 1.0f, 1.0f, 1.0f);
-		newUser.userName = "/";
+		newUser.userName = "";
 
 		// insert new client into session id table
 		sessions.insert(std::pair<unsigned int, UserData>(outId, newUser) );
@@ -159,54 +155,96 @@ void NetworkServer::RemoveClient( unsigned int id )
 	{
 		//Remove it
 		int result = closesocket(it->second.clientSocket);
-		if(result > 0)
+		if(result == 0)
 		{
-			consoleWindow->PrintText("Client was successfully disconnected.");
+			consoleWindow->PrintText("Client was successfully disconnected.", serverColour);
+		}
+		else
+		{
+			CEGUI::String errorMsg("Something went wrong when trying to disconnect client nr: " + it->first);
+			errorMsg += ". Error code: " + WSAGetLastError();
+
+			consoleWindow->PrintText(errorMsg, serverColour);
 		}
 
+		//No matter what we, we still erase the client.
 		sessions.erase(it);
 	}
 }
 
-void NetworkServer::PollAllClients()
+void NetworkServer::SendDisconnectMessage( unsigned int client_id )
 {
-	EventPacket packet;
-	sessionsToDelete.clear();
+	//Search for client in map
+	auto it = sessions.find(client_id);
 
-	ZeroMemory(network_data, MAX_PACKET_SIZE);
+	//If there is a client
+	if(it != sessions.end())
+	{
+		std::string tempString(it->second.userName.c_str());
+		tempString +=  + " has disconnected.";
 
+		unsigned int stringSize = tempString.size();
+		DataPacket outPacket;
+		outPacket.dataType = TypeSTRING;
+		outPacket.dataVector.resize(stringSize);
+		memcpy(outPacket.dataVector.data(), tempString.data(), stringSize);
+
+		dataToSend.push_back(std::move(outPacket));
+	}
+}
+
+
+bool NetworkServer::Update()
+{
+	// get new clients
+	if(AddClient(clientId))
+	{
+		consoleWindow->PrintText("Client has been connected to the server. Client ID is: " + std::to_string((long long)clientId), serverColour); 
+		clientId++;
+	}
+
+	ReceiveClientData();
+
+	//TODO
+	SendDataToClients();
+
+	return true;
+}
+
+bool NetworkServer::ReceiveClientData()
+{
 	unsigned int dataSize = 0;
 	DataPacketType type = TypeNONE;
-
-	ZeroMemory(packet_header, DataPacketHeader::sizeOfStruct);
 
 	for(auto iter = sessions.begin(); iter != sessions.end(); ++iter)
 	{
 		iFlag = 0;
 
+		//TODO: redo this entire shit. Do it like client one
+
 		if(ReadDataHeader(iter->first, network_data, &type, &dataSize))
 		{
 			switch(type)
 			{
-				case TypeSTRING:
+			case TypeSTRING:
 				{
 					ReadStringData(iter->first, network_data, dataSize);
 					break;
 				}
 
-				case TypeUSERDATA:
+			case TypeUSERDATA:
 				{
 					ReadUserData(iter->first, network_data, dataSize);
 					break;
 				}
 
-				case TypeDISCONNECT:
+			case TypeDISCONNECT:
 				{
-					sessionsToDelete.push_back(iter);
+					clientsToDisconnect.push_back(iter);
 					break;
 				}
 
-				default:
+			default:
 				{
 					break;
 				}
@@ -214,75 +252,125 @@ void NetworkServer::PollAllClients()
 		}
 	}
 
-	//Potential cleanup
-	for(int i = 0; i < sessionsToDelete.size(); ++i)
+	if(clientsToDisconnect.size() > 0)
 	{
-		RemoveClient(sessionsToDelete[i]->first);
-	}
-}
-
-int NetworkServer::ReceiveData(unsigned int client_id, char* receivingBuffer)
-{
-	if( sessions.find(client_id) != sessions.end() )
-	{
-		SOCKET currentSocket = sessions[client_id].clientSocket;
-
-		iResult = NetworkServices::ReceiveMessage(currentSocket, receivingBuffer, MAX_PACKET_SIZE, iFlag);
-		if (iResult == 0)
+		//Potential cleanup of clients to be removed.
+		for(auto iter = clientsToDisconnect.begin(); iter != clientsToDisconnect.end(); ++iter)
 		{
-			consoleWindow->PrintText("Connection closed.");
-			closesocket(currentSocket);
+			SendDisconnectMessage((*iter)->first);
+			SendDisconnectMessage((*iter)->first);
+			SendDisconnectMessage((*iter)->first);
+
+			RemoveClient((*iter)->first);
 		}
 
-		return iResult;
+		//Then clear it.
+		clientsToDisconnect.clear();
 	}
-	return 0;
+
+	return true;
 }
 
-void NetworkServer::SendToAllClients(char* packets, int totalSize, int flag)
+bool NetworkServer::SendDataToClients()
 {
 	//TODO: Do something with flag
 	SOCKET currentSocket;
 	int iSendResult;
 
-	for(auto iter = sessions.begin(); iter != sessions.end(); ++iter)
+	for(auto sessionIter = sessions.begin(); sessionIter != sessions.end(); ++sessionIter)
 	{
-		currentSocket = iter->second.clientSocket;
-		iSendResult = NetworkServices::SendMessage(currentSocket, packets, totalSize);
+		currentSocket = sessionIter->second.clientSocket;
 
-		if (iSendResult == SOCKET_ERROR) 
+		for(auto dataIter = dataToSend.begin(); dataIter != dataToSend.end(); ++dataIter)
 		{
-			consoleWindow->PrintText("Send failed with error: " + WSAGetLastError());
-			closesocket(currentSocket);
-		}
+			//Create and serialize data header packet
+			DataPacketHeader::Serialize(packet_header, dataIter->dataType, dataIter->dataVector.size());
+
+			//Send data header
+			iSendResult = NetworkServices::SendData(currentSocket, packet_header, DataPacketHeader::sizeOfStruct);
+
+			if(iSendResult == SOCKET_ERROR) 
+			{
+				CEGUI::String errorMsg = "Failed to send data header to client nr: " + sessionIter->first;
+				errorMsg += ". Error code: " + WSAGetLastError();
+
+				consoleWindow->PrintText(errorMsg, serverColour);
+				clientsToDisconnect.push_back(sessionIter);
+			}
+
+			//If we're actually sending a data packet and not just an event packet
+			if(dataIter->dataVector.size() > 0)
+			{
+				//Send data body
+				iSendResult = NetworkServices::SendData(currentSocket, dataIter->dataVector.data(), dataIter->dataVector.size());
+
+				if(iSendResult == SOCKET_ERROR) 
+				{
+					CEGUI::String errorMsg = "Failed to send data to client nr: " + sessionIter->first;
+					errorMsg += ". Error code: " + WSAGetLastError();
+
+					consoleWindow->PrintText(errorMsg, serverColour);
+					clientsToDisconnect.push_back(sessionIter);
+				}
+			}
+		}	
 	}
+
+	dataToSend.clear();
+
+	return true;
 }
 
-void NetworkServer::SendDummyPackets()
+void NetworkServer::SendEventPacket(DataPacketType eventType)
 {
-	// send action packet
-	const unsigned int packet_size = sizeof(EventPacket);
-	char packet_data[packet_size];
+	DataPacket packet;
+	packet.dataType = eventType;
 
-	EventPacket packet;
-	packet.packet_type = ACTION_EVENT;
-	packet.Serialize(packet_data);
-
-	SendToAllClients(packet_data, packet_size);
+	dataToSend.push_back(packet);
 }
+
 
 void NetworkServer::ReadStringData(unsigned int client_id, char* receivingBuffer, unsigned int bufferSize)
 {
+	//TODO: send this back to all clients
+
 	auto it = sessions.find(client_id);
 	if(it != sessions.end())
 	{
-		NetworkServices::ReceiveMessage(it->second.clientSocket, receivingBuffer, bufferSize, iFlag);
+		DataPacket packet;
 
-		CEGUI::String text(receivingBuffer, bufferSize);
+		//Set appropriate type for this packet
+		packet.dataType = TypeCOLOUREDSTRING;
 
-		consoleWindow->PrintText(it->second.userName + ": " + text, it->second.textColor);
+		//Save size of the username part of the string...
+		unsigned int nameSize = it->second.userName.size();
+		unsigned int textSize = bufferSize + 2 + nameSize;
+
+		//Set vector to right size and init all values to default (0).
+		//Adding 2 because I want to add a ": " between user name and whatever the user wrote.
+		//And then finally, I want to append the user's text color
+		packet.dataVector.resize(textSize + sizeof(CEGUI::argb_t));
+
+		//Fill first part of data vector with the name of the user who sent this message
+		memcpy(packet.dataVector.data(), it->second.userName.c_str(), nameSize);
+
+		//Some rowdy cowboy coding to save performance.
+		packet.dataVector[nameSize+0] = ':';
+		packet.dataVector[nameSize+1] = ' ';
+		nameSize += 2;
+
+		auto argbVar = it->second.textColor.getARGB();
+
+		//Read data and immediately put it into the packet
+		NetworkServices::ReceiveData(it->second.clientSocket, packet.dataVector.data()+nameSize, bufferSize);
+
+		memcpy(packet.dataVector.data()+textSize, &argbVar, sizeof(CEGUI::argb_t));
+
+		//Store packet for redistribution
+		dataToSend.push_back(std::move(packet));
 	}
 }
+
 
 void NetworkServer::ReadUserData(unsigned int client_id, char* receivingBuffer, unsigned int bufferSize)
 {
@@ -290,36 +378,36 @@ void NetworkServer::ReadUserData(unsigned int client_id, char* receivingBuffer, 
 	if(it != sessions.end() )
 	{
 		//Read in the data in the form that was described by header
-		NetworkServices::ReceiveMessage(it->second.clientSocket, receivingBuffer, bufferSize, iFlag);
+		NetworkServices::ReceiveData(it->second.clientSocket, receivingBuffer, bufferSize);
 
 		auto& userData = it->second;		//read in data equal to bufferSize minus the colour part
 		unsigned int calculatedTextSize = (bufferSize-sizeof(CEGUI::argb_t));
 		std::vector<char> tempContainer(calculatedTextSize);
 		CEGUI::argb_t tempColour;
 
-		memcpy(&tempColour, receivingBuffer, sizeof(CEGUI::argb_t));
-								   //Offset by sizeof colour			  //rest of buffersize will consist of string data
-		memcpy(tempContainer.data(), receivingBuffer+sizeof(CEGUI::argb_t), calculatedTextSize);
+		//First extract text from beginning of buffer
+		memcpy(tempContainer.data(), receivingBuffer, calculatedTextSize);
+
+		//Get colour appended to the end
+		memcpy(&tempColour, receivingBuffer + calculatedTextSize, sizeof(CEGUI::argb_t));
 
 		userData.textColor = CEGUI::Colour(tempColour);
-		userData.userName = CEGUI::String(tempContainer.data(), tempContainer.size());
+		userData.userName = CEGUI::String(tempContainer.data(), calculatedTextSize);
 
-		consoleWindow->PrintText("Server has now received new user data.");
-		consoleWindow->PrintText("User name is: " + userData.userName);
+		consoleWindow->PrintText(userData.userName + " has joined the server.", userData.textColor);
 	}
 }
+
 
 bool NetworkServer::ReadDataHeader( unsigned int client_id, char* receivingBuffer, DataPacketType* outType, unsigned int* outSize )
 {
 	auto it = sessions.find(client_id);
 	if(it != sessions.end() )
 	{
-		ZeroMemory(packet_header, DataPacketHeader::sizeOfStruct);
-
-		iResult = NetworkServices::ReceiveMessage(it->second.clientSocket, packet_header, DataPacketHeader::sizeOfStruct, iFlag);
+		iResult = NetworkServices::ReceiveData(it->second.clientSocket, packet_header, DataPacketHeader::sizeOfStruct);
 		if(iResult == 0)
 		{
-			consoleWindow->PrintText("Something went wrong when trying to read data packet header.");
+			consoleWindow->PrintText("Something went wrong when trying to read data packet header.", serverColour);
 			return false;
 		}
 		else if(iResult > 0)

@@ -1,10 +1,11 @@
 #define WIN32_LEAN_AND_MEAN
 #pragma once
-#include "NetworkServices.h"
-#include "NetworkData.h"
 #include <ws2tcpip.h>
 #include <unordered_map>
+#include <list>
 #include <CEGUI/CEGUI.h>
+
+#include "NetworkData.h"
 
 class GameConsoleWindow;
 
@@ -24,34 +25,37 @@ public:
 	NetworkServer(GameConsoleWindow* window);
 	~NetworkServer();
 
-	//Potentially receive a port? A password?
+	//Potentially receive a port? A password? Welcome message?
 	bool Initialize(const ServerSettings& settings);
+	bool Update();
+	void Shutdown();
 
-	bool AcceptNewClient(unsigned int& outId);
+private:
+	bool AddClient(unsigned int& outId);
 	void RemoveClient(unsigned int id);
 
-	int ReceiveData(unsigned int client_id, char* receivingBuffer);
-
 	//See if any client has sent any data since last time
-	void PollAllClients();
+	bool ReceiveClientData();
+
+	//Distribute any received client data to all clients
+	bool SendDataToClients();
+
+	//Sends a packet with size 0. Use purely for events that require no data, such as server shutdowns and things. TODO: think about this and see if there actually are zero-data events...
+	void SendEventPacket(DataPacketType eventType);
+
+	void SendDisconnectMessage(unsigned int client_id);
 
 	//Returns true on success
 	bool ReadDataHeader(unsigned int client_id, char* receivingBuffer, DataPacketType* outType, unsigned int* outSize);
 
+	//These functions don't need to return a bool, because if the above header returns true, it means that these will... hopefully.. contain the right data.
 	void ReadStringData(unsigned int client_id, char* receivingBuffer, unsigned int bufferSize);
 	void ReadUserData(unsigned int client_id, char* receivingBuffer, unsigned int bufferSize);
 
-	// send data to all clients
-	void SendToAllClients(char * packets, int totalSize, int flag = 0);
-
-	//Just temporary to test this stuff out
-	void SendDummyPackets();
-
-	void Update();
-	void Shutdown();
-
 private:
 	GameConsoleWindow* consoleWindow;
+
+	CEGUI::Colour serverColour;
 
 	// data buffer
 	char network_data[MAX_PACKET_SIZE];
@@ -67,8 +71,13 @@ private:
 	int iResult, iFlag;
 	unsigned int clientId;
 
+	//List with data to send to all clients at the end of each update
+	std::list<DataPacket> dataToSend;
+
+	//List of sessions to terminate
+	std::list<std::unordered_map<unsigned int, UserData>::iterator> clientsToDisconnect;
+
 	// table to keep track of each client's socket
 	std::unordered_map<unsigned int, UserData> sessions;
-	std::vector<std::unordered_map<unsigned int, UserData>::iterator> sessionsToDelete;
 };
 
