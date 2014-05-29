@@ -5,13 +5,13 @@
       <Filter>General Code\Utility</Filter>
     </ClCompile>
     <ClCompile Include="DepthOnlyQuadShader.cpp">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Shadow shader wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\Shadow shader wrappers</Filter>
     </ClCompile>
     <ClCompile Include="DepthOnlyShader.cpp">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Shadow shader wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\Shadow shader wrappers</Filter>
     </ClCompile>
     <ClCompile Include="DRGBuffer.cpp">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Deferred rendering wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClCompile>
     <ClCompile Include="fpsmeter.cpp">
       <Filter>General Code\Utility</Filter>
@@ -53,10 +53,10 @@
       <Filter>Terrain and procedural generation\LSystem</Filter>
     </ClCompile>
     <ClCompile Include="GaussianBlur.cpp">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Post processing wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
     </ClCompile>
     <ClCompile Include="DRCompose.cpp">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Post processing wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
     </ClCompile>
     <ClCompile Include="textclass.cpp">
       <Filter>Rendering\Managers</Filter>
@@ -80,28 +80,28 @@
       <Filter>Rendering\Objects</Filter>
     </ClCompile>
     <ClCompile Include="MCGBufferTerrainShader.cpp">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Deferred rendering wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClCompile>
     <ClCompile Include="VegetationShader.cpp">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Vegetation shader wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers\Vegetation shader wrappers</Filter>
     </ClCompile>
     <ClCompile Include="GeometryShaderGrass.cpp">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Vegetation shader wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers\Vegetation shader wrappers</Filter>
     </ClCompile>
     <ClCompile Include="NoiseClass.cpp">
       <Filter>Terrain and procedural generation\Noise</Filter>
     </ClCompile>
     <ClCompile Include="fontshaderclass.cpp">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\General shader wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\General shader wrappers</Filter>
     </ClCompile>
     <ClCompile Include="SkysphereShader.cpp">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\General shader wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\General shader wrappers</Filter>
     </ClCompile>
     <ClCompile Include="textureshaderclass.cpp">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\General shader wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\General shader wrappers</Filter>
     </ClCompile>
     <ClCompile Include="VertexShaderOnly.cpp">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\General shader wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\General shader wrappers</Filter>
     </ClCompile>
     <ClCompile Include="LerpInstance.cpp">
       <Filter>General Code\Mathstuff</Filter>
@@ -136,7 +136,7 @@
       <Filter>General Code\Utility</Filter>
     </ClCompile>
     <ClCompile Include="TurnToSmokeShader.cpp">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Deferred rendering wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClCompile>
     <ClCompile Include="ScreenManager.cpp">
       <Filter>State machines and menus</Filter>
@@ -160,7 +160,7 @@
       <Filter>Terrain and procedural generation\LSystem</Filter>
     </ClCompile>
     <ClCompile Include="FullScreenShaderInterface.cpp">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers</Filter>
+      <Filter>Rendering\Shader wrappers</Filter>
     </ClCompile>
     <ClCompile Include="GameplayScreen.cpp">
       <Filter>State machines and menus\Screens</Filter>
@@ -202,7 +202,7 @@
       <Filter>Rendering\Objects</Filter>
     </ClCompile>
     <ClCompile Include="DRObjModelShader.cpp">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Deferred rendering wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClCompile>
     <ClCompile Include="..\Tinythread\tinythread.cpp">
       <Filter>Libraries\Tinythread</Filter>
@@ -226,25 +226,25 @@
       <Filter>Rendering\Managers\Textures and materials</Filter>
     </ClCompile>
     <ClCompile Include="DRDirectionalLight.cpp">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Deferred rendering wrappers\Lighting</Filter>
+      <Filter>Rendering\Shader wrappers\Lighting</Filter>
     </ClCompile>
     <ClCompile Include="DRPointLight.cpp">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Deferred rendering wrappers\Lighting</Filter>
+      <Filter>Rendering\Shader wrappers\Lighting</Filter>
     </ClCompile>
     <ClCompile Include="DRWaterClass.cpp">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Deferred rendering wrappers\Water</Filter>
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers\Water</Filter>
     </ClCompile>
     <ClCompile Include="SSAOShader.cpp">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Post processing wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
     </ClCompile>
     <ClCompile Include="TextOverlayScreen.cpp">
       <Filter>State machines and menus\Screens</Filter>
     </ClCompile>
     <ClCompile Include="SSAOBlur.cpp">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Post processing wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
     </ClCompile>
     <ClCompile Include="UnderwaterFilterShader.cpp">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Post processing wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
     </ClCompile>
     <ClCompile Include="FormattedListboxTextItem.cpp">
       <Filter>GUI</Filter>
@@ -270,13 +270,13 @@
       <Filter>General Code\Utility</Filter>
     </ClInclude>
     <ClInclude Include="DepthOnlyShader.h">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Shadow shader wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\Shadow shader wrappers</Filter>
     </ClInclude>
     <ClInclude Include="DepthOnlyQuadShader.h">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Shadow shader wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\Shadow shader wrappers</Filter>
     </ClInclude>
     <ClInclude Include="DRGBuffer.h">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Deferred rendering wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClInclude>
     <ClInclude Include="fpsmeter.h">
       <Filter>General Code\Utility</Filter>
@@ -324,10 +324,10 @@
       <Filter>Terrain and procedural generation\LSystem</Filter>
     </ClInclude>
     <ClInclude Include="GaussianBlur.h">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Post processing wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
     </ClInclude>
     <ClInclude Include="DRCompose.h">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Post processing wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
     </ClInclude>
     <ClInclude Include="interfacepointers.h">
       <Filter>General Code\Utility</Filter>
@@ -357,28 +357,28 @@
       <Filter>Rendering\Objects</Filter>
     </ClInclude>
     <ClInclude Include="MCGBufferTerrainShader.h">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Deferred rendering wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClInclude>
     <ClInclude Include="VegetationShader.h">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Vegetation shader wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers\Vegetation shader wrappers</Filter>
     </ClInclude>
     <ClInclude Include="GeometryShaderGrass.h">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Vegetation shader wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers\Vegetation shader wrappers</Filter>
     </ClInclude>
     <ClInclude Include="NoiseClass.h">
       <Filter>Terrain and procedural generation\Noise</Filter>
     </ClInclude>
     <ClInclude Include="VertexShaderOnly.h">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\General shader wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\General shader wrappers</Filter>
     </ClInclude>
     <ClInclude Include="fontshaderclass.h">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\General shader wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\General shader wrappers</Filter>
     </ClInclude>
     <ClInclude Include="SkysphereShader.h">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\General shader wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\General shader wrappers</Filter>
     </ClInclude>
     <ClInclude Include="textureshaderclass.h">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\General shader wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\General shader wrappers</Filter>
     </ClInclude>
     <ClInclude Include="LerpInstance.h">
       <Filter>General Code\Mathstuff</Filter>
@@ -412,7 +412,7 @@
       <Filter>General Code\Utility</Filter>
     </ClInclude>
     <ClInclude Include="TurnToSmokeShader.h">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Deferred rendering wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClInclude>
     <ClInclude Include="ScreenManager.h">
       <Filter>State machines and menus</Filter>
@@ -439,7 +439,7 @@
       <Filter>Settings</Filter>
     </ClInclude>
     <ClInclude Include="FullScreenShaderInterface.h">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers</Filter>
+      <Filter>Rendering\Shader wrappers</Filter>
     </ClInclude>
     <ClInclude Include="GenericScreen.h">
       <Filter>State machines and menus\Screens</Filter>
@@ -490,7 +490,7 @@
       <Filter>Rendering\Objects</Filter>
     </ClInclude>
     <ClInclude Include="DRObjModelShader.h">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Deferred rendering wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers</Filter>
     </ClInclude>
     <ClInclude Include="..\Tinythread\fast_mutex.h">
       <Filter>Libraries\Tinythread</Filter>
@@ -526,28 +526,28 @@
       <Filter>Terrain and procedural generation\MC</Filter>
     </ClInclude>
     <ClInclude Include="DRDirectionalLight.h">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Deferred rendering wrappers\Lighting</Filter>
+      <Filter>Rendering\Shader wrappers\Lighting</Filter>
     </ClInclude>
     <ClInclude Include="DRPointLight.h">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Deferred rendering wrappers\Lighting</Filter>
+      <Filter>Rendering\Shader wrappers\Lighting</Filter>
     </ClInclude>
     <ClInclude Include="DRWaterClass.h">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Deferred rendering wrappers\Water</Filter>
+      <Filter>Rendering\Shader wrappers\Deferred rendering wrappers\Water</Filter>
     </ClInclude>
     <ClInclude Include="SSAOShader.h">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Post processing wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
     </ClInclude>
     <ClInclude Include="TextOverlayScreen.h">
       <Filter>State machines and menus\Screens</Filter>
     </ClInclude>
     <ClInclude Include="SSAOBlur.h">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Post processing wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
     </ClInclude>
     <ClInclude Include="UnderwaterFilterShader.h">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Post processing wrappers</Filter>
+      <Filter>Rendering\Shader wrappers\Post processing wrappers</Filter>
     </ClInclude>
     <ClInclude Include="ShaderInputStructs.h">
-      <Filter>Rendering\Shaders\Post processing\Shader wrappers\Shader input structs</Filter>
+      <Filter>Rendering\Shader wrappers\Shader input structs</Filter>
     </ClInclude>
     <ClInclude Include="RenderableBundle.h">
       <Filter>Rendering\Rendering utility</Filter>
@@ -576,19 +576,19 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\GeometryShaderGrass.gsh">
-      <Filter>Rendering\Shaders\Vegetation</Filter>
+      <Filter>Rendering\Shaders\Deferred shaders\Vegetation</Filter>
     </None>
     <None Include="Shaders\GeometryShaderGrass.psh">
-      <Filter>Rendering\Shaders\Vegetation</Filter>
+      <Filter>Rendering\Shaders\Deferred shaders\Vegetation</Filter>
     </None>
     <None Include="Shaders\GeometryShaderGrass.vsh">
-      <Filter>Rendering\Shaders\Vegetation</Filter>
+      <Filter>Rendering\Shaders\Deferred shaders\Vegetation</Filter>
     </None>
     <None Include="Shaders\VegetationQuad.psh">
-      <Filter>Rendering\Shaders\Vegetation</Filter>
+      <Filter>Rendering\Shaders\Deferred shaders\Vegetation</Filter>
     </None>
     <None Include="Shaders\VegetationQuad.vsh">
-      <Filter>Rendering\Shaders\Vegetation</Filter>
+      <Filter>Rendering\Shaders\Deferred shaders\Vegetation</Filter>
     </None>
     <None Include="Shaders\DepthOnlyShader.vsh">
       <Filter>Rendering\Shaders\Shadow shaders</Filter>
@@ -672,25 +672,22 @@
       <Filter>Rendering\Shaders\Deferred shaders\Water</Filter>
     </None>
     <None Include="Shaders\DRPointLight.psh">
-      <Filter>Rendering\Shaders\Deferred shaders\Lighting</Filter>
+      <Filter>Rendering\Shaders\Lighting</Filter>
     </None>
     <None Include="Shaders\DRPointLight.vsh">
-      <Filter>Rendering\Shaders\Deferred shaders\Lighting</Filter>
+      <Filter>Rendering\Shaders\Lighting</Filter>
     </None>
     <None Include="Shaders\DRDirectionalLight.psh">
-      <Filter>Rendering\Shaders\Deferred shaders\Lighting</Filter>
+      <Filter>Rendering\Shaders\Lighting</Filter>
     </None>
     <None Include="Shaders\DRDirectionalLight.vsh">
-      <Filter>Rendering\Shaders\Deferred shaders\Lighting</Filter>
+      <Filter>Rendering\Shaders\Lighting</Filter>
     </None>
     <None Include="Shaders\WaterAnimationVertexShader.vsh">
       <Filter>Rendering\Shaders\Deferred shaders\Water</Filter>
     </None>
     <None Include="Shaders\FullscreenQuadVertexShader.vsh">
       <Filter>Rendering\Shaders\General shaders</Filter>
-    </None>
-    <None Include="Shaders\SSAOShader.psh">
-      <Filter>Rendering\Shaders\Post processing</Filter>
     </None>
     <None Include="Shaders\SSAOShader.vsh">
       <Filter>Rendering\Shaders\Post processing</Filter>
@@ -725,6 +722,9 @@
     <None Include="libconfig\libconfig.dll">
       <Filter>Libraries\Libconfig</Filter>
     </None>
+    <None Include="Shaders\SSAOShader.psh">
+      <Filter>Rendering\Shaders\Post processing</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Rendering">
@@ -756,9 +756,6 @@
     </Filter>
     <Filter Include="Rendering\Objects">
       <UniqueIdentifier>{965eb527-364b-4c1c-9609-492d29014ef3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Rendering\Shaders\Vegetation">
-      <UniqueIdentifier>{80065f5a-aa04-421f-b7a2-375306199981}</UniqueIdentifier>
     </Filter>
     <Filter Include="Rendering\Shaders\General shaders">
       <UniqueIdentifier>{928971b3-e5c7-4d2a-ba0f-751b722a5fbe}</UniqueIdentifier>
@@ -823,9 +820,6 @@
     <Filter Include="Rendering\Shaders\Deferred shaders\Water">
       <UniqueIdentifier>{da1bdbce-f89e-4dde-8e5d-4b514eff0efa}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Rendering\Shaders\Deferred shaders\Lighting">
-      <UniqueIdentifier>{07b57fd5-9f4d-49f6-b992-debb7dd48c94}</UniqueIdentifier>
-    </Filter>
     <Filter Include="GUI">
       <UniqueIdentifier>{f4369cf8-bf3c-4ea1-9733-7a6bf436134b}</UniqueIdentifier>
     </Filter>
@@ -835,32 +829,38 @@
     <Filter Include="Networking">
       <UniqueIdentifier>{3634a078-c756-427e-aa4b-d73d1e871a70}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Rendering\Shaders\Post processing\Shader wrappers">
+    <Filter Include="Rendering\Shader wrappers">
       <UniqueIdentifier>{0a8f4398-cd82-4870-8e40-771be4f98bda}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Rendering\Shaders\Post processing\Shader wrappers\Deferred rendering wrappers">
+    <Filter Include="Rendering\Shader wrappers\Deferred rendering wrappers">
       <UniqueIdentifier>{6073386f-052b-4234-a49f-55f3fb1520e5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Rendering\Shaders\Post processing\Shader wrappers\Deferred rendering wrappers\Water">
+    <Filter Include="Rendering\Shader wrappers\Deferred rendering wrappers\Water">
       <UniqueIdentifier>{352ab356-575e-4f66-ae5f-70ee5a6799a9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Rendering\Shaders\Post processing\Shader wrappers\Deferred rendering wrappers\Lighting">
-      <UniqueIdentifier>{938f22ed-f852-4c01-869d-5b5504714088}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Rendering\Shaders\Post processing\Shader wrappers\Shadow shader wrappers">
+    <Filter Include="Rendering\Shader wrappers\Shadow shader wrappers">
       <UniqueIdentifier>{5fd6b732-1941-43e2-9d4c-1be78126a2d6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Rendering\Shaders\Post processing\Shader wrappers\Vegetation shader wrappers">
-      <UniqueIdentifier>{772f7d36-6add-4357-9074-bba23b6d478d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Rendering\Shaders\Post processing\Shader wrappers\Post processing wrappers">
+    <Filter Include="Rendering\Shader wrappers\Post processing wrappers">
       <UniqueIdentifier>{ea2d2fbd-617c-455c-a898-27414fc8c13a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Rendering\Shaders\Post processing\Shader wrappers\General shader wrappers">
+    <Filter Include="Rendering\Shader wrappers\General shader wrappers">
       <UniqueIdentifier>{1c1f1a94-8188-47ac-a178-d6e4fd0a270f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Rendering\Shaders\Post processing\Shader wrappers\Shader input structs">
+    <Filter Include="Rendering\Shader wrappers\Shader input structs">
       <UniqueIdentifier>{fb042562-9cfd-45b1-b1bd-d5310e97e1da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shaders\Deferred shaders\Vegetation">
+      <UniqueIdentifier>{80065f5a-aa04-421f-b7a2-375306199981}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shaders\Lighting">
+      <UniqueIdentifier>{07b57fd5-9f4d-49f6-b992-debb7dd48c94}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shader wrappers\Lighting">
+      <UniqueIdentifier>{938f22ed-f852-4c01-869d-5b5504714088}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shader wrappers\Deferred rendering wrappers\Vegetation shader wrappers">
+      <UniqueIdentifier>{772f7d36-6add-4357-9074-bba23b6d478d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

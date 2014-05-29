@@ -17,6 +17,7 @@ struct VertexShaderOutput
 		float4 Position : SV_POSITION;
 		float2 TexCoord : TEXCOORD0;
 		float3 ViewRay	: TEXCOORD1;
+		float4 ScreenPosition : TEXCOORD2;
 };
 
 /*
@@ -41,6 +42,8 @@ VertexShaderOutput SSAOVertexShader(VertexShaderInput input)
 		
 		//Possibly do this in pixel shader or use texcoords..?
 		output.ViewRay = float3(output.Position.x * thFOV * aspectRatio, output.Position.y * thFOV, 1.0f);
+
+		output.ScreenPosition = output.Position;
 
 		return output;
 }

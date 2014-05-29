@@ -22,7 +22,7 @@ struct VertexShaderOutput
 };
 
 Texture1DArray materialArray;
-Texture2D textures[3]; //Color, Normal, depth. In that order
+Texture2D textures[4]; //Color, Normal, depth, Material. In that order
 SamplerState pointSampler;
 
 static const float CameraFarClip = 400.0f;
@@ -96,28 +96,26 @@ half4 LightPixelShader(VertexShaderOutput input) : SV_TARGET0
 	float2 texCoord = 0.5f * (float2(input.ScreenPosition.x, -input.ScreenPosition.y) + 1.0f);
 
 	//get normal data from the normalMap
-	float4 normalData = textures[1].Sample(pointSampler, texCoord);
-
-	int materialID = round(normalData.z * 255);
-	int materialID2 = round(normalData.w * 255);
+	float3 material = textures[3].Sample(pointSampler, texCoord).xyz;
+	int materialID = round(material.x * 1024.5f);
+	int materialID2 = round(material.y * 1024.5f);
 
 	RetrieveMaterialData(materialID, diffuseCoefficient, specularCoefficient, surfaceSmoothness);
 	
 	//If there's a difference between our two materials, we have to lerp!
 	if(materialID != materialID2) 
 	{
-		float lerpVal = (textures[0].Sample(pointSampler, texCoord).w);
 		float diffuseCoefficient2, specularCoefficient2, surfaceSmoothness2;
 
 		RetrieveMaterialData(materialID2, diffuseCoefficient2, specularCoefficient2, surfaceSmoothness2);
 
-		diffuseCoefficient = lerp(diffuseCoefficient, diffuseCoefficient2, lerpVal);
-		specularCoefficient = lerp(specularCoefficient, specularCoefficient2, lerpVal);
-		surfaceSmoothness = lerp(surfaceSmoothness, surfaceSmoothness2, lerpVal);
+		diffuseCoefficient = lerp(diffuseCoefficient, diffuseCoefficient2, material.z);
+		specularCoefficient = lerp(specularCoefficient, specularCoefficient2, material.z);
+		surfaceSmoothness = lerp(surfaceSmoothness, surfaceSmoothness2, material.z);
 	}
 
 	float depth = textures[2].Sample(pointSampler, texCoord);
-	float3 normal = normalize(DecodeNormal(normalData.xy));
+	float3 normal = normalize(textures[1].Sample(pointSampler, texCoord).xyz);
 
 	float3 position = mul(float4(ReconstructViewPositionFromDepth(input.ViewPosition.xyz, depth), 1.0f), InvertedView);
 

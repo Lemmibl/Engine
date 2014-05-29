@@ -94,7 +94,8 @@ bool GameRenderer::Initialize(HWND hwnd, std::shared_ptr<InputClass> inputManage
 	this->d3D = d3D;
 	debugHUD = extDebugHUD;
 
-	toggleSSAO = 0;
+	//2 = without SSAO. 1 = only SSAO. 0 = with SSAO
+	toggleSSAO = 2;
 	toggleColorMode = 1;
 	fogMinimum = 1.0f;
 
@@ -479,6 +480,7 @@ bool GameRenderer::InitializeEverythingElse( HWND hwnd )
 	fullScreenQuad->Initialize(d3D->GetDevice(), screenWidth, screenHeight, screenWidth, screenHeight);
 
 	colorRT = std::unique_ptr<RenderTarget2D>(new RenderTarget2D);
+	materialRT = std::unique_ptr<RenderTarget2D>(new RenderTarget2D);
 	normalRT = std::unique_ptr<RenderTarget2D>(new RenderTarget2D);
 	depthRT = std::unique_ptr<RenderTarget2D>(new RenderTarget2D);
 	lightRT = std::unique_ptr<RenderTarget2D>(new RenderTarget2D);
@@ -489,13 +491,19 @@ bool GameRenderer::InitializeEverythingElse( HWND hwnd )
 	ARGB8PingPongRT = std::unique_ptr<RenderTarget2D>(new RenderTarget2D);
 
 	colorRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
-	normalRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
+
+	materialRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R10G10B10A2_UNORM);
+
+	normalRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R11G11B10_FLOAT);
 	depthRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
+
 	lightRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
 	shadowRT->Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_FLOAT);
 	R16G16PingPongRT->Initialize(d3D->GetDevice(), shadowMapWidth, shadowMapHeight, DXGI_FORMAT_R16G16_FLOAT); //Needs to be identical to shadowRT
+
 	ssaoRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
 	R32PingPongRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT);
+
 	ARGB8PingPongRT->Initialize(d3D->GetDevice(), screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
 
 	//TODO:
@@ -721,6 +729,7 @@ void GameRenderer::InitializeRenderingSpecifics()
 	gbufferRenderTargets[0] = colorRT->RTView;
 	gbufferRenderTargets[1] = normalRT->RTView;
 	gbufferRenderTargets[2] = depthRT->RTView;
+	gbufferRenderTargets[3] = materialRT->RTView;
 
 	//For lighting pass
 	lightTarget[0] = lightRT->RTView; 
@@ -733,19 +742,20 @@ void GameRenderer::InitializeRenderingSpecifics()
 	gbufferTextures[0] = colorRT->SRView; 
 	gbufferTextures[1] = normalRT->SRView;
 	gbufferTextures[2] = depthRT->SRView;
+	gbufferTextures[3] = materialRT->SRView;
 
 	//For directional light pass
 	dirLightTextures[0] = normalRT->SRView;
 	dirLightTextures[1] = depthRT->SRView;
 	dirLightTextures[2] = shadowRT->SRView;
-	dirLightTextures[3] = colorRT->SRView;
+	dirLightTextures[3] = materialRT->SRView;
 
 	//For the the final composition pass
 	finalTextures[0] = ARGB8PingPongRT->SRView;
 	finalTextures[1] = lightRT->SRView;
 	finalTextures[2] = depthRT->SRView;
 	finalTextures[3] = ssaoRT->SRView;
-	finalTextures[4] = normalRT->SRView;
+	finalTextures[4] = materialRT->SRView;
 
 	gaussianBlurTexture[0] = R16G16PingPongRT->SRView;
 
@@ -873,8 +883,8 @@ bool GameRenderer::Render(HWND hwnd, RenderableBundle* renderableBundle, std::sh
 
 	ssaoInput->rtTextureArray = &ssaoTextures[0].p;
 	ssaoInput->worldViewProjection = &worldBaseViewOrthoProj;
-	ssaoInput->projection = &XMMatrixTranspose(projectionMatrix); //&orthoMatrix; //
-	ssaoInput->view = &XMMatrixTranspose(baseView); //&XMMatrixTranspose(viewMatrix);//&baseView;
+	ssaoInput->invertedProjection = &invertedProjection; //&XMMatrixTranspose(projectionMatrix); //&orthoMatrix; //
+	ssaoInput->view = &XMMatrixTranspose(XMMatrixIdentity() * viewMatrix); //XMMatrixTranspose(viewMatrix); //&XMMatrixTranspose(viewMatrix);//&baseView;
 #pragma endregion
 
 	//Send untransposed lightView/lightProj here
@@ -1051,12 +1061,13 @@ bool GameRenderer::RenderGBuffer( XMMATRIX* viewMatrix, XMMATRIX* baseView, XMMA
 	d3D->SetDefaultViewport();
 
 	//depthStencil.p = d3D->GetDepthStencilManager()->GetDepthStencilView();
-	deviceContext->OMSetRenderTargets(3, &gbufferRenderTargets[0].p, depthStencil);
+	deviceContext->OMSetRenderTargets(4, &gbufferRenderTargets[0].p, depthStencil);
 	deviceContext->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.0f, 0);
 
 	deviceContext->ClearRenderTargetView(gbufferRenderTargets[0], D3DXVECTOR4(0.0f, 0.125f, 0.3f, 1.0f));
 	deviceContext->ClearRenderTargetView(gbufferRenderTargets[1], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 	deviceContext->ClearRenderTargetView(gbufferRenderTargets[2], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
+	deviceContext->ClearRenderTargetView(gbufferRenderTargets[3], D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 
 	d3D->GetRasterizerStateManager()->SetNoCullRasterizer();
 	d3D->GetDepthStencilManager()->SetDepthDisabledStencilState();
@@ -1321,39 +1332,39 @@ bool GameRenderer::RenderSSAO(ShaderInputStructs::SSAOShaderInput* input )
 		return false;
 	}
 
-	//Change target to our bounce target, because we'll be using the other target to read from while blurring
-	deviceContext->OMSetRenderTargets(1, &ssaoTarget[0].p, depthStencil);
-	deviceContext->ClearRenderTargetView(ssaoTarget[0].p, D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
+	////Change target to our bounce target, because we'll be using the other target to read from while blurring
+	//deviceContext->OMSetRenderTargets(1, &ssaoTarget[0].p, depthStencil);
+	//deviceContext->ClearRenderTargetView(ssaoTarget[0].p, D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 
-	//Change what resource to sample from
-	ssaoBlurTextures[0] = ssaoRT->SRView;
+	////Change what resource to sample from
+	//ssaoBlurTextures[0] = ssaoRT->SRView;
 
-	if(!fullScreenQuad->Render(deviceContext, 0, 0))
-	{
-		return false;
-	}
+	//if(!fullScreenQuad->Render(deviceContext, 0, 0))
+	//{
+	//	return false;
+	//}
 
-	if(!ssaoBlurShader->RenderBlurX(deviceContext, fullScreenQuad->GetIndexCount(), input->worldViewProjection, &ssaoBlurTextures[0].p))
-	{
-		return false;
-	}
+	//if(!ssaoBlurShader->RenderBlurX(deviceContext, fullScreenQuad->GetIndexCount(), input->worldViewProjection, &ssaoBlurTextures[0].p))
+	//{
+	//	return false;
+	//}
 
-	//Aaaand... Set RT back to real target again to render out final result
-	deviceContext->OMSetRenderTargets(1, &ssaoTarget[1].p, depthStencil);
-	deviceContext->ClearRenderTargetView(ssaoTarget[1].p, D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
+	////Aaaand... Set RT back to real target again to render out final result
+	//deviceContext->OMSetRenderTargets(1, &ssaoTarget[1].p, depthStencil);
+	//deviceContext->ClearRenderTargetView(ssaoTarget[1].p, D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f));
 
-	//Change what resource to sample from
-	ssaoBlurTextures[0] = R32PingPongRT->SRView;
+	////Change what resource to sample from
+	//ssaoBlurTextures[0] = R32PingPongRT->SRView;
 
-	if(!fullScreenQuad->Render(deviceContext, 0, 0))
-	{
-		return false;
-	}
+	//if(!fullScreenQuad->Render(deviceContext, 0, 0))
+	//{
+	//	return false;
+	//}
 
-	if(!ssaoBlurShader->RenderBlurY(deviceContext, fullScreenQuad->GetIndexCount(), input->worldViewProjection, &ssaoBlurTextures[0].p))
-	{
-		return false;
-	}
+	//if(!ssaoBlurShader->RenderBlurY(deviceContext, fullScreenQuad->GetIndexCount(), input->worldViewProjection, &ssaoBlurTextures[0].p))
+	//{
+	//	return false;
+	//}
 
 
 	return true;

@@ -4,14 +4,14 @@ struct VertexShaderOutput
 	float3 WorldNormal : NORMAL;
 	float2 TexCoord : TEXCOORD0;
 	float4 WorldPosition : TEXCOORD1;
-	float ViewDepth : TEXCOORD2;
 };
 
 struct PixelShaderOutput
 {
 	float4 Color : SV_TARGET0; //R8G8B8A8
-	float4 Normal : SV_TARGET1; //R8G8B8A8
+	float3 Normal : SV_TARGET1; //R8G8B8A8
 	float Depth : SV_TARGET2; //R32
+	float4 Material : SV_TARGET3;
 };
 
 cbuffer PixelShaderBuffer
@@ -32,7 +32,7 @@ half2 Encode(half3 n)
 //When it gets read in other shaders it gets multiplied back to 255.
 float EncodeMaterialID(float id)
 {
-	return (id / 255.0f);
+	return (id / 1024.0f);
 }
 
 Texture2D shaderTexture;
@@ -64,10 +64,11 @@ PixelShaderOutput GBufferPixelShader(VertexShaderOutput input)
 	output.Color = ((XZColor * blend_weights.y) + (YZColor * blend_weights.x) + (XYColor * blend_weights.z));
 	output.Color.w = 1.0f;
 
-	output.Normal.xy = Encode(normalizedWorldNormal);
-	output.Normal.zw = EncodeMaterialID(1.0f); //TODO: send in material IDs
+	output.Normal = normalizedWorldNormal.xyz;//Encode(normalizedWorldNormal);
+	output.Material.xy = EncodeMaterialID(1.0f); //TODO: send in material IDs
+	output.Material.zw = 0.0f;
 
-	output.Depth = (input.ViewDepth / farClip); //Store depth linearly.
+	output.Depth = (input.WorldPosition.w / farClip); //Store depth linearly.
 
 	return output;
 }

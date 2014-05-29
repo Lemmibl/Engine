@@ -26,11 +26,11 @@ private:
 	struct PixelShaderBuffer 
 	{
 		XMMATRIX View;
-		XMMATRIX Projection;
+		XMMATRIX InvertedProjection;
 		float thFOV;
 		float aspectRatio;
 		XMFLOAT2 PADDING;
-		XMFLOAT4 samplingRays[14];
+		//XMFLOAT4 samplingRays[14];
 	};
 
 public:

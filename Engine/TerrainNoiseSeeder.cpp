@@ -8,12 +8,15 @@ TerrainNoiseSeeder::~TerrainNoiseSeeder()
 {
 }
 
+static const float minDensity = -10.0f;
+static const float maxDensity = 10.0f;
+
 void TerrainNoiseSeeder::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass* simplexNoise, TerrainTypes::Type terrainType)
 {
 	terrainMode = terrainType;
 	noise = simplexNoise;
 
-	densityToBeInside = 0.2f;
+	densityToBeInside = 0.35f;
 
 	worldSize = 0;
 	worldSizeMargin = 1;
@@ -22,12 +25,12 @@ void TerrainNoiseSeeder::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass*
 	this->sizeX = sizeX;
 	this->sizeY = sizeY;
 	this->sizeZ = sizeZ;
-	XFactor = 1.0f / (2.0f*sizeX);
-	YFactor = 1.0f / (2.0f*sizeY);
-	ZFactor = 1.0f / (2.0f*sizeZ);
+	XFactor = 1.0f / 100.0f;
+	YFactor = 1.0f / 100.0f;
+	ZFactor = 1.0f / 100.0f;
 
 	NoiseFunction seabottomNoise =
-	[](IndexingValue& index, const XMFLOAT3& position, NoiseClass* noise) -> float
+		[](IndexingValue& index, const XMFLOAT3& position, NoiseClass* noise) -> float
 	{
 		float density;
 		unsigned int idx = index.x + (index.y*index.sizeY) + (index.z * index.sizeY * index.sizeZ);
@@ -37,13 +40,13 @@ void TerrainNoiseSeeder::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass*
 		density += noise->SimplexNoise3D(position.x/120, position.y/220, position.z/40) * 2.0f;
 		density += noise->SimplexNoise3D(position.x/20, position.y/420, position.z/20) * 2.0f;
 
-		if(density < -2)
+		if(density < minDensity)
 		{
-			density = -2;
+			density = minDensity;
 		}
-		else if (density > 2)
+		else if (density > maxDensity)
 		{
-			density = 2;
+			density = maxDensity;
 		}
 
 		return density;
@@ -51,7 +54,7 @@ void TerrainNoiseSeeder::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass*
 
 
 	NoiseFunction plainsNoise =
-	[](IndexingValue& index, const XMFLOAT3& position, NoiseClass* noise) -> float
+		[](IndexingValue& index, const XMFLOAT3& position, NoiseClass* noise) -> float
 	{
 		float density;
 		unsigned int idx = index.x + (index.y*index.sizeY) + (index.z * index.sizeY * index.sizeZ);
@@ -59,20 +62,20 @@ void TerrainNoiseSeeder::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass*
 		density = 1 + index.sizeY * 0.2f - index.y;
 		density += noise->SimplexNoise3D(position.x/220, position.y/20, position.z/220) * 10.0f;
 
-		if(density < -2)
+		if(density < minDensity)
 		{
-			density = -2;
+			density = minDensity;
 		}
-		else if (density > 2)
+		else if (density > maxDensity)
 		{
-			density = 2;
+			density = maxDensity;
 		}
 
 		return density;
 	};
 
 	NoiseFunction hillsNoise =
-	[](IndexingValue& index, const XMFLOAT3& position, NoiseClass* noise) -> float
+		[](IndexingValue& index, const XMFLOAT3& position, NoiseClass* noise) -> float
 	{
 		float density;
 		unsigned int idx = index.x + (index.y*index.sizeY) + (index.z * index.sizeY * index.sizeZ);
@@ -82,25 +85,25 @@ void TerrainNoiseSeeder::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass*
 		density += noise->SimplexNoise3D(position.x/80,	 position.y/220, position.z/40) *20.0f;
 		density += noise->SimplexNoise3D(position.x/20,	 position.y/420, position.z/20) *10.0f;
 
-		if(density < -2)
-		{
-			density = -2;
-		}
-		else if (density > 2)
-		{
-			density = 2;
-		}
-
 		if(index.y == 1)
 		{
-			density += 1000000.0f;
+			density += 100.0f;
+		}
+
+		if(density < minDensity)
+		{
+			density = minDensity;
+		}
+		else if (density > maxDensity)
+		{
+			density = maxDensity;
 		}
 
 		return density;
 	};
 
 	NoiseFunction terraceNoise =
-	[](IndexingValue& index, const XMFLOAT3& position, NoiseClass* noise) -> float
+		[](IndexingValue& index, const XMFLOAT3& position, NoiseClass* noise) -> float
 	{
 		float density;
 		unsigned int idx = index.x + (index.y*index.sizeY) + (index.z * index.sizeY * index.sizeZ);
@@ -117,19 +120,18 @@ void TerrainNoiseSeeder::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass*
 			density -= 12.0f*((index.y-20)/5);
 		}
 
-
-		if(density < -2)
-		{
-			density = -2;
-		}
-		else if (density > 2)
-		{
-			density = 2;
-		}
-
 		if(index.y == 1)
 		{
-			density += 1000000.0f;
+			density += 100.0f;
+		}
+
+		if(density < minDensity)
+		{
+			density = minDensity;
+		}
+		else if (density > maxDensity)
+		{
+			density = maxDensity;
 		}
 
 		return density;
@@ -153,21 +155,22 @@ void TerrainNoiseSeeder::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass*
 		//**Toplvl**//
 		if(index.y > 20)
 		{
-			density -= 12.0f*((index.y-20)/5);
-		}
-
-		if(density < -2)
-		{
-			density = -2;
-		}
-		else if (density > 2)
-		{
-			density = 2;
+			density -= 12.0f*((index.y-20.0f)/5);
 		}
 
 		if(index.y == 1)
 		{
-			density += 1000000.0f;
+			density += 100.0f;
+		}
+
+
+		if(density < minDensity)
+		{
+			density = minDensity;
+		}
+		else if (density > maxDensity)
+		{
+			density = maxDensity;
 		}
 
 		return density;
@@ -207,18 +210,18 @@ void TerrainNoiseSeeder::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass*
 		density += noise->SimplexNoise3D(position.x/120, position.y/220, position.z/40) *20.0f;
 		density += noise->SimplexNoise3D(position.x/20,	 position.y/420, position.z/20) *10.0f;
 
-		if(density < -2)
-		{
-			density = -2;
-		}
-		else if (density > 2)
-		{
-			density = 2;
-		}
-
 		if(index.y == 1)
 		{
-			density += 1000000.0f;
+			density += 100.0f;
+		}
+
+		if(density < minDensity)
+		{
+			density = minDensity;
+		}
+		else if (density > maxDensity)
+		{
+			density = maxDensity;
 		}
 
 		return density;
@@ -237,18 +240,18 @@ void TerrainNoiseSeeder::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass*
 		density += noise->SimplexNoise3D(position.x/20,		position.y/20,	position.z/120) *20.0f;
 		density += noise->SimplexNoise3D(position.x/120,	position.y/20,	position.z/120) *2.0f;
 
-		if(density < -2)
-		{
-			density = -2;
-		}
-		else if (density > 2)
-		{
-			density = 2;
-		}
-
 		if(index.y == 1)
 		{
-			density += 1000000.0f;
+			density += 100.0f;
+		}
+
+		if(density < minDensity)
+		{
+			density = minDensity;
+		}
+		else if (density > maxDensity)
+		{
+			density = maxDensity;
 		}
 
 		return density;
@@ -266,19 +269,20 @@ void TerrainNoiseSeeder::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass*
 		density += noise->SimplexNoise3D(position.x/20,	 position.y/120, position.z/20) *10.0f;
 		density += noise->SimplexNoise3D(position.x/120, position.y/20,	 position.z/20) *10.0f;
 
-		if(density < -2)
-		{
-			density = -2;
-		}
-		else if (density > 2)
-		{
-			density = 2;
-		}
-
 		if(index.y == 1)
 		{
-			density += 1000000.0f;
+			density += 100.0f;
 		}
+
+		if(density < minDensity)
+		{
+			density = minDensity;
+		}
+		else if (density > maxDensity)
+		{
+			density = maxDensity;
+		}
+
 
 		return density;
 	};
@@ -291,25 +295,25 @@ void TerrainNoiseSeeder::Initialize(int sizeX, int sizeY, int sizeZ, NoiseClass*
 
 		if(position.y <= 15.0f)
 		{
-			density = 5000.0f;
+			density = 50.0f;
 		}
 		else
 		{
-			density = -5000.0f;
-		}
-
-		if(density < -2)
-		{
-			density = -2;
-		}
-		else if (density > 2)
-		{
-			density = 2;
+			density = -50.0f;
 		}
 
 		if(index.y == 1)
 		{
-			density += 1000000.0f;
+			density += 100.0f;
+		}
+
+		if(density < minDensity)
+		{
+			density = minDensity;
+		}
+		else if (density > maxDensity)
+		{
+			density = maxDensity;
 		}
 
 		return density;
@@ -348,10 +352,10 @@ void TerrainNoiseSeeder::Noise3D(unsigned int startX, unsigned int startY, unsig
 				idx = index.x + (index.y*index.sizeY) + (index.z * index.sizeY * index.sizeZ);
 
 				//Extract density value from selected noise function
-				verts->at(idx).density = noiseFunction(index, verts->at(idx).position, noise);
+				(*verts)[idx].density = noiseFunction(index, (*verts)[idx].position, noise);
 
 				//Decide if the vertex is considered inside
-				verts->at(idx).inside = (verts->at(idx).density >= densityToBeInside) ? true : false;
+				(*verts)[idx].inside = ((*verts)[idx].density >= densityToBeInside) ? true : false;
 			}
 		}
 	}
@@ -367,17 +371,26 @@ void TerrainNoiseSeeder::Noise3D(unsigned int startX, unsigned int startY, unsig
 				//Index value into the vertex voxel field
 				idx = index.x + (index.y*index.sizeY) + (index.z * index.sizeY * index.sizeZ);
 
-				verts->at(idx).normal.x = ((*verts)[idx - 1								].density	-	(*verts)[idx+1								].density)	* XFactor;
-				verts->at(idx).normal.y = ((*verts)[idx - index.sizeY					].density	-	(*verts)[idx + index.sizeY					].density)	* YFactor;
-				verts->at(idx).normal.z = ((*verts)[idx - (index.sizeY * index.sizeZ)	].density	-	(*verts)[idx + (index.sizeY * index.sizeZ)	].density)	* ZFactor;
+				(*verts)[idx].normal.x = ((*verts)[idx - 1								].density	-	(*verts)[idx + 1							].density)	* XFactor;
+				(*verts)[idx].normal.y = ((*verts)[idx - index.sizeY					].density	-	(*verts)[idx + index.sizeY					].density)	* YFactor;
+				(*verts)[idx].normal.z = ((*verts)[idx - (index.sizeY * index.sizeZ)	].density	-	(*verts)[idx + (index.sizeY * index.sizeZ)	].density)	* ZFactor;
 
 				//Normalize results.
-				float vectorLength = sqrt((verts->at(idx).normal.x*verts->at(idx).normal.x) + (verts->at(idx).normal.y*verts->at(idx).normal.y) + (verts->at(idx).normal.z*verts->at(idx).normal.z));
+				float vectorLength = sqrt(((*verts)[idx].normal.x*(*verts)[idx].normal.x) + ((*verts)[idx].normal.y*(*verts)[idx].normal.y) + ((*verts)[idx].normal.z*(*verts)[idx].normal.z));
 
-				verts->at(idx).normal.x = verts->at(idx).normal.x/vectorLength;
-				verts->at(idx).normal.y = verts->at(idx).normal.y/vectorLength;
-				verts->at(idx).normal.z = verts->at(idx).normal.z/vectorLength;
-
+				//If length is too small we don't need to normalize...
+				if(vectorLength >= 0.01f)
+				{
+					(*verts)[idx].normal.x = (*verts)[idx].normal.x/vectorLength;
+					(*verts)[idx].normal.y = (*verts)[idx].normal.y/vectorLength;
+					(*verts)[idx].normal.z = (*verts)[idx].normal.z/vectorLength;
+				}
+				else
+				{
+					(*verts)[idx].normal.x	+= RandomFloat() * 0.1f; //.. yeah... dirty.
+					(*verts)[idx].normal.y	+= RandomFloat() * 0.1f; //.. yeah... dirty.
+					(*verts)[idx].normal.z	+= RandomFloat() * 0.1f; //.. yeah... dirty.
+				}
 				//CreateNormal(verts, index, idx);
 			}
 		}

@@ -47,11 +47,11 @@ struct DataPacketHeader
 	static const size_t sizeOfStruct = sizeof(char)*4;
 
 	//char* outData NEEDS to be 6 bytes long
-	static void Serialize(char outData[4], DataPacketType type, unsigned int size) 
+	static void Serialize(char outData[sizeOfStruct], DataPacketType type, int size) 
 	{
 		//Prepare data
-		short tempType = htons(type);
-		short tempSize = htons(size);
+		unsigned short tempType = htons(type);
+		unsigned short tempSize = htons(size);
 
 		//Store type in first two bytes
 		memcpy(outData, &tempType, 2);
@@ -61,7 +61,7 @@ struct DataPacketHeader
 	}
 
 	//char* outData NEEDS to be 6 bytes long
-	static void Deserialize(char inData[4], DataPacketType* outType, unsigned int* outSize) 
+	static void Deserialize(char inData[4], DataPacketType* outType, int* outSize) 
 	{
 		//Read DataPacketType from first two bytes
 		memcpy(outType, inData+0, 2);
@@ -73,6 +73,7 @@ struct DataPacketHeader
 		memcpy(outSize, inData+2, 2);
 
 		//Convert data using appropriate function.
+		//Cast it up from ushort to uint. Not really needed but I use uints outside so might as well implicitly cast it.
 		*outSize = ntohs(*outSize);
 	}
 };

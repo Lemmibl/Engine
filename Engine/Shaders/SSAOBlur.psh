@@ -63,7 +63,7 @@ float SSAOBlurPS(PixelInputType input) : SV_Target0
 		texOffset = float2(0.0f, texelHeight*pixelStepSize);
 	}
  
-	float3 centerNormal = normalize(DecodeNormal(shaderTextures[2].Sample(linearSampler, input.TexCoord).xy));
+	float3 centerNormal = normalize(shaderTextures[2].Sample(linearSampler, input.TexCoord).xyz);
 
 	float occlusion = 0.0f;
 	int samplingIndex = 0;
@@ -73,7 +73,7 @@ float SSAOBlurPS(PixelInputType input) : SV_Target0
 	{
 		float2 offsetTexCoord = input.TexCoord + (x*texOffset);
 
-		float3 normal = normalize(DecodeNormal(shaderTextures[2].Sample(linearSampler, offsetTexCoord).xy));
+		float3 normal = normalize(shaderTextures[2].Sample(linearSampler, offsetTexCoord).xyz);
 		float depth = shaderTextures[1].Sample(linearSampler, offsetTexCoord);
 
 		// If the center value and neighbor values differ too much (either in 

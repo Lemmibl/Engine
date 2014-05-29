@@ -18,7 +18,6 @@ struct VertexShaderOutput
 	float3 WorldNormal : NORMAL;
 	float2 TexCoord : TEXCOORD0;
 	float4 WorldPosition : TEXCOORD1;
-	float ViewDepth : TEXCOORD2;
 };
 
 VertexShaderOutput GBufferVertexShader(VertexShaderInput input)
@@ -35,7 +34,7 @@ VertexShaderOutput GBufferVertexShader(VertexShaderInput input)
 
 	output.TexCoord = input.TexCoord;
 	output.WorldNormal = normalize(mul(input.Normal, (float3x3)World));
-	output.ViewDepth = viewPosition.z;
+	output.WorldPosition.w = viewPosition.z;
 
 	return output;
 }

@@ -51,7 +51,7 @@ private:
 
 	struct PixelMatrixBuffer
 	{
-		XMMATRIX WorldView;
+		XMMATRIX World;
 		float waterColorStartOffset;
 		float waterColorMultiplier;
 		XMFLOAT2 padding;

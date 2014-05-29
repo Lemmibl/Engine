@@ -3,7 +3,7 @@ SamplerState linearSampler;
 
 cbuffer MatrixBuffer
 {
-	float4x4 WorldView : packoffset(c0);
+	float4x4 World : packoffset(c0);
 	float4x4 WorldViewProjection : packoffset(c4);
 	float DeltaTime : packoffset(c8.x);
 	float3 WindDirection : packoffset(c8.y);
@@ -111,22 +111,22 @@ void MakeQuad(VS_OUTPUT v1, VS_OUTPUT v2, float distanceHeightScaling, inout Tri
 
 		//Define the four vertices, corners
 		output[0].Position = mul(pos1, WorldViewProjection);
-		output[0].Normal = normalize(mul(v1.Normal, (float3x3)WorldView));
+		output[0].Normal = normalize(mul(v1.Normal, (float3x3)World));
 		output[0].TexCoord = float4(0.0f, 1.0f, textureID, v1.YPosDepthAndRand.y/farClip);
 		output[0].Opacity = opacity;
 
 		output[1].Position = mul(pos2, WorldViewProjection);
-		output[1].Normal = normalize(mul(v2.Normal, (float3x3)WorldView));
+		output[1].Normal = normalize(mul(v2.Normal, (float3x3)World));
 		output[1].TexCoord = float4(1.0f, 1.0f, textureID, v2.YPosDepthAndRand.y/farClip);
 		output[1].Opacity = opacity;
 
 		output[2].Position = mul((pos1 + randomizedNormal), WorldViewProjection);
-		output[2].Normal = normalize(mul(v1.Normal+randomizedNormal.xyz, (float3x3)WorldView));
+		output[2].Normal = normalize(mul(v1.Normal+randomizedNormal.xyz, (float3x3)World));
 		output[2].TexCoord = float4(0.0f, 0.0f, textureID, v1.YPosDepthAndRand.y/farClip);
 		output[2].Opacity = opacity;
 
 		output[3].Position = mul((pos2 + randomizedNormal), WorldViewProjection);
-		output[3].Normal = normalize(mul(v2.Normal + randomizedNormal.xyz, (float3x3)WorldView));
+		output[3].Normal = normalize(mul(v2.Normal + randomizedNormal.xyz, (float3x3)World));
 		output[3].TexCoord = float4(1.0f, 0.0f, textureID, v2.YPosDepthAndRand.y/farClip);
 		output[3].Opacity = opacity;
 

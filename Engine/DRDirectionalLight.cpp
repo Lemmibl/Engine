@@ -464,6 +464,8 @@ bool DRDirLightShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, S
 
 	dataPtr2->LightDirection = XMFLOAT4(input->dirLight->Direction.x, input->dirLight->Direction.y, input->dirLight->Direction.z, input->dirLight->Intensity);
 	dataPtr2->CameraPosition = XMFLOAT4(input->cameraPosition.x, input->cameraPosition.y, input->cameraPosition.z, cameraFarClip);
+	dataPtr2->tanHalfFOV = thFOV;
+	dataPtr2->AspectRatio = aspectRatio;
 
 	deviceContext->Unmap(positionalBuffer, 0);
 
@@ -557,7 +559,7 @@ void DRDirLightShader::OnSettingsReload(Config* cfg)
 	const Setting& cameraSettings = cfg->getRoot()["camera"];
 	cameraSettings.lookupValue("fov", thFOV);
 
-	thFOV = tan(thFOV/2);
+	thFOV = tan((thFOV * (XM_PI/180.0f))*0.5f);
 
 	//windowWidth, windowHeight
 	const Setting& renderingSettings = cfg->getRoot()["rendering"];

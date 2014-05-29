@@ -119,7 +119,7 @@ void NetworkServer::Shutdown()
 	WSACleanup();
 }
 
-bool NetworkServer::AddClient(unsigned int& outId)
+bool NetworkServer::AddClient(UserID& outId)
 {
 	//If we get a new client waiting, accept the connection and save the socket
 	clientSocket = accept(listenSocket, NULL, NULL);
@@ -127,8 +127,8 @@ bool NetworkServer::AddClient(unsigned int& outId)
 	if(clientSocket != INVALID_SOCKET) 
 	{
 		//disable nagle algorithm on the client's socket
-		char value = 1;
-		setsockopt(clientSocket, IPPROTO_TCP, TCP_NODELAY, &value, sizeof(value));
+		char val = 1;
+		setsockopt(clientSocket, IPPROTO_TCP, TCP_NODELAY, &val, sizeof(val));
 
 		//Give some default values
 		UserData newUser;
@@ -137,7 +137,7 @@ bool NetworkServer::AddClient(unsigned int& outId)
 		newUser.userName = "";
 
 		// insert new client into session id table
-		sessions.insert(std::pair<unsigned int, UserData>(outId, newUser) );
+		sessions.insert(std::pair<UserID, UserData>(outId, newUser) );
 
 		return true;
 	}
@@ -145,7 +145,7 @@ bool NetworkServer::AddClient(unsigned int& outId)
 	return false;
 }
 
-void NetworkServer::RemoveClient( unsigned int id )
+void NetworkServer::RemoveClient(UserID id )
 {
 	//Search for client in map
 	auto it = sessions.find(id);
@@ -172,7 +172,7 @@ void NetworkServer::RemoveClient( unsigned int id )
 	}
 }
 
-void NetworkServer::SendDisconnectMessage( unsigned int client_id )
+void NetworkServer::SendDisconnectMessage(UserID client_id )
 {
 	//Search for client in map
 	auto it = sessions.find(client_id);
@@ -199,7 +199,7 @@ bool NetworkServer::Update()
 	// get new clients
 	if(AddClient(clientId))
 	{
-		consoleWindow->PrintText("Client has been connected to the server. Client ID is: " + std::to_string((long long)clientId), serverColour); 
+		consoleWindow->PrintText("Client has been connected to the server. Client ID is: " + std::to_string((unsigned long long)clientId), serverColour); 
 		clientId++;
 	}
 
@@ -213,7 +213,7 @@ bool NetworkServer::Update()
 
 bool NetworkServer::ReceiveClientData()
 {
-	unsigned int dataSize = 0;
+	int dataSize = 0;
 	DataPacketType type = TypeNONE;
 
 	for(auto iter = sessions.begin(); iter != sessions.end(); ++iter)
@@ -330,7 +330,7 @@ void NetworkServer::SendEventPacket(DataPacketType eventType)
 }
 
 
-void NetworkServer::ReadStringData(unsigned int client_id, char* receivingBuffer, unsigned int bufferSize)
+void NetworkServer::ReadStringData(UserID client_id, char* receivingBuffer, int bufferSize)
 {
 	//TODO: send this back to all clients
 
@@ -372,7 +372,7 @@ void NetworkServer::ReadStringData(unsigned int client_id, char* receivingBuffer
 }
 
 
-void NetworkServer::ReadUserData(unsigned int client_id, char* receivingBuffer, unsigned int bufferSize)
+void NetworkServer::ReadUserData(UserID client_id, char* receivingBuffer, int bufferSize)
 {
 	auto it = sessions.find(client_id);
 	if(it != sessions.end() )
@@ -399,7 +399,7 @@ void NetworkServer::ReadUserData(unsigned int client_id, char* receivingBuffer, 
 }
 
 
-bool NetworkServer::ReadDataHeader( unsigned int client_id, char* receivingBuffer, DataPacketType* outType, unsigned int* outSize )
+bool NetworkServer::ReadDataHeader(UserID client_id, char* receivingBuffer, DataPacketType* outType, int* outSize )
 {
 	auto it = sessions.find(client_id);
 	if(it != sessions.end() )

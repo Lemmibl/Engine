@@ -4,20 +4,19 @@
 /********************************************************************************/
 
 TODO prio list:
-	0. Remove old and unnecessary functions.
-		-> Add a "ReceiveData()" and "SendData()" function for both server and client. move all relevant data to those, and call both those functions in order inside Update.
+	1. Fix SSAO. 
+		-> WorldView instead of View? Inverse->Transpose instead of Transpose?
+		-> Just use the method I've always used in directional light shader?
 
-	1. Make server pingback all text you write to it.
-		-> Server has the receive stuff from clients phase.
-		-> Server parses data. Adds it to a "sendback" buffer, if necessary.
-		-> Server then has a sendback phase, where it will send all data back to clients.
+	2. Networking -> cstdint and the like for all values sent/received
 
-		-> All clients have a "Receive stuff from server" phase as first thing in their update.
-			-> When server sends text back, maybe it also sends text colour and username
-		-> Then all clients have a normal send stuff phase.
+	3. Move ambient light to compose shader. dirlight shader will only do shadows + diffuse light... makes sense.
 
-	2. Fix SSAO. Possibly change the way normals are stored and add a new RT for 2 materials + lerp value between them
+	4. Try to find what is  causing crashes bugs and crashes when recreating terrain
 
+	5.	Possibly buffer everything you send in an update and send it all in one big packet?
+
+	http://www.gamedev.net/topic/544909-view-space-directional-light/
 
 Features:
 * Make different sorts of packets for things. NameChange, ColourChange. Etc. PlayerData struct? Server map is <uint, PlayerData>. Socket will be contained in PlayerData.
@@ -27,9 +26,6 @@ Features:
 * Split GameConsoleWindow up into two types. Have one ... ChatRoom? That inherits from ConsoleWindow. 
 	-> ConsoleWindow will only have the text parsing/printing stuff. ChatRoom will have all the namechanging and colourchanging and shit as well.
 	-> Meaning that you can have a console window that only renders text that you send to it, without any of the naming/colouring stuff.
-
-									//R and G can each hold 1024 distinct values. The B channel can hold potential lerp value between these two.
-* ... Use one more RT for materials. DXGI_FORMAT_R10G10B10A2_UNORM?
 
 * In the future, it would probably be relevant to try and implement texture ID per vertex. One uint, two IDs bitshifted into each 16 bits. To blend between them you'd use some form of noise map.
 	if(id >= 16 bits of value)

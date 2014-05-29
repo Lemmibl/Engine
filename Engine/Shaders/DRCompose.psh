@@ -8,7 +8,7 @@ struct VertexShaderOutput
 };
 
 SamplerState linearSampler;
-Texture2D shaderTextures[5]; // 0 = color, 1 = light, 2 = depth, 3 = SSAO, 4 == normal
+Texture2D shaderTextures[5]; // 0 = color, 1 = light, 2 = depth, 3 = SSAO, 4 == materials
 
 cbuffer PixelMatrixBufferType
 {

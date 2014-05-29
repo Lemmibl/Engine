@@ -27,7 +27,7 @@ struct PixelShaderOutput
 //Since it's an 8bit UNORM channel, it means every value will end up in the 0..1 spectrum, so we have to do some trickery to save it and unload it properly.
 float EncodeMaterialID(float id)
 {
-	return (id / 255.0f);
+	return (id / 1024.0f);
 }
 
 //http://aras-p.info/texts/CompactNormalStorage.html#method04spheremap

@@ -20,7 +20,7 @@ private:
 
 	struct GeometryShaderBuffer
 	{
-		XMMATRIX WorldView;
+		XMMATRIX World;
 		XMMATRIX WorldViewProjection;
 		float DeltaTime;
 		XMFLOAT3 WindDirection;

@@ -5,8 +5,7 @@
 #include "NetworkData.h"
 
 NetworkClient::NetworkClient( GameConsoleWindow* console )
-	: receivingBufferLength(DEFAULT_BUFLEN),
-	outFlags(0),
+	: outFlags(0),
 	iResult(0)
 {
 	consoleWindow = console;
@@ -134,7 +133,7 @@ bool NetworkClient::ReceiveDataFromServer(int packetSize, int packetIndex)
 
 		//Extract data from header
 		DataPacketType dataType;
-		unsigned int dataSize;
+		int dataSize;
 		DataPacketHeader::Deserialize(header_data, &dataType, &dataSize);
 
 		//Move packet index forward and subtract from packetSize
@@ -190,7 +189,7 @@ bool NetworkClient::ReceiveDataFromServer(int packetSize, int packetIndex)
 	return true;
 }
 
-void NetworkClient::ReadStringData(unsigned int dataSize, unsigned int dataIndex, bool extractColor)
+void NetworkClient::ReadStringData(int dataSize, int dataIndex, bool extractColor)
 {
 	//If we are extracting color, it means that we have a 4 byte portion of the data at the end that is colour, not text.
 	int textSizePortion = extractColor ? dataSize-sizeof(CEGUI::argb_t) : dataSize;
@@ -218,14 +217,15 @@ void NetworkClient::ReadStringData(unsigned int dataSize, unsigned int dataIndex
 	}
 }
 
-void NetworkClient::ReadDisconnectData(unsigned int dataSize, unsigned int dataIndex)
+void NetworkClient::ReadDisconnectData(int dataSize, int dataIndex)
 {
-	//TODO... Potentially
+	//TODO... Potentially.
+	//Thing is, it's not really used because we disconnect in other ways. But this might be for future stuff like... If you get kicked by the server or having a nice way of saying "The server is shutting down now."
 }
 
-void NetworkClient::ReadUserData(unsigned int dataSize, unsigned int dataIndex)
+void NetworkClient::ReadUserData(int dataSize, int dataIndex)
 {
-
+	//TODO. It's supposed to be for loading in data about other players. So that we don't have to send stuff like user name + user textcolor every single time someone sends a message. might be necessary? might not be?
 }
 
 bool NetworkClient::SendDataToServer()

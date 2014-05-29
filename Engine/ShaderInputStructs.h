@@ -12,7 +12,7 @@ namespace ShaderInputStructs
 		ID3D11ShaderResourceView** rtTextureArray;
 		XMMATRIX* worldViewProjection;
 		XMMATRIX* view;
-		XMMATRIX* projection;
+		XMMATRIX* invertedProjection;
 	};
 
 	struct ComposeShaderInput

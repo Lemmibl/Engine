@@ -146,8 +146,7 @@ private:
 	// render target for storing depth. it's a R32
 	std::unique_ptr<RenderTarget2D> depthRT;
 	
-	//render target for storing normals. R8G8B8A8. 
-	// I use a compression algorithm for my normals, so only the .xy channels are used when storing normals. the .zw channels are used for material IDs
+	//Straight up 3channel float RT
 	std::unique_ptr<RenderTarget2D> normalRT; 
 
 	//light rendertarget. R8G8B8A8
@@ -168,7 +167,7 @@ private:
 	//For bouncing color map
 	std::unique_ptr<RenderTarget2D> ARGB8PingPongRT;
 
-	CComPtr<ID3D11RenderTargetView> gbufferRenderTargets[3]; //render targets for GBuffer pass
+	CComPtr<ID3D11RenderTargetView> gbufferRenderTargets[4]; //render targets for GBuffer pass
 	CComPtr<ID3D11RenderTargetView> lightTarget[1];
 	CComPtr<ID3D11RenderTargetView> shadowTarget[1];
 	CComPtr<ID3D11RenderTargetView> gaussianBlurTarget[1];
@@ -177,7 +176,7 @@ private:
 
 	//0 == color, 1 == depth
 	CComPtr<ID3D11ShaderResourceView> waterInputTextures[2];
-	CComPtr<ID3D11ShaderResourceView> gbufferTextures[3];
+	CComPtr<ID3D11ShaderResourceView> gbufferTextures[4];
 	CComPtr<ID3D11ShaderResourceView> dirLightTextures[4];
 	CComPtr<ID3D11ShaderResourceView> finalTextures[5];
 	CComPtr<ID3D11ShaderResourceView> gaussianBlurTexture[1];

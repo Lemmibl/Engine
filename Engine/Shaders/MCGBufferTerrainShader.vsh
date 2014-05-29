@@ -14,7 +14,6 @@ struct VertexShaderInput
 struct VertexShaderOutput
 {
 	float4 Position : SV_POSITION;
-	float3 Normal : NORMAL;
 	float4 WorldPosition : TEXCOORD0;
 	float4 WorldNormalAndDepth : TEXCOORD1; //Depth in .w
 };
@@ -31,8 +30,8 @@ VertexShaderOutput MCGBufferTerrainVertexShader(VertexShaderInput input)
 	//output.ViewDepth		= mul(input.Position, WorldView).z;
 
 	output.WorldPosition	= mul(pos, World);
-	output.Normal		= normalize(mul(input.Normal, (float3x3)WorldView));
-	output.WorldNormalAndDepth.xyz		= normalize(mul(input.Normal, (float3x3)World));
+	//output.Normal		= normalize(mul(input.Normal, (float3x3)WorldView));
+	output.WorldNormalAndDepth.xyz		= mul(input.Normal, (float3x3)World).xyz;
 
 	//You can only do this if you are using a perspective projection matrix! Beware!
 	output.WorldNormalAndDepth.w = output.Position.w;

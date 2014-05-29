@@ -31,10 +31,10 @@ enum Direction
 	WEST = 3
 };
 
-static const XMFLOAT3 stepSize(4.0f, 4.0f, 4.0f);
+static const XMFLOAT3 stepSize(2.0f, 2.0f, 2.0f);
 
 //Needs to be kept at 28, 53, 103 etc, else your position slowly gets out of sync with the culling position. Need to look into this.
-static const XMFLOAT3 stepCount(25.0f, 25.0f, 25.0f);
+static const XMFLOAT3 stepCount(50.0f, 50.0f, 50.0f);
 
 volatile static bool IsRunning = true;
 

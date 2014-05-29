@@ -241,19 +241,19 @@ bool SSAOShader::SetShaderParameters( ID3D11DeviceContext* deviceContext, Shader
 	VertexShaderBuffer* dataPtr1;
 	PixelShaderBuffer* dataPtr2;
 
-	if(!matrixCreated)
-	{
-		XMMATRIX T = XMMatrixIdentity();
-		T._11 = 0.5f;
-		T._22 = -0.5f;
-		T._41 = 0.5f;
-		T._42 = 0.5f;
+	//if(!matrixCreated)
+	//{
+	//	XMMATRIX T = XMMatrixIdentity();
+	//	T._11 = 0.5f;
+	//	T._22 = -0.5f;
+	//	T._41 = 0.5f;
+	//	T._42 = 0.5f;
 
 
-		XMStoreFloat4x4(&projMatrix, (*(input->projection) * T)); // 
+	//	XMStoreFloat4x4(&projMatrix, (*(input->projection) * T)); // 
 
-		matrixCreated = true;
-	}
+	//	matrixCreated = true;
+	//}
 
 	/////////////#1
 
@@ -292,14 +292,14 @@ bool SSAOShader::SetShaderParameters( ID3D11DeviceContext* deviceContext, Shader
 	dataPtr2 = (PixelShaderBuffer*)mappedResource.pData;
 
 	dataPtr2->View = *input->view;
-	dataPtr2->Projection = XMLoadFloat4x4(&projMatrix);
+	dataPtr2->InvertedProjection = *input->invertedProjection; //XMLoadFloat4x4(&projMatrix);
 	dataPtr2->thFOV = thFov;
 	dataPtr2->aspectRatio = aspectRatio;
 
-	for(int i = 0; i < rayCount; ++i)
-	{
-		dataPtr2->samplingRays[i] = samplingRays[i];
-	}
+	//for(int i = 0; i < rayCount; ++i)
+	//{
+	//	dataPtr2->samplingRays[i] = samplingRays[i];
+	//}
 
 	deviceContext->Unmap(pixelShaderBuffer, 0);
 
@@ -341,7 +341,7 @@ void SSAOShader::OnSettingsReload( Config* cfg )
 	const Setting& cameraSettings = cfg->getRoot()["camera"];
 	cameraSettings.lookupValue("fov", thFov);
 
-	thFov = tan(thFov/2.0f);
+	thFov = tan((thFov * (XM_PI/180.0f))*0.5f);
 
 	//windowWidth, windowHeight
 	const Setting& renderingSettings = cfg->getRoot()["rendering"];

@@ -42,6 +42,9 @@ private:
 	{
 		XMFLOAT4 LightDirection;
 		XMFLOAT4 CameraPosition;
+		float tanHalfFOV;
+		float AspectRatio;
+		XMFLOAT2 PADDING;
 	};
 
 	struct LightBuffer

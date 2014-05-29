@@ -39,13 +39,13 @@ private:
 	bool ReceiveDataFromServer(int packetSize = 0, int packetIndex = 0);
 
 	//Size defines how much data we'll read and index defines where to start reading
-	void ReadStringData(unsigned int dataSize, unsigned int dataIndex, bool extractColor);
+	void ReadStringData(int dataSize, int dataIndex, bool extractColor);
 
 	//Size defines how much data we'll read and index defines where to start reading
-	void ReadDisconnectData(unsigned int dataSize, unsigned int dataIndex);
+	void ReadDisconnectData(int dataSize, int dataIndex);
 
 	//Size defines how much data we'll read and index defines where to start reading
-	void ReadUserData(unsigned int dataSize, unsigned int dataIndex);
+	void ReadUserData(int dataSize, int dataIndex);
 
 	//Send functions
 	bool SendDataToServer();
@@ -65,8 +65,6 @@ private:
 
 	//Container for things to send when Update comes around
 	std::list<DataPacket> dataToSend;
-
-	int receivingBufferLength;
 	int outFlags, iResult;
 };
 

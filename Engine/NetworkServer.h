@@ -12,6 +12,9 @@ class GameConsoleWindow;
 class NetworkServer
 {
 private:
+//Just a normal unsigned int
+typedef unsigned int UserID;
+
 //Port number that is unlikely to be used on client computers. Also easy to remember.
 //http://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers
 #define DEFAULT_PORT "22222"
@@ -31,8 +34,8 @@ public:
 	void Shutdown();
 
 private:
-	bool AddClient(unsigned int& outId);
-	void RemoveClient(unsigned int id);
+	bool AddClient(UserID& outId);
+	void RemoveClient(UserID id);
 
 	//See if any client has sent any data since last time
 	bool ReceiveClientData();
@@ -43,14 +46,14 @@ private:
 	//Sends a packet with size 0. Use purely for events that require no data, such as server shutdowns and things. TODO: think about this and see if there actually are zero-data events...
 	void SendEventPacket(DataPacketType eventType);
 
-	void SendDisconnectMessage(unsigned int client_id);
+	void SendDisconnectMessage(UserID client_id);
 
 	//Returns true on success
-	bool ReadDataHeader(unsigned int client_id, char* receivingBuffer, DataPacketType* outType, unsigned int* outSize);
+	bool ReadDataHeader(UserID client_id, char* receivingBuffer, DataPacketType* outType, int* outSize);
 
 	//These functions don't need to return a bool, because if the above header returns true, it means that these will... hopefully.. contain the right data.
-	void ReadStringData(unsigned int client_id, char* receivingBuffer, unsigned int bufferSize);
-	void ReadUserData(unsigned int client_id, char* receivingBuffer, unsigned int bufferSize);
+	void ReadStringData(UserID client_id, char* receivingBuffer, int bufferSize);
+	void ReadUserData(UserID client_id, char* receivingBuffer, int bufferSize);
 
 private:
 	GameConsoleWindow* consoleWindow;
@@ -69,15 +72,15 @@ private:
 
 	// for error checking return values
 	int iResult, iFlag;
-	unsigned int clientId;
+	UserID clientId;
 
 	//List with data to send to all clients at the end of each update
 	std::list<DataPacket> dataToSend;
 
 	//List of sessions to terminate
-	std::list<std::unordered_map<unsigned int, UserData>::iterator> clientsToDisconnect;
+	std::list<std::unordered_map<UserID, UserData>::iterator> clientsToDisconnect;
 
 	// table to keep track of each client's socket
-	std::unordered_map<unsigned int, UserData> sessions;
+	std::unordered_map<UserID, UserData> sessions;
 };
 

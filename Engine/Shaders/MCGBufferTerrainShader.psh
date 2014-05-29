@@ -10,7 +10,7 @@ cbuffer VariableBuffer
 struct VertexShaderOutput
 {
 	float4 Position : SV_POSITION;
-	float3 Normal : NORMAL;
+	//float3 Normal : NORMAL;
 	float4 WorldPosition : TEXCOORD0;
 	float4 WorldNormalAndDepth : TEXCOORD1; //Depth in .w
 };
@@ -18,8 +18,9 @@ struct VertexShaderOutput
 struct PixelShaderOutput
 {
 	float4 Color : SV_TARGET0; //R8G8B8A8
-	float4 Normal : SV_TARGET1; //R8G8B8A8
+	float3 Normal : SV_TARGET1; //R11G11B10
 	float Depth : SV_TARGET2; //R32
+	float4 Material : SV_TARGET3; //R10G10B10A2
 };
 
 Texture2DArray shaderTextures;
@@ -47,7 +48,7 @@ void ExtractMaterialAndTextureID(float4 encodedValues, out int texture1, out int
 //When it gets read in other shaders it gets multiplied back to 255.
 float EncodeMaterialID(float id)
 {
-	return (id / 255.0f);
+	return (id / 1024.0f);
 }
 
 //Trilinear projection blending
@@ -55,7 +56,7 @@ float3 CalculateBlendWeights(float3 NormalizedWorldNormal)
 {
 	float3 blend_weights = abs(NormalizedWorldNormal);     
 	blend_weights = (blend_weights - tighten)*7.0f;  // Tighten up the blending zone
-	blend_weights = max(blend_weights, 0.0001f);
+	blend_weights = max(blend_weights, 0.02f);
 	blend_weights /= (blend_weights.x + blend_weights.y + blend_weights.z).xxx; // Force weights to sum to 1.0 (very important!)
 
 	return blend_weights;
@@ -85,7 +86,7 @@ PixelShaderOutput MCGBufferTerrainPixelShader(VertexShaderOutput input)
 	float dotResult = dot(UpNormal, NormalizedWorldNormal);
 
 	//If surface is facing downwards, change textures but not materials
-	if(dotResult <= 0.0f)
+	if(dotResult < 0.0f)
 	{
 		//Rock texture ID.
 		texture1 = 2;
@@ -93,7 +94,7 @@ PixelShaderOutput MCGBufferTerrainPixelShader(VertexShaderOutput input)
 	}
 
 	//Just used for debugging purposes right now.
-	float3 finalTempColor = float3(255.0f, 0.0f, 0.0f);
+	//float3 finalTempColor = float3(255.0f, 0.0f, 0.0f);
 
 	//If there are two different textures to lerp.
 	if(texture1 != texture2)
@@ -101,12 +102,15 @@ PixelShaderOutput MCGBufferTerrainPixelShader(VertexShaderOutput input)
 		//finalTempColor.g += 255;
 
 		//Create a lerp value. The range between two materials is always 0.0f - 1.0f, to ensure lerping will work properly
-		output.Color.w = (input.WorldPosition.y - extractionValue);
+		float lerpValue = (input.WorldPosition.y - extractionValue);
 
 		float3 firstCoords = float3(input.WorldPosition.zx * textureScale, texture1);
 		float3 secondCoords = float3(input.WorldPosition.zx * textureScale, texture2);
 
-		XZColor = lerp(shaderTextures.Sample(textureSampler, firstCoords), shaderTextures.Sample(textureSampler, secondCoords), output.Color.w);
+		XZColor = lerp(shaderTextures.Sample(textureSampler, firstCoords), shaderTextures.Sample(textureSampler, secondCoords), lerpValue);
+
+		output.Material.z = lerpValue;
+		output.Material.w = 0;
 	}
 	else
 	{
@@ -120,13 +124,15 @@ PixelShaderOutput MCGBufferTerrainPixelShader(VertexShaderOutput input)
 	//else
 	//{
 		output.Color.xyz = saturate((XZColor.xyz * blend_weights.yyy) + (YZColor.xyz * blend_weights.xxx) + (XYColor.xyz * blend_weights.zzz));
+		output.Color.w = 1.0f;
 	//}
 
 	//Store an encoded normal in the XY channels. Only two channels! Amazing!
 	//Encode material IDs and hide in normal Z and W channels
-	output.Normal.xy = Encode(NormalizedWorldNormal+float3(0.0f, 0.0f, 0.05f)); //normalize(input.Normal.xyz)
-	output.Normal.z = material1;
-	output.Normal.w = material2;
+	output.Normal = NormalizedWorldNormal; //normalize(input.Normal.xyz);//Encode(NormalizedWorldNormal+float3(0.0f, 0.0f, 0.05f)); //
+	
+	output.Material.x = EncodeMaterialID(material1*255);//EncodeMaterialID();
+	output.Material.y = EncodeMaterialID(material2*255);//EncodeMaterialID();
 
 	//Store linear depth. Farclip is stored in toggleColorMode.y.
 	output.Depth = (input.WorldNormalAndDepth.w/farClip);

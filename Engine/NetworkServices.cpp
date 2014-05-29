@@ -5,7 +5,7 @@ int NetworkServices::SendData(const SOCKET curSocket, const char* sendingBuffer,
 	return send(curSocket, sendingBuffer, bufferSize, flag);
 }
 
-int NetworkServices::ReceiveData(SOCKET curSocket, char* receivingBuffer, int bufferSize, int flag)
+int NetworkServices::ReceiveData(SOCKET curSocket, char* receivingBuffer, const int bufferSize, const int flag)
 {
 	return recv(curSocket, receivingBuffer, bufferSize, flag);
 }

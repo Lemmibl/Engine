@@ -61,7 +61,7 @@ bool MaterialHandler::Initialize(ID3D11Device* extDevice, ID3D11DeviceContext* e
 	grassQuads.shouldBeShadowed = 10.0f;
 
 	ShaderMaterialStruct underGround;
-	underGround.Kambience = 0.2f;
+	underGround.Kambience = 0.4f;
 	underGround.Kdiffuse = 0.5f;
 	underGround.Kspecular = 0.2f;
 	underGround.smoothness = 8.0f;

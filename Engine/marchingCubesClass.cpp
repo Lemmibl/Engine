@@ -334,7 +334,7 @@ static const XMFLOAT3 relativeCornerPositions[8] = {
 		: SettingsDependent(), sizeXAxis(sizeX), sizeYAxis(sizeY), sizeZAxis(sizeZ)
 	{	
 		InitializeSettings(this);								  
-		metaballsIsoValue = 0.2f;
+		metaballsIsoValue = 0.35f;
 	}
 
 	MarchingCubesClass::~MarchingCubesClass()

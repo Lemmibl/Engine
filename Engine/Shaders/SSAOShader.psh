@@ -1,11 +1,11 @@
 cbuffer PixelShaderBuffer
 {
 	float4x4 View : packoffset(c0.x);
-	float4x4 Projection : packoffset(c4.x);
+	float4x4 InvertedProjection : packoffset(c4.x);
 	float thFOV : packoffset(c8.x);
 	float aspectRatio : packoffset(c8.y);
 	float2 PADDING : packoffset(c8.z);
-	float4 samplingRays[14] : packoffset(c9.x); //Sampling kernel
+	//float4 samplingRays[14] : packoffset(c9.x); //Sampling kernel
 }
 
 struct VertexShaderOutput
@@ -13,22 +13,45 @@ struct VertexShaderOutput
 	float4 Position : SV_POSITION;
 	float2 TexCoord : TEXCOORD0;
 	float3 ViewRay	: TEXCOORD1;
+	float4 ScreenPosition : TEXCOORD2;
 };
 
 SamplerState linearSampler : register(s0);
 Texture2D shaderTextures[3] : register(ps_5_0, t0); //0 == depth, 1 == normal, 2 == random vectors
 
 static const int kernelSize = 14;
+static const int sampleCount = 16;
 
-static const float samplingRadius = 2.5f;
+static const float samplingRadius = 10.0f;
 static const float intensity = 16.0f;
 
 static const float2 screenSize = float2(1024.0f, 768.0f);
 static const float2 randomTextureSize = float2(128.0f, 128.0f);
 
 static const float    gOcclusionFadeStart = 0.2f;
-static const float    gOcclusionFadeEnd   = 8.0f;
+static const float    gOcclusionFadeEnd   = 2.0f;
 static const float    gSurfaceEpsilon     = 0.2f;
+
+// These are the Poisson Disk Samples
+static float2 poissonSamples[16] = 
+{
+	float2( -0.94201624,	-0.39906216 ),
+	float2(  0.94558609,	-0.76890725 ),
+	float2( -0.09418410,	-0.92938870 ),
+	float2(  0.34495938,	0.29387760 ),
+	float2( -0.91588581,	0.45771432 ),
+	float2( -0.81544232,	-0.87912464 ),
+	float2( -0.38277543,	0.27676845 ),
+	float2(  0.97484398,	0.75648379 ),
+	float2(  0.44323325,	-0.97511554 ),
+	float2(  0.53742981,	-0.47373420 ),
+	float2( -0.26496911,	-0.41893023 ),
+	float2(  0.79197514,	0.19090188 ),
+	float2( -0.24188840,	0.99706507 ),
+	float2( -0.81409955,	0.91437590 ),
+	float2(  0.19984126,	0.78641367 ),
+	float2(  0.14383161,	-0.14100790 )
+};
 
 //Decoding of GBuffer Normals
 half3 DecodeNormal(half2 enc)
@@ -44,11 +67,11 @@ float3 ReconstructViewPositionFromDepth(float3 viewRay, float depth)
 	return viewRay * depth;
 }
 
-float3 GetViewPosFromUV(float2 uv)
+float3 GetViewPosFromUV(float2 uv, float depth)
 {
-	float3 viewRay = normalize(float3((uv.x*2.0f-1.0f) * thFOV * aspectRatio, (uv.y*2.0f-1.0f) * thFOV, 1.0));
-	float depth = shaderTextures[0].Sample(linearSampler, uv);
-	return viewRay * depth;
+	float3 viewRay = float3(uv.x * aspectRatio * thFOV, uv.y * thFOV, 1.0); //normalize(float3((2.0f * uv.x - 1.0f) * aspectRatio * thFOV, (2.0f * uv.y - 1.0f) * thFOV, 1.0));
+	//float depth = shaderTextures[0].Sample(linearSampler, uv);
+	return depth * viewRay;
 }
 
 float3 GetRandomVector(float2 uv)
@@ -99,123 +122,150 @@ float SSAOPixelShader(VertexShaderOutput input) : SV_Target0
 		return 1.0f;
 	}
 
-	float3 normal = shaderTextures[1].Sample(linearSampler, input.TexCoord); 
-	
-	normal = normalize(DecodeNormal(normal.xy));
+	float2 tex = 0.5f * input.ScreenPosition.xy + 0.5f;
+	tex.y = 1.0f - tex.y;
 
-	float3 viewPosition = (input.ViewRay * depth); // //  float3((input.TexCoord.x*2.0f-1.0f) * thFOV * aspectRatio, (input.TexCoord.y*2.0f-1.0f) * thFOV, 1.0)
-	float3 randomVector = GetRandomVector(input.TexCoord.xy);
+	//TODO: Try inverted projection instead
+	float3 normal = shaderTextures[1].Sample(linearSampler, input.TexCoord).xyz; //, (float3x3)View)); //normalize(shaderTextures[1].Sample(linearSampler, input.TexCoord));//
+	normal = normalize(mul(normal, (float3x3)View));
+	
+	float3 viewPosition = normalize(depth * float3(tex.x * aspectRatio * thFOV, tex.y * thFOV, 1.0));//(input.ViewRay * depth); // //  normalize(float3((2.0f * input.TexCoord.x - 1.0f) * aspectRatio * thFOV, (2.0f * input.TexCoord.y - 1.0f) * thFOV, 1.0))
+	//float3 randomVector = mul(GetRandomVector(input.TexCoord.xy), View);
 
 	float occlusion = 0.0f;
+	float2 samplingScaling = samplingRadius / screenSize;
 
-	for(int i = 0; i < kernelSize; i++)
+	[unroll]
+	for(int i = 0; i < sampleCount; i++)
 	{
-		float3 offset = 2.0f * reflect(samplingRays[i].xyz, randomVector) - 1.0f;
-		normal.x *= -1.0f;
-		offset.x *= -1.0f;
+		// sample at an offset specified by the current Poisson-Disk sample and scale it by a radius (has to be in Texture-Space)
+		float2 sampleTexCoord = tex + ((poissonSamples[i] * samplingScaling));
+		float sampleDepth = shaderTextures[0].Sample(linearSampler, sampleTexCoord);
+		float3 samplePos = normalize(GetViewPosFromUV(sampleTexCoord, sampleDepth));
+		float3 sampleDir = normalize(samplePos - viewPosition);
 
-		//Doing a manual sign because sign might return 0 if the dot == 0
-		float flip = (dot(normal, offset) > 0.0f) ? 1.0f : -1.0f;
-		float3 q = (viewPosition + (flip * (samplingRadius * offset)));
+		// angle between SURFACE-NORMAL and SAMPLE-DIRECTION (vector from SURFACE-POSITION to SAMPLE-POSITION)
+		float NdotS = max(dot(normal, sampleDir), 0);//max(, 0);
 
-		float4 projectedCoords = mul(float4(q, 1.0f), Projection);
-		projectedCoords /= projectedCoords.w;
-		projectedCoords.xy = 0.5f * projectedCoords.xy + 0.5f; 
-		projectedCoords.y = 1.0f - projectedCoords.y;
-
-		float3 ray = GetViewPosFromUV(projectedCoords.xy);
-		ray.z = 1.0f - ray.z;
-		//float sampleDepth = 1.0f - shaderTextures[0].Sample(linearSampler, projectedCoords.xy);
-		//float3 ray = (q.xyz * sampleDepth);
-
-		float distance = abs(viewPosition.z - ray.z);
-		float dp = dot(normal, normalize(ray - viewPosition));
-
-		occlusion += flip * (dp * OcclusionFunction(distance));
+		// distance between SURFACE-POSITION and SAMPLE-POSITION
+		float VPdistSP = distance(viewPosition.xyz, samplePos.xyz);
+ 
+		// a = distance function
+		float a = 1.0 - smoothstep(gOcclusionFadeStart, gOcclusionFadeEnd, VPdistSP);
+		
+		// b = dot-Product
+		//float b = NdotS;
+ 
+		occlusion += (a * NdotS);
 	}
 
-	occlusion = 1.0f - (occlusion / kernelSize);
+	occlusion = 1.0f - (occlusion / sampleCount);
 
-	return saturate(pow(occlusion, intensity));
+	return occlusion; //saturate(pow(occlusion, intensity));
 }
 
-//THIS WORKS! Backup...
+	//for(int i = 0; i < kernelSize; i++)
+	//{
+	//	float3 offset = 2.0f * reflect(samplingRays[i].xyz, randomVector) - 1.0f;
+	//	normal.x *= -1.0f;
+	//	offset.x *= -1.0f;
 
-/*
-sampler g_buffer_norm;
-sampler g_buffer_pos;
-sampler g_random;
-float random_size;
-float g_sample_rad;
-float g_intensity;
-float g_scale;
-float g_bias;
+	//	//Doing a manual sign because sign might return 0 if the dot == 0
+	//	float flip = (dot(normal, offset) > 0.0f) ? 1.0f : -1.0f;
+	//	float3 q = (viewPosition + (flip * (samplingRadius * offset)));
 
-struct PS_INPUT
-{
-float2 uv : TEXCOORD0;
-};
+	//	float4 projectedCoords = mul(float4(q, 1.0f), Projection);
+	//	projectedCoords /= projectedCoords.w;
+	//	//projectedCoords.xy = 0.5f * projectedCoords.xy + 0.5f; 
+	//	//projectedCoords.y = 1.0f - projectedCoords.y;
 
-struct PS_OUTPUT
-{
-float4 color : COLOR0;
-};
+	//	//float3 ray = GetViewPosFromUV(projectedCoords.xy);
+	//	//ray.z = 1.0f - ray.z;
+	//	float sampleDepth = 1.0f - shaderTextures[0].Sample(linearSampler, projectedCoords.xy);
+	//	float3 ray = (q.xyz * sampleDepth);
 
-float3 getPosition(in float2 uv)
-{
-return tex2D(g_buffer_pos,uv).xyz;
-}
+	//	float distance = abs(viewPosition.z - ray.z);
+	//	float dp = dot(normal, normalize(ray - viewPosition));
 
-float3 getNormal(in float2 uv)
-{
-return normalize(tex2D(g_buffer_norm, uv).xyz * 2.0f - 1.0f);
-}
+	//	occlusion += (dp * OcclusionFunction(distance));
+	//}
 
-float2 getRandom(in float2 uv)
-{
-return normalize(tex2D(g_random, g_screen_size * uv / random_size).xy * 2.0f - 1.0f);
-}
 
-float doAmbientOcclusion(in float2 tcoord,in float2 uv, in float3 p, in float3 cnorm)
-{
-float3 diff = getPosition(tcoord + uv) - p;
-const float3 v = normalize(diff);
-const float d = length(diff)*g_scale;
-return max(0.0,dot(cnorm,v)-g_bias)*(1.0/(1.0+d))*g_intensity;
-}
 
-PS_OUTPUT main(PS_INPUT i)
-{
-PS_OUTPUT o = (PS_OUTPUT)0;
 
-o.color.rgb = 1.0f;
-const float2 vec[4] = {float2(1,0),float2(-1,0),
-			float2(0,1),float2(0,-1)};
-
-float3 p = getPosition(i.uv);
-float3 n = getNormal(i.uv);
-float2 rand = getRandom(i.uv);
-
-float ao = 0.0f;
-float rad = g_sample_rad/p.z;
-
-//SSAO Calculation
-int iterations = 4;
-for (int j = 0; j < iterations; ++j)
-{
-  float2 coord1 = reflect(vec[j],rand)*rad;
-  float2 coord2 = float2(coord1.x*0.707 - coord1.y*0.707,
-			  coord1.x*0.707 + coord1.y*0.707);
-  
-  ao += doAmbientOcclusion(i.uv,coord1*0.25, p, n);
-  ao += doAmbientOcclusion(i.uv,coord2*0.5, p, n);
-  ao += doAmbientOcclusion(i.uv,coord1*0.75, p, n);
-  ao += doAmbientOcclusion(i.uv,coord2, p, n);
-}
-ao/=(float)iterations*4.0;
-/END
-
-//Do stuff here with your occlusion value: modulate ambient lighting, write it to a buffer for later use, etc.
-return o;
-}
-*/
+//sampler g_buffer_norm;
+//sampler g_buffer_pos;
+//sampler g_random;
+//float random_size;
+//float g_sample_rad;
+//float g_intensity;
+//float g_scale;
+//float g_bias;
+//
+//struct PS_INPUT
+//{
+//float2 uv : TEXCOORD0;
+//};
+//
+//struct PS_OUTPUT
+//{
+//float4 color : COLOR0;
+//};
+//
+//float3 getPosition(in float2 uv)
+//{
+//return tex2D(g_buffer_pos,uv).xyz;
+//}
+//
+//float3 getNormal(in float2 uv)
+//{
+//return normalize(tex2D(g_buffer_norm, uv).xyz * 2.0f - 1.0f);
+//}
+//
+//float2 getRandom(in float2 uv)
+//{
+//return normalize(tex2D(g_random, g_screen_size * uv / random_size).xy * 2.0f - 1.0f);
+//}
+//
+//float doAmbientOcclusion(in float2 tcoord,in float2 uv, in float3 p, in float3 cnorm)
+//{
+//float3 diff = getPosition(tcoord + uv) - p;
+//const float3 v = normalize(diff);
+//const float d = length(diff)*g_scale;
+//return max(0.0,dot(cnorm,v)-g_bias)*(1.0/(1.0+d))*g_intensity;
+//}
+//
+//PS_OUTPUT main(PS_INPUT i)
+//{
+//PS_OUTPUT o = (PS_OUTPUT)0;
+//
+//o.color.rgb = 1.0f;
+//const float2 vec[4] = {float2(1,0),float2(-1,0),
+//			float2(0,1),float2(0,-1)};
+//
+//float3 p = getPosition(i.uv);
+//float3 n = getNormal(i.uv);
+//float2 rand = getRandom(i.uv);
+//
+//float ao = 0.0f;
+//float rad = g_sample_rad/p.z;
+//
+////SSAO Calculation
+//int iterations = 4;
+//for (int j = 0; j < iterations; ++j)
+//{
+//  float2 coord1 = reflect(vec[j],rand)*rad;
+//  float2 coord2 = float2(coord1.x*0.707 - coord1.y*0.707,
+//			  coord1.x*0.707 + coord1.y*0.707);
+//  
+//  ao += doAmbientOcclusion(i.uv,coord1*0.25, p, n);
+//  ao += doAmbientOcclusion(i.uv,coord2*0.5, p, n);
+//  ao += doAmbientOcclusion(i.uv,coord1*0.75, p, n);
+//  ao += doAmbientOcclusion(i.uv,coord2, p, n);
+//}
+//ao/=(float)iterations*4.0;
+///END
+//
+////Do stuff here with your occlusion value: modulate ambient lighting, write it to a buffer for later use, etc.
+//return o;
+//}

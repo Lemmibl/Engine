@@ -6,6 +6,9 @@ cbuffer PositionalBuffer //Whatever, idk what else to name it
 {
 	float4 LightDirection;
 	float4 CameraPosition;
+	float tanHalfFOV;
+	float AspectRatio;
+	float2 PADDING;
 };
 
 cbuffer PixelMatrixBuffer
@@ -29,7 +32,7 @@ SamplerState anisotropicSampler : register(s1);
 SamplerComparisonState cmpSampler : register(s2);
 
 Texture1DArray materialArray;
-Texture2D shaderTextures[4]; // 0 = normal, 1 = standard depth, 2 = shadowmap depth, 3 = color map.
+Texture2D shaderTextures[4]; // 0 = normal, 1 = standard depth, 2 = shadowmap depth, 3 = material.
 
 struct VertexShaderOutput
 {
@@ -150,36 +153,35 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target0
 	float finalSpecularProduct = 0.0f;
 	float LightIntensity = LightDirection.w;
 
-	float4 encodedNormal = shaderTextures[0].Sample(anisotropicSampler, input.TexCoord);
+	float3 material = shaderTextures[3].Sample(linearSampler, input.TexCoord).xyz;
 
 	//http://gamedev.stackexchange.com/questions/22864/enconding-decoding-bit-value-in-texture-alpha-channel
 	//We recreate the material IDs
-	int materialID = round(encodedNormal.z * 255);
-	int materialID2 = round(encodedNormal.w * 255);
+	int materialID = round(material.x * 1024.5f);
+	int materialID2 = round(material.y * 1024.5f);
 
 	RetrieveMaterialData(materialID, ambienceCoefficient, diffuseCoefficient, specularCoefficient, surfaceSmoothness);
 
 	//If there's a difference between our two materials, we have to lerp!
 	if(materialID != materialID2) 
 	{
-		float lerpVal = shaderTextures[3].Sample(linearSampler, input.TexCoord).w;
 		float ambienceCoefficient2, diffuseCoefficient2, specularCoefficient2, surfaceSmoothness2;
 
 		RetrieveMaterialData(materialID2, ambienceCoefficient2, diffuseCoefficient2, specularCoefficient2, surfaceSmoothness2);
 
-		ambienceCoefficient =	lerp(ambienceCoefficient, ambienceCoefficient2, lerpVal);
-		diffuseCoefficient =	lerp(diffuseCoefficient, diffuseCoefficient2, lerpVal);
-		specularCoefficient =	lerp(specularCoefficient, specularCoefficient2, lerpVal);
-		surfaceSmoothness =		lerp(surfaceSmoothness, surfaceSmoothness2, lerpVal);
+		ambienceCoefficient =	lerp(ambienceCoefficient, ambienceCoefficient2, material.z);
+		diffuseCoefficient =	lerp(diffuseCoefficient, diffuseCoefficient2, material.z);
+		specularCoefficient =	lerp(specularCoefficient, specularCoefficient2, material.z);
+		surfaceSmoothness =		lerp(surfaceSmoothness, surfaceSmoothness2, material.z);
 	}
 
-	float3 normal = normalize(DecodeNormal(encodedNormal.xy));
+	float3 normal = normalize(shaderTextures[0].Sample(linearSampler, input.TexCoord).xyz);
 
 	//Surface-to-light vector
-	float3 lightVector = (-LightDirection);
+	float3 lightVector = normalize(-LightDirection.xyz);
 
 	//Calculate diffuse intensity, the usual
-	float NdL = dot(lightVector, normal);
+	float NdL = dot(normal, lightVector);
 
 	//Reconstructing world position
 	float4 viewPosition = float4(ReconstructViewPositionFromDepth(input.ViewPosition, depth, CameraPosition.w), 1.0f);
@@ -199,8 +201,10 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target0
 	//We cull a large part of the light and shadow calculations if it's outside of the light frustum.
 	if
 	(		
-		!(	lightScreenPos.x >= 0.99f || lightScreenPos.x <= 0.01f	|| 
+		!(	(lightScreenPos.x >= 0.99f || lightScreenPos.x <= 0.01f	|| 
 			lightScreenPos.y >= 0.99f || lightScreenPos.y <= 0.01f	)
+			&& NdL <= 0.0f
+		)
 	)
 	{
 		/*Variance shadow mapping. http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html */
@@ -208,8 +212,8 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target0
 	}	
 
 	//If we aren't in shadow and surface angle is satisfactory, calculate specular
-	if(NdL > 0.0f)
-	{
+	//if(NdL > 0.0f)
+	//{
 		//Reflection vector
 		float3 reflectionVector = normalize(reflect(lightVector, normal));
 
@@ -217,91 +221,11 @@ float4 LightPixelShader(VertexShaderOutput input) : SV_Target0
 		float3 directionToCamera = normalize(worldPosition.xyz - CameraPosition.xyz);
 
 		//Calculate specular light 
-		finalSpecularProduct += specularCoefficient * pow( saturate( dot(reflectionVector, directionToCamera)), surfaceSmoothness);
+		finalSpecularProduct += specularCoefficient * pow( saturate( dot(directionToCamera, reflectionVector)), surfaceSmoothness);
 
 		//Calculate diffuse light
-		finalDiffuseProduct += diffuseCoefficient * (NdL * DiffuseColor.rgb);
-	}
+		finalDiffuseProduct += diffuseCoefficient * (saturate(NdL) * DiffuseColor.rgb);
+	//}
 
 	return float4((ambienceCoefficient * AmbientColor.rgb) + (finalDiffuseProduct * shadowMultiplier), (finalSpecularProduct * shadowMultiplier)) * LightIntensity;
 }
-
-/*
-http://www.gamedev.net/topic/544909-view-space-directional-light/
-*/
-
-
-	//float4 finalAmbienceProduct = ambienceCoefficient * AmbientColor;
-
-	//float3 worldNormal = DecodeNormal(encodedNormal.xy);
-	//float3 normalVS = normalize(mul(worldNormal, View));
-
-	////Surface-to-light vector
-	//float3 LightDirectionVS = normalize(mul(-LightDirection, View));
-
-	////Calculate diffuse intensity, the usual
-	//float NdL = saturate(dot(normalVS, LightDirectionVS));
-	//float UpDotN = dot(worldNormal, float3(0.0f, 1.0f, 0.0f));
-
-	//float4 viewPosition = float4(ReconstructViewPositionFromDepth(input.ViewPosition.xyz, depth), 1.0f);
-
-	////Reconstructing position in worldspace
-	//float4 worldPosition = mul(viewPosition, InvertedView);
-
-	////Extract pixel position as seen from light POV for shadow map extraction.
-	//float4 lightScreenPos = mul(worldPosition, LightView);
-
-	////Adjust from [-1,1] range to [0,1] range
-	//lightScreenPos.x = ((lightScreenPos.x * 0.5f) + 0.5f);
-	//lightScreenPos.y = ((-lightScreenPos.y * 0.5f) + 0.5f);
-
-	//float shadowMultiplier = 1.0f;
-
-	////We cull a large part of the light and shadow calculations if it's outside of the light frustum.
-	////Using 0.99 and 0.01 because if I use 1.0 and 0.0, I get black lines along the extreme edge of the light frustum
-	//if
-	//(		
-	//	!(	lightScreenPos.x >= 0.99f || lightScreenPos.x <= 0.01f	|| 
-	//		lightScreenPos.y >= 0.99f || lightScreenPos.y <= 0.01f	)
-	//)
-	//{
-	//	/*Variance shadow mapping. http://http.developer.nvidia.com/GPUGems3/gpugems3_ch08.html */
-	//	shadowMultiplier = ShadowContribution(lightScreenPos.xy, viewPosition.z);
-	//}
-
-
-	//if(UpDotN > 0.0f)
-	//{
-	//	///*PHONG*/
-	//	////Reflection vector
-	//	////DONOT USE -lightDir since the reflection returns a ray from the surface
-	//	//float3 reflectionVector = normalize(reflect(LightDirectionVS, normalVS));
-
-	//	////Calculate specular light 
-	//	//finalSpecularProduct += specularCoefficient * pow( saturate( dot(reflectionVector, -normalize(input.ViewRay))), surfaceSmoothness);
-	//	///*End of phong*/
-
-	//	/*BLINN-PHONG*/
-	//	float3 H = normalize( LightDirectionVS + input.ViewPosition.xyz );
-
-	//	//Calculate specular light 
-	//	finalSpecularProduct += specularCoefficient * pow( saturate( dot(normalVS, H)), surfaceSmoothness);
-	//	/*End of blinn phong*/
-
-	//	//Calculate diffuse light
-	//	finalDiffuseProduct += diffuseCoefficient * (NdL * DiffuseColor.rgb);
-	//}
-
-
-	////Essentially I save a float in the normal render target's .w channel that decides if the object should be shaded or not.
-	////I do this because of how the vegatation quads are built -- they each consist of three different quads, and they all shade eachother.
-	////This results in the quads looking really ass, and they also start flickering when the light moves and shit. Bad.
-
-	//if(recieveShadows)
-	//{
-	//	return (LightIntensity*float4(finalAmbienceProduct.rgb + (finalDiffuseProduct * shadowMultiplier), (finalSpecularProduct * shadowMultiplier)));
-	//}
-	//else //Don't shade if it shouldn't recieve any shadows.
-	//{
-	//	return (LightIntensity*float4(finalAmbienceProduct.rgb + finalDiffuseProduct, finalSpecularProduct));
-	//}

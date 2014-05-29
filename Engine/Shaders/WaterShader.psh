@@ -4,7 +4,7 @@ SamplerState linearSampler;
 
 cbuffer PixelMatrixBuffer
 {
-	float4x4 WorldView : packoffset(c0.x);
+	float4x4 World : packoffset(c0.x);
 	float waterColorStartOffset : packoffset(c4.x);
 	float waterColorMultiplier	: packoffset(c4.y);
 };
@@ -18,8 +18,9 @@ struct PSInput
 struct PSOutput
 {
 	float4 Color : SV_TARGET0; //R8G8B8A8
-	float4 Normal : SV_TARGET1; //R8G8B8A8
+	float3 Normal : SV_TARGET1; //R11G11B10
 	float Depth : SV_TARGET2; //R32
+	float4 Material : SV_TARGET3;
 };
 
 //http://aras-p.info/texts/CompactNormalStorage.html#method04spheremap
@@ -31,12 +32,13 @@ half2 Encode(half3 n)
 }
 
 //Since it's an 8bit UNORM channel, it means every value will end up in the 0..1 spectrum, so we have to do some trickery to save it and unload it properly.
+//When it gets read in other shaders it gets multiplied back to 255.
 float EncodeMaterialID(float id)
 {
-	return (id / 255.0f);
+	return (id / 1024.0f);
 }
 
-static const float3 UpNormal = float3(0.0f, 0.2f, 0.0f);
+static const float3 UpNormal = float3(1.0f, 1.4f, 1.0f);
 
 PSOutput WaterShaderPS(PSInput input)
 {
@@ -48,12 +50,11 @@ PSOutput WaterShaderPS(PSInput input)
 	//Depth has been stored in normal .w channel.
 	output.Depth = input.TexCoord.w;
 
-	float4 PreCalcNormal = float4(UpNormal + (normalTexture.SampleLevel(linearSampler, input.TexCoord.xy * 1.5f, 0).xyz), 1.0f);
+	float4 PreCalcNormal = float4(UpNormal * (normalTexture.SampleLevel(linearSampler, input.TexCoord.xy * 1.5f, 0).xyz), 1.0f);
 
-	float3 normal =  normalize(mul(PreCalcNormal, (float3x3)WorldView)).xyz;
+	output.Normal = normalize(mul(PreCalcNormal, (float3x3)World)).xyz;
 
-	output.Normal.xy = Encode(normal);
-	output.Normal.zw = EncodeMaterialID(6.0f); //Both channels are reserved for material ID. Assign the water material.
+	output.Material.xy = EncodeMaterialID(6.0f); //Both channels are reserved for material ID. Assign the water material.
 
 	//So my mode of thinking here is that the higher the water is, the brighter the colors I want. 
 	//I feel this reflects reality because more light escapes the thinner the water is, if you know what I mean.

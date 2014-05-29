@@ -18,17 +18,19 @@ struct PixelShaderInput
 struct PixelShaderOutput
 {
 	float4 Color : SV_TARGET0; //R8G8B8A8
-	float4 Normal : SV_TARGET1; //R8G8B8A8
+	float3 Normal : SV_TARGET1; //R8G8B8A8
 	float Depth : SV_TARGET2; //R32
+	float4 Material : SV_TARGET3;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 // Functions
 ////////////////////////////////////////////////////////////////////////////////
 //Since it's an 8bit UNORM channel, it means every value will end up in the 0..1 spectrum, so we have to do some trickery to save it and unload it properly.
+//When it gets read in other shaders it gets multiplied back to 255.
 float EncodeMaterialID(float id)
 {
-	return (id / 255.0f);
+	return (id / 1024.0f);
 }
 
 //http://aras-p.info/texts/CompactNormalStorage.html#method04spheremap
@@ -65,10 +67,11 @@ PixelShaderOutput GrassPS(PixelShaderInput input)
 	output.Depth = input.TexCoord.w;
 
 	//Encode normal into .xy channels
-	output.Normal.xy = Encode(normalize(input.Normal.xyz));
+	output.Normal = normalize(input.Normal).xyz;//Encode();
 	
 	//This is our material ID. Our normal map is R8G8B8A8, so our z and w channels each have 8 bits == 255 possible values.
-	output.Normal.zw = EncodeMaterialID(4.0f);
+	output.Material.xy = EncodeMaterialID(4.0f);
+	output.Material.zw = 1.0f;
 
 	return output;
 }

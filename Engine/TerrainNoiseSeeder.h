@@ -40,18 +40,12 @@ public:
 
 	void SetTerrainType(TerrainTypes::Type terrainMode){ this->terrainMode = terrainMode; }
 
-	inline void CreateNormal(std::vector<MarchingCubeVoxel>& verts, IndexingValue& index, unsigned int idx)
+	inline float RandomFloat()
 	{
-		verts[idx].normal.x = (verts[idx - 1].density -	verts[idx+1].density)					* XFactor;
-		verts[idx].normal.y = (verts[idx - index.sizeY].density - verts[idx + index.sizeY].density)			* YFactor;
-		verts[idx].normal.z = (verts[idx - (index.sizeY * index.sizeZ)].density - verts[idx + (index.sizeY * index.sizeZ)].density)	* ZFactor;
-
-		//Normalize results.
-		float vectorLength = (verts[idx].normal.x*verts[idx].normal.x) + (verts[idx].normal.y*verts[idx].normal.y) + (verts[idx].normal.z*verts[idx].normal.z);
-
-		verts[idx].normal.x = verts[idx].normal.x/vectorLength;
-		verts[idx].normal.y = verts[idx].normal.y/vectorLength;
-		verts[idx].normal.z = verts[idx].normal.z/vectorLength;
+		float scale=RAND_MAX+1.0f;
+		float base=rand()/scale;
+		float fine=rand()/scale;
+		return base+fine/scale;
 	}
 
 	int GetTerrainType() { return terrainMode;	}

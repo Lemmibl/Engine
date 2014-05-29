@@ -505,7 +505,7 @@ void DRCompose::OnSettingsReload(Config* cfg)
 	const Setting& cameraSettings = cfg->getRoot()["camera"];
 	cameraSettings.lookupValue("fov", thFOV);
 
-	thFOV = tan(thFOV/2.0f);
+	thFOV = tan((thFOV * (XM_PI/180.0f))*0.5f);
 
 	//windowWidth, windowHeight
 	const Setting& renderingSettings = cfg->getRoot()["rendering"];
